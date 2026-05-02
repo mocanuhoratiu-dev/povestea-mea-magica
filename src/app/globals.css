@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+:root {
+  --brand-navy: #2A3B5F;
+  --brand-gold: #FFD700;
+  --brand-cream: #FFFBF0;
+  --brand-purple: #9B59B6;
+  --brand-purple-light: #C39BD3;
+  --brand-pink: #FF6BB3;
+  --brand-blue: #5DADE2;
+  
+  --background: var(--brand-cream);
+  --foreground: var(--brand-navy);
+}
+
+@theme inline {
+  --color-brand-navy: var(--brand-navy);
+  --color-brand-gold: var(--brand-gold);
+  --color-brand-cream: var(--brand-cream);
+  --color-brand-purple: var(--brand-purple);
+  --color-brand-purple-light: var(--brand-purple-light);
+  --color-brand-pink: var(--brand-pink);
+  --color-brand-blue: var(--brand-blue);
+  
+  --font-quicksand: var(--font-quicksand);
+  --font-nunito: var(--font-nunito);
+
+  --animate-glow: glow 2s ease-in-out infinite;
+  --animate-float: float 6s ease-in-out infinite;
+  
+  @keyframes glow {
+    0%, 100% { box-shadow: 0 0 5px var(--brand-gold), 0 0 10px var(--brand-gold); }
+    50% { box-shadow: 0 0 20px var(--brand-gold), 0 0 30px var(--brand-gold); }
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-quicksand), sans-serif;
+  overflow-x: hidden;
+}
+
+.magic-gradient {
+  background: linear-gradient(135deg, var(--brand-navy) 0%, var(--brand-purple) 100%);
+}
+
+.text-magic-gradient {
+  background: linear-gradient(135deg, var(--brand-navy) 0%, var(--brand-purple) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Custom Premium Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(155, 89, 182, 0.3);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(155, 89, 182, 0.5);
+}
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(155, 89, 182, 0.3) transparent;
+}
