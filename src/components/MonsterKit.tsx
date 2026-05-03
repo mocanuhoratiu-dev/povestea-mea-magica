@@ -352,7 +352,7 @@ function Page2Recipe() {
 
         <Divider stars={3} />
 
-        <div className="mk-incantation-box">
+        <div className="mk-incantation-box" style={{ marginTop: '30px' }}>
           <p className="mk-incantation-label">Descântecul de Activare · Se rostește în șoaptă</p>
           <p className="mk-incantation-text">
             „Umbre mici și umbre mari, plecați voi în alte zări!<br />
@@ -413,11 +413,8 @@ function Page3Labels({ name }: { name: string }) {
           {/* Round seal */}
           <div className="mk-label-cut-wrap" style={{ flexShrink: 0 }}>
             <div className="mk-seal-label">
-              <div className="mk-seal-label-inner">
-                <p className="mk-seal-label-text">SIGILIUL</p>
-                <DragonSealSmall />
-                <p className="mk-seal-label-text">DRAGONULUI</p>
-                <p className="mk-seal-label-text">SOMNOROS</p>
+              <div style={{ transform: 'scale(0.9)' }}>
+                <DragonSeal />
               </div>
             </div>
           </div>
@@ -483,7 +480,7 @@ function CornerSVG({ pos, dark = false }: { pos: 'tl'|'tr'|'bl'|'br'; dark?: boo
 function DragonSeal() {
   return (
     <div className="mk-dragon-seal">
-      <div className="mk-dragon-seal-inner">
+      <div className="mk-dragon-seal-inner" style={{ marginTop: '-8px' }}>
         <svg viewBox="0 0 80 80" width="54" height="54" fill="none">
           {/* Body */}
           <ellipse cx="40" cy="47" rx="12" ry="10" fill="#c9a84c" opacity="0.85"/>
