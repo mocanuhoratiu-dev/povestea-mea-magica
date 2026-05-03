@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldCheck, Ghost, Sparkles, Wand2, Download, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, Ghost, Download, Wand2 } from 'lucide-react';
 import MagicalLoader from './MagicalLoader';
 
 const MonsterKit = () => {
@@ -108,101 +108,98 @@ const MonsterKit = () => {
         </motion.div>
       </div>
 
-      {/* HIDDEN TEMPLATES - STYLE FROM INITIAL HTML, CONTENT FROM PYTHON */}
+      {/* HIDDEN TEMPLATES - EXACTLY AS USER PROVIDED */}
       <div style={{ position: 'absolute', left: '-10000px', top: 0 }}>
         <style>{`
-          .cert-wrap {
-            background: linear-gradient(160deg, #1a0a2e 0%, #0d1a3a 50%, #1a0a2e 100%);
-            border: 3px solid #c9a84c;
-            border-radius: 4px;
-            padding: 48px 52px;
-            position: relative;
-            font-family: 'Crimson Pro', Georgia, serif;
-            overflow: hidden;
-            width: 680px;
-            height: 900px;
-            box-sizing: border-box;
-            color: #f4e4a0;
-          }
+          @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;1,300;1,400&display=swap');
+          .cert-wrap { background: linear-gradient(160deg, #1a0a2e 0%, #0d1a3a 50%, #1a0a2e 100%); border: 3px solid #c9a84c; border-radius: 4px; padding: 48px 52px; position: relative; font-family: 'Crimson Pro', Georgia, serif; overflow: hidden; width: 680px; height: 900px; box-sizing: border-box; }
           .corner { position: absolute; width: 60px; height: 60px; opacity: 0.85; }
           .c-tl { top: 8px; left: 8px; }
           .c-tr { top: 8px; right: 8px; transform: scaleX(-1); }
           .c-bl { bottom: 8px; left: 8px; transform: scaleY(-1); }
           .c-br { bottom: 8px; right: 8px; transform: scale(-1); }
-          .inner-border { position: absolute; inset: 16px; border: 1px solid rgba(201,168,76,0.35); border-radius: 2px; }
-          .stars-bg { position: absolute; inset: 0; opacity: 0.3; }
-          .ministry-label { font-family: 'Cinzel', serif; font-size: 9px; font-weight: 600; letter-spacing: 0.3em; color: #c9a84c; text-align: center; text-transform: uppercase; margin-bottom: 6px; }
-          .title-main { font-family: 'Cinzel', serif; font-size: 24px; font-weight: 700; color: #f4e4a0; text-align: center; line-height: 1.2; margin-bottom: 4px; }
+          .inner-border { position: absolute; inset: 16px; border: 1px solid rgba(201,168,76,0.35); border-radius: 2px; pointer-events: none; }
+          .stars-bg { position: absolute; inset: 0; pointer-events: none; }
+          .ministry-label { font-family: 'Cinzel', serif; font-size: 9px; font-weight: 600; letter-spacing: 0.3em; color: #c9a84c; text-align: center; text-transform: uppercase; margin-bottom: 6px; opacity: 0.8; }
+          .title-main { font-family: 'Cinzel', serif; font-size: 22px; font-weight: 700; color: #f4e4a0; text-align: center; line-height: 1.25; text-shadow: 0 0 30px rgba(201,168,76,0.4); margin-bottom: 4px; }
           .title-sub { font-family: 'Cinzel', serif; font-size: 12px; font-weight: 400; color: #c9a84c; text-align: center; letter-spacing: 0.2em; margin-bottom: 20px; }
-          .divider { display: flex; align-items: center; gap: 12px; margin: 15px 0; justify-content: center; }
+          .divider { display: flex; align-items: center; gap: 12px; margin: 12px 0; justify-content: center; }
           .div-line { width: 100px; height: 1px; background: linear-gradient(90deg, transparent, #c9a84c, transparent); }
-          .beneficiary-block { text-align: center; margin: 30px 0; }
-          .beneficiary-label { font-size: 10px; letter-spacing: 0.2em; color: #c9a84c; text-transform: uppercase; display: block; margin-bottom: 10px; font-family: 'Cinzel', serif; }
-          .beneficiary-name { font-family: 'Cinzel', serif; font-size: 32px; color: #f4e4a0; font-weight: 600; border-bottom: 2px solid #c9a84c; display: inline-block; padding: 0 40px 5px; font-style: italic; }
-          .body-text { font-size: 16px; line-height: 1.6; color: #d4c5e8; text-align: center; margin: 20px 0; font-style: italic; }
-          .clauses-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
-          .clause { background: rgba(201,168,76,0.06); border: 1px solid rgba(201,168,76,0.2); border-radius: 2px; padding: 12px; font-size: 12px; color: #bfb3d4; }
-          .clause-num { font-family: 'Cinzel', serif; color: #c9a84c; font-size: 9px; font-weight: 600; display: block; margin-bottom: 4px; }
-          .seal-section { display: flex; align-items: center; justify-content: center; gap: 40px; margin-top: 40px; }
-          .seal-circle { width: 100px; height: 100px; border-radius: 50%; border: 2px solid #c9a84c; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(201,168,76,0.1); position: relative; }
-          .sig-block { text-align: center; flex: 1; }
-          .sig-line { height: 1px; background: #c9a84c; width: 140px; margin: 0 auto 5px; }
-          .sig-title { font-family: 'Cinzel', serif; font-size: 7px; color: #c9a84c; text-transform: uppercase; }
+          .div-star { color: #c9a84c; font-size: 14px; }
+          .beneficiary-block { text-align: center; margin: 20px 0; padding: 16px 24px; background: rgba(201,168,76,0.06); border: 1px solid rgba(201,168,76,0.2); border-radius: 2px; }
+          .beneficiary-label { font-size: 10px; letter-spacing: 0.25em; color: #c9a84c; text-transform: uppercase; display: block; margin-bottom: 6px; font-family: 'Cinzel', serif; }
+          .beneficiary-name { font-family: 'Cinzel', serif; font-size: 20px; color: #f4e4a0; font-weight: 600; border-bottom: 1px solid rgba(201,168,76,0.4); display: inline-block; min-width: 260px; padding-bottom: 4px; font-style: italic; opacity: 0.7; }
+          .body-text { font-size: 14.5px; line-height: 1.75; color: #d4c5e8; text-align: center; font-weight: 300; margin: 18px 0; font-style: italic; }
+          .body-text em { color: #f4e4a0; font-style: normal; font-weight: 400; }
+          .clauses-title { font-family: 'Cinzel', serif; font-size: 9px; font-weight: 600; letter-spacing: 0.3em; color: #c9a84c; text-align: center; text-transform: uppercase; margin: 18px 0 10px; }
+          .clauses-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0 0 18px; }
+          .clause { background: rgba(201,168,76,0.05); border: 1px solid rgba(201,168,76,0.18); border-radius: 2px; padding: 10px 12px; font-size: 12.5px; color: #bfb3d4; line-height: 1.5; }
+          .clause-num { font-family: 'Cinzel', serif; color: #c9a84c; font-size: 9px; font-weight: 600; letter-spacing: 0.15em; display: block; margin-bottom: 3px; }
+          .seal-section { display: flex; align-items: center; justify-content: center; gap: 28px; margin: 20px 0; }
+          .seal-circle { width: 90px; height: 90px; border-radius: 50%; border: 2px solid #c9a84c; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(201,168,76,0.07); position: relative; flex-shrink: 0; }
+          .seal-text { font-family: 'Cinzel', serif; font-size: 7px; color: #c9a84c; text-align: center; letter-spacing: 0.1em; line-height: 1.4; }
+          .seal-icon { font-size: 26px; margin-bottom: 2px; filter: sepia(1) saturate(2) hue-rotate(15deg); }
+          .signatures { flex: 1; display: flex; flex-direction: column; gap: 16px; }
+          .sig-block { text-align: center; }
+          .sig-line { height: 1px; background: rgba(201,168,76,0.4); width: 160px; margin: 0 auto 4px; }
+          .sig-title { font-family: 'Cinzel', serif; font-size: 7.5px; color: #c9a84c; letter-spacing: 0.12em; text-transform: uppercase; }
+          .sig-name { font-size: 11px; color: #9a8bc0; font-style: italic; }
+          .cert-number { position: absolute; bottom: 24px; right: 56px; font-family: 'Cinzel', serif; font-size: 7.5px; color: rgba(201,168,76,0.4); letter-spacing: 0.15em; }
+          .validity { font-family: 'Cinzel', serif; font-size: 8px; color: rgba(201,168,76,0.5); text-align: center; letter-spacing: 0.2em; margin-top: 14px; text-transform: uppercase; }
         `}</style>
-        <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Crimson+Pro:ital,wght@0,400;1,400&display=swap" rel="stylesheet" />
 
         {/* PAGE 1: CERTIFICATE */}
         <div id="cert-p1" className="cert-wrap">
           <svg className="stars-bg" viewBox="0 0 680 900" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="60" cy="80" r="1" fill="#c9a84c" opacity="0.3"/><circle cx="180" cy="40" r="0.8" fill="#fff" opacity="0.25"/><circle cx="320" cy="65" r="1.2" fill="#c9a84c" opacity="0.2"/>
+            <circle cx="60" cy="80" r="1" fill="#c9a84c" opacity="0.3"/><circle cx="180" cy="40" r="0.8" fill="#fff" opacity="0.25"/><circle cx="320" cy="65" r="1.2" fill="#c9a84c" opacity="0.2"/><circle cx="480" cy="30" r="0.9" fill="#fff" opacity="0.3"/><circle cx="600" cy="90" r="1" fill="#c9a84c" opacity="0.25"/><circle cx="640" cy="45" r="0.7" fill="#fff" opacity="0.2"/><circle cx="30" cy="200" r="0.8" fill="#c9a84c" opacity="0.2"/><circle cx="650" cy="180" r="1" fill="#fff" opacity="0.25"/><circle cx="100" cy="820" r="0.9" fill="#c9a84c" opacity="0.2"/><circle cx="560" cy="840" r="1.1" fill="#fff" opacity="0.2"/><circle cx="350" cy="860" r="0.8" fill="#c9a84c" opacity="0.15"/>
           </svg>
-          <svg className="corner c-tl" viewBox="0 0 60 60"><path d="M2 30 L2 2 L30 2" stroke="#c9a84c" strokeWidth="2" fill="none"/></svg>
-          <svg className="corner c-tr" viewBox="0 0 60 60"><path d="M2 30 L2 2 L30 2" stroke="#c9a84c" strokeWidth="2" fill="none"/></svg>
-          <svg className="corner c-bl" viewBox="0 0 60 60"><path d="M2 30 L2 2 L30 2" stroke="#c9a84c" strokeWidth="2" fill="none"/></svg>
-          <svg className="corner c-br" viewBox="0 0 60 60"><path d="M2 30 L2 2 L30 2" stroke="#c9a84c" strokeWidth="2" fill="none"/></svg>
+          <svg className="corner c-tl" viewBox="0 0 60 60" fill="none"><path d="M2 30 L2 2 L30 2" stroke="#c9a84c" strokeWidth="1.5"/><path d="M2 14 L14 2" stroke="#c9a84c" strokeWidth="0.8" opacity="0.5"/><circle cx="2" cy="2" r="2.5" fill="#c9a84c" opacity="0.8"/></svg>
+          <svg className="corner c-tr" viewBox="0 0 60 60" fill="none"><path d="M2 30 L2 2 L30 2" stroke="#c9a84c" strokeWidth="1.5"/><path d="M2 14 L14 2" stroke="#c9a84c" strokeWidth="0.8" opacity="0.5"/><circle cx="2" cy="2" r="2.5" fill="#c9a84c" opacity="0.8"/></svg>
+          <svg className="corner c-bl" viewBox="0 0 60 60" fill="none"><path d="M2 30 L2 2 L30 2" stroke="#c9a84c" strokeWidth="1.5"/><path d="M2 14 L14 2" stroke="#c9a84c" strokeWidth="0.8" opacity="0.5"/><circle cx="2" cy="2" r="2.5" fill="#c9a84c" opacity="0.8"/></svg>
+          <svg className="corner c-br" viewBox="0 0 60 60" fill="none"><path d="M2 30 L2 2 L30 2" stroke="#c9a84c" strokeWidth="1.5"/><path d="M2 14 L14 2" stroke="#c9a84c" strokeWidth="0.8" opacity="0.5"/><circle cx="2" cy="2" r="2.5" fill="#c9a84c" opacity="0.8"/></svg>
           <div className="inner-border"></div>
           <div className="ministry-label">Ministerul Protecției Magice · Regatul Viselor Liniștite</div>
           <div className="title-main">CERTIFICAT OFICIAL<br/>DE PROTECȚIE MAGICĂ</div>
           <div className="title-sub">împotriva Monștrilor, Umbrelor și Ființelor Nedorite</div>
-          <div className="divider"><div className="div-line"></div>✦✦✦<div className="div-line"></div></div>
+          <div className="divider"><div className="div-line"></div><span className="div-star">✦</span><span className="div-star">✦</span><span className="div-star">✦</span><div className="div-line"></div></div>
           <div className="beneficiary-block">
             <span className="beneficiary-label">Micul / Mica Erou / Eroină</span>
             <div className="beneficiary-name">{name || "EROUL NOSTRU"}</div>
           </div>
-          <p className="body-text">Prin autoritatea conferită de <b>Ordinul Dragonului Somnoros</b> și cu binecuvântarea <b>Zânei Luminilor de Noapte</b>, camera acestui copil este protejată de un <b>scut invizibil</b> țesut din praf de stele.</p>
+          <p className="body-text">Prin autoritatea conferită de <em>Ordinul Dragonului Somnoros</em> și cu binecuvântarea <em>Zânei Luminilor de Noapte</em>, camera acestui copil este protejată de un <em>scut invizibil</em> țesut din <em>praf de stele</em>. <em>Acest certificat este valabil la nesfârșit.</em></p>
+          <div className="divider"><div className="div-line"></div><span className="div-star">✦</span><div className="div-line"></div></div>
+          <div className="clauses-title">Clauze Oficiale Antimonstru · Articole de Lege Magică</div>
           <div className="clauses-grid">
-            <div className="clause"><span className="clause-num">Art. I</span>Monștrilor le este strict interzis accesul sub pat.</div>
-            <div className="clause"><span className="clause-num">Art. II</span>Zgomotele noptii se transforma in pisici adormite.</div>
+            <div className="clause"><span className="clause-num">Art. I</span>Monștrilor le este strict interzis accesul sub pat, în dulap și în spatele ușii.</div>
+            <div className="clause"><span className="clause-num">Art. II</span>Zgomotele misterioase se transformă automat în pisici adormite.</div>
+            <div className="clause"><span className="clause-num">Art. III</span>Nicio umbră nu are dreptul să facă grimase fără permisiune scrisă.</div>
+            <div className="clause"><span className="clause-num">Art. IV</span>Orice monstru recalcitrant va fi transformat în nori de vată roz.</div>
           </div>
           <div className="seal-section">
-            <div className="sig-block"><div className="sig-line"></div><div className="sig-title">Comandantul Gardienilor</div></div>
-            <div className="seal-circle">
-               <svg width="50" height="50" viewBox="0 0 100 100">
-                  <ellipse cx="40" cy="40" rx="20" ry="10" fill="#c9a84c" transform="rotate(90 40 40)" opacity="0.8"/>
-                  <ellipse cx="50" cy="55" rx="30" ry="15" fill="#c9a84c" opacity="0.8"/>
-                  <path d="M65 50 Q80 45 85 30" stroke="#c9a84c" strokeWidth="5" fill="none"/>
-               </svg>
-            </div>
-            <div className="sig-block"><div className="sig-line"></div><div className="sig-title">Zâna Luminilor</div></div>
+            <div className="signatures"><div className="sig-block"><div className="sig-line"></div><div className="sig-name">Mag. Umberto</div><div className="sig-title">Comandantul Gardienilor</div></div></div>
+            <div className="seal-circle"><div className="seal-icon">🐉</div><div className="seal-text">SIGILIUL<br/>DRAGONULUI<br/>SOMNOROS</div></div>
+            <div className="signatures"><div className="sig-block"><div className="sig-line"></div><div className="sig-name">Luminia</div><div className="sig-title">Zâna Luminilor</div></div></div>
           </div>
+          <div className="validity">Valabil pe toată durata copilăriei</div>
+          <div className="cert-number">Nr. #0001 · Seria SOMN-LINIȘTIT</div>
         </div>
 
-        {/* PAGE 2: RECIPE */}
+        {/* PAGE 2: RECIPE (SAME STYLE) */}
         <div id="cert-p2" className="cert-wrap">
           <div className="inner-border"></div>
           <div className="ministry-label">LABORATORUL ALCHIMIC AL MINISTERULUI</div>
-          <div className="title-main" style={{fontSize: '32px'}}>REȚETĂ SECRETĂ</div>
+          <div className="title-main">REȚETĂ SECRETĂ</div>
           <div className="title-sub">A SPRAY-ULUI ANTI-UMBRE ALE NOPȚII</div>
           <div className="divider"><div className="div-line"></div>✦✦✦<div className="div-line"></div></div>
           <div style={{textAlign: 'left', padding: '0 20px'}}>
-            <h4 style={{fontFamily: 'Cinzel', color: '#c9a84c', fontSize: '16px', marginBottom: '15px'}}>INGREDIENTE MAGICE</h4>
-            <div style={{fontSize: '14px', color: '#d4c5e8', lineHeight: '2'}}>
+            <h4 style={{fontFamily: 'Cinzel', color: '#c9a84c', fontSize: '14px', marginBottom: '15px'}}>INGREDIENTE MAGICE</h4>
+            <div style={{fontSize: '13px', color: '#d4c5e8', lineHeight: '2'}}>
               🧪 1. Un flacon cu apă curată (lună plină)<br/>
               🍋 2. Trei picuri de Esență de Curaj (lămâie)<br/>
               ✨ 3. Un strop de Sclipici Invizibil (ochiul inimii)
             </div>
-            <h4 style={{fontFamily: 'Cinzel', color: '#c9a84c', fontSize: '16px', margin: '30px 0 15px'}}>MOD DE PREPARARE</h4>
-            <div style={{fontSize: '14px', color: '#d4c5e8', lineHeight: '1.8'}}>
+            <h4 style={{fontFamily: 'Cinzel', color: '#c9a84c', fontSize: '14px', margin: '30px 0 15px'}}>MOD DE PREPARARE</h4>
+            <div style={{fontSize: '13px', color: '#d4c5e8', lineHeight: '1.8'}}>
               1. Toarnă apa în flacon gândind curajos.<br/>
               2. Adaugă esența și agită de 7 ori.<br/>
               3. Suflă deasupra pentru activare.<br/>
@@ -211,23 +208,24 @@ const MonsterKit = () => {
           </div>
           <div style={{marginTop: 'auto', background: 'rgba(201,168,76,0.1)', padding: '20px', borderRadius: '10px', border: '1px dashed #c9a84c', textAlign: 'center'}}>
             <div style={{fontFamily: 'Cinzel', fontSize: '10px', color: '#c9a84c', marginBottom: '10px'}}>DESCANTEC DE ACTIVARE</div>
-            <div style={{fontStyle: 'italic', fontSize: '16px', color: '#f4e4a0'}}>"Umbre mici și umbre mari, plecați voi în alte zări!"</div>
+            <div style={{fontStyle: 'italic', fontSize: '14px', color: '#f4e4a0'}}>"Umbre mici și umbre mari, plecați voi în alte zări!"</div>
           </div>
         </div>
 
-        {/* PAGE 3: LABELS */}
+        {/* PAGE 3: LABELS (SAME STYLE) */}
         <div id="cert-p3" className="cert-wrap">
           <div className="ministry-label" style={{marginTop: '40px'}}>DECUPAȚI ȘI LIPIȚI PE FLACON</div>
           <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '50px', marginTop: '60px'}}>
             <div style={{width: '320px', height: '180px', border: '2px dashed #c9a84c', padding: '5px', borderRadius: '15px'}}>
-              <div style={{width: '100%', height: '100%', background: 'linear-gradient(160deg, #1a0a2e, #0d1a3a)', border: '2px solid #c9a84c', borderRadius: '10px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
+              <div style={{width: '100%', height: '100%', background: 'linear-gradient(160deg, #1a0a2e, #0d1a3a)', border: '2px solid #c9a84c', borderRadius: '10px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center'}}>
                 <div style={{fontFamily: 'Cinzel', fontSize: '20px'}}>ANTI-UMBRE</div>
                 <div style={{fontSize: '8px', color: '#c9a84c', marginTop: '5px'}}>FORMULA SECRETĂ NR. SPRAY-007</div>
+                <div style={{fontSize: '20px', marginTop: '10px'}}>🐉</div>
               </div>
             </div>
             <div style={{display: 'flex', gap: '30px'}}>
                <div style={{width: '120px', height: '120px', border: '2px dashed #c9a84c', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                  <div style={{width: '100px', height: '100px', background: '#1a0a2e', border: '2px solid #c9a84c', borderRadius: '50%', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
+                  <div style={{width: '100px', height: '100px', background: '#1a0a2e', border: '2px solid #c9a84c', borderRadius: '50%', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
                     <div style={{fontSize: '7px'}}>SIGILIUL</div>
                     <div style={{fontSize: '20px'}}>🐉</div>
                     <div style={{fontSize: '7px'}}>DRAGONULUI</div>
@@ -256,7 +254,7 @@ const MonsterKit = () => {
               </div>
               <div className="p-8 bg-white/50 border-t border-brand-navy/5">
                 <button onClick={downloadKit} className="w-full bg-brand-navy text-brand-cream py-6 rounded-2xl font-black text-2xl border-b-8 border-brand-gold hover:scale-[1.02] transition-all flex items-center justify-center gap-4">
-                  <Download /> DESCARCĂ KITUL COMPLET (3 PAGINI)
+                   DESCARCĂ KITUL COMPLET (3 PAGINI)
                 </button>
               </div>
             </motion.div>
