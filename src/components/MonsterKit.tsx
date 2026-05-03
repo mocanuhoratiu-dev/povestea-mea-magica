@@ -54,62 +54,96 @@ export default function MonsterKit() {
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeight = doc.internal.pageSize.getHeight();
         
-        // 1. Fundal Premium (Cream/Gold Border)
-        doc.setFillColor(255, 252, 240); // Hârtie fină
-        doc.rect(0, 0, pageWidth, pageHeight, 'F');
-        
-        doc.setDrawColor(218, 165, 32); // Gold
-        doc.setLineWidth(5);
-        doc.rect(10, 10, pageWidth - 20, pageHeight - 20); // Border principal
-        
-        doc.setLineWidth(1);
-        doc.rect(15, 15, pageWidth - 30, pageHeight - 30); // Border secundar
-        
-        // 2. Header Oficial
-        doc.setFont("times", "bold");
-        doc.setFontSize(28);
-        doc.setTextColor(26, 31, 46); // Brand Navy
-        doc.text("CERTIFICAT OFICIAL", pageWidth / 2, 40, { align: "center" });
-        doc.setFontSize(24);
-        doc.text("DE PROTECȚIE MAGICĂ", pageWidth / 2, 52, { align: "center" });
+        // Funcție pentru curățarea diacriticelor (jsPDF standard nu le suportă bine)
+        const cleanStr = (str: string) => {
+          return str
+            .replace(/ș/g, "s").replace(/Ș/g, "S")
+            .replace(/ț/g, "t").replace(/Ț/g, "T")
+            .replace(/ă/g, "a").replace(/Ă/g, "A")
+            .replace(/â/g, "a").replace(/Â/g, "A")
+            .replace(/î/g, "i").replace(/Î/g, "I");
+        };
 
-        // 3. Imaginea Scutului (Dacă există)
-        if (imageUrl) {
-          try {
-            // Notă: Imaginea de pe pollinations s-ar putea să aibă nevoie de conversie în base64 
-            // sau de setarea corespunzătoare a CORS. Pentru început punem un placeholder elegant 
-            // sau încercăm încărcarea directă dacă browserul permite.
-            doc.addImage(imageUrl, 'JPEG', 65, 65, 80, 80);
-          } catch (e) {
-            console.log("Imaginea nu a putut fi adăugată în PDF direct.");
-            doc.setDrawColor(218, 165, 32);
-            doc.circle(pageWidth / 2, 105, 40, 'D');
-          }
-        }
+        // 1. FUNDAL PREMIUM (Efect de Pergament)
+        doc.setFillColor(252, 248, 232); // Cream antic
+        doc.rect(0, 0, pageWidth, pageHeight, 'F');
+
+        // 2. CHENAR ORNAT (Design "Money Worthy")
+        doc.setDrawColor(184, 134, 11); // Dark Goldenrod
+        doc.setLineWidth(1.5);
+        doc.rect(10, 10, pageWidth - 20, pageHeight - 20); // Border exterior
+        doc.rect(12, 12, pageWidth - 24, pageHeight - 24); // Border interior
         
-        // 4. Conținut Personalizat
-        doc.setFontSize(16);
-        doc.text(`Acordat Micului Erou: ${name.toUpperCase()}`, pageWidth / 2, 160, { align: "center" });
+        // Oranamente colțuri
+        const drawCorner = (x: number, y: number, rot: number) => {
+            doc.saveGraphicsState();
+            doc.setLineWidth(3);
+            doc.line(x, y, x + (rot > 0 ? -15 : 15), y);
+            doc.line(x, y, x, y + (rot > 0 ? -15 : 15));
+            doc.restoreGraphicsState();
+        };
+        drawCorner(10, 10, 0); drawCorner(pageWidth-10, 10, 0);
+        drawCorner(10, pageHeight-10, 1); drawCorner(pageWidth-10, pageHeight-10, 1);
+
+        // 3. LOGO / SIMBOL MAGIC (Centrat)
+        doc.setDrawColor(26, 31, 46);
+        doc.setLineWidth(0.5);
+        doc.circle(pageWidth/2, 50, 25, 'D'); // Cercul exterior al sigiliului
+        doc.setFont("times", "bold");
+        doc.setFontSize(35);
+        doc.text("M", pageWidth/2, 55, { align: "center" }); // "M" de la Magie
+
+        // 4. TEXTUL CERTIFICATULUI
+        doc.setTextColor(26, 31, 46);
+        doc.setFontSize(28);
+        doc.text(cleanStr("CERTIFICAT DE CURAJ"), pageWidth/2, 95, { align: "center" });
         
         doc.setFont("times", "italic");
-        doc.setFontSize(12);
-        const splitText = doc.splitTextToSize(kitText, 160);
-        doc.text(splitText, 25, 175);
+        doc.setFontSize(16);
+        doc.text(cleanStr("Acordat cu mandrie micului erou:"), pageWidth/2, 110, { align: "center" });
         
-        // 5. Pecetea și Semnătura
-        doc.setFillColor(155, 89, 182); // Purple
-        doc.circle(pageWidth - 50, pageHeight - 50, 15, 'F');
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(8);
-        doc.text("SIGILIU", pageWidth - 50, pageHeight - 51, { align: "center" });
-        doc.text("MAGIC", pageWidth - 50, pageHeight - 47, { align: "center" });
-        
+        doc.setFont("times", "bolditalic");
+        doc.setFontSize(32);
+        doc.setTextColor(155, 89, 182); // Purple
+        doc.text(cleanStr(name.toUpperCase()), pageWidth/2, 130, { align: "center" });
+
+        doc.setDrawColor(155, 89, 182);
+        doc.line(pageWidth/2 - 40, 135, pageWidth/2 + 40, 135);
+
+        // 5. CORPUL MAGIC (Vrajă & Instrucțiuni)
         doc.setTextColor(26, 31, 46);
-        doc.setFont("times", "bold");
-        doc.text("Marele Consiliu al Magiei", 40, pageHeight - 45);
-        doc.setDrawColor(26, 31, 46);
-        doc.line(25, pageHeight - 42, 75, pageHeight - 42);
+        doc.setFont("times", "normal");
+        doc.setFontSize(14);
         
+        const bodyY = 155;
+        doc.setFont("times", "bold");
+        doc.text(cleanStr("SCUTUL TAU MAGIC:"), 30, bodyY);
+        doc.setFont("times", "italic");
+        const vRaja = cleanStr("Luminițe sclipitoare, fugiți umbre temătoare! Cu inima plină de curaj, fac al fricii un naufragiu!");
+        const splitVraja = doc.splitTextToSize(vRaja, 150);
+        doc.text(splitVraja, 30, bodyY + 10);
+
+        doc.setFont("times", "bold");
+        doc.text(cleanStr(`RETETA SPRAY-ULUI ANTI-${monsterType.toUpperCase()}:`), 30, bodyY + 35);
+        doc.setFont("times", "normal");
+        const reteta = cleanStr("Amesteca apa pura cu 3 picaturi de esenta de lamaie si un strop de sclipici invizibil. Pulverizeaza in camera inainte de culcare.");
+        const splitReteta = doc.splitTextToSize(reteta, 150);
+        doc.text(splitReteta, 30, bodyY + 45);
+
+        // 6. SIGILIU DE AUR (Simulat)
+        doc.setFillColor(218, 165, 32); // Gold
+        doc.circle(pageWidth - 45, pageHeight - 45, 18, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(10);
+        doc.text("APROBAT", pageWidth - 45, pageHeight - 47, { align: "center" });
+        doc.text("2026", pageWidth - 45, pageHeight - 42, { align: "center" });
+
+        // 7. SEMNĂTURA
+        doc.setTextColor(26, 31, 46);
+        doc.setFontSize(12);
+        doc.text(cleanStr("Marele Consiliu al Magiei"), 30, pageHeight - 40);
+        doc.line(30, pageHeight - 38, 80, pageHeight - 38);
+
         doc.save(`Certificat_Magic_${name}.pdf`);
       };
       document.head.appendChild(script);
