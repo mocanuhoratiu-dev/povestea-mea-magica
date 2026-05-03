@@ -46,26 +46,71 @@ export default function MonsterKit() {
   };
 
     const downloadKit = () => {
-      // Încărcăm jsPDF dinamic
       const script = document.createElement("script");
       script.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
       script.onload = () => {
         const { jsPDF } = (window as any).jspdf;
-        const doc = new jsPDF();
+        const doc = new jsPDF('p', 'mm', 'a4');
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
         
+        // 1. Fundal Premium (Cream/Gold Border)
+        doc.setFillColor(255, 252, 240); // Hârtie fină
+        doc.rect(0, 0, pageWidth, pageHeight, 'F');
+        
+        doc.setDrawColor(218, 165, 32); // Gold
+        doc.setLineWidth(5);
+        doc.rect(10, 10, pageWidth - 20, pageHeight - 20); // Border principal
+        
+        doc.setLineWidth(1);
+        doc.rect(15, 15, pageWidth - 30, pageHeight - 30); // Border secundar
+        
+        // 2. Header Oficial
         doc.setFont("times", "bold");
-        doc.setFontSize(22);
-        doc.text("CERTIFICAT DE PROTECȚIE MAGICĂ", 105, 40, { align: "center" });
+        doc.setFontSize(28);
+        doc.setTextColor(26, 31, 46); // Brand Navy
+        doc.text("CERTIFICAT OFICIAL", pageWidth / 2, 40, { align: "center" });
+        doc.setFontSize(24);
+        doc.text("DE PROTECȚIE MAGICĂ", pageWidth / 2, 52, { align: "center" });
+
+        // 3. Imaginea Scutului (Dacă există)
+        if (imageUrl) {
+          try {
+            // Notă: Imaginea de pe pollinations s-ar putea să aibă nevoie de conversie în base64 
+            // sau de setarea corespunzătoare a CORS. Pentru început punem un placeholder elegant 
+            // sau încercăm încărcarea directă dacă browserul permite.
+            doc.addImage(imageUrl, 'JPEG', 65, 65, 80, 80);
+          } catch (e) {
+            console.log("Imaginea nu a putut fi adăugată în PDF direct.");
+            doc.setDrawColor(218, 165, 32);
+            doc.circle(pageWidth / 2, 105, 40, 'D');
+          }
+        }
         
+        // 4. Conținut Personalizat
         doc.setFontSize(16);
-        doc.text(`Acordat eroului: ${name}`, 105, 60, { align: "center" });
+        doc.text(`Acordat Micului Erou: ${name.toUpperCase()}`, pageWidth / 2, 160, { align: "center" });
         
-        doc.setFontSize(12);
         doc.setFont("times", "italic");
-        const splitText = doc.splitTextToSize(kitText, 170);
-        doc.text(splitText, 20, 80);
+        doc.setFontSize(12);
+        const splitText = doc.splitTextToSize(kitText, 160);
+        doc.text(splitText, 25, 175);
         
-        doc.save(`Certificat_Protectie_${name}.pdf`);
+        // 5. Pecetea și Semnătura
+        doc.setFillColor(155, 89, 182); // Purple
+        doc.circle(pageWidth - 50, pageHeight - 50, 15, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(8);
+        doc.text("SIGILIU", pageWidth - 50, pageHeight - 51, { align: "center" });
+        doc.text("MAGIC", pageWidth - 50, pageHeight - 47, { align: "center" });
+        
+        doc.setTextColor(26, 31, 46);
+        doc.setFont("times", "bold");
+        doc.text("Marele Consiliu al Magiei", 40, pageHeight - 45);
+        doc.setDrawColor(26, 31, 46);
+        doc.line(25, pageHeight - 42, 75, pageHeight - 42);
+        
+        doc.save(`Certificat_Magic_${name}.pdf`);
       };
       document.head.appendChild(script);
     };
