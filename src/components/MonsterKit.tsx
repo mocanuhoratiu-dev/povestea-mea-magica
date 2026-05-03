@@ -753,7 +753,7 @@ const CERT_STYLES = `
   border: 1px solid rgba(201,168,76,0.4);
   background: rgba(201,168,76,0.08);
   font-family: 'Cinzel', serif; font-size: 8.5px; color: #c9a84c;
-  display: flex; align-items: center; justify-content: center;
+  text-align: center; line-height: 22px;
   margin-top: 1px;
 }
 .mk-step-l1 { font-size: 13px; color: #d4c5e8; line-height: 1.45; }
