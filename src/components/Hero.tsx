@@ -65,10 +65,10 @@ export default function Hero() {
             🪄 Magie pură pentru cel mic
           </div>
           <h1 className="font-nunito font-extrabold text-5xl md:text-7xl text-brand-navy leading-tight">
-            Copilul tău, <span className="text-brand-purple italic">eroul</span> principal! 🐉
+            Copilul tău, <span className="text-brand-purple italic">eroul</span> poveștii! 🐉
           </h1>
           <p className="mt-6 text-xl text-brand-navy/80 leading-relaxed max-w-xl font-medium">
-            Creează o aventură unică în care micuțul tău salvează galaxia sau explorează păduri fermecate. O poveste de neuitat, livrată instant! 🌈
+            Transformă fiecare seară într-o aventură legendară. O poveste unică, creată special pentru micuțul tău, gata în câteva secunde. ✨
           </p>
           
           <div className="mt-10 flex flex-col sm:flex-row gap-6">
@@ -78,7 +78,7 @@ export default function Hero() {
               whileTap={{ scale: 0.95 }}
               className="bg-brand-purple text-brand-cream px-10 py-5 rounded-[2rem] font-extrabold text-xl shadow-2xl hover:shadow-brand-purple/40 transition-all animate-glow text-center border-b-4 border-brand-purple-light"
             >
-              Vreau Povestea Mea! 🦄
+              Creează Povestea! 🦄
             </motion.a>
           </div>
         </motion.div>
@@ -92,8 +92,8 @@ export default function Hero() {
         >
           <div className="relative z-10 w-full animate-float will-change-transform">
             <Image
-              src="/hero-storybook.png?v=1"
-              alt="Mockup Povestea Mea Magică"
+              src="/hero-storybook.png?v=2"
+              alt="Ilustrație Magică"
               width={800}
               height={600}
               className="object-contain drop-shadow-[0_35px_35px_rgba(155,89,182,0.3)] transition-transform group-hover:scale-105 duration-700"

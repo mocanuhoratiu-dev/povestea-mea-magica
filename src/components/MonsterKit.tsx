@@ -261,6 +261,52 @@ export default function MonsterKit() {
                 <div className="grid grid-cols-3 gap-3 mb-8 text-sm">
                   {['📜 Certificat', '🧪 Rețetă Spray', '🏷️ Etichete'].map(item => (
                     <div key={item} className="bg-brand-navy/5 rounded-2xl py-3 px-2 font-bold text-brand-navy/70">{item}</div>
+                  ))}
+                </div>
+                <motion.button
+                  onClick={handleDownload}
+                  whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                  className="w-full bg-brand-navy text-brand-cream py-5 rounded-2xl font-black text-lg border-b-8 border-brand-gold flex items-center justify-center gap-3 shadow-xl transition-all"
+                >
+                  <Download size={22} /> Descarcă PDF-ul Complet
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </section>
+  );
+}
+
+/* ══════════════════════════════════════════════════
+   PDF PAGE COMPONENTS
+══════════════════════════════════════════════════ */
+
+function Page1Certificate({ name, monsterLabel, content }: { name: string; monsterLabel: string; content: any }) {
+  const heroName = name.trim() || 'EROUL NOSTRU';
+  return (
+    <div id="mk-page-1" className="mk-page" style={{ display: 'none' }}>
+      <div className="mk-bg" />
+      <div className="mk-border-outer" />
+      <div className="mk-border-inner" />
+      {(['tl','tr','bl','br'] as const).map(pos => <CornerSVG key={pos} pos={pos} />)}
+
+      <div className="mk-content">
+        <p className="mk-ministry">Ministerul Protecției Magice · Regatul Viselor Liniștite</p>
+        <h1 className="mk-title">CERTIFICAT OFICIAL<br/>DE PROTECȚIE MAGICĂ</h1>
+        <p className="mk-subtitle">împotriva {monsterLabel} și a tuturor Ființelor Nedorite</p>
+        <Divider stars={3} />
+
+        <div className="mk-beneficiary-box">
+          <span className="mk-beneficiary-label">Se acordă micuțului / micuței erou / eroine</span>
+          <div className="mk-beneficiary-name">{heroName}</div>
+        </div>
+
+        <p className="mk-body">
+          Prin autoritatea conferită de <em>Ordinul Dragonului Somnoros</em> și cu binecuvântarea{' '}
+          <em>Zânei Luminilor de Noapte</em>, <span dangerouslySetInnerHTML={{ __html: content.body }} />{' '}
+          <em>Prezentul certificat este valabil la nesfârșit.</em>
         </p>
 
         <Divider stars={1} />
