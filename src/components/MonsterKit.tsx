@@ -49,96 +49,73 @@ export default function MonsterKit() {
       const script = document.createElement("script");
       script.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
       script.onload = () => {
-        const { jsPDF } = (window as any).jspdf;
-        const doc = new jsPDF('p', 'mm', 'a4');
-        const pageWidth = doc.internal.pageSize.getWidth();
-        const pageHeight = doc.internal.pageSize.getHeight();
-        
-        const cleanStr = (str: string) => {
-          return str
-            .replace(/ș/g, "s").replace(/Ș/g, "S")
-            .replace(/ț/g, "t").replace(/Ț/g, "T")
-            .replace(/ă/g, "a").replace(/Ă/g, "A")
-            .replace(/â/g, "a").replace(/Â/g, "A")
-            .replace(/î/g, "i").replace(/Î/g, "I");
-        };
+        try {
+            const { jsPDF } = (window as any).jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            
+            const cleanStr = (str: string) => {
+              return str
+                .replace(/ș/g, "s").replace(/Ș/g, "S")
+                .replace(/ț/g, "t").replace(/Ț/g, "T")
+                .replace(/ă/g, "a").replace(/Ă/g, "A")
+                .replace(/â/g, "a").replace(/Â/g, "A")
+                .replace(/î/g, "i").replace(/Î/g, "I");
+            };
 
-        // 1. FUNDAL VIBRANT (Pink/Purple)
-        doc.setFillColor(255, 105, 245); // Roz aprins
-        doc.rect(0, 0, pageWidth, pageHeight, 'F');
+            // 1. FUNDAL VIBRANT
+            doc.setFillColor(255, 105, 245);
+            doc.rect(0, 0, pageWidth, pageHeight, 'F');
 
-        // 2. RAMA CENTRALĂ ALBĂ (Rotunjită)
-        doc.setFillColor(255, 255, 255);
-        doc.roundedRect(15, 15, pageWidth - 30, pageHeight - 30, 10, 10, 'F');
-        doc.setDrawColor(180, 70, 255); // Contur mov
-        doc.setLineWidth(1);
-        doc.roundedRect(15, 15, pageWidth - 30, pageHeight - 30, 10, 10, 'D');
-
-        // 3. MONȘTRI SIMPATICI (Desenați cu cod)
-        const drawMonster = (x: number, y: number, color: {r:number, g:number, b:number}, size: number) => {
-            doc.setFillColor(color.r, color.g, color.b);
-            doc.circle(x, y, size, 'F'); // Corpul
+            // 2. RAMA ALBĂ
             doc.setFillColor(255, 255, 255);
-            doc.circle(x - size/3, y - size/4, size/4, 'F'); // Ochi stânga
-            doc.circle(x + size/3, y - size/4, size/4, 'F'); // Ochi dreapta
-            doc.setFillColor(0, 0, 0);
-            doc.circle(x - size/3, y - size/4, size/8, 'F'); // Pupilă stânga
-            doc.circle(x + size/3, y - size/4, size/8, 'F'); // Pupilă dreapta
-            doc.setDrawColor(0, 0, 0);
-            doc.arc(x, y + size/5, size/3, 0, 180, false, 'D'); // Zâmbet
-        };
+            doc.roundedRect(10, 10, pageWidth - 20, pageHeight - 20, 5, 5, 'F');
 
-        drawMonster(25, 25, {r: 0, g: 220, b: 150}, 12); // Monstru verde sus
-        drawMonster(pageWidth - 25, 35, {r: 255, g: 150, b: 0}, 15); // Monstru portocaliu
-        drawMonster(30, pageHeight - 30, {r: 0, g: 150, b: 255}, 18); // Monstru albastru jos
-        drawMonster(pageWidth - 35, pageHeight - 40, {r: 255, g: 80, b: 80}, 14); // Monstru roșu
+            // 3. MONȘTRI SIMPLIFICAȚI (Fără funcții complexe care pot da eroare)
+            const drawMonster = (x: number, y: number, r: number, g: number, b: number, size: number) => {
+                doc.setFillColor(r, g, b);
+                doc.circle(x, y, size, 'F');
+                doc.setFillColor(255, 255, 255);
+                doc.circle(x - size/3, y - size/4, size/4, 'F');
+                doc.circle(x + size/3, y - size/4, size/4, 'F');
+                doc.setFillColor(0, 0, 0);
+                doc.circle(x - size/3, y - size/4, size/8, 'F');
+                doc.circle(x + size/3, y - size/4, size/8, 'F');
+                // Gura - o linie simplă
+                doc.setDrawColor(0, 0, 0);
+                doc.setLineWidth(1);
+                doc.line(x - size/4, y + size/3, x + size/4, y + size/3);
+            };
 
-        // 4. TITLU JUCĂUȘ
-        doc.setTextColor(180, 70, 255);
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(32);
-        doc.text(cleanStr("BRAVO, EROULE!"), pageWidth/2, 50, { align: "center" });
-        
-        doc.setFontSize(18);
-        doc.setTextColor(50, 50, 50);
-        doc.text(cleanStr("Ai primit Scutul Magic contra monstrilor!"), pageWidth/2, 65, { align: "center" });
+            drawMonster(25, 25, 0, 220, 150, 10);
+            drawMonster(pageWidth-25, 25, 255, 150, 0, 12);
+            drawMonster(25, pageHeight-25, 0, 150, 255, 15);
+            drawMonster(pageWidth-25, pageHeight-25, 255, 80, 80, 10);
 
-        // 5. NUME PERSONALIZAT (MARE ȘI COLORAT)
-        doc.setFontSize(45);
-        doc.setTextColor(255, 80, 150); // Roz închis
-        doc.text(cleanStr(name.toUpperCase()), pageWidth/2, 95, { align: "center" });
+            // 4. TEXT
+            doc.setTextColor(180, 70, 255);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(28);
+            doc.text(cleanStr("BRAVO, EROULE!"), pageWidth/2, 40, { align: "center" });
+            
+            doc.setFontSize(40);
+            doc.setTextColor(255, 80, 150);
+            doc.text(cleanStr(name.toUpperCase()), pageWidth/2, 70, { align: "center" });
 
-        // 6. CONȚINUT MAGIC
-        const boxY = 120;
-        doc.setFillColor(245, 245, 255);
-        doc.roundedRect(25, boxY, pageWidth - 50, 90, 5, 5, 'F');
-        
-        doc.setTextColor(60, 60, 60);
-        doc.setFontSize(14);
-        doc.setFont("helvetica", "bold");
-        doc.text(cleanStr("VRAJA TA DE PROTECTIE:"), 35, boxY + 15);
-        
-        doc.setFont("helvetica", "normal");
-        const vraja = cleanStr(`"Luminite sclipitoare, fugiti umbre tematoare! Cu inima plina de curaj, fac al fricii un naufragiu!"`);
-        const splitVraja = doc.splitTextToSize(vraja, 140);
-        doc.text(splitVraja, 35, boxY + 25);
+            doc.setTextColor(60, 60, 60);
+            doc.setFontSize(14);
+            const bodyY = 100;
+            doc.text(cleanStr("VRAJA TA DE PROTECTIE:"), 20, bodyY);
+            doc.setFont("helvetica", "normal");
+            const splitVraja = doc.splitTextToSize(cleanStr(kitText), 160);
+            doc.text(splitVraja, 20, bodyY + 10);
 
-        doc.setFont("helvetica", "bold");
-        doc.text(cleanStr(`RETETA SPRAY-ULUI MAGIC:`), 35, boxY + 50);
-        doc.setFont("helvetica", "normal");
-        const reteta = cleanStr("Amesteca apa pura cu sclipici invizibil si putina lamaie. Pulverizeaza sub pat si monstrii vor pleca la petrecerea lor!");
-        const splitReteta = doc.splitTextToSize(reteta, 140);
-        doc.text(splitReteta, 35, boxY + 60);
-
-        // 7. PECETE DE SUPER-EROU
-        doc.setFillColor(255, 215, 0); // Gold
-        doc.circle(pageWidth/2, pageHeight - 45, 15, 'F');
-        doc.setTextColor(0, 0, 0);
-        doc.setFontSize(10);
-        doc.text("SUPER", pageWidth/2, pageHeight - 47, { align: "center" });
-        doc.text("EROU", pageWidth/2, pageHeight - 42, { align: "center" });
-
-        doc.save(`Certificat_Magic_${name}.pdf`);
+            doc.save(`Certificat_Magic_${name}.pdf`);
+        } catch (e) {
+            console.error("Eroare PDF:", e);
+            alert("🪄 Magia a întâmpinat o mică eroare la desenare. Te rugăm să încerci din nou!");
+        }
       };
       document.head.appendChild(script);
     };
