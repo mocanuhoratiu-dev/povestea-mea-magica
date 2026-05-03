@@ -54,7 +54,6 @@ export default function MonsterKit() {
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeight = doc.internal.pageSize.getHeight();
         
-        // Funcție pentru curățarea diacriticelor (jsPDF standard nu le suportă bine)
         const cleanStr = (str: string) => {
           return str
             .replace(/ș/g, "s").replace(/Ș/g, "S")
@@ -64,85 +63,80 @@ export default function MonsterKit() {
             .replace(/î/g, "i").replace(/Î/g, "I");
         };
 
-        // 1. FUNDAL PREMIUM (Efect de Pergament)
-        doc.setFillColor(252, 248, 232); // Cream antic
+        // 1. FUNDAL VIBRANT (Pink/Purple)
+        doc.setFillColor(255, 105, 245); // Roz aprins
         doc.rect(0, 0, pageWidth, pageHeight, 'F');
 
-        // 2. CHENAR ORNAT (Design "Money Worthy")
-        doc.setDrawColor(184, 134, 11); // Dark Goldenrod
-        doc.setLineWidth(1.5);
-        doc.rect(10, 10, pageWidth - 20, pageHeight - 20); // Border exterior
-        doc.rect(12, 12, pageWidth - 24, pageHeight - 24); // Border interior
-        
-        // Oranamente colțuri
-        const drawCorner = (x: number, y: number, rot: number) => {
-            doc.saveGraphicsState();
-            doc.setLineWidth(3);
-            doc.line(x, y, x + (rot > 0 ? -15 : 15), y);
-            doc.line(x, y, x, y + (rot > 0 ? -15 : 15));
-            doc.restoreGraphicsState();
+        // 2. RAMA CENTRALĂ ALBĂ (Rotunjită)
+        doc.setFillColor(255, 255, 255);
+        doc.roundedRect(15, 15, pageWidth - 30, pageHeight - 30, 10, 10, 'F');
+        doc.setDrawColor(180, 70, 255); // Contur mov
+        doc.setLineWidth(1);
+        doc.roundedRect(15, 15, pageWidth - 30, pageHeight - 30, 10, 10, 'D');
+
+        // 3. MONȘTRI SIMPATICI (Desenați cu cod)
+        const drawMonster = (x: number, y: number, color: {r:number, g:number, b:number}, size: number) => {
+            doc.setFillColor(color.r, color.g, color.b);
+            doc.circle(x, y, size, 'F'); // Corpul
+            doc.setFillColor(255, 255, 255);
+            doc.circle(x - size/3, y - size/4, size/4, 'F'); // Ochi stânga
+            doc.circle(x + size/3, y - size/4, size/4, 'F'); // Ochi dreapta
+            doc.setFillColor(0, 0, 0);
+            doc.circle(x - size/3, y - size/4, size/8, 'F'); // Pupilă stânga
+            doc.circle(x + size/3, y - size/4, size/8, 'F'); // Pupilă dreapta
+            doc.setDrawColor(0, 0, 0);
+            doc.arc(x, y + size/5, size/3, 0, 180, false, 'D'); // Zâmbet
         };
-        drawCorner(10, 10, 0); drawCorner(pageWidth-10, 10, 0);
-        drawCorner(10, pageHeight-10, 1); drawCorner(pageWidth-10, pageHeight-10, 1);
 
-        // 3. LOGO / SIMBOL MAGIC (Centrat)
-        doc.setDrawColor(26, 31, 46);
-        doc.setLineWidth(0.5);
-        doc.circle(pageWidth/2, 50, 25, 'D'); // Cercul exterior al sigiliului
-        doc.setFont("times", "bold");
-        doc.setFontSize(35);
-        doc.text("M", pageWidth/2, 55, { align: "center" }); // "M" de la Magie
+        drawMonster(25, 25, {r: 0, g: 220, b: 150}, 12); // Monstru verde sus
+        drawMonster(pageWidth - 25, 35, {r: 255, g: 150, b: 0}, 15); // Monstru portocaliu
+        drawMonster(30, pageHeight - 30, {r: 0, g: 150, b: 255}, 18); // Monstru albastru jos
+        drawMonster(pageWidth - 35, pageHeight - 40, {r: 255, g: 80, b: 80}, 14); // Monstru roșu
 
-        // 4. TEXTUL CERTIFICATULUI
-        doc.setTextColor(26, 31, 46);
-        doc.setFontSize(28);
-        doc.text(cleanStr("CERTIFICAT DE CURAJ"), pageWidth/2, 95, { align: "center" });
-        
-        doc.setFont("times", "italic");
-        doc.setFontSize(16);
-        doc.text(cleanStr("Acordat cu mandrie micului erou:"), pageWidth/2, 110, { align: "center" });
-        
-        doc.setFont("times", "bolditalic");
+        // 4. TITLU JUCĂUȘ
+        doc.setTextColor(180, 70, 255);
+        doc.setFont("helvetica", "bold");
         doc.setFontSize(32);
-        doc.setTextColor(155, 89, 182); // Purple
-        doc.text(cleanStr(name.toUpperCase()), pageWidth/2, 130, { align: "center" });
-
-        doc.setDrawColor(155, 89, 182);
-        doc.line(pageWidth/2 - 40, 135, pageWidth/2 + 40, 135);
-
-        // 5. CORPUL MAGIC (Vrajă & Instrucțiuni)
-        doc.setTextColor(26, 31, 46);
-        doc.setFont("times", "normal");
-        doc.setFontSize(14);
+        doc.text(cleanStr("BRAVO, EROULE!"), pageWidth/2, 50, { align: "center" });
         
-        const bodyY = 155;
-        doc.setFont("times", "bold");
-        doc.text(cleanStr("SCUTUL TAU MAGIC:"), 30, bodyY);
-        doc.setFont("times", "italic");
-        const vRaja = cleanStr("Luminițe sclipitoare, fugiți umbre temătoare! Cu inima plină de curaj, fac al fricii un naufragiu!");
-        const splitVraja = doc.splitTextToSize(vRaja, 150);
-        doc.text(splitVraja, 30, bodyY + 10);
+        doc.setFontSize(18);
+        doc.setTextColor(50, 50, 50);
+        doc.text(cleanStr("Ai primit Scutul Magic contra monstrilor!"), pageWidth/2, 65, { align: "center" });
 
-        doc.setFont("times", "bold");
-        doc.text(cleanStr(`RETETA SPRAY-ULUI ANTI-${monsterType.toUpperCase()}:`), 30, bodyY + 35);
-        doc.setFont("times", "normal");
-        const reteta = cleanStr("Amesteca apa pura cu 3 picaturi de esenta de lamaie si un strop de sclipici invizibil. Pulverizeaza in camera inainte de culcare.");
-        const splitReteta = doc.splitTextToSize(reteta, 150);
-        doc.text(splitReteta, 30, bodyY + 45);
+        // 5. NUME PERSONALIZAT (MARE ȘI COLORAT)
+        doc.setFontSize(45);
+        doc.setTextColor(255, 80, 150); // Roz închis
+        doc.text(cleanStr(name.toUpperCase()), pageWidth/2, 95, { align: "center" });
 
-        // 6. SIGILIU DE AUR (Simulat)
-        doc.setFillColor(218, 165, 32); // Gold
-        doc.circle(pageWidth - 45, pageHeight - 45, 18, 'F');
-        doc.setTextColor(255, 255, 255);
+        // 6. CONȚINUT MAGIC
+        const boxY = 120;
+        doc.setFillColor(245, 245, 255);
+        doc.roundedRect(25, boxY, pageWidth - 50, 90, 5, 5, 'F');
+        
+        doc.setTextColor(60, 60, 60);
+        doc.setFontSize(14);
+        doc.setFont("helvetica", "bold");
+        doc.text(cleanStr("VRAJA TA DE PROTECTIE:"), 35, boxY + 15);
+        
+        doc.setFont("helvetica", "normal");
+        const vraja = cleanStr(`"Luminite sclipitoare, fugiti umbre tematoare! Cu inima plina de curaj, fac al fricii un naufragiu!"`);
+        const splitVraja = doc.splitTextToSize(vraja, 140);
+        doc.text(splitVraja, 35, boxY + 25);
+
+        doc.setFont("helvetica", "bold");
+        doc.text(cleanStr(`RETETA SPRAY-ULUI MAGIC:`), 35, boxY + 50);
+        doc.setFont("helvetica", "normal");
+        const reteta = cleanStr("Amesteca apa pura cu sclipici invizibil si putina lamaie. Pulverizeaza sub pat si monstrii vor pleca la petrecerea lor!");
+        const splitReteta = doc.splitTextToSize(reteta, 140);
+        doc.text(splitReteta, 35, boxY + 60);
+
+        // 7. PECETE DE SUPER-EROU
+        doc.setFillColor(255, 215, 0); // Gold
+        doc.circle(pageWidth/2, pageHeight - 45, 15, 'F');
+        doc.setTextColor(0, 0, 0);
         doc.setFontSize(10);
-        doc.text("APROBAT", pageWidth - 45, pageHeight - 47, { align: "center" });
-        doc.text("2026", pageWidth - 45, pageHeight - 42, { align: "center" });
-
-        // 7. SEMNĂTURA
-        doc.setTextColor(26, 31, 46);
-        doc.setFontSize(12);
-        doc.text(cleanStr("Marele Consiliu al Magiei"), 30, pageHeight - 40);
-        doc.line(30, pageHeight - 38, 80, pageHeight - 38);
+        doc.text("SUPER", pageWidth/2, pageHeight - 47, { align: "center" });
+        doc.text("EROU", pageWidth/2, pageHeight - 42, { align: "center" });
 
         doc.save(`Certificat_Magic_${name}.pdf`);
       };
