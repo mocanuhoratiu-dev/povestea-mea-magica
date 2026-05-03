@@ -1,338 +1,390 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { ShieldCheck, Ghost, Sparkles, Star } from "lucide-react";
-import MagicalLoader from "./MagicalLoader";
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ShieldCheck, Ghost, Sparkles, Wand2, Download, CheckCircle2 } from 'lucide-react';
+import MagicalLoader from './MagicalLoader';
 
-export default function MonsterKit() {
-  const [name, setName] = useState("");
-  const [monsterType, setMonsterType] = useState("monștrii de sub pat");
+const MonsterKit = () => {
+  const [name, setName] = useState('');
+  const [monsterType, setMonsterType] = useState('umbrele noptii');
   const [isLoading, setIsLoading] = useState(false);
-  const [kitText, setKitText] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
   const [showResult, setShowResult] = useState(false);
+  const [kitText, setKitText] = useState('');
 
-  const handleGenerate = async () => {
+  const monsters = [
+    { id: 'umbrele noptii', label: 'Umbrele Nopții', icon: '🌑' },
+    { id: 'monstrul de sub pat', label: 'Monstrul de sub pat', icon: '🛌' },
+    { id: 'zgomotele ciudate', label: 'Zgomotele ciudate', icon: '🔊' },
+    { id: 'dulapul scartaitor', label: 'Dulapul scârțâitor', icon: '🚪' },
+  ];
+
+  const generateKit = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!name) return;
+
     setIsLoading(true);
     try {
-      const response = await fetch("/api/generate", {
-        method: "POST",
-        body: JSON.stringify({ type: "monster", name, monster: monsterType }),
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'monster',
+          name,
+          monster: monsterType
+        }),
       });
 
-      const result = await response.json();
-      
-      if (result.success) {
-        const text = result.data?.text || result.data?.choices?.[0]?.message?.content || "Scutul a fost activat!";
-        
-        const cleanMonster = (monsterType || "monster").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9 ]/g, '');
-        const cleanName = (name || "Protector").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9 ]/g, '');
-        const artisticPrompt = `official magic protection certificate shield, medieval fantasy style, against a ${cleanMonster}, child named ${cleanName}, golden textures, 8k`;
-        const img = `https://image.pollinations.ai/prompt/${encodeURIComponent(artisticPrompt)}?nologo=true&width=800&height=800&seed=${Date.now()}`;
-        
-        setKitText(text);
-        setImageUrl(img);
+      const data = await response.json();
+      if (data.success) {
+        setKitText(data.data.text);
         setShowResult(true);
-      } else {
-        throw new Error("Eroare API");
       }
-    } catch (err) {
-      alert("⚠️ Scutul magic a întâmpinat o eroare.");
+    } catch (error) {
+      console.error('Error generating kit:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-    const downloadKit = () => {
-      const element = document.getElementById("premium-certificate-template");
-      if (!element) return;
+  const downloadKit = () => {
+    const p1 = document.getElementById("cert-p1");
+    const p2 = document.getElementById("cert-p2");
+    const p3 = document.getElementById("cert-p3");
+    if (!p1 || !p2 || !p3) return;
 
-      const loadScript = (src: string) => {
-        return new Promise((resolve) => {
-          if ((window as any).html2canvas && src.includes("html2canvas")) return resolve(true);
-          if ((window as any).jspdf && src.includes("jspdf")) return resolve(true);
-          const script = document.createElement("script");
-          script.src = src;
-          script.onload = resolve;
-          document.head.appendChild(script);
-        });
-      };
-
-      const generate = async () => {
-        const { jsPDF } = (window as any).jspdf;
-        const html2canvas = (window as any).html2canvas;
-
-        // Pregătim elementul pentru captură
-        element.style.display = "block";
-        element.style.position = "absolute";
-        element.style.left = "-10000px";
-        element.style.top = "0";
-
-        // Așteptăm un pic să se randeze fonturile
-        setTimeout(async () => {
-            const canvas = await html2canvas(element, {
-              scale: 2,
-              useCORS: true,
-              allowTaint: true,
-              logging: false,
-              windowWidth: 700,
-              windowHeight: 1000
-            });
-
-            const imgData = canvas.toDataURL("image/jpeg", 0.95);
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = pdf.internal.pageSize.getHeight();
-            
-            pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-            pdf.save(`Certificat_Magic_${name}.pdf`);
-
-            element.style.display = "none";
-        }, 500); // 500ms delay pentru fonturi
-      };
-
-      Promise.all([
-        loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"),
-        loadScript("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js")
-      ]).then(generate);
+    const loadScript = (src: string) => {
+      return new Promise((resolve) => {
+        if ((window as any).html2canvas && src.includes("html2canvas")) return resolve(true);
+        if ((window as any).jspdf && src.includes("jspdf")) return resolve(true);
+        const script = document.createElement("script");
+        script.src = src;
+        script.onload = resolve;
+        document.head.appendChild(script);
+      });
     };
 
-    return (
-      <section id="monster-away" className="py-20 md:py-32 bg-brand-navy relative overflow-hidden px-4">
-        <MagicalLoader isVisible={isLoading} />
-  
-        {/* Hidden Premium Template for Export */}
-        <div id="premium-certificate-template" style={{ display: 'none', width: '680px', background: 'white' }}>
-          <style>{`
-            .cert-wrap {
-                width: 680px;
-                height: 900px;
-                background: linear-gradient(160deg, #1a0a2e 0%, #0d1a3a 50%, #1a0a2e 100%);
-                border: 4px solid #c9a84c;
-                padding: 60px;
-                position: relative;
-                font-family: 'Crimson Pro', serif;
-                box-sizing: border-box;
-                color: #f4e4a0;
-            }
-            .stars-bg { position: absolute; inset: 0; opacity: 0.3; }
-            .corner { position: absolute; width: 80px; height: 80px; }
-            .c-tl { top: 10px; left: 10px; }
-            .c-tr { top: 10px; right: 10px; transform: scaleX(-1); }
-            .c-bl { bottom: 10px; left: 10px; transform: scaleY(-1); }
-            .c-br { bottom: 10px; right: 10px; transform: rotate(180deg); }
-            .inner-border { position: absolute; inset: 20px; border: 1px solid rgba(201,168,76,0.3); }
-            .ministry-label { font-family: 'Cinzel', serif; font-size: 10px; text-align: center; letter-spacing: 3px; color: #c9a84c; margin-bottom: 20px; }
-            .title-main { font-family: 'Cinzel', serif; font-size: 32px; font-weight: 700; text-align: center; color: #f4e4a0; margin-bottom: 10px; }
-            .title-sub { font-family: 'Cinzel', serif; font-size: 14px; text-align: center; color: #c9a84c; letter-spacing: 2px; }
-            .divider { display: flex; items-center: center; justify-content: center; gap: 15px; margin: 30px 0; }
-            .div-line { width: 150px; height: 1px; background: #c9a84c; }
-            .beneficiary-block { text-align: center; margin: 40px 0; }
-            .beneficiary-label { font-family: 'Cinzel', serif; font-size: 12px; color: #c9a84c; display: block; margin-bottom: 10px; }
-            .beneficiary-name { font-family: 'Cinzel', serif; font-size: 36px; border-bottom: 2px solid #c9a84c; display: inline-block; padding: 0 40px 5px; }
-            .body-text { font-size: 18px; line-height: 1.6; text-align: center; margin: 40px 0; font-style: italic; color: #d4c5e8; }
-            .clauses-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 40px; }
-            .clause { background: rgba(201,168,76,0.05); border: 1px solid rgba(201,168,76,0.2); padding: 15px; font-size: 13px; }
-            .clause-num { font-family: 'Cinzel', serif; color: #c9a84c; display: block; margin-bottom: 5px; }
-            .seal-section { display: flex; align-items: center; justify-content: center; gap: 40px; margin-top: 50px; }
-            .seal-circle { width: 100px; height: 100px; border-radius: 50%; border: 2px solid #c9a84c; display: flex; align-items: center; justify-content: center; font-size: 40px; background: rgba(201,168,76,0.1); }
-            .sig-line { width: 150px; height: 1px; background: #c9a84c; margin: 10px auto; }
-            .sig-title { font-family: 'Cinzel', serif; font-size: 8px; color: #c9a84c; }
-          `}</style>
-          <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Crimson+Pro:ital,wght@0,400;1,400&display=swap" rel="stylesheet" />
-          
-          <div className="cert-wrap">
-            <svg className="corner c-tl" viewBox="0 0 60 60"><path d="M2 30 L2 2 L30 2" stroke="#c9a84c" strokeWidth="2" fill="none"/></svg>
-            <svg className="corner c-tr" viewBox="0 0 60 60"><path d="M2 30 L2 2 L30 2" stroke="#c9a84c" strokeWidth="2" fill="none"/></svg>
-            <svg className="corner c-bl" viewBox="0 0 60 60"><path d="M2 30 L2 2 L30 2" stroke="#c9a84c" strokeWidth="2" fill="none"/></svg>
-            <svg className="corner c-br" viewBox="0 0 60 60"><path d="M2 30 L2 2 L30 2" stroke="#c9a84c" strokeWidth="2" fill="none"/></svg>
-            <div className="inner-border"></div>
+    const generate = async () => {
+      const { jsPDF } = (window as any).jspdf;
+      const html2canvas = (window as any).html2canvas;
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
 
-            <div className="ministry-label">Ministerul Protectiei Magice · Regatul Viselor Linistite</div>
-            <div className="title-main">CERTIFICAT OFICIAL DE PROTECTIE MAGICA</div>
-            <div className="title-sub">impotriva Monstrilor si Umbrelor Nedorite</div>
+      const capturePage = async (el: HTMLElement, isLast: boolean) => {
+          el.style.display = "block";
+          const canvas = await html2canvas(el, { 
+            scale: 2, 
+            useCORS: true, 
+            backgroundColor: "#0e0f23",
+            windowWidth: 595,
+            windowHeight: 842
+          });
+          const imgData = canvas.toDataURL("image/jpeg", 0.9);
+          pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+          el.style.display = "none";
+          if (!isLast) pdf.addPage();
+      };
 
-            <div className="divider"><div className="div-line"></div>✦✦✦<div className="div-line"></div></div>
+      // Capturăm cele 3 pagini
+      await capturePage(p1, false);
+      await capturePage(p2, false);
+      await capturePage(p3, true);
 
-            <div className="beneficiary-block">
-              <span className="beneficiary-label">Micul / Mica Erou / Eroinica</span>
-              <div className="beneficiary-name">{name || "EROUL NOSTRU"}</div>
-            </div>
+      pdf.save(`Kit_Protectie_Magic_${name}.pdf`);
+    };
 
-            <p className="body-text">
-              Camera acestui copil este protejata de un scut invizibil tesut din praf de stele,
-              lumina de luna plina si rasele de spiridusi veseli.
-            </p>
+    Promise.all([
+      loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"),
+      loadScript("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js")
+    ]).then(generate);
+  };
 
-            <div className="clauses-grid">
-              <div className="clause"><span className="clause-num">Art. I</span>Monstrilor le este strict interzis accesul sub pat.</div>
-              <div className="clause"><span className="clause-num">Art. II</span>Zgomotele misterioase se transforma in pisici adormite.</div>
-            </div>
+  return (
+    <section id="monster-away" className="py-20 md:py-32 bg-brand-navy relative overflow-hidden px-4">
+      {/* Background Decor */}
+      <div className="absolute inset-0 opacity-10 pointer-events-none">
+        <div className="absolute top-20 left-10 animate-bounce-slow">
+            <Ghost size={120} className="text-brand-gold" />
+        </div>
+        <div className="absolute bottom-20 right-10 animate-pulse">
+            <ShieldCheck size={150} className="text-brand-gold" />
+        </div>
+      </div>
 
-            <div className="seal-section">
-              <div className="sig-block"><div className="sig-line"></div><div className="sig-title">Comandantul Gardienilor</div></div>
-              <div className="seal-circle">🐉</div>
-              <div className="sig-block"><div className="sig-line"></div><div className="sig-title">Zana Luminilor</div></div>
-            </div>
-          </div>
+      <div className="max-w-4xl mx-auto relative z-10">
+        <div className="text-center mb-16">
+          <motion.div
+            initial={{ scale: 0 }}
+            whileInView={{ scale: 1 }}
+            viewport={{ once: true }}
+            className="inline-block p-4 bg-brand-gold/10 rounded-full mb-6"
+          >
+            <ShieldCheck className="text-brand-gold w-12 h-12" />
+          </motion.div>
+          <h2 className="font-cinzel text-4xl md:text-6xl font-bold text-brand-cream mb-6 tracking-tighter">
+            Kit Anti-Monștri 🛡️
+          </h2>
+          <p className="text-brand-cream/70 text-lg md:text-xl font-medium italic max-w-2xl mx-auto">
+            "Pentru că fiecare mic erou merită un somn liniștit, am creat cel mai puternic scut magic din lume."
+          </p>
         </div>
 
-        {/* Result Modal */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="bg-brand-cream rounded-[2.5rem] p-8 md:p-12 shadow-2xl border-4 border-brand-gold/20"
+        >
+          <form onSubmit={generateKit} className="space-y-8">
+            <div className="space-y-4">
+              <label className="block font-cinzel font-bold text-brand-navy text-xl">
+                Cui îi aparține curajul?
+              </label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Numele micuțului erou..."
+                className="w-full bg-brand-navy/5 border-2 border-brand-navy/10 rounded-2xl px-6 py-4 text-brand-navy font-bold text-lg focus:border-brand-gold outline-none transition-all"
+              />
+            </div>
+
+            <div className="space-y-4">
+              <label className="block font-cinzel font-bold text-brand-navy text-xl">
+                Ce monstru trebuie să plece?
+              </label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {monsters.map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => setMonsterType(m.id)}
+                    className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-3 ${
+                      monsterType === m.id
+                        ? 'border-brand-gold bg-brand-gold/10 scale-105'
+                        : 'border-brand-navy/10 hover:border-brand-navy/30'
+                    }`}
+                  >
+                    <span className="text-3xl">{m.icon}</span>
+                    <span className="text-xs font-black text-brand-navy uppercase text-center">{m.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={!name || isLoading}
+              className="w-full bg-brand-navy text-brand-cream py-6 rounded-2xl font-black text-xl md:text-2xl shadow-xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-3 border-b-8 border-brand-gold"
+            >
+              <Wand2 className="w-8 h-8" />
+              GENEREAZĂ SCUTUL MAGIC ✨
+            </button>
+          </form>
+        </motion.div>
+      </div>
+
+      <MagicalLoader isVisible={isLoading} />
+
+      {/* HIDDEN TEMPLATES FOR EXPORT (3 PAGES) */}
+      <div style={{ position: 'absolute', left: '-10000px', top: 0 }}>
+          <style>{`
+              .cert-page { width: 595px; height: 842px; background: #0e0f23; color: #f4e4a0; font-family: 'Crimson Pro', serif; padding: 40px; box-sizing: border-box; position: relative; overflow: hidden; }
+              .cert-border { position: absolute; inset: 10px; border: 2px solid #c9a84c; }
+              .cert-inner-border { position: absolute; inset: 18px; border: 1px solid rgba(201,168,76,0.3); }
+              .cert-content { position: relative; z-index: 10; height: 100%; display: flex; flex-direction: column; align-items: center; text-align: center; }
+              .cert-header { font-family: 'Cinzel', serif; font-size: 8px; letter-spacing: 3px; color: #c9a84c; margin-top: 20px; }
+              .cert-title { font-family: 'Cinzel', serif; font-size: 28px; font-weight: 700; margin: 20px 0 5px; color: #f4e4a0; }
+              .cert-subtitle { font-family: 'Cinzel', serif; font-size: 14px; color: #c9a84c; letter-spacing: 2px; }
+              .cert-divider { width: 300px; height: 1px; background: linear-gradient(90deg, transparent, #c9a84c, transparent); margin: 20px 0; }
+              .cert-name-box { background: rgba(201,168,76,0.06); border: 1px solid rgba(201,168,76,0.2); padding: 20px 40px; margin: 20px 0; width: 80%; }
+              .cert-name { font-family: 'Cinzel', serif; font-size: 32px; font-style: italic; border-bottom: 1px solid #c9a84c; display: inline-block; padding: 0 20px; color: #f4e4a0; }
+              .cert-body { font-size: 15px; line-height: 1.6; color: #d4c5e8; font-style: italic; max-width: 90%; margin: 20px 0; }
+              .cert-clauses { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; margin-top: 20px; text-align: left; }
+              .cert-clause { background: rgba(201,168,76,0.04); border: 1px solid rgba(201,168,76,0.15); padding: 10px; font-size: 11px; color: #bfb3d4; }
+              .cert-clause b { color: #c9a84c; font-family: 'Cinzel', serif; font-size: 9px; display: block; margin-bottom: 3px; }
+              .cert-seal-area { display: flex; justify-content: center; align-items: center; gap: 40px; margin-top: auto; padding-bottom: 30px; width: 100%; }
+              .cert-seal { width: 80px; height: 80px; border: 2px solid #c9a84c; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; background: rgba(201,168,76,0.05); }
+              .cert-sig { border-top: 1px solid rgba(201,168,76,0.4); width: 120px; font-size: 8px; padding-top: 5px; color: #9a8bc0; text-align: center; }
+              .cert-sig-title { font-family: 'Cinzel', serif; font-size: 6px; color: #c9a84c; text-transform: uppercase; margin-top: 2px; }
+          `}</style>
+          <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Crimson+Pro:ital,wght@0,400;1,400&display=swap" rel="stylesheet" />
+
+          {/* PAGE 1: CERTIFICATE */}
+          <div id="cert-p1" className="cert-page">
+              <div className="cert-border"></div><div className="cert-inner-border"></div>
+              <div className="cert-content">
+                  <div className="cert-header">MINISTERUL PROTECTIEI MAGICE · REGATUL VISELOR LINISTITE</div>
+                  <div className="cert-title">CERTIFICAT OFICIAL</div>
+                  <div className="cert-subtitle">DE PROTECTIE MAGICA</div>
+                  <div className="cert-divider"></div>
+                  <div className="cert-name-box">
+                      <div style={{fontSize: '9px', color: '#c9a84c', marginBottom: '5px'}}>MICUL / MICA EROU / EROINICA</div>
+                      <div className="cert-name">{name || "EROUL NOSTRU"}</div>
+                  </div>
+                  <div className="cert-body">
+                      Prin autoritatea conferita de <b>Ordinul Dragonului Somnoros</b> si cu binecuvântarea <b>Zanei Luminilor de Noapte</b>, camera acestui copil este protejata de un <b>scut invizibil</b> tesut din praf de stele, lumina de luna plina si rasele de spiridusi veseli.
+                  </div>
+                  <div className="cert-clauses">
+                      <div className="cert-clause"><b>Art. I</b> Monstrilor le este strict interzis accesul sub pat sau in dulap.</div>
+                      <div className="cert-clause"><b>Art. II</b> Umbrele nu au dreptul sa faca grimase fara permisiune scrisa.</div>
+                      <div className="cert-clause"><b>Art. III</b> Zgomotele noptii se transforma automat in pisici adormite.</div>
+                      <div className="cert-clause"><b>Art. IV</b> Orice monstru recalcitrant va fi transformat in nori de vată roz.</div>
+                  </div>
+                  <div className="cert-seal-area">
+                      <div className="cert-sig">Mag. Umberto<br/><span className="cert-sig-title">Comandantul Gardienilor</span></div>
+                      <div className="cert-seal">🐉</div>
+                      <div className="cert-sig">Luminia din Stele<br/><span className="cert-sig-title">Zana Luminilor</span></div>
+                  </div>
+              </div>
+          </div>
+
+          {/* PAGE 2: RECIPE */}
+          <div id="cert-p2" className="cert-page">
+              <div className="cert-border"></div><div className="cert-inner-border"></div>
+              <div className="cert-content">
+                  <div className="cert-header">LABORATORUL ALCHIMIC AL MINISTERULUI</div>
+                  <div className="cert-title">RETETA SECRETA</div>
+                  <div className="cert-subtitle">A SPRAY-ULUI ANTI-UMBRE ALE NOPTII</div>
+                  <div className="cert-divider"></div>
+                  <div style={{textAlign: 'left', width: '100%', padding: '0 40px'}}>
+                      <h4 style={{fontFamily: 'Cinzel', color: '#c9a84c', fontSize: '14px', marginBottom: '20px'}}>INGREDIENTE MAGICE</h4>
+                      <ul style={{listStyle: 'none', padding: 0, color: '#d4c5e8'}}>
+                          <li style={{marginBottom: '20px'}}>🧪 <b>1. Un flacon cu apa curata</b> (adunata pe timp de luna plina)</li>
+                          <li style={{marginBottom: '20px'}}>🍋 <b>2. Trei picuri de Esenta de Curaj</b> (suc de lamaie proaspat)</li>
+                          <li style={{marginBottom: '20px'}}>✨ <b>3. Un strop de Sclipici Invizibil</b> (se vede doar cu ochii inimii)</li>
+                      </ul>
+                      <h4 style={{fontFamily: 'Cinzel', color: '#c9a84c', fontSize: '14px', marginTop: '40px', marginBottom: '20px'}}>MOD DE PREPARARE</h4>
+                      <div style={{fontSize: '14px', lineHeight: '1.8', color: '#d4c5e8'}}>
+                          1. Toarna apa in flacon cu grija, gandind la lucruri curajoase.<br/>
+                          2. Adauga cei trei picuri de esenta si agita de 7 ori (numarul magic).<br/>
+                          3. Sufla usor deasupra flaconului pentru a activa sclipiciul.<br/>
+                          4. Pulverizeaza sub pat si in dulap inainte de culcare.
+                      </div>
+                  </div>
+                  <div style={{marginTop: 'auto', background: 'rgba(201,168,76,0.08)', padding: '30px', borderRadius: '15px', border: '1px dashed #c9a84c', width: '85%', marginBottom: '40px'}}>
+                      <div style={{fontFamily: 'Cinzel', fontSize: '10px', marginBottom: '15px', color: '#c9a84c'}}>DESCANTECUL DE ACTIVARE</div>
+                      <div style={{fontStyle: 'italic', fontSize: '18px', color: '#f4e4a0'}}>"Umbre mici si umbre mari, plecati voi in alte zari! Cu curaj si sclipici bun, camera mea e de minune!"</div>
+                  </div>
+              </div>
+          </div>
+
+          {/* PAGE 3: LABELS */}
+          <div id="cert-p3" className="cert-page">
+              <div className="cert-border"></div>
+              <div className="cert-content">
+                  <div className="cert-header" style={{marginTop: '60px'}}>DECUPATI SI LIPITI PE FLACON</div>
+                  <div style={{height: '60px'}}></div>
+                  
+                  {/* Main Label */}
+                  <div style={{width: '320px', height: '200px', border: '2px dashed #c9a84c', padding: '10px', borderRadius: '20px'}}>
+                      <div style={{width: '100%', height: '100%', background: 'linear-gradient(160deg, #1a0a2e, #0d1a3a)', border: '2px solid #c9a84c', borderRadius: '15px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center'}}>
+                          <div style={{fontSize: '9px', letterSpacing: '3px', color: '#c9a84c'}}>SPRAY MAGIC</div>
+                          <div style={{fontFamily: 'Cinzel', fontSize: '24px', margin: '10px 0', color: '#f4e4a0'}}>ANTI-UMBRE</div>
+                          <div style={{fontSize: '8px', color: '#c9a84c'}}>FORMULA SECRETA NR. SPRAY-007</div>
+                          <div style={{fontSize: '20px', marginTop: '15px'}}>✨🐉✨</div>
+                      </div>
+                  </div>
+
+                  <div style={{height: '80px'}}></div>
+
+                  <div style={{display: 'flex', gap: '50px'}}>
+                      {/* Round Seal */}
+                      <div style={{width: '140px', height: '140px', border: '2px dashed #c9a84c', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                          <div style={{width: '120px', height: '120px', background: '#1a0a2e', border: '2px solid #c9a84c', borderRadius: '50%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center'}}>
+                              <div style={{fontSize: '8px', color: '#c9a84c'}}>SIGILIUL</div>
+                              <div style={{fontSize: '28px', margin: '5px 0'}}>🐉</div>
+                              <div style={{fontSize: '8px', color: '#c9a84c'}}>DRAGONULUI</div>
+                          </div>
+                      </div>
+
+                      {/* Instructions Label */}
+                      <div style={{width: '200px', height: '140px', border: '2px dashed #c9a84c', padding: '10px', borderRadius: '15px'}}>
+                          <div style={{width: '100%', height: '100%', background: '#1a0a2e', border: '1px solid #c9a84c', borderRadius: '10px', padding: '15px', fontSize: '10px', textAlign: 'left', color: '#d4c5e8'}}>
+                              <b style={{color: '#c9a84c', fontSize: '11px'}}>INSTRUCTIUNI:</b><br/><br/>
+                              1. Agita de 7 ori<br/>
+                              2. Rosteste descantecul<br/>
+                              3. Pulverizeaza sub pat<br/>
+                              4. Dormi linistit/a! ✨
+                          </div>
+                      </div>
+                  </div>
+                  <div style={{marginTop: 'auto', fontSize: '9px', opacity: 0.5, paddingBottom: '30px', color: '#c9a84c'}}>Ministerul Protectiei Magice · 2026</div>
+              </div>
+          </div>
+      </div>
+
+      {/* Result Modal */}
+      <AnimatePresence>
         {showResult && (
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             className="fixed inset-0 z-[11000] bg-brand-navy/95 backdrop-blur-md flex items-center justify-center p-2 md:p-10"
           >
             <motion.div 
               initial={{ scale: 0.9, y: 50 }}
               animate={{ scale: 1, y: 0 }}
-              className="bg-brand-cream max-w-2xl w-full h-full max-h-[90vh] md:max-h-[85vh] rounded-[2rem] md:rounded-[3rem] border-4 md:border-8 border-brand-gold/30 relative shadow-2xl flex flex-col overflow-hidden"
+              className="bg-brand-cream max-w-4xl w-full h-full max-h-[95vh] rounded-[3rem] border-4 border-brand-gold/30 relative shadow-2xl flex flex-col overflow-hidden"
             >
               <button 
                 onClick={() => setShowResult(false)}
-                className="absolute top-4 right-4 text-brand-navy/40 hover:text-brand-gold font-black text-xl z-20 bg-white/80 w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-sm shadow-lg transition-all"
+                className="absolute top-6 right-6 text-brand-navy/40 hover:text-brand-gold font-black text-xl z-20 bg-white/80 w-12 h-12 rounded-full flex items-center justify-center backdrop-blur-sm shadow-lg transition-all"
               >
                 ✕
               </button>
   
-              <div className="flex-1 overflow-y-auto p-6 md:p-12 custom-scrollbar text-brand-navy">
-                <div className="text-center mb-8 pt-4">
-                  <ShieldCheck className="text-brand-gold w-10 h-10 mx-auto mb-4 animate-pulse" />
-                  <h3 className="font-nunito font-black text-2xl md:text-3xl text-brand-navy px-4 uppercase tracking-tighter">Certificat Activat! ✨</h3>
+              <div className="flex-1 overflow-y-auto p-6 md:p-12 custom-scrollbar flex flex-col items-center">
+                <div className="text-center mb-10">
+                  <div className="flex justify-center gap-2 mb-4">
+                    <CheckCircle2 className="text-green-500 w-8 h-8" />
+                    <h3 className="font-cinzel font-bold text-3xl text-brand-navy uppercase tracking-tighter">Kit Activat! ✨</h3>
+                  </div>
+                  <p className="text-brand-navy/60 font-medium italic">Am pregătit pachetul tău magic de 3 pagini pentru protecție totală.</p>
                 </div>
-  
-                <div className="bg-white/50 p-6 rounded-3xl border-2 border-brand-gold/20 mb-8">
-                    <p className="text-sm md:text-base font-medium italic text-brand-navy/70 leading-relaxed text-center">
-                        "Documentul a fost înregistrat în Ministerul Protecției Magice. Acum poți descărca varianta oficială pentru a o printa și afișa în cameră."
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mb-10">
+                    <div className="bg-white/50 p-6 rounded-3xl border-2 border-brand-gold/10 text-center flex flex-col items-center">
+                        <ShieldCheck className="text-brand-gold mb-3" />
+                        <h4 className="font-bold text-brand-navy text-sm uppercase">1. Certificat</h4>
+                        <p className="text-xs text-brand-navy/60 mt-2">Documentul oficial de curaj.</p>
+                    </div>
+                    <div className="bg-white/50 p-6 rounded-3xl border-2 border-brand-gold/10 text-center flex flex-col items-center">
+                        <Sparkles className="text-brand-gold mb-3" />
+                        <h4 className="font-bold text-brand-navy text-sm uppercase">2. Rețetă</h4>
+                        <p className="text-xs text-brand-navy/60 mt-2">Formula secretă a spray-ului.</p>
+                    </div>
+                    <div className="bg-white/50 p-6 rounded-3xl border-2 border-brand-gold/10 text-center flex flex-col items-center">
+                        <Download className="text-brand-gold mb-3" />
+                        <h4 className="font-bold text-brand-navy text-sm uppercase">3. Etichete</h4>
+                        <p className="text-xs text-brand-navy/60 mt-2">De decupat și lipit pe flacon.</p>
+                    </div>
+                </div>
+
+                <div className="bg-brand-navy/5 p-8 rounded-[2rem] border-2 border-dashed border-brand-gold/30 max-w-2xl w-full">
+                    <p className="text-brand-navy text-center font-bold italic leading-relaxed">
+                        "Acest kit a fost sigilat cu ceară de dragon somnoros și este acum gata să aducă liniștea în camera lui {name}."
                     </p>
-                </div>
-  
-                <div className="prose prose-brand max-w-none text-brand-navy/80 font-bold whitespace-pre-wrap leading-relaxed text-sm italic border-4 border-dashed border-brand-gold/10 p-6 rounded-2xl">
-                  {kitText}
                 </div>
               </div>
   
-              <div className="p-6 md:p-8 bg-white/50 border-t border-brand-navy/5 backdrop-blur-sm">
+              <div className="p-8 bg-white/50 border-t border-brand-navy/5 backdrop-blur-sm">
                 <button 
                   onClick={downloadKit}
-                  className="w-full bg-brand-navy text-brand-cream py-4 md:py-5 rounded-xl md:rounded-2xl font-black text-lg md:text-xl shadow-xl hover:scale-[1.02] active:scale-95 transition-all border-b-4 border-brand-gold"
+                  className="w-full bg-brand-navy text-brand-cream py-6 rounded-2xl font-black text-xl md:text-2xl shadow-xl hover:scale-[1.02] active:scale-95 transition-all border-b-8 border-brand-gold flex items-center justify-center gap-4"
                 >
-                  Descarcă Certificatul Premium 🛡️
+                  <Download className="w-8 h-8" />
+                  DESCARCĂ KIT-UL COMPLET (3 PAGINI) 🛡️
                 </button>
               </div>
             </motion.div>
           </motion.div>
         )}
-
-      {/* Floating Interactive Ghosts */}
-      <div className="absolute inset-0 pointer-events-none">
-        {[...Array(12)].map((_, i) => (
-          <motion.div
-            key={i}
-            animate={{ 
-              y: [0, -20, 0],
-              opacity: [0.1, 0.3, 0.1],
-              rotate: [0, 10, -10, 0]
-            }}
-            transition={{ duration: 4 + Math.random() * 2, repeat: Infinity }}
-            className="absolute text-brand-gold/20"
-            style={{ 
-              top: `${Math.random() * 100}%`, 
-              left: `${Math.random() * 100}%`,
-            }}
-          >
-            <Ghost size={30 + Math.random() * 30} />
-          </motion.div>
-        ))}
-      </div>
-
-      <div className="max-w-5xl mx-auto relative z-10">
-        <div className="text-center mb-16">
-          <motion.div 
-            initial={{ scale: 0.8, rotate: -10 }}
-            whileInView={{ scale: 1, rotate: 0 }}
-            className="inline-block bg-brand-gold/20 p-6 rounded-full mb-8 relative"
-          >
-            <div className="absolute inset-0 bg-brand-gold/20 rounded-full animate-ping" />
-            <ShieldCheck className="text-brand-gold w-16 h-16 relative z-10" />
-          </motion.div>
-          <h2 className="font-nunito font-black text-4xl md:text-7xl text-white mb-6 leading-tight">
-            Alungă <span className="text-brand-gold italic">Monștrii</span> <br/> pentru Totdeauna! 🛡️
-          </h2>
-          <p className="text-white/70 text-xl md:text-2xl font-medium max-w-2xl mx-auto">
-            Creează un certificat de protecție magică aprobat de Consiliul Magic.
-          </p>
-        </div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          className="bg-white/5 backdrop-blur-2xl rounded-[3rem] md:rounded-[4rem] p-8 md:p-16 border-4 border-white/10 shadow-[0_0_50px_rgba(255,215,0,0.1)] relative overflow-hidden"
-        >
-          {/* Decorative Corner Glow */}
-          <div className="absolute -top-20 -right-20 w-40 h-40 bg-brand-gold/20 rounded-full blur-3xl" />
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 md:gap-20 items-center">
-            <div className="space-y-8 md:space-y-10">
-              <div>
-                <label className="block text-xs md:text-sm font-black text-brand-gold mb-4 uppercase tracking-[0.3em]">
-                  Numele Micuțului Erou
-                </label>
-                <input
-                  type="text"
-                  placeholder="Cine are nevoie de curaj?..."
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full px-8 py-5 rounded-3xl bg-white/5 border-2 border-white/10 focus:border-brand-gold outline-none transition-all text-white font-bold text-xl placeholder:text-white/20"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs md:text-sm font-black text-brand-gold mb-4 uppercase tracking-[0.3em]">
-                  Inamicul Magic 👻
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {["Monștrii de sub pat", "Umbrele nopții", "Zgomote ciudate", "Întunericul"].map((type) => (
-                    <button
-                      key={type}
-                      onClick={() => setMonsterType(type)}
-                      className={`px-6 py-4 rounded-2xl border-2 transition-all font-bold text-left flex items-center justify-between ${
-                        monsterType === type 
-                          ? "border-brand-gold bg-brand-gold/20 text-white shadow-lg scale-[1.02]" 
-                          : "border-white/10 bg-white/5 text-white/50 hover:bg-white/10"
-                      }`}
-                    >
-                      {type}
-                      {monsterType === type && <Sparkles size={16} className="text-brand-gold animate-pulse" />}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-col space-y-10">
-              <div className="bg-brand-gold/5 p-8 rounded-[2.5rem] border-2 border-dashed border-brand-gold/20 relative group">
-                <div className="absolute top-4 right-4 text-brand-gold/30">✨</div>
-                <p className="text-white/80 text-lg md:text-xl leading-relaxed italic font-medium">
-                  "Odată generat, acest scut va fi legat magic de numele {name || 'puiului tău'} și va alunga orice teamă."
-                </p>
-              </div>
-
-              <button
-                onClick={handleGenerate}
-                disabled={!name}
-                className="w-full bg-brand-gold text-brand-navy py-6 md:py-8 rounded-3xl font-black text-2xl md:text-3xl shadow-[0_20px_40px_rgba(255,215,0,0.2)] hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-20 disabled:grayscale flex items-center justify-center gap-4 relative overflow-hidden"
-              >
-                <span className="relative z-10">Activează Scutul Magic</span>
-                <ShieldCheck className="relative z-10 animate-pulse" />
-              </button>
-            </div>
-          </div>
-        </motion.div>
-      </div>
+      </AnimatePresence>
     </section>
   );
-}
+};
+
+export default MonsterKit;
