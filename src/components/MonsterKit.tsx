@@ -15,6 +15,61 @@ const monsters: Monster[] = [
   { id: 'dulapul scartaitor',    label: 'Dulapul Scârțâitor',   icon: '🚪' },
 ];
 
+const MONSTER_KITS: Record<string, any> = {
+  'umbrele noptii': {
+    body: "camera acestui copil este protejată de un <em>scut invizibil</em> țesut din <em>praf de stele</em>, lumină de lună plină și <em>râsete de spiriduși veseli</em>. Nicio umbră nu are dreptul să se miște fără permisiune.",
+    ingredients: [
+      { num: '1', icon: '💧', name: 'Apă de Lună Plină', detail: 'pentru a dizolva orice umbră' },
+      { num: '2', icon: '🍋', name: 'Esență de Lămâie-Soare', detail: 'lumina concentrată în fruct' },
+      { num: '3', icon: '✨', name: 'Sclipici de Licurici', detail: 'strălucește în întuneric' }
+    ],
+    steps: [
+      { roman: 'I', l1: 'Amestecă apa cu lumina soarelui,', l2: 'agitând flaconul spre răsărit.' },
+      { roman: 'II', l1: 'Adaugă sclipiciul în timp ce zâmbești,', l2: 'umbrele se tem de bucurie.' }
+    ],
+    spell: "Umbre mici și umbre mari, plecați voi în alte zări! Lumina mea e scutul bun, noaptea-i albă de acum!"
+  },
+  'monstrul de sub pat': {
+    body: "podeaua acestei camere este acoperită de o <em>plasă magică</em> de nepătruns. Nicio creatură cu picioare mari sau intenții de gâdilat nu poate trece de marginea patului.",
+    ingredients: [
+      { num: '1', icon: '💨', name: 'Praf de Somn Liniștit', detail: 'adormi monstrul pe loc' },
+      { num: '2', icon: '🍪', name: 'Firimituri de Curaj', detail: 'monștrii fug de copiii curajoși' },
+      { num: '3', icon: '🫧', name: 'Bule de Săpun Magic', detail: 'pentru a-i aluneca picioarele' }
+    ],
+    steps: [
+      { roman: 'I', l1: 'Pulverizează generos sub pat,', l2: 'insistând în colțurile întunecate.' },
+      { roman: 'II', l1: 'Pune flaconul pe noptieră ca pază,', l2: 'dragonul va veghea toată noaptea.' }
+    ],
+    spell: "Sub patul meu e liniște, niciun monstru nu mai mișcă! Dormi acum, somn pufos, patul meu e cel mai faimos!"
+  },
+  'zgomotele ciudate': {
+    body: "urechile acestui erou sunt protejate de un <em>filtru de armonie</em>. Orice scârțâit sau pocnet este captat și transformat automat în <em>torcăit de pisică</em> sau susur de izvor.",
+    ingredients: [
+      { num: '1', icon: '🍯', name: 'Picături de Miere Mută', detail: 'pentru a îndulci zgomotele' },
+      { num: '2', icon: '☁️', name: 'Esență de Nor Pufos', detail: 'absoarbe orice sunet brusc' },
+      { num: '3', icon: '🎻', name: 'Ulei de Liniște Muzicală', detail: 'transformă haosul în pace' }
+    ],
+    steps: [
+      { roman: 'I', l1: 'Toarnă mierea imaginară în apă,', l2: 'ascultând cum se așterne liniștea.' },
+      { roman: 'II', l1: 'Pulverizează spre sursa sunetului,', l2: 'zâmbind la fiecare pocnet.' }
+    ],
+    spell: "Zgomote ce mă speriați, în torcăit vă transformați! Liniștea e prietena mea, noaptea-i lină ca o stea!"
+  },
+  'dulapul scartaitor': {
+    body: "ușile acestui dulap sunt <em>sigilate cu magicele balamale de vis</em>. Interiorul este acum un <em>tărâm al ordinii și păcii</em>, unde hainele dorm liniștite și nicio ușă nu îndrăznește să se miște.",
+    ingredients: [
+      { num: '1', icon: '🌈', name: 'Ulei de Curcubeu Fin', detail: 'pentru balamale fericite' },
+      { num: '2', icon: '🧊', name: 'Esență de Liniște Înghețată', detail: 'oprește orice mișcare' },
+      { num: '3', icon: '🗝️', name: 'Cheia Invizibilă a Păcii', detail: 'încuie frica afară' }
+    ],
+    steps: [
+      { roman: 'I', l1: 'Unge imaginar balamalele dulapului,', l2: 'șoptind cuvinte de somn ușor.' },
+      { roman: 'II', l1: 'Pulverizează pe uși în formă de X,', l2: 'creând un sigiliu de aur.' }
+    ],
+    spell: "Uși de dulap, stați cuminți, nu mai speriați părinți! Hainele dorm, eu dorm bine, liniștea e lângă mine!"
+  }
+};
+
 function loadScript(src: string): Promise<void> {
   return new Promise((resolve) => {
     if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
@@ -172,9 +227,9 @@ export default function MonsterKit() {
       {/* ════ HIDDEN PDF TEMPLATES ════ */}
       <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', top: 0, pointerEvents: 'none' }}>
         <style>{CERT_STYLES}</style>
-        <Page1Certificate name={name} monsterLabel={monsterLabel} />
-        <Page2Recipe />
-        <Page3Labels name={name} />
+        <Page1Certificate name={name} monsterLabel={monsterLabel} content={MONSTER_KITS[monsterType]} />
+        <Page2Recipe content={MONSTER_KITS[monsterType]} />
+        <Page3Labels name={name} monsterLabel={monsterLabel} />
       </div>
 
       {/* Result modal */}
@@ -206,55 +261,6 @@ export default function MonsterKit() {
                 <div className="grid grid-cols-3 gap-3 mb-8 text-sm">
                   {['📜 Certificat', '🧪 Rețetă Spray', '🏷️ Etichete'].map(item => (
                     <div key={item} className="bg-brand-navy/5 rounded-2xl py-3 px-2 font-bold text-brand-navy/70">{item}</div>
-                  ))}
-                </div>
-                <motion.button
-                  onClick={handleDownload}
-                  whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-                  className="w-full bg-brand-navy text-brand-cream py-5 rounded-2xl font-black text-lg border-b-8 border-brand-gold flex items-center justify-center gap-3 shadow-xl transition-all"
-                >
-                  <Download size={22} /> Descarcă PDF-ul Complet
-                </motion.button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </section>
-  );
-}
-
-/* ══════════════════════════════════════════════════
-   PDF PAGE COMPONENTS
-══════════════════════════════════════════════════ */
-
-function Page1Certificate({ name, monsterLabel }: { name: string; monsterLabel: string }) {
-  const heroName = name.trim() || 'EROUL NOSTRU';
-  return (
-    <div id="mk-page-1" className="mk-page" style={{ display: 'none' }}>
-      <div className="mk-bg" />
-      <div className="mk-border-outer" />
-      <div className="mk-border-inner" />
-      {(['tl','tr','bl','br'] as const).map(pos => <CornerSVG key={pos} pos={pos} />)}
-
-      <div className="mk-content">
-        <p className="mk-ministry">Ministerul Protecției Magice · Regatul Viselor Liniștite</p>
-        <h1 className="mk-title">CERTIFICAT OFICIAL<br/>DE PROTECȚIE MAGICĂ</h1>
-        <p className="mk-subtitle">împotriva {monsterLabel} și a tuturor Ființelor Nedorite</p>
-        <Divider stars={3} />
-
-        <div className="mk-beneficiary-box">
-          <span className="mk-beneficiary-label">Se acordă micuțului / micuței erou / eroine</span>
-          <div className="mk-beneficiary-name">{heroName}</div>
-        </div>
-
-        <p className="mk-body">
-          Prin autoritatea conferită de <em>Ordinul Dragonului Somnoros</em> și cu binecuvântarea{' '}
-          <em>Zânei Luminilor de Noapte</em>, camera acestui copil este protejată de un{' '}
-          <em>scut invizibil</em> țesut din <em>praf de stele</em>, lumină de lună plină și{' '}
-          <em>râsete de spiriduși veseli</em>. Nicio ființă cu intenții rele nu poate pătrunde
-          dincolo de pragul acestei camere sfinte.{' '}
-          <em>Prezentul certificat este valabil la nesfârșit.</em>
         </p>
 
         <Divider stars={1} />
@@ -297,7 +303,7 @@ function Page1Certificate({ name, monsterLabel }: { name: string; monsterLabel: 
   );
 }
 
-function Page2Recipe() {
+function Page2Recipe({ content }: { content: any }) {
   return (
     <div id="mk-page-2" className="mk-page" style={{ display: 'none' }}>
       <div className="mk-bg" />
@@ -308,17 +314,13 @@ function Page2Recipe() {
       <div className="mk-content">
         <p className="mk-ministry">Laboratorul Alchimic al Ministerului Protecției Magice</p>
         <h1 className="mk-title" style={{ fontSize: 30 }}>REȚETA SECRETĂ</h1>
-        <p className="mk-subtitle">a Spray-ului Anti-Umbre ale Nopții · Formulă Clasificată</p>
+        <p className="mk-subtitle">a Spray-ului Anti-Monștri · Formulă Clasificată</p>
         <Divider stars={3} />
 
         <div className="mk-recipe-cols">
           <div className="mk-recipe-col">
             <p className="mk-recipe-section-title">Ingrediente Magice</p>
-            {[
-              { num: '1', icon: '💧', name: 'Un flacon cu apă curată',         detail: 'adunată pe timp de lună plină, de preferință' },
-              { num: '2', icon: '🍋', name: 'Trei picuri de Esență de Curaj',  detail: '(suc de lămâie, extras din cel mai curajos lămâi)' },
-              { num: '3', icon: '✨', name: 'Un strop de Sclipici Invizibil',  detail: '(se vede doar cu ochii inimii)' },
-            ].map(ing => (
+            {content.ingredients.map((ing: any) => (
               <div key={ing.num} className="mk-ingredient">
                 <span className="mk-ing-num">{ing.num}</span>
                 <div>
@@ -333,12 +335,7 @@ function Page2Recipe() {
 
           <div className="mk-recipe-col">
             <p className="mk-recipe-section-title">Mod de Preparare</p>
-            {[
-              { roman: 'I',   l1: 'Toarnă apa în flacon cu grijă,',    l2: 'gândindu-te la lucruri curajoase.' },
-              { roman: 'II',  l1: 'Adaugă cei trei picuri de esență',   l2: 'și agită de șapte ori (numărul magic).' },
-              { roman: 'III', l1: 'Suflă ușor deasupra flaconului',     l2: 'pentru a activa sclipiciul invizibil.' },
-              { roman: 'IV',  l1: 'Pulverizează sub pat, în dulap',     l2: 'și pe după ușă înainte de culcare.' },
-            ].map(s => (
+            {content.steps.map((s: any) => (
               <div key={s.roman} className="mk-step">
                 <div className="mk-step-num">{s.roman}</div>
                 <div>
@@ -355,8 +352,7 @@ function Page2Recipe() {
         <div className="mk-incantation-box" style={{ marginTop: '50px' }}>
           <p className="mk-incantation-label">Descântecul de Activare · Se rostește în șoaptă</p>
           <p className="mk-incantation-text">
-            „Umbre mici și umbre mari, plecați voi în alte zări!<br />
-            Cu curaj și sclipici bun, <strong>camera mea e de minune!</strong>"
+            „<span dangerouslySetInnerHTML={{ __html: content.spell }} />"
           </p>
         </div>
 
@@ -380,7 +376,7 @@ function Page2Recipe() {
   );
 }
 
-function Page3Labels({ name }: { name: string }) {
+function Page3Labels({ name, monsterLabel }: { name: string; monsterLabel: string }) {
   const safeName = name.trim() || 'EROUL';
   return (
     <div id="mk-page-3" className="mk-page mk-page-parchment" style={{ display: 'none' }}>
@@ -397,7 +393,7 @@ function Page3Labels({ name }: { name: string }) {
             <div className="mk-label-main">
               <p className="mk-label-ministry">MINISTERUL PROTECȚIEI MAGICE</p>
               <h2 className="mk-label-title">SPRAY MAGIC</h2>
-              <h3 className="mk-label-subtitle">ANTI-UMBRE ALE NOPȚII</h3>
+              <h3 className="mk-label-subtitle">ANTI-{monsterLabel.toUpperCase()}</h3>
               <div className="mk-label-divider" />
               <div className="mk-label-stars">✦ ✦ ✦ ✦ ✦</div>
               <div className="mk-label-divider" style={{ marginTop: 10 }} />
