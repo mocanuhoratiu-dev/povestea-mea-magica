@@ -92,7 +92,7 @@ export default function Hero() {
         >
           <div className="relative z-10 w-full animate-float will-change-transform">
             <Image
-              src="/hero-storybook.png?v=2"
+              src="/hero-storybook.png"
               alt="Ilustrație Magică"
               width={800}
               height={600}
