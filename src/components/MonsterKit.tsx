@@ -215,27 +215,39 @@ const MonsterKit = () => {
           <div id="cert-p1" className="cert-page">
               <div className="cert-border"></div><div className="cert-inner-border"></div>
               <div className="cert-content">
-                  <div className="cert-header">MINISTERUL PROTECTIEI MAGICE · REGATUL VISELOR LINISTITE</div>
+                  <div className="cert-header">MINISTERUL PROTECȚIEI MAGICE · REGATUL VISELOR LINIȘTITE</div>
                   <div className="cert-title">CERTIFICAT OFICIAL</div>
-                  <div className="cert-subtitle">DE PROTECTIE MAGICA</div>
+                  <div className="cert-subtitle">DE PROTECȚIE MAGICĂ</div>
                   <div className="cert-divider"></div>
-                  <div className="cert-name-box">
-                      <div style={{fontSize: '9px', color: '#c9a84c', marginBottom: '5px'}}>MICUL / MICA EROU / EROINICA</div>
-                      <div className="cert-name">{name || "EROUL NOSTRU"}</div>
+                  
+                  <div style={{margin: '40px 0'}}>
+                      <div style={{fontSize: '10px', color: '#c9a84c', marginBottom: '15px', fontFamily: 'Cinzel', letterSpacing: '2px'}}>MICUL / MICA EROU / EROINICĂ</div>
+                      <div style={{fontFamily: 'Cinzel', fontSize: '36px', borderBottom: '2px solid #c9a84c', display: 'inline-block', padding: '0 60px', color: '#f4e4a0', fontStyle: 'italic'}}>{name || "EROUL NOSTRU"}</div>
                   </div>
+
                   <div className="cert-body">
-                      Prin autoritatea conferita de <b>Ordinul Dragonului Somnoros</b> si cu binecuvântarea <b>Zanei Luminilor de Noapte</b>, camera acestui copil este protejata de un <b>scut invizibil</b> tesut din praf de stele, lumina de luna plina si rasele de spiridusi veseli.
+                      Prin autoritatea conferită de <b>Ordinul Dragonului Somnoros</b> și cu binecuvântarea <b>Zânei Luminilor de Noapte</b>, camera acestui copil este protejată de un <b>scut invizibil</b> țesut din praf de stele, lumină de lună plină și râsete de spiriduși veseli.
                   </div>
                   <div className="cert-clauses">
-                      <div className="cert-clause"><b>Art. I</b> Monstrilor le este strict interzis accesul sub pat sau in dulap.</div>
-                      <div className="cert-clause"><b>Art. II</b> Umbrele nu au dreptul sa faca grimase fara permisiune scrisa.</div>
-                      <div className="cert-clause"><b>Art. III</b> Zgomotele noptii se transforma automat in pisici adormite.</div>
-                      <div className="cert-clause"><b>Art. IV</b> Orice monstru recalcitrant va fi transformat in nori de vată roz.</div>
+                      <div className="cert-clause"><b>Art. I</b> Monștrilor le este strict interzis accesul sub pat sau în dulap.</div>
+                      <div className="cert-clause"><b>Art. II</b> Umbrele nu au dreptul să facă grimase fără permisiune scrisă.</div>
+                      <div className="cert-clause"><b>Art. III</b> Zgomotele nopții se transformă automat în pisici adormite.</div>
+                      <div className="cert-clause"><b>Art. IV</b> Orice monstru recalcitrant va fi transformat în nori de vată roz.</div>
                   </div>
                   <div className="cert-seal-area">
                       <div className="cert-sig">Mag. Umberto<br/><span className="cert-sig-title">Comandantul Gardienilor</span></div>
-                      <div className="cert-seal">🐉</div>
-                      <div className="cert-sig">Luminia din Stele<br/><span className="cert-sig-title">Zana Luminilor</span></div>
+                      
+                      {/* SVG DRAGON SEAL REPLICATED FROM PYTHON */}
+                      <div className="cert-seal">
+                        <svg width="60" height="60" viewBox="0 0 100 100">
+                            <ellipse cx="41" cy="40" rx="18" ry="9" fill="#c9a84c" opacity="0.8" transform="rotate(90 41 40)" />
+                            <ellipse cx="50" cy="50" rx="24" ry="12" fill="#c9a84c" opacity="0.8" />
+                            <path d="M62 50 Q76 46 80 32 T72 26" stroke="#c9a84c" strokeWidth="4" fill="none" opacity="0.8" />
+                            <circle cx="53" cy="42" r="3" fill="#0e0f23" />
+                        </svg>
+                      </div>
+
+                      <div className="cert-sig">Luminia din Stele<br/><span className="cert-sig-title">Zâna Luminilor</span></div>
                   </div>
               </div>
           </div>
@@ -245,27 +257,27 @@ const MonsterKit = () => {
               <div className="cert-border"></div><div className="cert-inner-border"></div>
               <div className="cert-content">
                   <div className="cert-header">LABORATORUL ALCHIMIC AL MINISTERULUI</div>
-                  <div className="cert-title">RETETA SECRETA</div>
-                  <div className="cert-subtitle">A SPRAY-ULUI ANTI-UMBRE ALE NOPTII</div>
+                  <div className="cert-title">REȚETĂ SECRETĂ</div>
+                  <div className="cert-subtitle">A SPRAY-ULUI ANTI-UMBRE ALE NOPȚII</div>
                   <div className="cert-divider"></div>
                   <div style={{textAlign: 'left', width: '100%', padding: '0 40px'}}>
                       <h4 style={{fontFamily: 'Cinzel', color: '#c9a84c', fontSize: '14px', marginBottom: '20px'}}>INGREDIENTE MAGICE</h4>
                       <ul style={{listStyle: 'none', padding: 0, color: '#d4c5e8'}}>
-                          <li style={{marginBottom: '20px'}}>🧪 <b>1. Un flacon cu apa curata</b> (adunata pe timp de luna plina)</li>
-                          <li style={{marginBottom: '20px'}}>🍋 <b>2. Trei picuri de Esenta de Curaj</b> (suc de lamaie proaspat)</li>
+                          <li style={{marginBottom: '20px'}}>🧪 <b>1. Un flacon cu apă curată</b> (adunată pe timp de lună plină)</li>
+                          <li style={{marginBottom: '20px'}}>🍋 <b>2. Trei picuri de Esență de Curaj</b> (suc de lămâie proaspăt)</li>
                           <li style={{marginBottom: '20px'}}>✨ <b>3. Un strop de Sclipici Invizibil</b> (se vede doar cu ochii inimii)</li>
                       </ul>
                       <h4 style={{fontFamily: 'Cinzel', color: '#c9a84c', fontSize: '14px', marginTop: '40px', marginBottom: '20px'}}>MOD DE PREPARARE</h4>
                       <div style={{fontSize: '14px', lineHeight: '1.8', color: '#d4c5e8'}}>
-                          1. Toarna apa in flacon cu grija, gandind la lucruri curajoase.<br/>
-                          2. Adauga cei trei picuri de esenta si agita de 7 ori (numarul magic).<br/>
-                          3. Sufla usor deasupra flaconului pentru a activa sclipiciul.<br/>
-                          4. Pulverizeaza sub pat si in dulap inainte de culcare.
+                          1. Toarnă apa în flacon cu grijă, gândind la lucruri curajoase.<br/>
+                          2. Adaugă cei trei picuri de esență și agită de 7 ori (numărul magic).<br/>
+                          3. Suflă ușor deasupra flaconului pentru a activa sclipiciul.<br/>
+                          4. Pulverizează sub pat și în dulap înainte de culcare.
                       </div>
                   </div>
                   <div style={{marginTop: 'auto', background: 'rgba(201,168,76,0.08)', padding: '30px', borderRadius: '15px', border: '1px dashed #c9a84c', width: '85%', marginBottom: '40px'}}>
                       <div style={{fontFamily: 'Cinzel', fontSize: '10px', marginBottom: '15px', color: '#c9a84c'}}>DESCANTECUL DE ACTIVARE</div>
-                      <div style={{fontStyle: 'italic', fontSize: '18px', color: '#f4e4a0'}}>"Umbre mici si umbre mari, plecati voi in alte zari! Cu curaj si sclipici bun, camera mea e de minune!"</div>
+                      <div style={{fontStyle: 'italic', fontSize: '18px', color: '#f4e4a0'}}>"Umbre mici și umbre mari, plecați voi în alte zări! Cu curaj și sclipici bun, camera mea e de minune!"</div>
                   </div>
               </div>
           </div>
@@ -274,7 +286,7 @@ const MonsterKit = () => {
           <div id="cert-p3" className="cert-page">
               <div className="cert-border"></div>
               <div className="cert-content">
-                  <div className="cert-header" style={{marginTop: '60px'}}>DECUPATI SI LIPITI PE FLACON</div>
+                  <div className="cert-header" style={{marginTop: '60px'}}>DECUPAȚI ȘI LIPIȚI PE FLACON</div>
                   <div style={{height: '60px'}}></div>
                   
                   {/* Main Label */}
@@ -282,8 +294,16 @@ const MonsterKit = () => {
                       <div style={{width: '100%', height: '100%', background: 'linear-gradient(160deg, #1a0a2e, #0d1a3a)', border: '2px solid #c9a84c', borderRadius: '15px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center'}}>
                           <div style={{fontSize: '9px', letterSpacing: '3px', color: '#c9a84c'}}>SPRAY MAGIC</div>
                           <div style={{fontFamily: 'Cinzel', fontSize: '24px', margin: '10px 0', color: '#f4e4a0'}}>ANTI-UMBRE</div>
-                          <div style={{fontSize: '8px', color: '#c9a84c'}}>FORMULA SECRETA NR. SPRAY-007</div>
-                          <div style={{fontSize: '20px', marginTop: '15px'}}>✨🐉✨</div>
+                          <div style={{fontSize: '8px', color: '#c9a84c'}}>FORMULA SECRETĂ NR. SPRAY-007</div>
+                          
+                          <div style={{marginTop: '15px'}}>
+                            <svg width="40" height="40" viewBox="0 0 100 100">
+                                <ellipse cx="41" cy="40" rx="18" ry="9" fill="#c9a84c" opacity="0.8" transform="rotate(90 41 40)" />
+                                <ellipse cx="50" cy="50" rx="24" ry="12" fill="#c9a84c" opacity="0.8" />
+                                <path d="M62 50 Q76 46 80 32 T72 26" stroke="#c9a84c" strokeWidth="4" fill="none" opacity="0.8" />
+                                <circle cx="53" cy="42" r="3" fill="#0e0f23" />
+                            </svg>
+                          </div>
                       </div>
                   </div>
 
@@ -294,23 +314,30 @@ const MonsterKit = () => {
                       <div style={{width: '140px', height: '140px', border: '2px dashed #c9a84c', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
                           <div style={{width: '120px', height: '120px', background: '#1a0a2e', border: '2px solid #c9a84c', borderRadius: '50%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center'}}>
                               <div style={{fontSize: '8px', color: '#c9a84c'}}>SIGILIUL</div>
-                              <div style={{fontSize: '28px', margin: '5px 0'}}>🐉</div>
+                              <div style={{margin: '5px 0'}}>
+                                <svg width="40" height="40" viewBox="0 0 100 100">
+                                    <ellipse cx="41" cy="40" rx="18" ry="9" fill="#c9a84c" opacity="0.8" transform="rotate(90 41 40)" />
+                                    <ellipse cx="50" cy="50" rx="24" ry="12" fill="#c9a84c" opacity="0.8" />
+                                    <path d="M62 50 Q76 46 80 32 T72 26" stroke="#c9a84c" strokeWidth="4" fill="none" opacity="0.8" />
+                                    <circle cx="53" cy="42" r="3" fill="#0e0f23" />
+                                </svg>
+                              </div>
                               <div style={{fontSize: '8px', color: '#c9a84c'}}>DRAGONULUI</div>
                           </div>
                       </div>
 
                       {/* Instructions Label */}
                       <div style={{width: '200px', height: '140px', border: '2px dashed #c9a84c', padding: '10px', borderRadius: '15px'}}>
-                          <div style={{width: '100%', height: '100%', background: '#1a0a2e', border: '1px solid #c9a84c', borderRadius: '10px', padding: '15px', fontSize: '10px', textAlign: 'left', color: '#d4c5e8'}}>
-                              <b style={{color: '#c9a84c', fontSize: '11px'}}>INSTRUCTIUNI:</b><br/><br/>
-                              1. Agita de 7 ori<br/>
-                              2. Rosteste descantecul<br/>
-                              3. Pulverizeaza sub pat<br/>
-                              4. Dormi linistit/a! ✨
+                          <div style={{width: '100%', height: '100%', background: '#1a0a2e', border: '1px solid #c9a84c', borderRadius: '10px', padding: '15px', fontSize: '10px', textAlign: 'center', color: '#d4c5e8', display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
+                              <b style={{color: '#c9a84c', fontSize: '11px', marginBottom: '10px'}}>INSTRUCȚIUNI:</b>
+                              <div>1. Agită de 7 ori</div>
+                              <div>2. Rostește descântecul</div>
+                              <div>3. Pulverizează sub pat</div>
+                              <div>4. Dormi liniștit/ă! ✨</div>
                           </div>
                       </div>
                   </div>
-                  <div style={{marginTop: 'auto', fontSize: '9px', opacity: 0.5, paddingBottom: '30px', color: '#c9a84c'}}>Ministerul Protectiei Magice · 2026</div>
+                  <div style={{marginTop: 'auto', fontSize: '9px', opacity: 0.5, paddingBottom: '30px', color: '#c9a84c'}}>Ministerul Protecției Magice · 2026</div>
               </div>
           </div>
       </div>
