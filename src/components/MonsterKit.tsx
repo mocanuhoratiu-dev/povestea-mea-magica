@@ -186,7 +186,7 @@ export default function MonsterKit() {
           >
             <motion.div
               initial={{ scale: 0.9, y: 40 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 40 }}
-              className="bg-brand-cream max-lg w-full rounded-[3rem] border-4 border-brand-gold relative flex flex-col overflow-hidden shadow-2xl"
+              className="bg-brand-cream max-w-lg w-full rounded-[3rem] border-4 border-brand-gold relative flex flex-col overflow-hidden shadow-2xl"
             >
               <button onClick={() => setShowResult(false)}
                 className="absolute top-5 right-5 w-10 h-10 rounded-full bg-brand-navy/10 hover:bg-brand-navy/20 flex items-center justify-center font-black text-brand-navy/60 transition-all z-10">
@@ -352,7 +352,7 @@ function Page2Recipe() {
 
         <Divider stars={3} />
 
-        <div className="mk-incantation-box" style={{ marginTop: '30px' }}>
+        <div className="mk-incantation-box" style={{ marginTop: '50px' }}>
           <p className="mk-incantation-label">Descântecul de Activare · Se rostește în șoaptă</p>
           <p className="mk-incantation-text">
             „Umbre mici și umbre mari, plecați voi în alte zări!<br />
@@ -413,7 +413,7 @@ function Page3Labels({ name }: { name: string }) {
           {/* Round seal */}
           <div className="mk-label-cut-wrap" style={{ flexShrink: 0 }}>
             <div className="mk-seal-label">
-              <div style={{ transform: 'scale(0.9)' }}>
+              <div style={{ transform: 'scale(0.85)' }}>
                 <DragonSeal />
               </div>
             </div>
