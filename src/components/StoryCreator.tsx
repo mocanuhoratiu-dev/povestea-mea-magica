@@ -61,6 +61,12 @@ const STORY_PDF_STYLES = `
   font-size: 19px; line-height: 1.8; color: #2d3436;
   text-align: justify; white-space: pre-wrap;
 }
+.story-drop-cap {
+  float: left; font-family: 'Cinzel', serif; font-size: 64px;
+  line-height: 52px; padding-top: 4px; padding-right: 8px; padding-left: 3px;
+  color: #c9a84c; font-weight: 700;
+  text-shadow: 1px 1px 0 rgba(0,0,0,0.05);
+}
 .story-text-page-num {
   position: absolute; bottom: 50px; left: 0; right: 0;
   text-align: center; font-family: 'Cinzel', serif; font-size: 10px;
@@ -78,6 +84,27 @@ function loadScript(src: string): Promise<void> {
     s.src = src; s.onload = () => resolve();
     document.head.appendChild(s);
   });
+}
+
+function CornerSVG({ pos }: { pos: 'tl'|'tr'|'bl'|'br' }) {
+  const sx = (pos === 'tr' || pos === 'br') ? -1 : 1;
+  const sy = (pos === 'bl' || pos === 'br') ? -1 : 1;
+  const style: React.CSSProperties = {
+    position: 'absolute', width: 42, height: 42,
+    top:    pos.startsWith('t') ? 16 : undefined,
+    bottom: pos.startsWith('b') ? 16 : undefined,
+    left:   pos.endsWith('l')   ? 16 : undefined,
+    right:  pos.endsWith('r')   ? 16 : undefined,
+    transform: `scale(${sx}, ${sy})`,
+  };
+  return (
+    <svg style={style} viewBox="0 0 52 52" fill="none">
+      <path d="M2 30 L2 2 L30 2" stroke="#c9a84c" strokeWidth="1.6" />
+      <path d="M2 14 L14 2" stroke="#c9a84c" strokeWidth="0.9" opacity="0.55" />
+      <path d="M2 22 L22 2" stroke="#c9a84c" strokeWidth="0.5" opacity="0.3" />
+      <circle cx="2" cy="2" r="2.6" fill="#c9a84c" opacity="0.85" />
+    </svg>
+  );
 }
 
 const themes = [
@@ -222,6 +249,7 @@ export default function StoryCreator() {
           <div className="story-pdf-bg" />
           <div className="story-pdf-border" />
           <div className="story-pdf-inner-border" />
+          {(['tl','tr','bl','br'] as const).map(pos => <CornerSVG key={pos} pos={pos} />)}
           <div className="story-pdf-content" style={{ justifyContent: 'center' }}>
             <p className="story-cover-subtitle">O Aventură Magică Creată Pentru</p>
             <h1 className="story-cover-title">{name.toUpperCase() || "EROUL NOSTRU"}</h1>
@@ -233,16 +261,28 @@ export default function StoryCreator() {
         </div>
 
         {/* Story Pages */}
-        {storyChunks.map((chunk, idx) => (
-          <div key={idx} id={`story-page-${idx + 1}`} className="story-pdf-page" style={{ display: 'none' }}>
-            <div className="story-pdf-bg" />
-            <div className="story-pdf-border" />
-            <div className="story-pdf-content">
-              <div className="story-text-body">{chunk}</div>
-              <div className="story-text-page-num">Pagina {idx + 1}</div>
+        {storyChunks.map((chunk, idx) => {
+          const isFirstPage = idx === 0;
+          const firstChar = chunk.charAt(0);
+          const restOfChunk = chunk.slice(1);
+          return (
+            <div key={idx} id={`story-page-${idx + 1}`} className="story-pdf-page" style={{ display: 'none' }}>
+              <div className="story-pdf-bg" />
+              <div className="story-pdf-border" />
+              {(['tl','tr','bl','br'] as const).map(pos => <CornerSVG key={pos} pos={pos} />)}
+              <div className="story-pdf-content">
+                <div className="story-text-body">
+                  {isFirstPage ? (
+                    <><span className="story-drop-cap">{firstChar}</span>{restOfChunk}</>
+                  ) : (
+                    chunk
+                  )}
+                </div>
+                <div className="story-text-page-num">Pagina {idx + 1}</div>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Result Modal */}
@@ -304,11 +344,29 @@ export default function StoryCreator() {
               <div className="p-6 md:p-8 bg-white/50 border-t border-brand-navy/5 backdrop-blur-sm grid grid-cols-2 gap-4">
                 <button 
                   onClick={toggleSpeech}
-                  className={`flex items-center justify-center gap-2 py-4 rounded-xl font-black text-sm md:text-base shadow-lg transition-all ${
+                  className={`flex items-center justify-center gap-2 py-4 rounded-xl font-black text-sm md:text-base shadow-lg transition-all overflow-hidden relative ${
                     isSpeaking ? "bg-brand-navy text-white" : "bg-brand-purple text-white"
                   }`}
                 >
-                  {isSpeaking ? "Oprește Vocea 🤫" : "Ascultă Povestea 🎧"}
+                  {isSpeaking ? (
+                    <span className="flex items-center gap-2 relative z-10">
+                      <div className="flex gap-1 items-end h-4">
+                        {[1,2,3].map(i => (
+                          <motion.div key={i} animate={{ height: ["30%", "100%", "30%"] }} transition={{ duration: 0.5, repeat: Infinity, delay: i * 0.1 }} className="w-1 bg-brand-gold rounded-full" />
+                        ))}
+                      </div>
+                      Oprește Vocea
+                    </span>
+                  ) : "Ascultă Povestea 🎧"}
+                  
+                  {/* Subtle background glow when playing */}
+                  {isSpeaking && (
+                    <motion.div 
+                      animate={{ opacity: [0.1, 0.3, 0.1] }} 
+                      transition={{ duration: 2, repeat: Infinity }} 
+                      className="absolute inset-0 bg-brand-purple mix-blend-screen pointer-events-none" 
+                    />
+                  )}
                 </button>
                 <button 
                   onClick={downloadPDF}

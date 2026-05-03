@@ -1,9 +1,27 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles } from "lucide-react";
 
+const loadingMessages = [
+  "🪄 Chemăm personajele din tărâmul fermecat...",
+  "🌌 Pictăm cerul de poveste...",
+  "📜 Scriem fiecare cuvânt cu grijă...",
+  "✨ Presărăm magia finală..."
+];
+
 export default function MagicalLoader({ isVisible }: { isVisible: boolean }) {
+  const [msgIdx, setMsgIdx] = useState(0);
+
+  useEffect(() => {
+    if (!isVisible) return;
+    const interval = setInterval(() => {
+      setMsgIdx(prev => (prev + 1) % loadingMessages.length);
+    }, 1500);
+    return () => clearInterval(interval);
+  }, [isVisible]);
+
   return (
     <AnimatePresence>
       {isVisible && (
@@ -28,23 +46,20 @@ export default function MagicalLoader({ isVisible }: { isVisible: boolean }) {
             <Sparkles size={80} className="text-brand-gold" />
           </motion.div>
           
-          <motion.h2
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="text-3xl font-black font-nunito tracking-tight text-center px-6"
-          >
-            Se prepară magia... ✨
-          </motion.h2>
-          
-          <motion.p
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            className="mt-4 text-brand-cream/60 font-medium"
-          >
-            Trimitem datele către portalul de plată
-          </motion.p>
+          <div className="h-16 flex items-center justify-center">
+            <AnimatePresence mode="wait">
+              <motion.h2
+                key={msgIdx}
+                initial={{ y: 10, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -10, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="text-2xl md:text-3xl font-black font-nunito tracking-tight text-center px-6 text-brand-cream"
+              >
+                {loadingMessages[msgIdx]}
+              </motion.h2>
+            </AnimatePresence>
+          </div>
           
           <div className="mt-12 w-48 h-2 bg-white/10 rounded-full overflow-hidden">
             <motion.div
