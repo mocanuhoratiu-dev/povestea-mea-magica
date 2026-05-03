@@ -1,56 +1,66 @@
 import { NextResponse } from "next/server";
+import { GoogleGenAI } from "@google/genai";
 
 export async function POST(req: Request) {
   try {
     const data = await req.json();
-    const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || "";
-
     console.log("🚀 Cerere generare primită:", data.type, data.name);
 
-    // LOGICĂ GENERARE LOCALĂ PENTRU MONSTER KIT (Bypass n8n)
+    // Initializam Gemini client
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
     if (data.type === "monster") {
-        const monsterResponse = `
-📜 CERTIFICAT DE PROTECȚIE MAGICĂ 🛡️
-Prezentul document atestă că eroul ${data.name} este sub protecția directă a Consiliului Magiei.
+      const prompt = `Ești reprezentantul Ministerului Protecției Magice. 
+      Sarcina ta: Inventează o rețetă magică amuzantă și un descântec pentru a alunga monstrul/frica de: "${data.monster}" din camera eroului/eroinei: "${data.name}".
+      Returnează răspunsul în format JSON STRICT. Nu adăuga block-uri markdown de tip \`\`\`json.
+      Format JSON necesar:
+      {
+        "body": "podeaua acestei camere este protejată de... (folosește tag-uri HTML <em> pt accent, text scurt)",
+        "ingredients": [ 
+          { "num": "1", "icon": "emoji", "name": "nume amuzant ingredient", "detail": "scurt detaliu magic" },
+          { "num": "2", "icon": "emoji", "name": "nume amuzant ingredient", "detail": "scurt detaliu magic" },
+          { "num": "3", "icon": "emoji", "name": "nume amuzant ingredient", "detail": "scurt detaliu magic" }
+        ],
+        "steps": [ 
+          { "roman": "I", "l1": "pasul 1 linia 1 (1/2 propozitie)", "l2": "pasul 1 linia 2 (continuare)" }, 
+          { "roman": "II", "l1": "pasul 2 linia 1", "l2": "pasul 2 linia 2" } 
+        ],
+        "spell": "o scurtă rimă magică amuzantă (2 rânduri, ex: Umbre mici plecați din zori / Fugiți iute printre nori)"
+      }`;
 
-✨ VRAJA TA MAGICĂ:
-"Luminițe sclipitoare, fugiți umbre temătoare! 
-Cu inima plină de curaj, fac al fricii un naufragiu!"
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+        }
+      });
+      
+      const jsonText = response.text || "{}";
+      const result = JSON.parse(jsonText);
 
-🧪 REȚETA PENTRU SPRAY-UL ANTI-${data.monster.toUpperCase()}:
-1. Un flacon cu apă curată.
-2. Trei picături de "esență de curaj" (suc de lămâie).
-3. Un strop de sclipici invizibil.
-Pulverizează sub pat înainte de culcare și nicio urmă de ${data.monster} nu va mai rămâne!
-
-💪 MESAJUL CONSILIULUI:
-Ești mai puternic decât orice umbră, ${data.name}! Dormi liniștit, magia este cu tine.
-        `;
-        return NextResponse.json({ success: true, data: { text: monsterResponse } });
+      return NextResponse.json({ success: true, data: result });
     }
 
-    // Trimiterea datelor către n8n
-    const response = await fetch(N8N_WEBHOOK_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...data, timestamp: new Date().toISOString() }),
-    });
+    if (data.type === "story") {
+      const themeLabel = data.theme === 'space' ? 'Spațiu' : data.theme === 'forest' ? 'Pădure Fermecată' : 'Castel Magic';
+      
+      const prompt = `Ești un autor premiat de cărți de povești pentru copii.
+      Sarcina ta: Scrie o poveste scurtă, fermecătoare (aprox. 400 de cuvinte) pentru copilul: ${data.name} care are ${data.age} ani.
+      Tema poveștii (locația): ${themeLabel}.
+      Povestea trebuie să aibă o morală discretă despre: ${data.lesson}.
+      Tonul trebuie să fie cald, liniștitor, visător și potrivit pentru culcare. Fără scene de acțiune prea intense sau violență.
+      Formatează textul folosind paragrafe despărțite prin linie nouă (fără titlu la început, doar textul poveștii). Nu folosi markdown excesiv (fără bold, italic sau titluri h1).`;
 
-    if (!response.ok) {
-      throw new Error(`n8n Error: ${response.status}`);
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+      });
+
+      return NextResponse.json({ success: true, data: { text: response.text } });
     }
 
-    let rawResponse = await response.text();
-    rawResponse = rawResponse.trim().replace(/^=/, '');
-
-    let result;
-    try {
-      result = JSON.parse(rawResponse);
-    } catch (e) {
-      result = { text: rawResponse };
-    }
-
-    return NextResponse.json({ success: true, data: result });
+    return NextResponse.json({ success: false, error: "Tip necunoscut" }, { status: 400 });
 
   } catch (error) {
     console.error("Eroare API Generate:", error);

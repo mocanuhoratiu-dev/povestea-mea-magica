@@ -87,14 +87,36 @@ export default function MonsterKit() {
   const [monsterType, setMonsterType] = useState(monsters[0].id);
   const [isLoading,   setIsLoading]   = useState(false);
   const [showResult,  setShowResult]  = useState(false);
+  const [aiKitData,   setAiKitData]   = useState<any>(null);
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
     setIsLoading(true);
-    await new Promise(r => setTimeout(r, 1800));
-    setIsLoading(false);
-    setShowResult(true);
+    
+    try {
+      const mLabel = monsters.find(m => m.id === monsterType)?.label ?? monsterType;
+      const response = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "monster", name, monster: mLabel }),
+      });
+
+      const result = await response.json();
+      if (result.success && result.data) {
+        setAiKitData(result.data);
+      } else {
+        // Fallback la static dacă pică API-ul
+        setAiKitData(null); 
+      }
+      setShowResult(true);
+    } catch (err) {
+      console.error(err);
+      setAiKitData(null);
+      setShowResult(true); // show static fallback
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleDownload = async () => {
@@ -227,8 +249,8 @@ export default function MonsterKit() {
       {/* ════ HIDDEN PDF TEMPLATES ════ */}
       <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', top: 0, pointerEvents: 'none' }}>
         <style>{CERT_STYLES}</style>
-        <Page1Certificate name={name} monsterLabel={monsterLabel} content={MONSTER_KITS[monsterType]} />
-        <Page2Recipe content={MONSTER_KITS[monsterType]} />
+        <Page1Certificate name={name} monsterLabel={monsterLabel} content={aiKitData || MONSTER_KITS[monsterType]} />
+        <Page2Recipe content={aiKitData || MONSTER_KITS[monsterType]} />
         <Page3Labels name={name} monsterLabel={monsterLabel} />
       </div>
 
