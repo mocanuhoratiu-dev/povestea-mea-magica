@@ -71,6 +71,15 @@ const STORY_PDF_STYLES = `
 }
 `;
 
+function loadScript(src: string): Promise<void> {
+  return new Promise((resolve) => {
+    if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
+    const s = document.createElement('script');
+    s.src = src; s.onload = () => resolve();
+    document.head.appendChild(s);
+  });
+}
+
 const themes = [
   { id: "space", label: "Spațiu", icon: <Rocket />, color: "bg-blue-400 text-white" },
   { id: "forest", label: "Pădure", icon: <Trees />, color: "bg-green-400 text-white" },
