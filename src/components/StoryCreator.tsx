@@ -2,8 +2,74 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Rocket, Trees, Castle, Sparkles, Star, ShieldCheck } from "lucide-react";
+import { Rocket, Trees, Castle, Sparkles, Star, ShieldCheck, Download } from "lucide-react";
 import MagicalLoader from "./MagicalLoader";
+
+const STORY_PDF_STYLES = `
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap');
+
+.story-pdf-page {
+  width: 794px; height: 1123px;
+  background: #fdfaf0;
+  position: relative; overflow: hidden;
+  font-family: 'Crimson Pro', serif;
+  box-sizing: border-box;
+}
+.story-pdf-bg {
+  position: absolute; inset: 0;
+  background: 
+    radial-gradient(circle at 10% 10%, rgba(155,89,182,0.03) 0%, transparent 40%),
+    radial-gradient(circle at 90% 90%, rgba(201,168,76,0.04) 0%, transparent 40%);
+}
+.story-pdf-border {
+  position: absolute; inset: 30px;
+  border: 1.5px solid #c9a84c; border-radius: 4px;
+}
+.story-pdf-inner-border {
+  position: absolute; inset: 42px;
+  border: 0.5px solid rgba(201,168,76,0.2); border-radius: 2px;
+}
+.story-pdf-content {
+  position: relative; z-index: 10;
+  padding: 80px 100px; height: 100%;
+  display: flex; flex-direction: column;
+}
+
+/* Cover Page */
+.story-cover-title {
+  font-family: 'Cinzel', serif; font-size: 38px; font-weight: 700;
+  color: #1a0a2e; text-align: center; margin-top: 40px; line-height: 1.2;
+}
+.story-cover-subtitle {
+  font-family: 'Cinzel', serif; font-size: 14px; letter-spacing: 0.3em;
+  color: #c9a84c; text-align: center; margin-top: 15px; text-transform: uppercase;
+}
+.story-cover-img-wrap {
+  margin: 60px auto; width: 450px; height: 450px;
+  border: 8px solid white; border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+.story-cover-footer {
+  margin-top: auto; text-align: center;
+  font-family: 'Cinzel', serif; font-size: 10px; color: #c9a84c;
+  letter-spacing: 0.2em; opacity: 0.7;
+}
+
+/* Text Page */
+.story-text-body {
+  font-size: 19px; line-height: 1.8; color: #2d3436;
+  text-align: justify; white-space: pre-wrap;
+}
+.story-text-page-num {
+  position: absolute; bottom: 50px; left: 0; right: 0;
+  text-align: center; font-family: 'Cinzel', serif; font-size: 10px;
+  color: #c9a84c; opacity: 0.6;
+}
+.story-corner {
+  position: absolute; width: 40px; height: 40px; opacity: 0.4;
+}
+`;
 
 const themes = [
   { id: "space", label: "Spațiu", icon: <Rocket />, color: "bg-blue-400 text-white" },
@@ -93,34 +159,84 @@ export default function StoryCreator() {
       setIsSpeaking(true);
     };
 
-    const downloadPDF = () => {
-      const docContent = document.getElementById("story-content");
-      if (!docContent) return;
+    const downloadPDF = async () => {
+      setIsLoading(true);
+      await Promise.all([
+        loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'),
+        loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'),
+      ]);
 
-      // Încărcăm jsPDF dinamic
-      const script = document.createElement("script");
-      script.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
-      script.onload = () => {
-        const { jsPDF } = (window as any).jspdf;
-        const doc = new jsPDF();
+      const { jsPDF } = (window as any).jspdf;
+      const html2canvas = (window as any).html2canvas;
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const W = pdf.internal.pageSize.getWidth();
+      const H = pdf.internal.pageSize.getHeight();
+
+      // Get all story pages
+      const pages = document.querySelectorAll('[id^="story-page-"]');
+      
+      for (let i = 0; i < pages.length; i++) {
+        const el = pages[i] as HTMLElement;
+        el.style.display = 'block';
         
-        doc.setFont("helvetica", "bold");
-        doc.text(`Povestea lui ${name}`, 105, 20, { align: "center" });
+        const canvas = await html2canvas(el, {
+          scale: 2.5,
+          useCORS: true,
+          logging: false,
+          windowWidth: 794,
+          windowHeight: 1123
+        });
         
-        doc.setFont("helvetica", "normal");
-        const splitText = doc.splitTextToSize(storyText, 180);
-        doc.text(splitText, 15, 40);
+        pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, W, H);
+        el.style.display = 'none';
         
-        doc.save(`Povestea_lui_${name}_Magica.pdf`);
-      };
-      document.head.appendChild(script);
+        if (i < pages.length - 1) pdf.addPage();
+      }
+
+      pdf.save(`Povestea_lui_${name.trim() || "Erou"}.pdf`);
+      setIsLoading(false);
     };
+
+    // Helper to split text into pages (approximate)
+    const storyChunks = storyText.match(/[\s\S]{1,1600}/g) || [storyText];
 
     return (
       <section id="creator" className="py-20 md:py-32 magic-gradient relative overflow-hidden px-4">
         <MagicalLoader isVisible={isLoading} />
   
-        {/* Result Modal */}
+        {/* ════ HIDDEN PDF TEMPLATES ════ */}
+      <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', top: 0, pointerEvents: 'none' }}>
+        <style>{STORY_PDF_STYLES}</style>
+        
+        {/* Page 1: Cover */}
+        <div id="story-page-0" className="story-pdf-page" style={{ display: 'none' }}>
+          <div className="story-pdf-bg" />
+          <div className="story-pdf-border" />
+          <div className="story-pdf-inner-border" />
+          <div className="story-pdf-content" style={{ justifyContent: 'center' }}>
+            <p className="story-cover-subtitle">O Aventură Magică Creată Pentru</p>
+            <h1 className="story-cover-title">{name.toUpperCase() || "EROUL NOSTRU"}</h1>
+            <div className="story-cover-img-wrap">
+              <img src={imageUrl} alt="" style={{ width: '100%', height: '100%', objectCover: 'cover' }} />
+            </div>
+            <p className="story-cover-footer">Povestea Mea Magică · Ediție de Colecție</p>
+          </div>
+        </div>
+
+        {/* Story Pages */}
+        {storyChunks.map((chunk, idx) => (
+          <div key={idx} id={`story-page-${idx + 1}`} className="story-pdf-page" style={{ display: 'none' }}>
+            <div className="story-pdf-bg" />
+            <div className="story-pdf-border" />
+            <div className="story-pdf-content">
+              <div className="story-text-body">{chunk}</div>
+              <div className="story-text-page-num">Pagina {idx + 1}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Result Modal */}
         {showResult && (
           <motion.div 
             initial={{ opacity: 0 }}
