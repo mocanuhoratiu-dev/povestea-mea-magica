@@ -65,7 +65,7 @@ export default function Hero() {
             🪄 Magie pură pentru cel mic
           </div>
           <h1 className="font-nunito font-extrabold text-5xl md:text-7xl text-brand-navy leading-tight">
-            Copilul tău, <span className="text-brand-purple italic">eroul</span> principal! 🧸
+            Copilul tău, <span className="text-brand-purple italic">eroul</span> principal! 🐉
           </h1>
           <p className="mt-6 text-xl text-brand-navy/80 leading-relaxed max-w-xl font-medium">
             Creează o aventură unică în care micuțul tău salvează galaxia sau explorează păduri fermecate. O poveste de neuitat, livrată instant! 🌈
@@ -92,7 +92,7 @@ export default function Hero() {
         >
           <div className="relative z-10 w-full animate-float will-change-transform">
             <Image
-              src="/hero-storybook.png"
+              src="/hero-storybook.png?v=1"
               alt="Mockup Povestea Mea Magică"
               width={800}
               height={600}
