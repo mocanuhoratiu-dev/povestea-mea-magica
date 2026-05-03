@@ -46,84 +46,155 @@ export default function MonsterKit() {
   };
 
     const downloadKit = () => {
-      const script = document.createElement("script");
-      script.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
-      script.onload = () => {
-        try {
-            const { jsPDF } = (window as any).jspdf;
-            const doc = new jsPDF('p', 'mm', 'a4');
-            const pageWidth = doc.internal.pageSize.getWidth();
-            const pageHeight = doc.internal.pageSize.getHeight();
-            
-            const cleanStr = (str: string) => {
-              return str
-                .replace(/ș/g, "s").replace(/Ș/g, "S")
-                .replace(/ț/g, "t").replace(/Ț/g, "T")
-                .replace(/ă/g, "a").replace(/Ă/g, "A")
-                .replace(/â/g, "a").replace(/Â/g, "A")
-                .replace(/î/g, "i").replace(/Î/g, "I");
-            };
+      const element = document.getElementById("premium-certificate-template");
+      if (!element) return;
 
-            // 1. FUNDAL VIBRANT
-            doc.setFillColor(255, 105, 245);
-            doc.rect(0, 0, pageWidth, pageHeight, 'F');
-
-            // 2. RAMA ALBĂ
-            doc.setFillColor(255, 255, 255);
-            doc.roundedRect(10, 10, pageWidth - 20, pageHeight - 20, 5, 5, 'F');
-
-            // 3. MONȘTRI SIMPLIFICAȚI (Fără funcții complexe care pot da eroare)
-            const drawMonster = (x: number, y: number, r: number, g: number, b: number, size: number) => {
-                doc.setFillColor(r, g, b);
-                doc.circle(x, y, size, 'F');
-                doc.setFillColor(255, 255, 255);
-                doc.circle(x - size/3, y - size/4, size/4, 'F');
-                doc.circle(x + size/3, y - size/4, size/4, 'F');
-                doc.setFillColor(0, 0, 0);
-                doc.circle(x - size/3, y - size/4, size/8, 'F');
-                doc.circle(x + size/3, y - size/4, size/8, 'F');
-                // Gura - o linie simplă
-                doc.setDrawColor(0, 0, 0);
-                doc.setLineWidth(1);
-                doc.line(x - size/4, y + size/3, x + size/4, y + size/3);
-            };
-
-            drawMonster(25, 25, 0, 220, 150, 10);
-            drawMonster(pageWidth-25, 25, 255, 150, 0, 12);
-            drawMonster(25, pageHeight-25, 0, 150, 255, 15);
-            drawMonster(pageWidth-25, pageHeight-25, 255, 80, 80, 10);
-
-            // 4. TEXT
-            doc.setTextColor(180, 70, 255);
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(28);
-            doc.text(cleanStr("BRAVO, EROULE!"), pageWidth/2, 40, { align: "center" });
-            
-            doc.setFontSize(40);
-            doc.setTextColor(255, 80, 150);
-            doc.text(cleanStr(name.toUpperCase()), pageWidth/2, 70, { align: "center" });
-
-            doc.setTextColor(60, 60, 60);
-            doc.setFontSize(14);
-            const bodyY = 100;
-            doc.text(cleanStr("VRAJA TA DE PROTECTIE:"), 20, bodyY);
-            doc.setFont("helvetica", "normal");
-            const splitVraja = doc.splitTextToSize(cleanStr(kitText), 160);
-            doc.text(splitVraja, 20, bodyY + 10);
-
-            doc.save(`Certificat_Magic_${name}.pdf`);
-        } catch (e) {
-            console.error("Eroare PDF:", e);
-            alert("🪄 Magia a întâmpinat o mică eroare la desenare. Te rugăm să încerci din nou!");
-        }
+      // Încărcăm librăriile necesare dinamic
+      const loadScript = (src: string) => {
+        return new Promise((resolve) => {
+          const script = document.createElement("script");
+          script.src = src;
+          script.onload = resolve;
+          document.head.appendChild(script);
+        });
       };
-      document.head.appendChild(script);
+
+      const generate = async () => {
+        const { jsPDF } = (window as any).jspdf;
+        const html2canvas = (window as any).html2canvas;
+
+        // Facem elementul vizibil temporar pentru captură (în afara ecranului)
+        element.style.display = "block";
+        element.style.position = "fixed";
+        element.style.left = "-9999px";
+
+        const canvas = await html2canvas(element, {
+          scale: 3, // Rezoluție înaltă pentru print
+          useCORS: true,
+          backgroundColor: null
+        });
+
+        const imgData = canvas.toDataURL("image/png");
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const imgProps = pdf.getImageProperties(imgData);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pdf.save(`Certificat_Magic_${name}.pdf`);
+
+        element.style.display = "none";
+      };
+
+      Promise.all([
+        loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"),
+        loadScript("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js")
+      ]).then(generate);
     };
 
     return (
       <section id="monster-away" className="py-20 md:py-32 bg-brand-navy relative overflow-hidden px-4">
         <MagicalLoader isVisible={isLoading} />
   
+        {/* Hidden Premium Template for Export */}
+        <div 
+          id="premium-certificate-template" 
+          style={{ display: 'none', width: '680px', position: 'relative' }}
+          className="premium-template-styles"
+        >
+          <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet" />
+          <div className="cert-wrap">
+            {/* Fundal Stele */}
+            <svg className="stars-bg" viewBox="0 0 680 900" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="60" cy="80" r="1" fill="#c9a84c" opacity="0.3"/>
+              <circle cx="180" cy="40" r="0.8" fill="#fff" opacity="0.25"/>
+              <circle cx="320" cy="65" r="1.2" fill="#c9a84c" opacity="0.2"/>
+              <circle cx="480" cy="30" r="0.9" fill="#fff" opacity="0.3"/>
+              <circle cx="600" cy="90" r="1" fill="#c9a84c" opacity="0.25"/>
+              <circle cx="640" cy="45" r="0.7" fill="#fff" opacity="0.2"/>
+              <circle cx="30" cy="200" r="0.8" fill="#c9a84c" opacity="0.2"/>
+              <circle cx="650" cy="180" r="1" fill="#fff" opacity="0.25"/>
+              <circle cx="100" cy="820" r="0.9" fill="#c9a84c" opacity="0.2"/>
+              <circle cx="560" cy="840" r="1.1" fill="#fff" opacity="0.2"/>
+              <circle cx="350" cy="860" r="0.8" fill="#c9a84c" opacity="0.15"/>
+            </svg>
+
+            {/* Corners */}
+            <svg className="corner c-tl" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" fill="none">
+              <path d="M2 30 L2 2 L30 2" stroke="#c9a84c" stroke-width="1.5"/>
+              <path d="M2 14 L14 2" stroke="#c9a84c" stroke-width="0.8" opacity="0.5"/>
+              <circle cx="2" cy="2" r="2.5" fill="#c9a84c" opacity="0.8"/>
+            </svg>
+            <svg className="corner c-tr" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" fill="none">
+              <path d="M2 30 L2 2 L30 2" stroke="#c9a84c" stroke-width="1.5"/>
+              <circle cx="2" cy="2" r="2.5" fill="#c9a84c" opacity="0.8"/>
+            </svg>
+            <svg className="corner c-bl" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" fill="none">
+              <path d="M2 30 L2 2 L30 2" stroke="#c9a84c" stroke-width="1.5"/>
+              <circle cx="2" cy="2" r="2.5" fill="#c9a84c" opacity="0.8"/>
+            </svg>
+            <svg className="corner c-br" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" fill="none">
+              <path d="M2 30 L2 2 L30 2" stroke="#c9a84c" stroke-width="1.5"/>
+              <circle cx="2" cy="2" r="2.5" fill="#c9a84c" opacity="0.8"/>
+            </svg>
+
+            <div className="inner-border"></div>
+
+            <div className="ministry-label">Ministerul Protecției Magice · Regatul Viselor Liniștite</div>
+            <div className="title-main">CERTIFICAT OFICIAL<br/>DE PROTECȚIE MAGICĂ</div>
+            <div className="title-sub">împotriva Monștrilor, Umbrelor și Ființelor Nedorite</div>
+
+            <div className="divider">
+              <div className="div-line"></div>
+              <span className="div-star">✦</span><span className="div-star">✦</span><span className="div-star">✦</span>
+              <div className="div-line"></div>
+            </div>
+
+            <div className="beneficiary-block">
+              <span className="beneficiary-label">Micul / Mica Erou / Eroinică</span>
+              <div className="beneficiary-name">{name || "[ Numele Micuțului Erou ]"}</div>
+            </div>
+
+            <p className="body-text">
+              Prin autoritatea conferită de <em>Ordinul Dragonului Somnoros</em> și cu binecuvântarea
+              <em> Zânei Luminilor de Noapte</em>, camera acestui copil este
+              protejată de un <em>scut invizibil</em> țesut din <em>praf de stele</em>,
+              lumină de lună plină și <em>râsete de spiriduși veseli</em>.
+              <em> Acest certificat este valabil la nesfârșit.</em>
+            </p>
+
+            <div className="clauses-title">Clauze Oficiale Antimonstru · Articole de Lege Magică</div>
+            <div className="clauses-grid">
+              <div className="clause"><span className="clause-num">Art. I</span>Monștrilor cu picioare mirositoare le este strict interzis accesul sub pat.</div>
+              <div className="clause"><span className="clause-num">Art. II</span>Nicio umbră nu are dreptul să facă grimase fără permisiune.</div>
+              <div className="clause"><span className="clause-num">Art. III</span>Zgomotele misterioase se transformă automat în pisici adormite.</div>
+              <div className="clause"><span className="clause-num">Art. IV</span>Orice monstru recalcitrant va fi transformat în nori de vată roz.</div>
+            </div>
+
+            <div className="seal-section">
+              <div className="signatures">
+                <div className="sig-block">
+                  <div className="sig-line"></div>
+                  <div className="sig-name">Mag. Umberto din Tărâmul de Sus</div>
+                  <div className="sig-title">Comandantul Gardienilor</div>
+                </div>
+              </div>
+              <div className="seal-circle">
+                <div className="seal-icon">🐉</div>
+                <div className="seal-text">SIGILIUL<br/>DRAGONULUI<br/>SOMNOROS</div>
+              </div>
+              <div className="signatures">
+                <div className="sig-block">
+                  <div className="sig-line"></div>
+                  <div className="sig-name">Luminia din Stele</div>
+                  <div className="sig-title">Zâna Luminilor</div>
+                </div>
+              </div>
+            </div>
+            <div className="validity">Valabil pe toată durata copilăriei · Nr. #0001</div>
+          </div>
+        </div>
+
         {/* Result Modal */}
         {showResult && (
           <motion.div 
@@ -143,45 +214,29 @@ export default function MonsterKit() {
                 ✕
               </button>
   
-              <div className="flex-1 overflow-y-auto p-6 md:p-12 custom-scrollbar">
+              <div className="flex-1 overflow-y-auto p-6 md:p-12 custom-scrollbar text-brand-navy">
                 <div className="text-center mb-8 pt-4">
                   <ShieldCheck className="text-brand-gold w-10 h-10 mx-auto mb-4 animate-pulse" />
-                  <h3 className="font-nunito font-black text-2xl md:text-3xl text-brand-navy px-4">Kit Protecție {name} 🛡️</h3>
+                  <h3 className="font-nunito font-black text-2xl md:text-3xl text-brand-navy px-4 uppercase tracking-tighter">Certificat Activat! ✨</h3>
                 </div>
   
-                {imageUrl && (
-                  <div className="mb-8 relative group mx-auto max-w-[500px]">
-                    <motion.div 
-                      key={`img-monster-${imageUrl}`}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      className="rounded-[1.5rem] md:rounded-[2rem] overflow-hidden shadow-2xl border-4 border-white bg-brand-navy/10 aspect-square relative"
-                    >
-                      <img 
-                        key={imageUrl}
-                        src={imageUrl} 
-                        alt="Vizual Magic" 
-                        referrerPolicy="no-referrer"
-                        className="w-full h-full object-cover block"
-                      />
-                    </motion.div>
-                  </div>
-                )}
+                <div className="bg-white/50 p-6 rounded-3xl border-2 border-brand-gold/20 mb-8">
+                    <p className="text-sm md:text-base font-medium italic text-brand-navy/70 leading-relaxed text-center">
+                        "Documentul a fost înregistrat în Ministerul Protecției Magice. Acum poți descărca varianta oficială pentru a o printa și afișa în cameră."
+                    </p>
+                </div>
   
-                <div className="prose prose-brand max-w-none text-brand-navy/80 font-bold whitespace-pre-wrap leading-relaxed text-base md:text-lg italic border-4 border-dashed border-brand-gold/20 p-6 md:p-8 rounded-2xl md:rounded-3xl pb-10">
+                <div className="prose prose-brand max-w-none text-brand-navy/80 font-bold whitespace-pre-wrap leading-relaxed text-sm italic border-4 border-dashed border-brand-gold/10 p-6 rounded-2xl">
                   {kitText}
                 </div>
               </div>
   
               <div className="p-6 md:p-8 bg-white/50 border-t border-brand-navy/5 backdrop-blur-sm">
-                <p className="text-center text-[10px] md:text-xs font-bold text-brand-gold uppercase tracking-widest mb-4">
-                  Document Oficial Magie
-                </p>
                 <button 
                   onClick={downloadKit}
                   className="w-full bg-brand-navy text-brand-cream py-4 md:py-5 rounded-xl md:rounded-2xl font-black text-lg md:text-xl shadow-xl hover:scale-[1.02] active:scale-95 transition-all border-b-4 border-brand-gold"
                 >
-                  Descarcă Certificatul PDF 🛡️
+                  Descarcă Certificatul Premium 🛡️
                 </button>
               </div>
             </motion.div>
