@@ -226,7 +226,7 @@ export default function StoryCreator() {
             <p className="story-cover-subtitle">O Aventură Magică Creată Pentru</p>
             <h1 className="story-cover-title">{name.toUpperCase() || "EROUL NOSTRU"}</h1>
             <div className="story-cover-img-wrap">
-              <img src={imageUrl} alt="" style={{ width: '100%', height: '100%', objectCover: 'cover' }} />
+              <img src={imageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </div>
             <p className="story-cover-footer">Povestea Mea Magică · Ediție de Colecție</p>
           </div>
