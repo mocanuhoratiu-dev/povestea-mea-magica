@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldCheck, Ghost, Download, Wand2 } from 'lucide-react';
+import { ShieldCheck, Download, Wand2 } from 'lucide-react';
 import MagicalLoader from './MagicalLoader';
 
 const MonsterKit = () => {
@@ -108,11 +108,11 @@ const MonsterKit = () => {
         </motion.div>
       </div>
 
-      {/* HIDDEN TEMPLATES - EXACTLY AS USER PROVIDED */}
+      {/* HIDDEN TEMPLATES - 100% USER FIDELITY */}
       <div style={{ position: 'absolute', left: '-10000px', top: 0 }}>
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;1,300;1,400&display=swap');
-          .cert-wrap { background: linear-gradient(160deg, #1a0a2e 0%, #0d1a3a 50%, #1a0a2e 100%); border: 3px solid #c9a84c; border-radius: 4px; padding: 48px 52px; position: relative; font-family: 'Crimson Pro', Georgia, serif; overflow: hidden; width: 680px; height: 900px; box-sizing: border-box; }
+          .cert-wrap { background: linear-gradient(160deg, #1a0a2e 0%, #0d1a3a 50%, #1a0a2e 100%); border: 3px solid #c9a84c; border-radius: 4px; padding: 48px 52px; position: relative; font-family: 'Crimson Pro', Georgia, serif; overflow: hidden; width: 680px; height: 900px; box-sizing: border-box; color: #f4e4a0; }
           .corner { position: absolute; width: 60px; height: 60px; opacity: 0.85; }
           .c-tl { top: 8px; left: 8px; }
           .c-tr { top: 8px; right: 8px; transform: scaleX(-1); }
@@ -133,7 +133,7 @@ const MonsterKit = () => {
           .body-text em { color: #f4e4a0; font-style: normal; font-weight: 400; }
           .clauses-title { font-family: 'Cinzel', serif; font-size: 9px; font-weight: 600; letter-spacing: 0.3em; color: #c9a84c; text-align: center; text-transform: uppercase; margin: 18px 0 10px; }
           .clauses-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0 0 18px; }
-          .clause { background: rgba(201,168,76,0.05); border: 1px solid rgba(201,168,76,0.18); border-radius: 2px; padding: 10px 12px; font-size: 12.5px; color: #bfb3d4; line-height: 1.5; }
+          .clause { background: rgba(201,168,76,0.05); border: 1px solid rgba(201,168,76,0.18); border-radius: 2px; padding: 10px 12px; font-size: 12.5px; color: #bfb3d4; line-height: 1.5; text-align: left; }
           .clause-num { font-family: 'Cinzel', serif; color: #c9a84c; font-size: 9px; font-weight: 600; letter-spacing: 0.15em; display: block; margin-bottom: 3px; }
           .seal-section { display: flex; align-items: center; justify-content: center; gap: 28px; margin: 20px 0; }
           .seal-circle { width: 90px; height: 90px; border-radius: 50%; border: 2px solid #c9a84c; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(201,168,76,0.07); position: relative; flex-shrink: 0; }
@@ -166,74 +166,83 @@ const MonsterKit = () => {
             <span className="beneficiary-label">Micul / Mica Erou / Eroină</span>
             <div className="beneficiary-name">{name || "EROUL NOSTRU"}</div>
           </div>
-          <p className="body-text">Prin autoritatea conferită de <em>Ordinul Dragonului Somnoros</em> și cu binecuvântarea <em>Zânei Luminilor de Noapte</em>, camera acestui copil este protejată de un <em>scut invizibil</em> țesut din <em>praf de stele</em>. <em>Acest certificat este valabil la nesfârșit.</em></p>
+          <p className="body-text">
+            Prin autoritatea conferită de <em>Ordinul Dragonului Somnoros</em> și cu binecuvântarea
+            <em>Zânei Luminilor de Noapte</em>, camera acestui copil este
+            protejată de un <em>scut invizibil</em> țesut din <em>praf de stele</em>,
+            lumină de lună plină și <em>râsete de spiriduși veseli</em>.
+            Nicio ființă cu intenții răutăcioase nu poate pătrunde
+            dincolo de pragul acestei camere sfinte.
+            <em>Acest certificat este valabil la nesfârșit.</em>
+          </p>
           <div className="divider"><div className="div-line"></div><span className="div-star">✦</span><div className="div-line"></div></div>
           <div className="clauses-title">Clauze Oficiale Antimonstru · Articole de Lege Magică</div>
           <div className="clauses-grid">
-            <div className="clause"><span className="clause-num">Art. I</span>Monștrilor le este strict interzis accesul sub pat, în dulap și în spatele ușii.</div>
-            <div className="clause"><span className="clause-num">Art. II</span>Zgomotele misterioase se transformă automat în pisici adormite.</div>
-            <div className="clause"><span className="clause-num">Art. III</span>Nicio umbră nu are dreptul să facă grimase fără permisiune scrisă.</div>
-            <div className="clause"><span className="clause-num">Art. IV</span>Orice monstru recalcitrant va fi transformat în nori de vată roz.</div>
+            <div className="clause"><span className="clause-num">Art. I</span>Monștrilor cu picioare mirositoare le este strict interzis accesul sub pat, în dulap și în spatele ușii.</div>
+            <div className="clause"><span className="clause-num">Art. II</span>Nicio umbră nu are dreptul să se miște, să crească sau să facă grimase fără permisiune scrisă.</div>
+            <div className="clause"><span className="clause-num">Art. III</span>Zgomotele misterioase din noapte sunt obligate să se identifice; dacă nu o fac, se transformă automat în pisici adormite.</div>
+            <div className="clause"><span className="clause-num">Art. IV</span>Orice monstru care încearcă să ignore acest certificat va fi transformat în nori de vată roz și dus departe de vânt.</div>
           </div>
           <div className="seal-section">
-            <div className="signatures"><div className="sig-block"><div className="sig-line"></div><div className="sig-name">Mag. Umberto</div><div className="sig-title">Comandantul Gardienilor</div></div></div>
-            <div className="seal-circle"><div className="seal-icon">🐉</div><div className="seal-text">SIGILIUL<br/>DRAGONULUI<br/>SOMNOROS</div></div>
-            <div className="signatures"><div className="sig-block"><div className="sig-line"></div><div className="sig-name">Luminia</div><div className="sig-title">Zâna Luminilor</div></div></div>
+            <div className="signatures"><div className="sig-block"><div className="sig-line"></div><div className="sig-name">Mag. Umberto din Tărâmul de Sus</div><div className="sig-title">Comandantul Gardienilor</div></div></div>
+            <div className="seal-circle"><div className="seal-icon">🐉</div><div className="seal-text">SIGILIUL<br/>DRAGONULUI<br/>SOMNOROS<br/>· AUTENTIC ·</div></div>
+            <div className="signatures"><div className="sig-block"><div className="sig-line"></div><div className="sig-name">Luminia din Crăpătura Stelelor</div><div className="sig-title">Zâna Luminilor</div></div></div>
           </div>
-          <div className="validity">Valabil pe toată durata copilăriei</div>
+          <div className="validity">Valabil pe toată durata copilăriei · Se reînnoiește automat în fiecare noapte la miezul nopții</div>
           <div className="cert-number">Nr. #0001 · Seria SOMN-LINIȘTIT</div>
         </div>
 
-        {/* PAGE 2: RECIPE (SAME STYLE) */}
+        {/* PAGE 2: RECIPE */}
         <div id="cert-p2" className="cert-wrap">
           <div className="inner-border"></div>
           <div className="ministry-label">LABORATORUL ALCHIMIC AL MINISTERULUI</div>
-          <div className="title-main">REȚETĂ SECRETĂ</div>
+          <div className="title-main" style={{fontSize: '28px'}}>REȚETĂ SECRETĂ</div>
           <div className="title-sub">A SPRAY-ULUI ANTI-UMBRE ALE NOPȚII</div>
           <div className="divider"><div className="div-line"></div>✦✦✦<div className="div-line"></div></div>
-          <div style={{textAlign: 'left', padding: '0 20px'}}>
-            <h4 style={{fontFamily: 'Cinzel', color: '#c9a84c', fontSize: '14px', marginBottom: '15px'}}>INGREDIENTE MAGICE</h4>
-            <div style={{fontSize: '13px', color: '#d4c5e8', lineHeight: '2'}}>
-              🧪 1. Un flacon cu apă curată (lună plină)<br/>
-              🍋 2. Trei picuri de Esență de Curaj (lămâie)<br/>
+          <div style={{textAlign: 'left', padding: '0 40px', marginTop: '30px'}}>
+            <h4 style={{fontFamily: 'Cinzel', color: '#c9a84c', fontSize: '16px', marginBottom: '15px'}}>INGREDIENTE MAGICE</h4>
+            <div style={{fontSize: '14.5px', color: '#d4c5e8', lineHeight: '2.5'}}>
+              🧪 1. Un flacon cu apă curată (adunată la lună plină)<br/>
+              🍋 2. Trei picuri de Esență de Curaj (suc de lămâie)<br/>
               ✨ 3. Un strop de Sclipici Invizibil (ochiul inimii)
             </div>
-            <h4 style={{fontFamily: 'Cinzel', color: '#c9a84c', fontSize: '14px', margin: '30px 0 15px'}}>MOD DE PREPARARE</h4>
-            <div style={{fontSize: '13px', color: '#d4c5e8', lineHeight: '1.8'}}>
+            <h4 style={{fontFamily: 'Cinzel', color: '#c9a84c', fontSize: '16px', margin: '40px 0 15px'}}>MOD DE PREPARARE</h4>
+            <div style={{fontSize: '14.5px', color: '#d4c5e8', lineHeight: '2'}}>
               1. Toarnă apa în flacon gândind curajos.<br/>
               2. Adaugă esența și agită de 7 ori.<br/>
               3. Suflă deasupra pentru activare.<br/>
               4. Pulverizează sub pat înainte de culcare.
             </div>
           </div>
-          <div style={{marginTop: 'auto', background: 'rgba(201,168,76,0.1)', padding: '20px', borderRadius: '10px', border: '1px dashed #c9a84c', textAlign: 'center'}}>
-            <div style={{fontFamily: 'Cinzel', fontSize: '10px', color: '#c9a84c', marginBottom: '10px'}}>DESCANTEC DE ACTIVARE</div>
-            <div style={{fontStyle: 'italic', fontSize: '14px', color: '#f4e4a0'}}>"Umbre mici și umbre mari, plecați voi în alte zări!"</div>
+          <div style={{marginTop: 'auto', background: 'rgba(201,168,76,0.1)', padding: '25px', borderRadius: '12px', border: '1px dashed #c9a84c', textAlign: 'center', marginBottom: '40px'}}>
+            <div style={{fontFamily: 'Cinzel', fontSize: '10px', color: '#c9a84c', marginBottom: '12px'}}>DESCÂNTEC DE ACTIVARE</div>
+            <div style={{fontStyle: 'italic', fontSize: '18px', color: '#f4e4a0'}}>"Umbre mici și umbre mari, plecați voi în alte zări! Cu curaj și sclipici bun, camera mea e de minune!"</div>
           </div>
         </div>
 
-        {/* PAGE 3: LABELS (SAME STYLE) */}
+        {/* PAGE 3: LABELS */}
         <div id="cert-p3" className="cert-wrap">
           <div className="ministry-label" style={{marginTop: '40px'}}>DECUPAȚI ȘI LIPIȚI PE FLACON</div>
-          <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '50px', marginTop: '60px'}}>
-            <div style={{width: '320px', height: '180px', border: '2px dashed #c9a84c', padding: '5px', borderRadius: '15px'}}>
-              <div style={{width: '100%', height: '100%', background: 'linear-gradient(160deg, #1a0a2e, #0d1a3a)', border: '2px solid #c9a84c', borderRadius: '10px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center'}}>
-                <div style={{fontFamily: 'Cinzel', fontSize: '20px'}}>ANTI-UMBRE</div>
-                <div style={{fontSize: '8px', color: '#c9a84c', marginTop: '5px'}}>FORMULA SECRETĂ NR. SPRAY-007</div>
-                <div style={{fontSize: '20px', marginTop: '10px'}}>🐉</div>
+          <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '60px', marginTop: '80px'}}>
+            <div style={{width: '380px', height: '220px', border: '3px dashed #c9a84c', padding: '8px', borderRadius: '20px'}}>
+              <div style={{width: '100%', height: '100%', background: 'linear-gradient(160deg, #1a0a2e, #0d1a3a)', border: '2px solid #c9a84c', borderRadius: '15px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center'}}>
+                <div style={{fontFamily: 'Cinzel', fontSize: '10px', letterSpacing: '3px'}}>SPRAY MAGIC</div>
+                <div style={{fontFamily: 'Cinzel', fontSize: '28px', margin: '12px 0'}}>ANTI-UMBRE</div>
+                <div style={{fontSize: '9px', color: '#c9a84c'}}>FORMULA SECRETĂ NR. SPRAY-007</div>
+                <div className="seal-circle" style={{marginTop: '15px', scale: '0.8'}}><div className="seal-icon">🐉</div></div>
               </div>
             </div>
-            <div style={{display: 'flex', gap: '30px'}}>
-               <div style={{width: '120px', height: '120px', border: '2px dashed #c9a84c', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                  <div style={{width: '100px', height: '100px', background: '#1a0a2e', border: '2px solid #c9a84c', borderRadius: '50%', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
-                    <div style={{fontSize: '7px'}}>SIGILIUL</div>
-                    <div style={{fontSize: '20px'}}>🐉</div>
-                    <div style={{fontSize: '7px'}}>DRAGONULUI</div>
+            <div style={{display: 'flex', gap: '40px', alignItems: 'center'}}>
+               <div style={{width: '150px', height: '150px', border: '3px dashed #c9a84c', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                  <div style={{width: '130px', height: '130px', background: '#1a0a2e', border: '2px solid #c9a84c', borderRadius: '50%', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
+                    <div style={{fontSize: '8px'}}>SIGILIUL</div>
+                    <div style={{fontSize: '24px', margin: '5px 0'}}>🐉</div>
+                    <div style={{fontSize: '8px'}}>DRAGONULUI</div>
                   </div>
                </div>
-               <div style={{width: '180px', height: '120px', border: '2px dashed #c9a84c', padding: '10px', borderRadius: '10px', textAlign: 'center', background: '#1a0a2e', color: '#d4c5e8', fontSize: '10px', display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
-                  <b style={{color: '#c9a84c'}}>INSTRUCȚIUNI:</b>
-                  <div style={{marginTop: '5px'}}>1. Agită de 7 ori<br/>2. Rostește descântecul<br/>3. Pulverizează ✨</div>
+               <div style={{width: '240px', height: '150px', border: '3px dashed #c9a84c', padding: '15px', borderRadius: '15px', textAlign: 'center', background: '#1a0a2e', color: '#d4c5e8', fontSize: '12px', display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
+                  <b style={{color: '#c9a84c', fontSize: '13px', marginBottom: '10px'}}>INSTRUCȚIUNI:</b>
+                  <div>1. Agită de 7 ori<br/>2. Rostește descântecul<br/>3. Pulverizează ✨</div>
                </div>
             </div>
           </div>
