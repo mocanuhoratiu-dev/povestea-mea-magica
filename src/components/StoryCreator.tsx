@@ -77,73 +77,124 @@ export default function StoryCreator() {
     }
   };
 
-  return (
-    <section id="creator" className="py-20 md:py-32 magic-gradient relative overflow-hidden px-4">
-      <MagicalLoader isVisible={isLoading} />
+    const [isSpeaking, setIsSpeaking] = useState(false);
 
-      {/* Result Modal */}
-      {showResult && (
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="fixed inset-0 z-[11000] bg-brand-navy/95 backdrop-blur-md flex items-center justify-center p-2 md:p-10"
-        >
+    const toggleSpeech = () => {
+      if (isSpeaking) {
+        window.speechSynthesis.cancel();
+        setIsSpeaking(false);
+        return;
+      }
+
+      const utterance = new SpeechSynthesisUtterance(storyText);
+      utterance.lang = "ro-RO";
+      utterance.onend = () => setIsSpeaking(false);
+      window.speechSynthesis.speak(utterance);
+      setIsSpeaking(true);
+    };
+
+    const downloadPDF = () => {
+      const docContent = document.getElementById("story-content");
+      if (!docContent) return;
+
+      // Încărcăm jsPDF dinamic
+      const script = document.createElement("script");
+      script.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+      script.onload = () => {
+        const { jsPDF } = (window as any).jspdf;
+        const doc = new jsPDF();
+        
+        doc.setFont("helvetica", "bold");
+        doc.text(`Povestea lui ${name}`, 105, 20, { align: "center" });
+        
+        doc.setFont("helvetica", "normal");
+        const splitText = doc.splitTextToSize(storyText, 180);
+        doc.text(splitText, 15, 40);
+        
+        doc.save(`Povestea_lui_${name}_Magica.pdf`);
+      };
+      document.head.appendChild(script);
+    };
+
+    return (
+      <section id="creator" className="py-20 md:py-32 magic-gradient relative overflow-hidden px-4">
+        <MagicalLoader isVisible={isLoading} />
+  
+        {/* Result Modal */}
+        {showResult && (
           <motion.div 
-            initial={{ scale: 0.9, y: 50 }}
-            animate={{ scale: 1, y: 0 }}
-            className="bg-brand-cream max-w-2xl w-full h-full max-h-[90vh] md:max-h-[85vh] rounded-[2rem] md:rounded-[3rem] border-4 md:border-8 border-brand-purple/20 relative shadow-2xl flex flex-col overflow-hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="fixed inset-0 z-[11000] bg-brand-navy/95 backdrop-blur-md flex items-center justify-center p-2 md:p-10"
           >
-            <button 
-              onClick={() => setShowResult(false)}
-              className="absolute top-4 right-4 text-brand-navy/40 hover:text-brand-purple font-black text-xl z-20 bg-white/80 w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-sm shadow-lg transition-all"
+            <motion.div 
+              initial={{ scale: 0.9, y: 50 }}
+              animate={{ scale: 1, y: 0 }}
+              className="bg-brand-cream max-w-2xl w-full h-full max-h-[90vh] md:max-h-[85vh] rounded-[2rem] md:rounded-[3rem] border-4 md:border-8 border-brand-purple/20 relative shadow-2xl flex flex-col overflow-hidden"
             >
-              ✕
-            </button>
-
-            <div className="flex-1 overflow-y-auto p-6 md:p-12 custom-scrollbar">
-              <div className="text-center mb-8 pt-4">
-                <Sparkles className="text-brand-purple w-10 h-10 mx-auto mb-4 animate-pulse" />
-                <h3 className="font-nunito font-black text-2xl md:text-3xl text-brand-navy px-4">Povestea lui {name} ✨</h3>
-              </div>
-
-              {imageUrl && (
-                <div className="mb-8 relative group mx-auto max-w-[500px]">
-                  <motion.div 
-                    key={`img-${imageUrl}`}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="rounded-[1.5rem] md:rounded-[2rem] overflow-hidden shadow-2xl border-4 border-white bg-brand-navy/5 aspect-square relative"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-r from-brand-navy/5 via-brand-purple/10 to-brand-navy/5 animate-pulse z-0" />
-                    <img 
-                      key={imageUrl}
-                      src={imageUrl} 
-                      alt="Ilustrație Magică" 
-                      referrerPolicy="no-referrer"
-                      className="w-full h-full object-cover block relative z-10 transition-opacity duration-500"
-                      onLoad={(e) => (e.currentTarget.style.opacity = "1")}
-                      style={{ opacity: 0 }}
-                    />
-                  </motion.div>
-                </div>
-              )}
-
-              <div className="prose prose-brand max-w-none text-brand-navy/80 font-medium whitespace-pre-wrap leading-relaxed text-base md:text-lg pb-10">
-                {storyText}
-              </div>
-            </div>
-
-            <div className="p-6 md:p-8 bg-white/50 border-t border-brand-navy/5 backdrop-blur-sm">
-              <p className="text-center text-[10px] md:text-xs font-bold text-brand-purple uppercase tracking-widest mb-4">
-                Previzualizare Magică
-              </p>
-              <button className="w-full bg-brand-pink text-white py-4 md:py-5 rounded-xl md:rounded-2xl font-black text-lg md:text-xl shadow-xl hover:scale-[1.02] active:scale-95 transition-all">
-                Descarcă PDF-ul Complet 📥
+              <button 
+                onClick={() => {
+                    setShowResult(false);
+                    window.speechSynthesis.cancel();
+                    setIsSpeaking(false);
+                }}
+                className="absolute top-4 right-4 text-brand-navy/40 hover:text-brand-purple font-black text-xl z-20 bg-white/80 w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-sm shadow-lg transition-all"
+              >
+                ✕
               </button>
-            </div>
+  
+              <div className="flex-1 overflow-y-auto p-6 md:p-12 custom-scrollbar" id="story-content">
+                <div className="text-center mb-8 pt-4">
+                  <Sparkles className="text-brand-purple w-10 h-10 mx-auto mb-4 animate-pulse" />
+                  <h3 className="font-nunito font-black text-2xl md:text-3xl text-brand-navy px-4">Povestea lui {name} ✨</h3>
+                </div>
+  
+                {imageUrl && (
+                  <div className="mb-8 relative group mx-auto max-w-[500px]">
+                    <motion.div 
+                      key={`img-${imageUrl}`}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="rounded-[1.5rem] md:rounded-[2rem] overflow-hidden shadow-2xl border-4 border-white bg-brand-navy/5 aspect-square relative"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-brand-navy/5 via-brand-purple/10 to-brand-navy/5 animate-pulse z-0" />
+                      <img 
+                        key={imageUrl}
+                        src={imageUrl} 
+                        alt="Ilustrație Magică" 
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-cover block relative z-10 transition-opacity duration-500"
+                        onLoad={(e) => (e.currentTarget.style.opacity = "1")}
+                        style={{ opacity: 0 }}
+                      />
+                    </motion.div>
+                  </div>
+                )}
+  
+                <div className="prose prose-brand max-w-none text-brand-navy/80 font-medium whitespace-pre-wrap leading-relaxed text-base md:text-lg pb-10">
+                  {storyText}
+                </div>
+              </div>
+  
+              <div className="p-6 md:p-8 bg-white/50 border-t border-brand-navy/5 backdrop-blur-sm grid grid-cols-2 gap-4">
+                <button 
+                  onClick={toggleSpeech}
+                  className={`flex items-center justify-center gap-2 py-4 rounded-xl font-black text-sm md:text-base shadow-lg transition-all ${
+                    isSpeaking ? "bg-brand-navy text-white" : "bg-brand-purple text-white"
+                  }`}
+                >
+                  {isSpeaking ? "Oprește Vocea 🤫" : "Ascultă Povestea 🎧"}
+                </button>
+                <button 
+                  onClick={downloadPDF}
+                  className="bg-brand-pink text-white py-4 rounded-xl font-black text-sm md:text-base shadow-lg hover:scale-[1.02] active:scale-95 transition-all"
+                >
+                  Descarcă PDF 📥
+                </button>
+              </div>
+            </motion.div>
           </motion.div>
-        </motion.div>
-      )}
+        )}
       
       {/* Background Decor */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-30">

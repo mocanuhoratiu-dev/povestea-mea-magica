@@ -45,70 +45,98 @@ export default function MonsterKit() {
     }
   };
 
-  return (
-    <section id="monster-away" className="py-20 md:py-32 bg-brand-navy relative overflow-hidden px-4">
-      <MagicalLoader isVisible={isLoading} />
+    const downloadKit = () => {
+      // Încărcăm jsPDF dinamic
+      const script = document.createElement("script");
+      script.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+      script.onload = () => {
+        const { jsPDF } = (window as any).jspdf;
+        const doc = new jsPDF();
+        
+        doc.setFont("times", "bold");
+        doc.setFontSize(22);
+        doc.text("CERTIFICAT DE PROTECȚIE MAGICĂ", 105, 40, { align: "center" });
+        
+        doc.setFontSize(16);
+        doc.text(`Acordat eroului: ${name}`, 105, 60, { align: "center" });
+        
+        doc.setFontSize(12);
+        doc.setFont("times", "italic");
+        const splitText = doc.splitTextToSize(kitText, 170);
+        doc.text(splitText, 20, 80);
+        
+        doc.save(`Certificat_Protectie_${name}.pdf`);
+      };
+      document.head.appendChild(script);
+    };
 
-      {/* Result Modal */}
-      {showResult && (
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="fixed inset-0 z-[11000] bg-brand-navy/95 backdrop-blur-md flex items-center justify-center p-2 md:p-10"
-        >
+    return (
+      <section id="monster-away" className="py-20 md:py-32 bg-brand-navy relative overflow-hidden px-4">
+        <MagicalLoader isVisible={isLoading} />
+  
+        {/* Result Modal */}
+        {showResult && (
           <motion.div 
-            initial={{ scale: 0.9, y: 50 }}
-            animate={{ scale: 1, y: 0 }}
-            className="bg-brand-cream max-w-2xl w-full h-full max-h-[90vh] md:max-h-[85vh] rounded-[2rem] md:rounded-[3rem] border-4 md:border-8 border-brand-gold/30 relative shadow-2xl flex flex-col overflow-hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="fixed inset-0 z-[11000] bg-brand-navy/95 backdrop-blur-md flex items-center justify-center p-2 md:p-10"
           >
-            <button 
-              onClick={() => setShowResult(false)}
-              className="absolute top-4 right-4 text-brand-navy/40 hover:text-brand-gold font-black text-xl z-20 bg-white/80 w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-sm shadow-lg transition-all"
+            <motion.div 
+              initial={{ scale: 0.9, y: 50 }}
+              animate={{ scale: 1, y: 0 }}
+              className="bg-brand-cream max-w-2xl w-full h-full max-h-[90vh] md:max-h-[85vh] rounded-[2rem] md:rounded-[3rem] border-4 md:border-8 border-brand-gold/30 relative shadow-2xl flex flex-col overflow-hidden"
             >
-              ✕
-            </button>
-
-            <div className="flex-1 overflow-y-auto p-6 md:p-12 custom-scrollbar">
-              <div className="text-center mb-8 pt-4">
-                <ShieldCheck className="text-brand-gold w-10 h-10 mx-auto mb-4 animate-pulse" />
-                <h3 className="font-nunito font-black text-2xl md:text-3xl text-brand-navy px-4">Kit Protecție {name} 🛡️</h3>
-              </div>
-
-              {imageUrl && (
-                <div className="mb-8 relative group mx-auto max-w-[500px]">
-                  <motion.div 
-                    key={`img-monster-${imageUrl}`}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="rounded-[1.5rem] md:rounded-[2rem] overflow-hidden shadow-2xl border-4 border-white bg-brand-navy/10 aspect-square relative"
-                  >
-                    <img 
-                      key={imageUrl}
-                      src={imageUrl} 
-                      alt="Vizual Magic" 
-                      referrerPolicy="no-referrer"
-                      className="w-full h-full object-cover block"
-                    />
-                  </motion.div>
-                </div>
-              )}
-
-              <div className="prose prose-brand max-w-none text-brand-navy/80 font-bold whitespace-pre-wrap leading-relaxed text-base md:text-lg italic border-4 border-dashed border-brand-gold/20 p-6 md:p-8 rounded-2xl md:rounded-3xl pb-10">
-                {kitText}
-              </div>
-            </div>
-
-            <div className="p-6 md:p-8 bg-white/50 border-t border-brand-navy/5 backdrop-blur-sm">
-              <p className="text-center text-[10px] md:text-xs font-bold text-brand-gold uppercase tracking-widest mb-4">
-                Document Oficial Magie
-              </p>
-              <button className="w-full bg-brand-navy text-brand-cream py-4 md:py-5 rounded-xl md:rounded-2xl font-black text-lg md:text-xl shadow-xl hover:scale-[1.02] active:scale-95 transition-all border-b-4 border-brand-gold">
-                Obține Kit-ul PDF 🛡️
+              <button 
+                onClick={() => setShowResult(false)}
+                className="absolute top-4 right-4 text-brand-navy/40 hover:text-brand-gold font-black text-xl z-20 bg-white/80 w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-sm shadow-lg transition-all"
+              >
+                ✕
               </button>
-            </div>
+  
+              <div className="flex-1 overflow-y-auto p-6 md:p-12 custom-scrollbar">
+                <div className="text-center mb-8 pt-4">
+                  <ShieldCheck className="text-brand-gold w-10 h-10 mx-auto mb-4 animate-pulse" />
+                  <h3 className="font-nunito font-black text-2xl md:text-3xl text-brand-navy px-4">Kit Protecție {name} 🛡️</h3>
+                </div>
+  
+                {imageUrl && (
+                  <div className="mb-8 relative group mx-auto max-w-[500px]">
+                    <motion.div 
+                      key={`img-monster-${imageUrl}`}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="rounded-[1.5rem] md:rounded-[2rem] overflow-hidden shadow-2xl border-4 border-white bg-brand-navy/10 aspect-square relative"
+                    >
+                      <img 
+                        key={imageUrl}
+                        src={imageUrl} 
+                        alt="Vizual Magic" 
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-cover block"
+                      />
+                    </motion.div>
+                  </div>
+                )}
+  
+                <div className="prose prose-brand max-w-none text-brand-navy/80 font-bold whitespace-pre-wrap leading-relaxed text-base md:text-lg italic border-4 border-dashed border-brand-gold/20 p-6 md:p-8 rounded-2xl md:rounded-3xl pb-10">
+                  {kitText}
+                </div>
+              </div>
+  
+              <div className="p-6 md:p-8 bg-white/50 border-t border-brand-navy/5 backdrop-blur-sm">
+                <p className="text-center text-[10px] md:text-xs font-bold text-brand-gold uppercase tracking-widest mb-4">
+                  Document Oficial Magie
+                </p>
+                <button 
+                  onClick={downloadKit}
+                  className="w-full bg-brand-navy text-brand-cream py-4 md:py-5 rounded-xl md:rounded-2xl font-black text-lg md:text-xl shadow-xl hover:scale-[1.02] active:scale-95 transition-all border-b-4 border-brand-gold"
+                >
+                  Descarcă Certificatul PDF 🛡️
+                </button>
+              </div>
+            </motion.div>
           </motion.div>
-        </motion.div>
-      )}
+        )}
 
       {/* Floating Interactive Ghosts */}
       <div className="absolute inset-0 pointer-events-none">
