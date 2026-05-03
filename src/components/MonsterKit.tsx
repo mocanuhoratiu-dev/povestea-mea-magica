@@ -49,9 +49,10 @@ export default function MonsterKit() {
       const element = document.getElementById("premium-certificate-template");
       if (!element) return;
 
-      // Încărcăm librăriile necesare dinamic
       const loadScript = (src: string) => {
         return new Promise((resolve) => {
+          if ((window as any).html2canvas && src.includes("html2canvas")) return resolve(true);
+          if ((window as any).jspdf && src.includes("jspdf")) return resolve(true);
           const script = document.createElement("script");
           script.src = src;
           script.onload = resolve;
@@ -63,27 +64,33 @@ export default function MonsterKit() {
         const { jsPDF } = (window as any).jspdf;
         const html2canvas = (window as any).html2canvas;
 
-        // Facem elementul vizibil temporar pentru captură (în afara ecranului)
+        // Pregătim elementul pentru captură
         element.style.display = "block";
-        element.style.position = "fixed";
-        element.style.left = "-9999px";
+        element.style.position = "absolute";
+        element.style.left = "-10000px";
+        element.style.top = "0";
 
-        const canvas = await html2canvas(element, {
-          scale: 3, // Rezoluție înaltă pentru print
-          useCORS: true,
-          backgroundColor: null
-        });
+        // Așteptăm un pic să se randeze fonturile
+        setTimeout(async () => {
+            const canvas = await html2canvas(element, {
+              scale: 2,
+              useCORS: true,
+              allowTaint: true,
+              logging: false,
+              windowWidth: 700,
+              windowHeight: 1000
+            });
 
-        const imgData = canvas.toDataURL("image/png");
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        const imgProps = pdf.getImageProperties(imgData);
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+            const imgData = canvas.toDataURL("image/jpeg", 0.95);
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            
+            pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+            pdf.save(`Certificat_Magic_${name}.pdf`);
 
-        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-        pdf.save(`Certificat_Magic_${name}.pdf`);
-
-        element.style.display = "none";
+            element.style.display = "none";
+        }, 500); // 500ms delay pentru fonturi
       };
 
       Promise.all([
@@ -97,101 +104,78 @@ export default function MonsterKit() {
         <MagicalLoader isVisible={isLoading} />
   
         {/* Hidden Premium Template for Export */}
-        <div 
-          id="premium-certificate-template" 
-          style={{ display: 'none', width: '680px', position: 'relative' }}
-          className="premium-template-styles"
-        >
-          <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet" />
+        <div id="premium-certificate-template" style={{ display: 'none', width: '680px', background: 'white' }}>
+          <style>{`
+            .cert-wrap {
+                width: 680px;
+                height: 900px;
+                background: linear-gradient(160deg, #1a0a2e 0%, #0d1a3a 50%, #1a0a2e 100%);
+                border: 4px solid #c9a84c;
+                padding: 60px;
+                position: relative;
+                font-family: 'Crimson Pro', serif;
+                box-sizing: border-box;
+                color: #f4e4a0;
+            }
+            .stars-bg { position: absolute; inset: 0; opacity: 0.3; }
+            .corner { position: absolute; width: 80px; height: 80px; }
+            .c-tl { top: 10px; left: 10px; }
+            .c-tr { top: 10px; right: 10px; transform: scaleX(-1); }
+            .c-bl { bottom: 10px; left: 10px; transform: scaleY(-1); }
+            .c-br { bottom: 10px; right: 10px; transform: rotate(180deg); }
+            .inner-border { position: absolute; inset: 20px; border: 1px solid rgba(201,168,76,0.3); }
+            .ministry-label { font-family: 'Cinzel', serif; font-size: 10px; text-align: center; letter-spacing: 3px; color: #c9a84c; margin-bottom: 20px; }
+            .title-main { font-family: 'Cinzel', serif; font-size: 32px; font-weight: 700; text-align: center; color: #f4e4a0; margin-bottom: 10px; }
+            .title-sub { font-family: 'Cinzel', serif; font-size: 14px; text-align: center; color: #c9a84c; letter-spacing: 2px; }
+            .divider { display: flex; items-center: center; justify-content: center; gap: 15px; margin: 30px 0; }
+            .div-line { width: 150px; height: 1px; background: #c9a84c; }
+            .beneficiary-block { text-align: center; margin: 40px 0; }
+            .beneficiary-label { font-family: 'Cinzel', serif; font-size: 12px; color: #c9a84c; display: block; margin-bottom: 10px; }
+            .beneficiary-name { font-family: 'Cinzel', serif; font-size: 36px; border-bottom: 2px solid #c9a84c; display: inline-block; padding: 0 40px 5px; }
+            .body-text { font-size: 18px; line-height: 1.6; text-align: center; margin: 40px 0; font-style: italic; color: #d4c5e8; }
+            .clauses-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 40px; }
+            .clause { background: rgba(201,168,76,0.05); border: 1px solid rgba(201,168,76,0.2); padding: 15px; font-size: 13px; }
+            .clause-num { font-family: 'Cinzel', serif; color: #c9a84c; display: block; margin-bottom: 5px; }
+            .seal-section { display: flex; align-items: center; justify-content: center; gap: 40px; margin-top: 50px; }
+            .seal-circle { width: 100px; height: 100px; border-radius: 50%; border: 2px solid #c9a84c; display: flex; align-items: center; justify-content: center; font-size: 40px; background: rgba(201,168,76,0.1); }
+            .sig-line { width: 150px; height: 1px; background: #c9a84c; margin: 10px auto; }
+            .sig-title { font-family: 'Cinzel', serif; font-size: 8px; color: #c9a84c; }
+          `}</style>
+          <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Crimson+Pro:ital,wght@0,400;1,400&display=swap" rel="stylesheet" />
+          
           <div className="cert-wrap">
-            {/* Fundal Stele */}
-            <svg className="stars-bg" viewBox="0 0 680 900" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="60" cy="80" r="1" fill="#c9a84c" opacity="0.3"/>
-              <circle cx="180" cy="40" r="0.8" fill="#fff" opacity="0.25"/>
-              <circle cx="320" cy="65" r="1.2" fill="#c9a84c" opacity="0.2"/>
-              <circle cx="480" cy="30" r="0.9" fill="#fff" opacity="0.3"/>
-              <circle cx="600" cy="90" r="1" fill="#c9a84c" opacity="0.25"/>
-              <circle cx="640" cy="45" r="0.7" fill="#fff" opacity="0.2"/>
-              <circle cx="30" cy="200" r="0.8" fill="#c9a84c" opacity="0.2"/>
-              <circle cx="650" cy="180" r="1" fill="#fff" opacity="0.25"/>
-              <circle cx="100" cy="820" r="0.9" fill="#c9a84c" opacity="0.2"/>
-              <circle cx="560" cy="840" r="1.1" fill="#fff" opacity="0.2"/>
-              <circle cx="350" cy="860" r="0.8" fill="#c9a84c" opacity="0.15"/>
-            </svg>
-
-            {/* Corners */}
-            <svg className="corner c-tl" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" fill="none">
-              <path d="M2 30 L2 2 L30 2" stroke="#c9a84c" stroke-width="1.5"/>
-              <path d="M2 14 L14 2" stroke="#c9a84c" stroke-width="0.8" opacity="0.5"/>
-              <circle cx="2" cy="2" r="2.5" fill="#c9a84c" opacity="0.8"/>
-            </svg>
-            <svg className="corner c-tr" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" fill="none">
-              <path d="M2 30 L2 2 L30 2" stroke="#c9a84c" stroke-width="1.5"/>
-              <circle cx="2" cy="2" r="2.5" fill="#c9a84c" opacity="0.8"/>
-            </svg>
-            <svg className="corner c-bl" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" fill="none">
-              <path d="M2 30 L2 2 L30 2" stroke="#c9a84c" stroke-width="1.5"/>
-              <circle cx="2" cy="2" r="2.5" fill="#c9a84c" opacity="0.8"/>
-            </svg>
-            <svg className="corner c-br" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" fill="none">
-              <path d="M2 30 L2 2 L30 2" stroke="#c9a84c" stroke-width="1.5"/>
-              <circle cx="2" cy="2" r="2.5" fill="#c9a84c" opacity="0.8"/>
-            </svg>
-
+            <svg className="corner c-tl" viewBox="0 0 60 60"><path d="M2 30 L2 2 L30 2" stroke="#c9a84c" strokeWidth="2" fill="none"/></svg>
+            <svg className="corner c-tr" viewBox="0 0 60 60"><path d="M2 30 L2 2 L30 2" stroke="#c9a84c" strokeWidth="2" fill="none"/></svg>
+            <svg className="corner c-bl" viewBox="0 0 60 60"><path d="M2 30 L2 2 L30 2" stroke="#c9a84c" strokeWidth="2" fill="none"/></svg>
+            <svg className="corner c-br" viewBox="0 0 60 60"><path d="M2 30 L2 2 L30 2" stroke="#c9a84c" strokeWidth="2" fill="none"/></svg>
             <div className="inner-border"></div>
 
-            <div className="ministry-label">Ministerul Protecției Magice · Regatul Viselor Liniștite</div>
-            <div className="title-main">CERTIFICAT OFICIAL<br/>DE PROTECȚIE MAGICĂ</div>
-            <div className="title-sub">împotriva Monștrilor, Umbrelor și Ființelor Nedorite</div>
+            <div className="ministry-label">Ministerul Protectiei Magice · Regatul Viselor Linistite</div>
+            <div className="title-main">CERTIFICAT OFICIAL DE PROTECTIE MAGICA</div>
+            <div className="title-sub">impotriva Monstrilor si Umbrelor Nedorite</div>
 
-            <div className="divider">
-              <div className="div-line"></div>
-              <span className="div-star">✦</span><span className="div-star">✦</span><span className="div-star">✦</span>
-              <div className="div-line"></div>
-            </div>
+            <div className="divider"><div className="div-line"></div>✦✦✦<div className="div-line"></div></div>
 
             <div className="beneficiary-block">
-              <span className="beneficiary-label">Micul / Mica Erou / Eroinică</span>
-              <div className="beneficiary-name">{name || "[ Numele Micuțului Erou ]"}</div>
+              <span className="beneficiary-label">Micul / Mica Erou / Eroinica</span>
+              <div className="beneficiary-name">{name || "EROUL NOSTRU"}</div>
             </div>
 
             <p className="body-text">
-              Prin autoritatea conferită de <em>Ordinul Dragonului Somnoros</em> și cu binecuvântarea
-              <em> Zânei Luminilor de Noapte</em>, camera acestui copil este
-              protejată de un <em>scut invizibil</em> țesut din <em>praf de stele</em>,
-              lumină de lună plină și <em>râsete de spiriduși veseli</em>.
-              <em> Acest certificat este valabil la nesfârșit.</em>
+              Camera acestui copil este protejata de un scut invizibil tesut din praf de stele,
+              lumina de luna plina si rasele de spiridusi veseli.
             </p>
 
-            <div className="clauses-title">Clauze Oficiale Antimonstru · Articole de Lege Magică</div>
             <div className="clauses-grid">
-              <div className="clause"><span className="clause-num">Art. I</span>Monștrilor cu picioare mirositoare le este strict interzis accesul sub pat.</div>
-              <div className="clause"><span className="clause-num">Art. II</span>Nicio umbră nu are dreptul să facă grimase fără permisiune.</div>
-              <div className="clause"><span className="clause-num">Art. III</span>Zgomotele misterioase se transformă automat în pisici adormite.</div>
-              <div className="clause"><span className="clause-num">Art. IV</span>Orice monstru recalcitrant va fi transformat în nori de vată roz.</div>
+              <div className="clause"><span className="clause-num">Art. I</span>Monstrilor le este strict interzis accesul sub pat.</div>
+              <div className="clause"><span className="clause-num">Art. II</span>Zgomotele misterioase se transforma in pisici adormite.</div>
             </div>
 
             <div className="seal-section">
-              <div className="signatures">
-                <div className="sig-block">
-                  <div className="sig-line"></div>
-                  <div className="sig-name">Mag. Umberto din Tărâmul de Sus</div>
-                  <div className="sig-title">Comandantul Gardienilor</div>
-                </div>
-              </div>
-              <div className="seal-circle">
-                <div className="seal-icon">🐉</div>
-                <div className="seal-text">SIGILIUL<br/>DRAGONULUI<br/>SOMNOROS</div>
-              </div>
-              <div className="signatures">
-                <div className="sig-block">
-                  <div className="sig-line"></div>
-                  <div className="sig-name">Luminia din Stele</div>
-                  <div className="sig-title">Zâna Luminilor</div>
-                </div>
-              </div>
+              <div className="sig-block"><div className="sig-line"></div><div className="sig-title">Comandantul Gardienilor</div></div>
+              <div className="seal-circle">🐉</div>
+              <div className="sig-block"><div className="sig-line"></div><div className="sig-title">Zana Luminilor</div></div>
             </div>
-            <div className="validity">Valabil pe toată durata copilăriei · Nr. #0001</div>
           </div>
         </div>
 
