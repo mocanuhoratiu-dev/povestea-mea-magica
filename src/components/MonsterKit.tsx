@@ -118,7 +118,6 @@ export default function MonsterKit() {
       setIsLoading(false);
     }
   };
-
   const handleDownload = async () => {
     await Promise.all([
       loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'),
@@ -240,7 +239,7 @@ export default function MonsterKit() {
               whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
               className="w-full bg-brand-navy text-brand-cream py-6 rounded-2xl font-black text-xl md:text-2xl shadow-2xl border-b-8 border-brand-gold disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-3 transition-all"
             >
-              <ShieldCheck size={28} /> Generează Kitul Magic ✨
+              <ShieldCheck size={28} /> Comandă Kitul PDF - 29.99 RON ✨
             </motion.button>
           </form>
         </motion.div>

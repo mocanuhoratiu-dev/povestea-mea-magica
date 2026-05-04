@@ -122,8 +122,8 @@ const lessons = [
 ];
 
 const packages = [
-  { id: "pdf", name: "Poveste Digitală PDF 📖", desc: "Primești povestea instant pe email", price: "49 RON" },
-  { id: "full", name: "Pachet Magic + Audio 🎧", desc: "PDF + Voce magică personalizată", price: "89 RON" }
+  { id: "pdf", name: "Poveste Digitală PDF 📖", desc: "Primești povestea instant pe email", price: "19.99 RON" },
+  { id: "full", name: "Pachet Magic + Audio 🎧", desc: "PDF + Voce magică personalizată", price: "39.99 RON" }
 ];
 
 export default function StoryCreator() {
