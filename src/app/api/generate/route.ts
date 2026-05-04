@@ -48,7 +48,7 @@ export async function POST(req: Request) {
       const themeLabel = data.theme === 'space' ? 'Spațiu' : data.theme === 'forest' ? 'Pădure Fermecată' : 'Castel Magic';
       
       const prompt = `Ești un autor premiat de cărți de povești pentru copii.
-      Sarcina ta: Scrie o poveste scurtă, fermecătoare (aprox. 400 de cuvinte) pentru copilul: ${data.name} care are ${data.age} ani.
+      Sarcina ta: Scrie o poveste amplă, detaliată și fermecătoare (aprox. 800 - 1000 de cuvinte) pentru copilul: ${data.name} care are ${data.age} ani.
       Tema poveștii (locația): ${themeLabel}.
       Povestea trebuie să aibă o morală discretă despre: ${data.lesson}.
       Tonul trebuie să fie cald, liniștitor, visător și potrivit pentru culcare. Fără scene de acțiune prea intense sau violență.

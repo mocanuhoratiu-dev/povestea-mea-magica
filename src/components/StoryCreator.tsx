@@ -10,16 +10,20 @@ const STORY_PDF_STYLES = `
 
 .story-pdf-page {
   width: 794px; height: 1123px;
-  background: #fdfaf0;
+  background-color: #f6e8c3; /* Papyrus/old paper base */
   position: relative; overflow: hidden;
   font-family: 'Crimson Pro', serif;
   box-sizing: border-box;
 }
 .story-pdf-bg {
   position: absolute; inset: 0;
+  /* Complex gradients to simulate aged paper texture and dark corners */
   background: 
-    radial-gradient(circle at 10% 10%, rgba(155,89,182,0.03) 0%, transparent 40%),
-    radial-gradient(circle at 90% 90%, rgba(201,168,76,0.04) 0%, transparent 40%);
+    radial-gradient(circle at 50% 50%, transparent 40%, rgba(139, 105, 20, 0.15) 100%),
+    radial-gradient(circle at 10% 10%, rgba(201,168,76,0.12) 0%, transparent 30%),
+    radial-gradient(circle at 90% 90%, rgba(201,168,76,0.12) 0%, transparent 30%),
+    linear-gradient(to right, rgba(139, 105, 20, 0.05) 0%, transparent 5%, transparent 95%, rgba(139, 105, 20, 0.05) 100%);
+  opacity: 0.9;
 }
 .story-pdf-border {
   position: absolute; inset: 30px;
