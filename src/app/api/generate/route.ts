@@ -12,7 +12,8 @@ export async function POST(req: Request) {
     if (data.type === "monster") {
       const prompt = `Ești reprezentantul Ministerului Protecției Magice. 
       Sarcina ta: Inventează o rețetă magică amuzantă și un descântec pentru a alunga monstrul/frica de: "${data.monster}" din camera eroului/eroinei: "${data.name}".
-      REGULĂ CRITICĂ: Ingredientele trebuie să fie OBIECTE BANALE CARE SE GĂSESC ÎN ORICE CASĂ (ex: apă de la robinet, o șosetă, sare, o pernă, praf de scorțișoară, o lingură), dar tu le vei da o denumire magică în "detail".
+      REGULĂ CRITICĂ: Părintele va prepara fizic această rețetă într-o STICLĂ CU PULVERIZATOR (spray). Prin urmare, ingredientele trebuie să fie DOAR LICHIDE SAU PULBERI INOFENSIVE care se găsesc în bucătărie și pot fi amestecate cu apă (ex: apă de la robinet, 2 picături de zeamă de lămâie, un praf de sare, un praf de scorțișoară, o picătură de colorant alimentar, puțin zahăr). NU folosi obiecte solide (cum ar fi perne, șosete, jucării).
+      Tu le vei da o denumire magică în câmpul "detail".
       Returnează răspunsul în format JSON STRICT. Nu adăuga block-uri markdown de tip \`\`\`json.
       Format JSON necesar:
       {
