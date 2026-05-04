@@ -12,14 +12,15 @@ export async function POST(req: Request) {
     if (data.type === "monster") {
       const prompt = `Ești reprezentantul Ministerului Protecției Magice. 
       Sarcina ta: Inventează o rețetă magică amuzantă și un descântec pentru a alunga monstrul/frica de: "${data.monster}" din camera eroului/eroinei: "${data.name}".
+      REGULĂ CRITICĂ: Ingredientele trebuie să fie OBIECTE BANALE CARE SE GĂSESC ÎN ORICE CASĂ (ex: apă de la robinet, o șosetă, sare, o pernă, praf de scorțișoară, o lingură), dar tu le vei da o denumire magică în "detail".
       Returnează răspunsul în format JSON STRICT. Nu adăuga block-uri markdown de tip \`\`\`json.
       Format JSON necesar:
       {
         "body": "podeaua acestei camere este protejată de... (folosește tag-uri HTML <em> pt accent, text scurt)",
         "ingredients": [ 
-          { "num": "1", "icon": "emoji", "name": "nume amuzant ingredient", "detail": "scurt detaliu magic" },
-          { "num": "2", "icon": "emoji", "name": "nume amuzant ingredient", "detail": "scurt detaliu magic" },
-          { "num": "3", "icon": "emoji", "name": "nume amuzant ingredient", "detail": "scurt detaliu magic" }
+          { "num": "1", "icon": "emoji", "name": "nume comun obiect (ex: Apa)", "detail": "denumire magică (ex: Lacrimi de dragon)" },
+          { "num": "2", "icon": "emoji", "name": "nume comun obiect", "detail": "denumire magică" },
+          { "num": "3", "icon": "emoji", "name": "nume comun obiect", "detail": "denumire magică" }
         ],
         "steps": [ 
           { "roman": "I", "l1": "pasul 1 linia 1 (1/2 propozitie)", "l2": "pasul 1 linia 2 (continuare)" }, 
