@@ -26,9 +26,9 @@ export default function Navbar() {
         {/* Central Clean Menu */}
         <div className="hidden lg:flex items-center gap-10">
           {[
-            { label: "Creează", href: "#creator" },
-            { label: "Recenzii", href: "#recenzii" },
-            { label: "FAQ", href: "#faq" }
+            { label: "📖 Povești", href: "#creator" },
+            { label: "🛡️ Monster Kit", href: "#monster-away" },
+            { label: "🚨 Urgențe", href: "#emergency-kit" },
           ].map((item) => (
             <Link 
               key={item.label} 

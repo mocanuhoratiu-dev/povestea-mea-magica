@@ -62,6 +62,48 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, data: { text: response.text } });
     }
 
+    if (data.type === "emergency") {
+      const prompt = `Ești un educator creativ și asistent pentru părinți.
+      Sarcina ta: Generează un "Kit de Urgență" pentru copilul ${data.name} (vârsta: ${data.age} ani) care se află în situația: "${data.context}".
+      Trebuie să oferi 6 secțiuni adaptate STRICT la restricțiile locației și la vârsta copilului.
+      Returnează răspunsul în format JSON STRICT. Nu adăuga block-uri markdown de tip \`\`\`json.
+      Format JSON necesar:
+      {
+        "radar": [
+          "1. ceva specific locației de găsit cu privirea (ex: o mașină roșie / un om cu ochelari)",
+          "2. altceva de căutat vizual",
+          "3. altceva de căutat vizual",
+          "4. altceva de căutat vizual"
+        ],
+        "riddle": "O ghicitoare scurtă și amuzantă, în rime (2-4 versuri), legată de locația respectivă.",
+        "drawing": "O provocare creativă și amuzantă de desen legată de situație.",
+        "patience": "Un mini-joc de răbdare/respirație potrivit pentru acel loc.",
+        "story_starters": [
+          "Odată, un dragon a intrat în... (continuă tu!)",
+          "Alt început de poveste amuzant #2...",
+          "Alt început de poveste amuzant #3..."
+        ],
+        "true_or_false": [
+          { "q": "O întrebare amuzantă adevărat/fals despre lume, natură sau animale, potrivită pentru vârsta copilului.", "a": "Adevărat sau Fals + explicație scurtă" },
+          { "q": "O altă întrebare amuzantă.", "a": "Adevărat sau Fals + explicație scurtă" },
+          { "q": "O altă întrebare amuzantă.", "a": "Adevărat sau Fals + explicație scurtă" }
+        ]
+      }`;
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+        }
+      });
+      
+      const jsonText = response.text || "{}";
+      const result = JSON.parse(jsonText);
+
+      return NextResponse.json({ success: true, data: result });
+    }
+
     return NextResponse.json({ success: false, error: "Tip necunoscut" }, { status: 400 });
 
   } catch (error) {
