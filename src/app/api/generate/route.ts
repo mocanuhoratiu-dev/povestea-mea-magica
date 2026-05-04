@@ -27,7 +27,7 @@ export async function POST(req: Request) {
           { "roman": "I", "l1": "pasul 1 linia 1 (1/2 propozitie)", "l2": "pasul 1 linia 2 (continuare)" }, 
           { "roman": "II", "l1": "pasul 2 linia 1", "l2": "pasul 2 linia 2" } 
         ],
-        "spell": "o scurtă rimă magică amuzantă (2 rânduri, ex: Umbre mici plecați din zori / Fugiți iute printre nori)"
+        "spell": "Un descântec vesel și magic în RIME PERFECTE (format AABB), compus din exact 4 versuri scurte. TREBUIE să includă numele copilului și să alunge monstrul/frica respectivă."
       }`;
 
       const response = await ai.models.generateContent({
