@@ -132,7 +132,7 @@ const packages = [
 
 export default function StoryCreator() {
   const [name, setName] = useState("");
-  const [age, setAge] = useState("3");
+  const [age, setAge] = useState("1");
   const [selectedTheme, setSelectedTheme] = useState("space");
   const [lesson, setLesson] = useState(lessons[0]);
   const [packageType, setPackageType] = useState("full");
@@ -443,7 +443,7 @@ export default function StoryCreator() {
                     onChange={(e) => setAge(e.target.value)}
                     className="w-full px-6 py-4 md:py-5 rounded-2xl bg-brand-cream/30 border-4 border-transparent focus:border-brand-purple outline-none transition-all text-brand-navy font-bold text-lg appearance-none cursor-pointer"
                   >
-                    {[3, 4, 5, 6, 7, 8, 9, 10].map((v) => <option key={v} value={v}>{v} ani</option>)}
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((v) => <option key={v} value={v}>{v} ani</option>)}
                   </select>
                 </div>
                 <div>

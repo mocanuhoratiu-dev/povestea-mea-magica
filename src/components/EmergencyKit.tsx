@@ -107,7 +107,7 @@ const contexts = [
 
 export default function EmergencyKit() {
   const [name, setName] = useState("");
-  const [age, setAge] = useState("5");
+  const [age, setAge] = useState("1");
   const [selectedContext, setSelectedContext] = useState(contexts[0].id);
   const [isLoading, setIsLoading] = useState(false);
   const [showResult, setShowResult] = useState(false);
@@ -209,7 +209,7 @@ export default function EmergencyKit() {
                   Ce vârstă are?
                 </label>
                 <input
-                  type="number" value={age} onChange={e => setAge(e.target.value)} min="3" max="10"
+                  type="number" value={age} onChange={e => setAge(e.target.value)} min="1" max="10"
                   className="w-full bg-gray-50 border-4 border-gray-100 focus:border-orange-400 rounded-2xl px-6 py-4 text-brand-navy font-bold text-xl outline-none transition-all"
                 />
               </div>
