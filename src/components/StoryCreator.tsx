@@ -140,6 +140,7 @@ export default function StoryCreator() {
   const [storyText, setStoryText] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [showResult, setShowResult] = useState(false);
+  const [isVoiceLoading, setIsVoiceLoading] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
@@ -180,6 +181,32 @@ export default function StoryCreator() {
       alert("⚠️ Hopa! Ceva n-a mers bine. Încearcă din nou.");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleTestVoice = async () => {
+    if (!name) {
+      alert("Introdu un nume pentru test!");
+      return;
+    }
+    setIsVoiceLoading(true);
+    try {
+      const testText = `Salut, ${name}! Sunt gata să-ți citesc o poveste magică. Ești pregătit?`;
+      const response = await fetch("/api/narrate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: testText }),
+      });
+      
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audio.play();
+    } catch (err) {
+      console.error(err);
+      alert("Eroare la voce.");
+    } finally {
+      setIsVoiceLoading(false);
     }
   };
 
@@ -499,13 +526,23 @@ export default function StoryCreator() {
                 </div>
               </div>
 
-              <button
-                onClick={handleCheckout}
-                disabled={!name}
-                className="w-full bg-brand-purple text-white py-5 md:py-6 rounded-2xl md:rounded-[2.5rem] font-black text-xl md:text-2xl shadow-2xl hover:bg-brand-navy transition-all flex items-center justify-center gap-4 disabled:opacity-30 disabled:cursor-not-allowed group"
-              >
-                Creează Povestea <Sparkles className="group-hover:rotate-12 transition-transform" />
-              </button>
+              <div className="space-y-4">
+                <button
+                  onClick={handleCheckout}
+                  disabled={!name}
+                  className="w-full bg-brand-purple text-white py-5 md:py-6 rounded-2xl md:rounded-[2.5rem] font-black text-xl md:text-2xl shadow-2xl hover:bg-brand-navy transition-all flex items-center justify-center gap-4 disabled:opacity-30 disabled:cursor-not-allowed group"
+                >
+                  Creează Povestea <Sparkles className="group-hover:rotate-12 transition-transform" />
+                </button>
+
+                <button
+                  onClick={handleTestVoice}
+                  disabled={isVoiceLoading || !name}
+                  className="w-full bg-brand-cream text-brand-purple py-4 rounded-2xl font-bold text-lg shadow-md hover:bg-white transition-all flex items-center justify-center gap-2 border-2 border-brand-purple/20"
+                >
+                  {isVoiceLoading ? <Sparkles className="animate-spin w-5 h-5" /> : "🎧 Ascultă un test (Previzualizare)"}
+                </button>
+              </div>
             </div>
           </div>
         </motion.div>
