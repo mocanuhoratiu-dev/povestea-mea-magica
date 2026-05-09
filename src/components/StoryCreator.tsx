@@ -198,6 +198,12 @@ export default function StoryCreator() {
         body: JSON.stringify({ text: testText }),
       });
       
+      if (!response.ok) {
+        const errJson = await response.json();
+        alert(`❌ Eroare Voce: ${errJson.error?.message || errJson.detail?.status || "Ceva nu a mers bine"}`);
+        return;
+      }
+
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const audio = new Audio(url);
