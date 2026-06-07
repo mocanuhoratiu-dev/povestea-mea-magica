@@ -68,7 +68,7 @@ export default function Reviews() {
                 ))}
               </div>
               <p className="text-brand-navy/80 italic mb-8 leading-relaxed text-lg font-medium">
-                "{t.text}"
+                &ldquo;{t.text}&rdquo;
               </p>
               <div className="flex items-center gap-4 pt-6 border-t border-brand-navy/5">
                 <div>

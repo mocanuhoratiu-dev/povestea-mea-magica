@@ -5,6 +5,20 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Utensils, Car, Stethoscope, CloudRain, Sparkles, Download, ShieldCheck, MapPin } from "lucide-react";
 import MagicalLoader from "./MagicalLoader";
 
+type TrueFalseItem = {
+  q: string;
+  a: string;
+};
+
+type EmergencyKitData = {
+  radar?: string[];
+  riddle?: string;
+  drawing?: string;
+  patience?: string;
+  story_starters?: string[];
+  true_or_false?: TrueFalseItem[];
+};
+
 const EMERGENCY_STYLES = `
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Caveat:wght@700&display=swap');
 
@@ -98,6 +112,29 @@ function loadScript(src: string): Promise<void> {
   });
 }
 
+type PdfInstance = {
+  internal: { pageSize: { getWidth: () => number; getHeight: () => number } };
+  addImage: (imageData: string, format: string, x: number, y: number, width: number, height: number) => void;
+  addPage: () => void;
+  save: (filename: string) => void;
+};
+
+type PdfConstructor = new (orientation: "p", unit: "mm", format: "a4") => PdfInstance;
+type Html2Canvas = (
+  element: HTMLElement,
+  options: {
+    scale: number;
+    useCORS?: boolean;
+    logging?: boolean;
+    windowWidth?: number;
+    windowHeight?: number;
+  }
+) => Promise<HTMLCanvasElement>;
+type WindowWithPdfLibraries = Window & typeof globalThis & {
+  jspdf: { jsPDF: PdfConstructor };
+  html2canvas: Html2Canvas;
+};
+
 const contexts = [
   { id: "la restaurant, asteptand mancarea", label: "La Restaurant", icon: <Utensils /> },
   { id: "la un drum lung cu masina", label: "La Drum Lung", icon: <Car /> },
@@ -111,7 +148,7 @@ export default function EmergencyKit() {
   const [selectedContext, setSelectedContext] = useState(contexts[0].id);
   const [isLoading, setIsLoading] = useState(false);
   const [showResult, setShowResult] = useState(false);
-  const [ekData, setEkData] = useState<any>(null);
+  const [ekData, setEkData] = useState<EmergencyKitData | null>(null);
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -147,8 +184,8 @@ export default function EmergencyKit() {
       loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'),
     ]);
 
-    const { jsPDF } = (window as any).jspdf;
-    const html2canvas = (window as any).html2canvas;
+    const { jsPDF } = (window as WindowWithPdfLibraries).jspdf;
+    const html2canvas = (window as WindowWithPdfLibraries).html2canvas;
     const pdf = new jsPDF('p', 'mm', 'a4');
     const W = pdf.internal.pageSize.getWidth();
     const H = pdf.internal.pageSize.getHeight();
@@ -339,7 +376,7 @@ export default function EmergencyKit() {
               <div className="ek-section">
                 <div className="ek-section-title">🧠 Adevărat sau Fals?</div>
                 <p style={{fontSize: 16, color: '#999', marginBottom: 20}}>Încercuiește răspunsul tău, apoi verifică mai jos!</p>
-                {ekData.true_or_false?.map((item: any, idx: number) => (
+                {ekData.true_or_false?.map((item, idx) => (
                   <div key={idx} className="ek-tf-item">
                     <div className="ek-tf-q">{idx + 1}. {item.q}</div>
                     <div className="ek-tf-btns">

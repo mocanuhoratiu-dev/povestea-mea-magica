@@ -130,6 +130,36 @@ const packages = [
   { id: "full", name: "Pachet Magic + Audio 🎧", desc: "PDF + Voce magică personalizată", price: "39.99 RON" }
 ];
 
+const backgroundStars = Array.from({ length: 20 }, (_, i) => ({
+  id: i,
+  top: `${(i * 37 + 11) % 100}%`,
+  left: `${(i * 53 + 7) % 100}%`,
+  size: (i * 7) % 10 + 5,
+}));
+
+type PdfInstance = {
+  internal: { pageSize: { getWidth: () => number; getHeight: () => number } };
+  addImage: (imageData: string, format: string, x: number, y: number, width: number, height: number) => void;
+  addPage: () => void;
+  save: (filename: string) => void;
+};
+
+type PdfConstructor = new (orientation: "p", unit: "mm", format: "a4") => PdfInstance;
+type Html2Canvas = (
+  element: HTMLElement,
+  options: {
+    scale: number;
+    useCORS?: boolean;
+    logging?: boolean;
+    windowWidth?: number;
+    windowHeight?: number;
+  }
+) => Promise<HTMLCanvasElement>;
+type WindowWithPdfLibraries = Window & typeof globalThis & {
+  jspdf: { jsPDF: PdfConstructor };
+  html2canvas: Html2Canvas;
+};
+
 export default function StoryCreator() {
   const [name, setName] = useState("");
   const [age, setAge] = useState("1");
@@ -157,6 +187,7 @@ export default function StoryCreator() {
     try {
       const response = await fetch("/api/generate", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type: "story", name, age, theme: selectedTheme, lesson, package: packageType }),
       });
 
@@ -175,10 +206,11 @@ export default function StoryCreator() {
         setImageUrl(img);
         setShowResult(true);
       } else {
-        throw new Error("Eroare API");
+        throw new Error(result.error || "Eroare API");
       }
     } catch (err) {
-      alert("⚠️ Hopa! Ceva n-a mers bine. Încearcă din nou.");
+      const message = err instanceof Error ? err.message : "Ceva n-a mers bine. Încearcă din nou.";
+      alert(`⚠️ ${message}`);
     } finally {
       setIsLoading(false);
     }
@@ -239,8 +271,8 @@ export default function StoryCreator() {
         loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'),
       ]);
 
-      const { jsPDF } = (window as any).jspdf;
-      const html2canvas = (window as any).html2canvas;
+      const { jsPDF } = (window as WindowWithPdfLibraries).jspdf;
+      const html2canvas = (window as WindowWithPdfLibraries).html2canvas;
       const pdf = new jsPDF('p', 'mm', 'a4');
       const W = pdf.internal.pageSize.getWidth();
       const H = pdf.internal.pageSize.getHeight();
@@ -291,7 +323,7 @@ export default function StoryCreator() {
             <p className="story-cover-subtitle">O Aventură Magică Creată Pentru</p>
             <h1 className="story-cover-title">{name.toUpperCase() || "EROUL NOSTRU"}</h1>
             <div className="story-cover-img-wrap">
-              <img src={imageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              {imageUrl && <img src={imageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
             </div>
             <p className="story-cover-footer">Povestea Mea Magică · Ediție de Colecție</p>
           </div>
@@ -418,17 +450,17 @@ export default function StoryCreator() {
       
       {/* Background Decor */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-30">
-        {[...Array(20)].map((_, i) => (
+        {backgroundStars.map((star) => (
           <motion.div
-            key={i}
+            key={star.id}
             animate={{ 
-              x: mousePos.x * (i % 5 + 1),
-              y: mousePos.y * (i % 3 + 1),
+              x: mousePos.x * (star.id % 5 + 1),
+              y: mousePos.y * (star.id % 3 + 1),
             }}
             className="absolute text-white"
-            style={{ top: `${Math.random() * 100}%`, left: `${Math.random() * 100}%` }}
+            style={{ top: star.top, left: star.left }}
           >
-            <Star size={Math.random() * 10 + 5} fill="currentColor" />
+            <Star size={star.size} fill="currentColor" />
           </motion.div>
         ))}
       </div>

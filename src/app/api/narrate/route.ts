@@ -2,12 +2,16 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    const { text } = await req.json();
+    const { text } = (await req.json()) as { text?: string };
     const apiKey = process.env.ELEVENLABS_API_KEY;
+
+    if (!text) {
+      return NextResponse.json({ error: "Textul pentru narare lipsește." }, { status: 400 });
+    }
 
     if (!apiKey) {
       console.error("❌ ElevenLabs API Key is missing!");
-      return NextResponse.json({ error: "API Key missing" }, { status: 500 });
+      return NextResponse.json({ error: "ELEVENLABS_API_KEY lipsește din .env.local." }, { status: 500 });
     }
 
     console.log("🎙️ Trimit cerere către ElevenLabs pentru textul:", text.substring(0, 30) + "...");
@@ -47,8 +51,9 @@ export async function POST(req: Request) {
         "Content-Type": "audio/mpeg",
       },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("❌ ElevenLabs Catch Error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    const message = err instanceof Error ? err.message : "Eroare necunoscută";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

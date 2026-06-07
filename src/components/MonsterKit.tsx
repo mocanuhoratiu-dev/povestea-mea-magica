@@ -7,6 +7,14 @@ import MagicalLoader from './MagicalLoader';
 
 /* ─── Types ─────────────────────────────────────── */
 interface Monster { id: string; label: string; icon: string; }
+interface MonsterIngredient { num: string; icon: string; name: string; detail: string; }
+interface MonsterStep { roman: string; l1: string; l2: string; }
+interface MonsterKitContent {
+  body: string;
+  ingredients: MonsterIngredient[];
+  steps: MonsterStep[];
+  spell: string;
+}
 
 const monsters: Monster[] = [
   { id: 'umbrele noptii',        label: 'Umbrele Nopții',       icon: '🌑' },
@@ -15,7 +23,7 @@ const monsters: Monster[] = [
   { id: 'dulapul scartaitor',    label: 'Dulapul Scârțâitor',   icon: '🚪' },
 ];
 
-const MONSTER_KITS: Record<string, any> = {
+const MONSTER_KITS: Record<string, MonsterKitContent> = {
   'umbrele noptii': {
     body: "camera acestui copil este protejată de un <em>scut invizibil</em> țesut din <em>praf de stele</em>, lumină de lună plină și <em>râsete de spiriduși veseli</em>. Nicio umbră nu are dreptul să se miște fără permisiune.",
     ingredients: [
@@ -79,6 +87,37 @@ function loadScript(src: string): Promise<void> {
   });
 }
 
+const backgroundStars = Array.from({ length: 24 }, (_, i) => ({
+  id: i,
+  top: `${(i * 29 + 13) % 100}%`,
+  left: `${(i * 47 + 5) % 100}%`,
+  opacity: ((i * 17) % 60) / 100 + 0.2,
+  size: (i * 5) % 8 + 4,
+}));
+
+type PdfInstance = {
+  internal: { pageSize: { getWidth: () => number; getHeight: () => number } };
+  addImage: (imageData: string, format: string, x: number, y: number, width: number, height: number) => void;
+  addPage: () => void;
+  save: (filename: string) => void;
+};
+
+type PdfConstructor = new (orientation: "p", unit: "mm", format: "a4") => PdfInstance;
+type Html2Canvas = (
+  element: HTMLElement,
+  options: {
+    scale: number;
+    useCORS?: boolean;
+    logging?: boolean;
+    windowWidth?: number;
+    windowHeight?: number;
+  }
+) => Promise<HTMLCanvasElement>;
+type WindowWithPdfLibraries = Window & typeof globalThis & {
+  jspdf: { jsPDF: PdfConstructor };
+  html2canvas: Html2Canvas;
+};
+
 /* ══════════════════════════════════════════════════
    MAIN COMPONENT
 ══════════════════════════════════════════════════ */
@@ -87,7 +126,7 @@ export default function MonsterKit() {
   const [monsterType, setMonsterType] = useState(monsters[0].id);
   const [isLoading,   setIsLoading]   = useState(false);
   const [showResult,  setShowResult]  = useState(false);
-  const [aiKitData,   setAiKitData]   = useState<any>(null);
+  const [aiKitData,   setAiKitData]   = useState<MonsterKitContent | null>(null);
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -124,8 +163,8 @@ export default function MonsterKit() {
       loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'),
     ]);
 
-    const { jsPDF }   = (window as any).jspdf;
-    const html2canvas = (window as any).html2canvas;
+    const { jsPDF }   = (window as WindowWithPdfLibraries).jspdf;
+    const html2canvas = (window as WindowWithPdfLibraries).html2canvas;
     const pdf         = new jsPDF('p', 'mm', 'a4');
     const W           = pdf.internal.pageSize.getWidth();
     const H           = pdf.internal.pageSize.getHeight();
@@ -153,9 +192,9 @@ export default function MonsterKit() {
 
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-20">
-        {Array.from({ length: 24 }).map((_, i) => (
-          <Star key={i} size={Math.random() * 8 + 4} fill="white" stroke="none"
-            style={{ position: 'absolute', top: `${Math.random()*100}%`, left: `${Math.random()*100}%`, opacity: Math.random() * 0.6 + 0.2 }} />
+        {backgroundStars.map((star) => (
+          <Star key={star.id} size={star.size} fill="white" stroke="none"
+            style={{ position: 'absolute', top: star.top, left: star.left, opacity: star.opacity }} />
         ))}
       </div>
 
@@ -304,7 +343,7 @@ export default function MonsterKit() {
    PDF PAGE COMPONENTS
 ══════════════════════════════════════════════════ */
 
-function Page1Certificate({ name, monsterLabel, content }: { name: string; monsterLabel: string; content: any }) {
+function Page1Certificate({ name, monsterLabel, content }: { name: string; monsterLabel: string; content: MonsterKitContent }) {
   const heroName = name.trim() || 'EROUL NOSTRU';
   return (
     <div id="mk-page-1" className="mk-page" style={{ display: 'none' }}>
@@ -370,7 +409,7 @@ function Page1Certificate({ name, monsterLabel, content }: { name: string; monst
   );
 }
 
-function Page2Recipe({ content }: { content: any }) {
+function Page2Recipe({ content }: { content: MonsterKitContent }) {
   return (
     <div id="mk-page-2" className="mk-page" style={{ display: 'none' }}>
       <div className="mk-bg" />
@@ -387,7 +426,7 @@ function Page2Recipe({ content }: { content: any }) {
         <div className="mk-recipe-cols">
           <div className="mk-recipe-col">
             <p className="mk-recipe-section-title">Ingrediente Magice</p>
-            {content.ingredients.map((ing: any) => (
+            {content.ingredients.map((ing) => (
               <div key={ing.num} className="mk-ingredient">
                 <span className="mk-ing-num">{ing.num}</span>
                 <div>
@@ -402,7 +441,7 @@ function Page2Recipe({ content }: { content: any }) {
 
           <div className="mk-recipe-col">
             <p className="mk-recipe-section-title">Mod de Preparare</p>
-            {content.steps.map((s: any) => (
+            {content.steps.map((s) => (
               <div key={s.roman} className="mk-step">
                 <div className="mk-step-num">{s.roman}</div>
                 <div>
@@ -419,7 +458,7 @@ function Page2Recipe({ content }: { content: any }) {
         <div className="mk-incantation-box" style={{ marginTop: '50px' }}>
           <p className="mk-incantation-label">Descântecul de Activare · Se rostește în șoaptă</p>
           <p className="mk-incantation-text">
-            „<span dangerouslySetInnerHTML={{ __html: content.spell }} />"
+            „<span dangerouslySetInnerHTML={{ __html: content.spell }} />”
           </p>
         </div>
 

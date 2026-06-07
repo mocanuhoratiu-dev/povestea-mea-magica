@@ -1,13 +1,115 @@
 import { NextResponse } from "next/server";
-import { GoogleGenAI } from "@google/genai";
+import https from "node:https";
+
+type GenerateRequest = {
+  type?: "monster" | "story" | "emergency";
+  name?: string;
+  age?: string;
+  theme?: string;
+  lesson?: string;
+  monster?: string;
+  context?: string;
+};
+
+type GeminiResponse = {
+  candidates?: Array<{
+    content?: {
+      parts?: Array<{ text?: string }>;
+    };
+  }>;
+  error?: {
+    message?: string;
+    status?: string;
+  };
+};
+
+type GeminiTextResult = { text: string; error?: never } | { text?: never; error: string };
+
+async function generateGeminiText({
+  apiKey,
+  prompt,
+  responseMimeType,
+}: {
+  apiKey: string;
+  prompt: string;
+  responseMimeType?: "application/json";
+}): Promise<GeminiTextResult> {
+  const body = JSON.stringify({
+    contents: [{ parts: [{ text: prompt }] }],
+    ...(responseMimeType ? { generationConfig: { responseMimeType } } : {}),
+  });
+
+  const { statusCode, responseBody, requestError } = await new Promise<{
+    statusCode: number;
+    responseBody: string;
+    requestError?: string;
+  }>(
+    (resolve) => {
+      const request = https.request(
+        {
+          hostname: "generativelanguage.googleapis.com",
+          path: `/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`,
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Content-Length": Buffer.byteLength(body),
+          },
+        },
+        (response) => {
+          const chunks: Buffer[] = [];
+          response.on("data", (chunk: Buffer) => chunks.push(chunk));
+          response.on("end", () => {
+            resolve({
+              statusCode: response.statusCode || 500,
+              responseBody: Buffer.concat(chunks).toString("utf8"),
+            });
+          });
+        }
+      );
+
+      request.on("error", (error) => {
+        resolve({ statusCode: 500, responseBody: "", requestError: error.message });
+      });
+      request.write(body);
+      request.end();
+    }
+  );
+
+  if (requestError) {
+    return { error: requestError };
+  }
+
+  let payload: GeminiResponse;
+  try {
+    payload = JSON.parse(responseBody || "{}") as GeminiResponse;
+  } catch {
+    return { error: "Gemini API nu a returnat JSON valid." };
+  }
+
+  if (statusCode < 200 || statusCode >= 300) {
+    return { error: payload.error?.message || "Gemini API a returnat o eroare." };
+  }
+
+  const text = payload.candidates?.[0]?.content?.parts?.map((part) => part.text || "").join("").trim();
+  if (!text) {
+    return { error: "Gemini nu a returnat conținut pentru această cerere." };
+  }
+
+  return { text };
+}
 
 export async function POST(req: Request) {
   try {
-    const data = await req.json();
+    const data = (await req.json()) as GenerateRequest;
     console.log("🚀 Cerere generare primită:", data.type, data.name);
 
-    // Initializam Gemini client
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json(
+        { success: false, error: "GEMINI_API_KEY lipsește din .env.local." },
+        { status: 500 }
+      );
+    }
 
     if (data.type === "monster") {
       const prompt = `Ești reprezentantul Ministerului Protecției Magice. 
@@ -30,15 +132,15 @@ export async function POST(req: Request) {
         "spell": "Un descântec vesel și magic în RIME PERFECTE (format AABB), compus din exact 4 versuri scurte. TREBUIE să includă numele copilului și să alunge monstrul/frica respectivă."
       }`;
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt,
-        config: {
-          responseMimeType: "application/json",
-        }
+      const generated = await generateGeminiText({
+        apiKey,
+        prompt,
+        responseMimeType: "application/json",
       });
-      
-      const jsonText = response.text || "{}";
+      if ("error" in generated) {
+        return NextResponse.json({ success: false, error: generated.error }, { status: 500 });
+      }
+      const jsonText = generated.text;
       const result = JSON.parse(jsonText);
 
       return NextResponse.json({ success: true, data: result });
@@ -54,12 +156,12 @@ export async function POST(req: Request) {
       Tonul trebuie să fie cald, liniștitor, visător și potrivit pentru culcare. Fără scene de acțiune prea intense sau violență.
       Formatează textul folosind paragrafe despărțite prin linie nouă (fără titlu la început, doar textul poveștii). Nu folosi markdown excesiv (fără bold, italic sau titluri h1).`;
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt,
-      });
+      const generated = await generateGeminiText({ apiKey, prompt });
+      if ("error" in generated) {
+        return NextResponse.json({ success: false, error: generated.error }, { status: 500 });
+      }
 
-      return NextResponse.json({ success: true, data: { text: response.text } });
+      return NextResponse.json({ success: true, data: { text: generated.text } });
     }
 
     if (data.type === "emergency") {
@@ -90,15 +192,15 @@ export async function POST(req: Request) {
         ]
       }`;
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt,
-        config: {
-          responseMimeType: "application/json",
-        }
+      const generated = await generateGeminiText({
+        apiKey,
+        prompt,
+        responseMimeType: "application/json",
       });
-      
-      const jsonText = response.text || "{}";
+      if ("error" in generated) {
+        return NextResponse.json({ success: false, error: generated.error }, { status: 500 });
+      }
+      const jsonText = generated.text;
       const result = JSON.parse(jsonText);
 
       return NextResponse.json({ success: true, data: result });
@@ -108,6 +210,7 @@ export async function POST(req: Request) {
 
   } catch (error) {
     console.error("Eroare API Generate:", error);
-    return NextResponse.json({ success: false, error: "Magia a întârziat puțin. Încearcă din nou!" }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Magia a întârziat puțin. Încearcă din nou!";
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }
