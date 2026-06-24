@@ -5,19 +5,19 @@ import { Star } from "lucide-react";
 
 const testimonials = [
   {
-    name: "Andreea M.",
-    role: "Mamă a unui băiețel de 4 ani 👩‍👦",
-    text: "Este singura poveste pe care băiețelul meu o mai vrea înainte de culcare. A fost fascinat să audă că el este personajul principal!",
+    name: "Personalizare reală",
+    role: "Nume, vârstă, lume și detalii ale copilului",
+    text: "Fiecare material pornește de la alegerile părintelui, astfel încât copilul să simtă că povestea sau misiunea este despre el.",
   },
   {
-    name: "Mihai T.",
-    role: "Tată de fetiță 👨‍👧",
-    text: "Calitatea ilustrațiilor din PDF este impresionantă. Iar varianta audio ne salvează în serile în care suntem prea obosiți să citim.",
+    name: "PDF-uri gata de folosit",
+    role: "Previzualizare, editare și descărcare locală",
+    text: "Părintele poate verifica textul, ajusta povestea și descărca un material printabil fără pași tehnici complicați.",
   },
   {
-    name: "Raluca S.",
-    role: "Mamă a doi copii 👩‍👧‍👦",
-    text: "Am cumpărat povestea cu 'împărțitul jucăriilor' și chiar a ajutat! Copiii au fost mult mai receptivi văzându-se pe ei în poveste.",
+    name: "Ajutor în momente concrete",
+    role: "Somn, frici de noapte și așteptări lungi",
+    text: "Produsele sunt gândite pentru situații reale din viața de părinte: seara, la drum, la restaurant sau în sala de așteptare.",
   },
 ];
 
@@ -39,13 +39,13 @@ export default function Reviews() {
             whileInView={{ opacity: 1, scale: 1 }}
             className="inline-block px-4 py-1 rounded-full bg-brand-gold/20 text-brand-navy font-bold text-xs uppercase tracking-widest mb-4"
           >
-            Păreri sincere ❤️
+            Ce promitem
           </motion.div>
           <h2 className="font-nunito font-extrabold text-4xl md:text-5xl text-brand-navy">
-            Părinți Fericiți, Copii <span className="text-brand-purple">Fascinați</span>
+            Materiale Calde, Utile și <span className="text-brand-purple">Personalizate</span>
           </h2>
           <p className="mt-4 text-brand-navy/60 text-lg max-w-2xl mx-auto font-medium">
-            Mii de familii au descoperit deja magia poveștilor noastre personalizate.
+            Direcția produsului: mai puțină improvizație în momentele grele și mai multă magie pregătită din timp.
           </p>
         </div>
 

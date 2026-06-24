@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { motion, useSpring, useMotionValue, useTransform } from "framer-motion";
 import Image from "next/image";
 
@@ -19,7 +19,7 @@ export default function Hero() {
     };
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, []);
+  }, [mouseX, mouseY]);
 
   // Parallax transforms
   const starX = useTransform(smoothX, (v) => v * 1.5);
@@ -68,7 +68,7 @@ export default function Hero() {
             Copilul tău, <span className="text-brand-purple italic">eroul</span> poveștii! 🐉
           </h1>
           <p className="mt-6 text-xl text-brand-navy/80 leading-relaxed max-w-xl font-medium">
-            Transformă fiecare seară într-o aventură legendară. O poveste unică, creată special pentru micuțul tău, gata în câteva secunde. ✨
+            Creează în câteva secunde o poveste de seară, un kit anti-frică sau o activitate de salvare pentru momentele lungi de așteptare.
           </p>
           
           <div className="mt-10 flex flex-col sm:flex-row gap-6">
@@ -78,7 +78,7 @@ export default function Hero() {
               whileTap={{ scale: 0.95 }}
               className="bg-brand-purple text-brand-cream px-10 py-5 rounded-[2rem] font-extrabold text-xl shadow-2xl hover:shadow-brand-purple/40 transition-all animate-glow text-center border-b-4 border-brand-purple-light"
             >
-              Creează Povestea! 🦄
+              Creează o previzualizare
             </motion.a>
           </div>
         </motion.div>

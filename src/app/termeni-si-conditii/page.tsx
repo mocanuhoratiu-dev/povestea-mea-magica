@@ -18,22 +18,22 @@ export default function TermsPage() {
           <div className="prose prose-brand max-w-none text-brand-navy/80 space-y-8 font-medium">
             <section>
               <h2 className="text-2xl font-black text-brand-navy mb-4">1. Introducere</h2>
-              <p>Bun venit la Povestea Mea Magică! Prin utilizarea acestui site și achiziționarea poveștilor noastre personalizate, ești de acord cu termenii descriși mai jos. Ne dorim ca experiența ta să fie la fel de magică precum poveștile noastre.</p>
+              <p>Bun venit la Povestea Mea Magică! Site-ul este în prezent disponibil ca demo interactiv. Prin folosirea lui, ești de acord cu termenii descriși mai jos.</p>
             </section>
 
             <section>
               <h2 className="text-2xl font-black text-brand-navy mb-4">2. Serviciul Nostru</h2>
-              <p>Oferim servicii de personalizare a poveștilor digitale (PDF) și audio (MP3). Poveștile sunt generate pe baza datelor introduse de utilizator (nume, vârstă, temă). Utilizatorul este responsabil pentru acuratețea datelor introduse.</p>
+              <p>Demo-ul permite generarea de povești digitale, kituri anti-frică și truse de activități pe baza datelor introduse de utilizator, precum nume, vârstă, temă sau context. Un adult ar trebui să verifice conținutul înainte de a-l folosi cu un copil.</p>
             </section>
 
             <section>
               <h2 className="text-2xl font-black text-brand-navy mb-4">3. Plăți și Livrare</h2>
-              <p>Plățile sunt procesate securizat prin Stripe. Livrarea produselor digitale se face instantaneu pe adresa de email furnizată. Deoarece produsele sunt digitale și personalizate, nu se pot returna după ce au fost generate și livrate.</p>
+              <p>Plățile online și livrarea automată pe email nu sunt active în modul demo. Fișierele generate pot fi descărcate local din browser, iar fluxul comercial complet va fi comunicat separat la lansare.</p>
             </section>
 
             <section>
               <h2 className="text-2xl font-black text-brand-navy mb-4">4. Drepturi de Autor</h2>
-              <p>Povestea Mea Magică deține drepturile de proprietate intelectuală asupra textelor, ilustrațiilor și formatelor. Achiziția unei povești îți oferă dreptul de utilizare personală și necomercială.</p>
+              <p>Textele și machetele generate în demo sunt oferite pentru testare și uz personal. Nu este permisă revânzarea sau redistribuirea lor ca produs comercial fără acord scris.</p>
             </section>
 
             <section>
@@ -43,7 +43,7 @@ export default function TermsPage() {
           </div>
 
           <div className="mt-16 pt-10 border-t border-brand-navy/5 text-center">
-            <p className="text-brand-navy/40 text-sm italic">Ultima actualizare: 2 Mai 2026</p>
+            <p className="text-brand-navy/40 text-sm italic">Ultima actualizare: 24 Iunie 2026</p>
           </div>
         </div>
       </div>

@@ -10,14 +10,10 @@ export async function POST(req: Request) {
     }
 
     if (!apiKey) {
-      console.error("❌ ElevenLabs API Key is missing!");
       return NextResponse.json({ error: "ELEVENLABS_API_KEY lipsește din .env.local." }, { status: 500 });
     }
 
-    console.log("🎙️ Trimit cerere către ElevenLabs pentru textul:", text.substring(0, 30) + "...");
-
-    // Folosim Fetch direct pentru control total asupra stream-ului
-    // Vocea Rachel (21m00Tcm4TlvDq8ikWAM) este cea mai stabila pt limba romana
+    // Vocea Rachel (21m00Tcm4TlvDq8ikWAM) este stabilă pentru previzualizarea în limba română.
     const response = await fetch(
       "https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM",
       {
@@ -44,8 +40,6 @@ export async function POST(req: Request) {
     }
 
     const audioBuffer = await response.arrayBuffer();
-    console.log("✅ Audio primit cu succes, mărime:", audioBuffer.byteLength);
-
     return new Response(audioBuffer, {
       headers: {
         "Content-Type": "audio/mpeg",

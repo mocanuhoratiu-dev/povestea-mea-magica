@@ -9,11 +9,18 @@ import MagicalLoader from './MagicalLoader';
 interface Monster { id: string; label: string; icon: string; }
 interface MonsterIngredient { num: string; icon: string; name: string; detail: string; }
 interface MonsterStep { roman: string; l1: string; l2: string; }
+interface MonsterClause { art: string; text: string; }
+interface MonsterSignature { name: string; title: string; }
 interface MonsterKitContent {
   body: string;
   ingredients: MonsterIngredient[];
   steps: MonsterStep[];
   spell: string;
+  clauses: MonsterClause[];
+  signatures: [MonsterSignature, MonsterSignature];
+  instructionLines: string[];
+  labelIngredients: string;
+  miniSeals?: string[];
 }
 
 const monsters: Monster[] = [
@@ -27,63 +34,166 @@ const MONSTER_KITS: Record<string, MonsterKitContent> = {
   'umbrele noptii': {
     body: "camera acestui copil este protejată de un <em>scut invizibil</em> țesut din <em>praf de stele</em>, lumină de lună plină și <em>râsete de spiriduși veseli</em>. Nicio umbră nu are dreptul să se miște fără permisiune.",
     ingredients: [
-      { num: '1', icon: '💧', name: 'Apă de Lună Plină', detail: 'pentru a dizolva orice umbră' },
-      { num: '2', icon: '🍋', name: 'Esență de Lămâie-Soare', detail: 'lumina concentrată în fruct' },
-      { num: '3', icon: '✨', name: 'Sclipici de Licurici', detail: 'strălucește în întuneric' }
+      { num: '1', icon: '💧', name: 'Apă', detail: 'Apă de Lună Plină' },
+      { num: '2', icon: '🍋', name: 'Zeamă de lămâie', detail: 'Esență de Lămâie-Soare' },
+      { num: '3', icon: '🧂', name: 'Un praf de sare', detail: 'Cristale de Curaj' }
     ],
     steps: [
-      { roman: 'I', l1: 'Amestecă apa cu lumina soarelui,', l2: 'agitând flaconul spre răsărit.' },
-      { roman: 'II', l1: 'Adaugă sclipiciul în timp ce zâmbești,', l2: 'umbrele se tem de bucurie.' }
+      { roman: 'I', l1: 'Amestecă apa cu lămâia-soare,', l2: 'agitând flaconul spre fereastră.' },
+      { roman: 'II', l1: 'Adaugă sarea-curaj în timp ce zâmbești,', l2: 'umbrele se tem de lumină blândă.' }
     ],
-    spell: "Umbre mici și umbre mari, plecați voi în alte zări! Lumina mea e scutul bun, noaptea-i albă de acum!"
+    spell: "Umbre mici și umbre mari, plecați voi în alte zări! Lumina mea e scutul bun, noaptea-i albă de acum!",
+    clauses: [
+      { art: 'Art. I', text: 'Umbrele sunt obligate să rămână lipite de pereți și să nu inventeze forme noi după stingerea luminii.' },
+      { art: 'Art. II', text: 'Colțurile camerei primesc lumină imaginară de lună până când devin locuri obișnuite și cuminți.' },
+      { art: 'Art. III', text: 'Orice pată întunecată se declară simplă umbră de mobilă, fără puteri de speriat.' },
+      { art: 'Art. IV', text: 'Curajul copilului aprinde scutul ori de câte ori respiră încet și cere o îmbrățișare.' },
+    ],
+    signatures: [
+      { name: 'Selena Clar-de-Lună', title: 'Inspectoarea Umbrelor Cuminți' },
+      { name: 'Licuricius al III-lea', title: 'Paznicul Luminilor de Veghe' },
+    ],
+    instructionLines: [
+      '1.  Agită flaconul de 7 ori',
+      '2.  Rostește descântecul spre colțuri',
+      '3.  Pulverizează lângă perdele și pereți',
+      '4.  Aprinde lumina de veghe pentru o clipă',
+      '5.  Respiră încet și dormi liniștit/ă!  ✓',
+    ],
+    labelIngredients: 'Apă de lună · Lămâie-soare · Cristale de curaj'
   },
   'monstrul de sub pat': {
     body: "podeaua acestei camere este acoperită de o <em>plasă magică</em> de nepătruns. Nicio creatură cu picioare mari sau intenții de gâdilat nu poate trece de marginea patului.",
     ingredients: [
-      { num: '1', icon: '💨', name: 'Praf de Somn Liniștit', detail: 'adormi monstrul pe loc' },
-      { num: '2', icon: '🍪', name: 'Firimituri de Curaj', detail: 'monștrii fug de copiii curajoși' },
-      { num: '3', icon: '🫧', name: 'Bule de Săpun Magic', detail: 'pentru a-i aluneca picioarele' }
+      { num: '1', icon: '💧', name: 'Apă', detail: 'Râu de Somn Liniștit' },
+      { num: '2', icon: '🍬', name: 'Un vârf de zahăr', detail: 'Firimituri de Curaj' },
+      { num: '3', icon: '🌿', name: 'Un praf de scorțișoară', detail: 'Pulbere de Dragon Somnoros' }
     ],
     steps: [
       { roman: 'I', l1: 'Pulverizează generos sub pat,', l2: 'insistând în colțurile întunecate.' },
       { roman: 'II', l1: 'Pune flaconul pe noptieră ca pază,', l2: 'dragonul va veghea toată noaptea.' }
     ],
-    spell: "Sub patul meu e liniște, niciun monstru nu mai mișcă! Dormi acum, somn pufos, patul meu e cel mai faimos!"
+    spell: "Sub patul meu e liniște, niciun monstru nu mai mișcă! Dormi acum, somn pufos, patul meu e cel mai faimos!",
+    clauses: [
+      { art: 'Art. I', text: 'Spațiul de sub pat se declară zonă verificată, aerisită și rezervată doar prafului obișnuit.' },
+      { art: 'Art. II', text: 'Nicio creatură imaginară nu poate trece de marginea pilotei fără permis de somn blând.' },
+      { art: 'Art. III', text: 'Orice foșnet de sub pat este reclasificat drept sunet de cearșaf, jucărie sau papuc uitat.' },
+      { art: 'Art. IV', text: 'Curajul copilului are prioritate absolută când flaconul stă de pază pe noptieră.' },
+    ],
+    signatures: [
+      { name: 'Mag. Umberto din Tărâmul de Jos', title: 'Comandantul Gardienilor de sub Pat' },
+      { name: 'Dorma Puf-de-Pernă', title: 'Zâna Paturilor Liniștite' },
+    ],
+    instructionLines: [
+      '1.  Agită flaconul de 7 ori',
+      '2.  Rostește descântecul lângă pat',
+      '3.  Pulverizează de 3 ori sub pat',
+      '4.  Așază flaconul pe noptieră',
+      '5.  Învelește-te și dormi liniștit/ă!  ✓',
+    ],
+    labelIngredients: 'Râu de somn · Firimituri de curaj · Pulbere somnoroasă'
   },
   'zgomotele ciudate': {
     body: "urechile acestui erou sunt protejate de un <em>filtru de armonie</em>. Orice scârțâit sau pocnet este captat și transformat automat în <em>torcăit de pisică</em> sau susur de izvor.",
     ingredients: [
-      { num: '1', icon: '🍯', name: 'Picături de Miere Mută', detail: 'pentru a îndulci zgomotele' },
-      { num: '2', icon: '☁️', name: 'Esență de Nor Pufos', detail: 'absoarbe orice sunet brusc' },
-      { num: '3', icon: '🎻', name: 'Ulei de Liniște Muzicală', detail: 'transformă haosul în pace' }
+      { num: '1', icon: '💧', name: 'Apă', detail: 'Lac de Liniște' },
+      { num: '2', icon: '🍯', name: 'O picătură de miere', detail: 'Miere Mută' },
+      { num: '3', icon: '🧂', name: 'Un praf de sare', detail: 'Praf de Ecou Adormit' }
     ],
     steps: [
       { roman: 'I', l1: 'Toarnă mierea imaginară în apă,', l2: 'ascultând cum se așterne liniștea.' },
       { roman: 'II', l1: 'Pulverizează spre sursa sunetului,', l2: 'zâmbind la fiecare pocnet.' }
     ],
-    spell: "Zgomote ce mă speriați, în torcăit vă transformați! Liniștea e prietena mea, noaptea-i lină ca o stea!"
+    spell: "Zgomote ce mă speriați, în torcăit vă transformați! Liniștea e prietena mea, noaptea-i lină ca o stea!",
+    clauses: [
+      { art: 'Art. I', text: 'Pocnetele, foșnetele și scârțâiturile sunt traduse automat în sunete normale ale casei.' },
+      { art: 'Art. II', text: 'Urechile copilului primesc filtru de liniște pentru a asculta doar respirația și povestea serii.' },
+      { art: 'Art. III', text: 'Orice zgomot nou trebuie să se prezinte politicos ca țeavă, parchet, vânt sau frigider.' },
+      { art: 'Art. IV', text: 'Curajul copilului crește de fiecare dată când observă sunetul și îl lasă să treacă.' },
+    ],
+    signatures: [
+      { name: 'Armonel Fără-Ecou', title: 'Dirijorul Zgomotelor Cuminți' },
+      { name: 'Mira Șoaptă-Bună', title: 'Zâna Urechilor Liniștite' },
+    ],
+    instructionLines: [
+      '1.  Agită flaconul de 5 ori',
+      '2.  Rostește descântecul în șoaptă',
+      '3.  Pulverizează spre ușă sau fereastră',
+      '4.  Ascultă trei respirații lente',
+      '5.  Lasă sunetele să treacă ușor!  ✓',
+    ],
+    labelIngredients: 'Lac de liniște · Miere mută · Praf de ecou adormit'
   },
   'dulapul scartaitor': {
     body: "ușile acestui dulap sunt <em>sigilate cu magicele balamale de vis</em>. Interiorul este acum un <em>tărâm al ordinii și păcii</em>, unde hainele dorm liniștite și nicio ușă nu îndrăznește să se miște.",
     ingredients: [
-      { num: '1', icon: '🌈', name: 'Ulei de Curcubeu Fin', detail: 'pentru balamale fericite' },
-      { num: '2', icon: '🧊', name: 'Esență de Liniște Înghețată', detail: 'oprește orice mișcare' },
-      { num: '3', icon: '🗝️', name: 'Cheia Invizibilă a Păcii', detail: 'încuie frica afară' }
+      { num: '1', icon: '💧', name: 'Apă', detail: 'Picături de Pace' },
+      { num: '2', icon: '🍋', name: 'Zeamă de lămâie', detail: 'Lumină Galbenă de Curaj' },
+      { num: '3', icon: '🍬', name: 'Un vârf de zahăr', detail: 'Cristale pentru Uși Cuminți' }
     ],
     steps: [
       { roman: 'I', l1: 'Unge imaginar balamalele dulapului,', l2: 'șoptind cuvinte de somn ușor.' },
       { roman: 'II', l1: 'Pulverizează pe uși în formă de X,', l2: 'creând un sigiliu de aur.' }
     ],
-    spell: "Uși de dulap, stați cuminți, nu mai speriați părinți! Hainele dorm, eu dorm bine, liniștea e lângă mine!"
+    spell: "Uși de dulap, stați cuminți, nu mai speriați părinți! Hainele dorm, eu dorm bine, liniștea e lângă mine!",
+    clauses: [
+      { art: 'Art. I', text: 'Dulapul se declară bibliotecă de haine adormite, fără drept de scârțâit dramatic după ora de culcare.' },
+      { art: 'Art. II', text: 'Ușile și balamalele sunt invitate să stea cuminți până dimineața.' },
+      { art: 'Art. III', text: 'Orice umbră din dulap este reclasificată drept haină, pijama sau pătură împăturită.' },
+      { art: 'Art. IV', text: 'Curajul copilului sigilează dulapul printr-un zâmbet mic și un ritual de noapte făcut în tihnă.' },
+    ],
+    signatures: [
+      { name: 'Balaminus Trosc-Cuminte', title: 'Maestrul Dulapurilor Tăcute' },
+      { name: 'Cloșeta de Catifea', title: 'Zâna Hainelor Adormite' },
+    ],
+    instructionLines: [
+      '1.  Agită flaconul de 7 ori',
+      '2.  Rostește descântecul spre dulap',
+      '3.  Pulverizează pe uși în formă de X',
+      '4.  Spune hainelor noapte bună',
+      '5.  Închide ochii și dormi liniștit/ă!  ✓',
+    ],
+    labelIngredients: 'Picături de pace · Lumină galbenă · Cristale pentru uși cuminți'
   }
 };
 
 function loadScript(src: string): Promise<void> {
-  return new Promise((resolve) => {
-    if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
-    const s = document.createElement('script');
-    s.src = src; s.onload = () => resolve();
-    document.head.appendChild(s);
+  return new Promise((resolve, reject) => {
+    const existing = document.querySelector<HTMLScriptElement>(`script[src="${src}"]`);
+
+    if (existing?.dataset.loaded === 'true') {
+      resolve();
+      return;
+    }
+
+    if (existing?.dataset.loading === 'true') {
+      existing.addEventListener('load', () => resolve(), { once: true });
+      existing.addEventListener('error', () => reject(new Error(`Nu am putut încărca ${src}.`)), { once: true });
+      return;
+    }
+
+    existing?.remove();
+
+    const script = document.createElement('script');
+    const timeout = window.setTimeout(() => {
+      script.remove();
+      reject(new Error(`Încărcarea a durat prea mult: ${src}.`));
+    }, 15000);
+
+    script.src = src;
+    script.dataset.loading = 'true';
+    script.onload = () => {
+      window.clearTimeout(timeout);
+      script.dataset.loading = 'false';
+      script.dataset.loaded = 'true';
+      resolve();
+    };
+    script.onerror = () => {
+      window.clearTimeout(timeout);
+      script.remove();
+      reject(new Error(`Nu am putut încărca ${src}.`));
+    };
+    document.head.appendChild(script);
   });
 }
 
@@ -100,6 +210,11 @@ type PdfInstance = {
   addImage: (imageData: string, format: string, x: number, y: number, width: number, height: number) => void;
   addPage: () => void;
   save: (filename: string) => void;
+  setFont: (fontName: string, fontStyle?: string) => void;
+  setFontSize: (size: number) => void;
+  setTextColor: (r: number, g?: number, b?: number) => void;
+  splitTextToSize: (text: string, maxWidth: number) => string[];
+  text: (text: string | string[], x: number, y: number, options?: { lineHeightFactor?: number }) => void;
 };
 
 type PdfConstructor = new (orientation: "p", unit: "mm", format: "a4") => PdfInstance;
@@ -118,78 +233,235 @@ type WindowWithPdfLibraries = Window & typeof globalThis & {
   html2canvas: Html2Canvas;
 };
 
+const monsterCopy: Record<string, { target: string; label: string }> = {
+  'umbrele noptii': { target: 'umbrelor nopții', label: 'UMBRE' },
+  'monstrul de sub pat': { target: 'monstrului de sub pat', label: 'MONSTRU DE SUB PAT' },
+  'zgomotele ciudate': { target: 'zgomotelor ciudate', label: 'ZGOMOTE CIUDATE' },
+  'dulapul scartaitor': { target: 'dulapului scârțâitor', label: 'DULAP SCÂRȚÂITOR' },
+};
+
+const monsterDefaults: Record<string, { location: string; helper: string; ritual: string }> = {
+  'umbrele noptii': {
+    location: 'colțurile camerei și perdelele',
+    helper: 'lumina de veghe',
+    ritual: 'o îmbrățișare și trei respirații lente',
+  },
+  'monstrul de sub pat': {
+    location: 'spațiul de sub pat',
+    helper: 'jucăria preferată de pază',
+    ritual: 'verificarea rapidă sub pat împreună cu un adult',
+  },
+  'zgomotele ciudate': {
+    location: 'ușa, fereastra și pereții care pocnesc',
+    helper: 'sunetul liniștit al respirației',
+    ritual: 'ascultarea a trei sunete obișnuite ale casei',
+  },
+  'dulapul scartaitor': {
+    location: 'ușile dulapului',
+    helper: 'pătura preferată',
+    ritual: 'spus noapte bună hainelor din dulap',
+  },
+};
+
+function stripHtml(value: string) {
+  return value
+    .replace(/<br\s*\/?>/gi, ' ')
+    .replace(/<\/?em[^>]*>/gi, '')
+    .replace(/<[^>]*>/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function cleanPlainText(value: string, fallback: string, maxLength = 58) {
+  const clean = stripHtml(value).replace(/[.!?]+$/g, '').trim() || fallback;
+  if (clean.length <= maxLength) return clean;
+  return `${clean.slice(0, maxLength - 3).trim()}...`;
+}
+
+function sanitizeEmHtml(value: string) {
+  return value
+    .replace(/<br\s*\/?>/gi, ' ')
+    .replace(/<em[^>]*>/gi, '[[EM]]')
+    .replace(/<\/em>/gi, '[[/EM]]')
+    .replace(/<[^>]*>/g, '')
+    .replace(/\[\[EM\]\]/g, '<em>')
+    .replace(/\[\[\/EM\]\]/g, '</em>')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function cleanKitContent(content: MonsterKitContent): MonsterKitContent {
+  return {
+    body: sanitizeEmHtml(content.body),
+    ingredients: content.ingredients.map((ingredient) => ({
+      num: stripHtml(ingredient.num),
+      icon: stripHtml(ingredient.icon),
+      name: stripHtml(ingredient.name),
+      detail: stripHtml(ingredient.detail),
+    })),
+    steps: content.steps.map((step) => ({
+      roman: stripHtml(step.roman),
+      l1: stripHtml(step.l1),
+      l2: stripHtml(step.l2),
+    })),
+    spell: stripHtml(content.spell),
+    clauses: content.clauses.map((clause) => ({
+      art: stripHtml(clause.art),
+      text: stripHtml(clause.text),
+    })),
+    signatures: [
+      {
+        name: stripHtml(content.signatures[0].name),
+        title: stripHtml(content.signatures[0].title),
+      },
+      {
+        name: stripHtml(content.signatures[1].name),
+        title: stripHtml(content.signatures[1].title),
+      },
+    ],
+    instructionLines: content.instructionLines.map((line) => stripHtml(line)),
+    labelIngredients: stripHtml(content.labelIngredients),
+    miniSeals: content.miniSeals?.map((seal) => stripHtml(seal)),
+  };
+}
+
+function buildPersonalizedKitContent({
+  name,
+  monsterType,
+  fearLocation,
+  calmingHelper,
+  bedtimeRitual,
+}: {
+  name: string;
+  monsterType: string;
+  fearLocation: string;
+  calmingHelper: string;
+  bedtimeRitual: string;
+}) {
+  const base = MONSTER_KITS[monsterType] || MONSTER_KITS['umbrele noptii'];
+  const defaults = monsterDefaults[monsterType] || monsterDefaults['umbrele noptii'];
+  const heroName = cleanPlainText(name, 'copilul', 28);
+  const location = cleanPlainText(fearLocation, defaults.location, 48);
+  const helper = cleanPlainText(calmingHelper, defaults.helper, 42);
+  const ritual = cleanPlainText(bedtimeRitual, defaults.ritual, 48);
+
+  const personalized: MonsterKitContent = {
+    ...base,
+    body: `${base.body} Zona verificată special pentru ${heroName} este <em>${location}</em>, iar scutul se întărește cu <em>${helper}</em> și cu ritualul de seară: <em>${ritual}</em>.`,
+    steps: [
+      base.steps[0],
+      {
+        roman: 'II',
+        l1: `Pulverizează blând la ${location},`,
+        l2: `apoi folosește ${helper}.`,
+      },
+      {
+        roman: 'III',
+        l1: `Încheie cu ritualul: ${ritual},`,
+        l2: 'și declară camera pregătită de somn.',
+      },
+    ],
+    clauses: [
+      ...base.clauses.slice(0, 3),
+      {
+        art: 'Art. IV',
+        text: `Pentru ${heroName}, scutul se activează complet la ${location}, mai ales când apare ${helper} și ritualul "${ritual}".`,
+      },
+    ],
+    instructionLines: [
+      base.instructionLines[0],
+      base.instructionLines[1],
+      `3.  Pulverizează la ${location}`,
+      `4.  Folosește ${helper}`,
+      `5.  Încheie cu: ${ritual}  ✓`,
+    ],
+  };
+
+  return cleanKitContent(personalized);
+}
+
+function addSearchableTextLayer(pdf: PdfInstance, text: string, pageWidth: number) {
+  const cleanText = text.replace(/\s+/g, ' ').trim();
+  if (!cleanText) return;
+
+  pdf.setFont('times', 'normal');
+  pdf.setFontSize(6);
+  pdf.setTextColor(255, 255, 255);
+  const lines = pdf.splitTextToSize(cleanText, pageWidth - 20).slice(0, 80);
+  pdf.text(lines, 10, 10, { lineHeightFactor: 1.05 });
+}
+
 /* ══════════════════════════════════════════════════
    MAIN COMPONENT
 ══════════════════════════════════════════════════ */
 export default function MonsterKit() {
   const [name,        setName]        = useState('');
   const [monsterType, setMonsterType] = useState(monsters[0].id);
-  const [isLoading,   setIsLoading]   = useState(false);
   const [showResult,  setShowResult]  = useState(false);
-  const [aiKitData,   setAiKitData]   = useState<MonsterKitContent | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [fearLocation, setFearLocation] = useState('');
+  const [calmingHelper, setCalmingHelper] = useState('');
+  const [bedtimeRitual, setBedtimeRitual] = useState('');
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
-    setIsLoading(true);
-    
-    try {
-      const mLabel = monsters.find(m => m.id === monsterType)?.label ?? monsterType;
-      const response = await fetch("/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "monster", name, monster: mLabel }),
-      });
-
-      const result = await response.json();
-      if (result.success && result.data) {
-        setAiKitData(result.data);
-      } else {
-        // Fallback la static dacă pică API-ul
-        setAiKitData(null); 
-      }
-      setShowResult(true);
-    } catch (err) {
-      console.error(err);
-      setAiKitData(null);
-      setShowResult(true); // show static fallback
-    } finally {
-      setIsLoading(false);
-    }
+    setShowResult(true);
   };
   const handleDownload = async () => {
-    await Promise.all([
-      loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'),
-      loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'),
-    ]);
+    setIsDownloading(true);
+    try {
+      await Promise.all([
+        loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'),
+        loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'),
+      ]);
 
-    const { jsPDF }   = (window as WindowWithPdfLibraries).jspdf;
-    const html2canvas = (window as WindowWithPdfLibraries).html2canvas;
-    const pdf         = new jsPDF('p', 'mm', 'a4');
-    const W           = pdf.internal.pageSize.getWidth();
-    const H           = pdf.internal.pageSize.getHeight();
+      const { jsPDF }   = (window as WindowWithPdfLibraries).jspdf;
+      const html2canvas = (window as WindowWithPdfLibraries).html2canvas;
+      const pdf         = new jsPDF('p', 'mm', 'a4');
+      const W           = pdf.internal.pageSize.getWidth();
+      const H           = pdf.internal.pageSize.getHeight();
 
-    for (let i = 1; i <= 3; i++) {
-      const el = document.getElementById(`mk-page-${i}`);
-      if (!el) continue;
-      el.style.display = 'block';
-      const canvas = await html2canvas(el, {
-        scale: 2.5, useCORS: true, logging: false,
-        windowWidth: 794, windowHeight: 1123,
-      });
-      pdf.addImage(canvas.toDataURL('image/jpeg', 0.97), 'JPEG', 0, 0, W, H);
-      el.style.display = 'none';
-      if (i < 3) pdf.addPage();
+      for (let i = 1; i <= 3; i++) {
+        const el = document.getElementById(`mk-page-${i}`);
+        if (!el) continue;
+        el.style.display = 'block';
+        try {
+          const canvas = await html2canvas(el, {
+            scale: 2.5, useCORS: true, logging: false,
+            windowWidth: 794, windowHeight: 1123,
+          });
+          addSearchableTextLayer(pdf, el.innerText, W);
+          pdf.addImage(canvas.toDataURL('image/jpeg', 0.97), 'JPEG', 0, 0, W, H);
+        } finally {
+          el.style.display = 'none';
+        }
+        if (i < 3) pdf.addPage();
+      }
+      pdf.save(`Kit_Magic_${name.trim()}.pdf`);
+    } catch (error) {
+      console.error(error);
+      alert(error instanceof Error ? error.message : 'Nu am putut genera PDF-ul.');
+    } finally {
+      setIsDownloading(false);
     }
-    pdf.save(`Kit_Magic_${name.trim()}.pdf`);
   };
 
   const monsterLabel = monsters.find(m => m.id === monsterType)?.label ?? monsterType;
+  const monsterTarget = monsterCopy[monsterType]?.target ?? monsterLabel.toLocaleLowerCase('ro-RO');
+  const bottleLabel = monsterCopy[monsterType]?.label ?? monsterLabel.toLocaleUpperCase('ro-RO');
+  const activeDefaults = monsterDefaults[monsterType] || monsterDefaults['umbrele noptii'];
+  const kitContent = buildPersonalizedKitContent({
+    name,
+    monsterType,
+    fearLocation,
+    calmingHelper,
+    bedtimeRitual,
+  });
 
   return (
     <section id="monster-away" className="py-20 md:py-32 bg-brand-navy relative overflow-hidden px-4">
-      <MagicalLoader isVisible={isLoading} />
-
+      <MagicalLoader isVisible={isDownloading} />
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-20">
         {backgroundStars.map((star) => (
@@ -209,7 +481,7 @@ export default function MonsterKit() {
             Scut Magic <span className="text-brand-gold">pentru Noapte</span> 🛡️
           </h2>
           <p className="mt-4 text-brand-cream/70 text-lg max-w-xl mx-auto">
-            Un certificat oficial + rețeta spray-ului magic + etichete pentru flacon — totul într-un PDF premium, gata de printat și înrămat.
+            Generează o previzualizare printabilă cu certificat, rețeta spray-ului magic și etichete pentru flacon.
           </p>
         </div>
 
@@ -253,6 +525,45 @@ export default function MonsterKit() {
               </div>
             </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block font-nunito font-black text-brand-navy text-sm mb-2 uppercase tracking-wider">
+                  Unde apare frica?
+                </label>
+                <input
+                  type="text"
+                  value={fearLocation}
+                  onChange={e => setFearLocation(e.target.value)}
+                  placeholder={activeDefaults.location}
+                  className="w-full bg-white border-4 border-brand-navy/10 focus:border-brand-purple rounded-2xl px-5 py-4 text-brand-navy font-bold text-base outline-none transition-all shadow-inner"
+                />
+              </div>
+              <div>
+                <label className="block font-nunito font-black text-brand-navy text-sm mb-2 uppercase tracking-wider">
+                  Ce îl/o liniștește?
+                </label>
+                <input
+                  type="text"
+                  value={calmingHelper}
+                  onChange={e => setCalmingHelper(e.target.value)}
+                  placeholder={activeDefaults.helper}
+                  className="w-full bg-white border-4 border-brand-navy/10 focus:border-brand-purple rounded-2xl px-5 py-4 text-brand-navy font-bold text-base outline-none transition-all shadow-inner"
+                />
+              </div>
+              <div>
+                <label className="block font-nunito font-black text-brand-navy text-sm mb-2 uppercase tracking-wider">
+                  Ritual de seară
+                </label>
+                <input
+                  type="text"
+                  value={bedtimeRitual}
+                  onChange={e => setBedtimeRitual(e.target.value)}
+                  placeholder={activeDefaults.ritual}
+                  className="w-full bg-white border-4 border-brand-navy/10 focus:border-brand-purple rounded-2xl px-5 py-4 text-brand-navy font-bold text-base outline-none transition-all shadow-inner"
+                />
+              </div>
+            </div>
+
             {/* Preview what's inside */}
             <div className="bg-brand-navy/5 rounded-2xl p-6 border-2 border-dashed border-brand-navy/10">
               <p className="font-bold text-brand-navy/60 text-sm uppercase tracking-wider mb-4 flex items-center gap-2">
@@ -260,9 +571,9 @@ export default function MonsterKit() {
               </p>
               <div className="grid grid-cols-3 gap-4 text-center">
                 {[
-                  { icon: '📜', label: 'Certificat Oficial', desc: 'Personalizat cu numele copilului' },
-                  { icon: '🧪', label: 'Rețeta Spray',       desc: 'Instrucțiuni + descântec magic' },
-                  { icon: '🏷️', label: 'Etichete Flacon',   desc: '3 variante de decupat' },
+                  { icon: '📜', label: 'Certificat Oficial', desc: 'Clauze adaptate fricii alese' },
+                  { icon: '🧪', label: 'Rețeta Spray',       desc: 'Pași adaptați camerei copilului' },
+                  { icon: '🏷️', label: 'Etichete Flacon',   desc: 'Instrucțiuni pentru ritualul ales' },
                 ].map(item => (
                   <div key={item.label} className="flex flex-col items-center gap-2">
                     <span className="text-3xl">{item.icon}</span>
@@ -278,7 +589,7 @@ export default function MonsterKit() {
               whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
               className="w-full bg-brand-navy text-brand-cream py-6 rounded-2xl font-black text-xl md:text-2xl shadow-2xl border-b-8 border-brand-gold disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-3 transition-all"
             >
-              <ShieldCheck size={28} /> Comandă Kitul PDF - 29.99 RON ✨
+              <ShieldCheck size={28} /> Generează kitul
             </motion.button>
           </form>
         </motion.div>
@@ -287,9 +598,9 @@ export default function MonsterKit() {
       {/* ════ HIDDEN PDF TEMPLATES ════ */}
       <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', top: 0, pointerEvents: 'none' }}>
         <style>{CERT_STYLES}</style>
-        <Page1Certificate name={name} monsterLabel={monsterLabel} content={aiKitData || MONSTER_KITS[monsterType]} />
-        <Page2Recipe content={aiKitData || MONSTER_KITS[monsterType]} />
-        <Page3Labels name={name} monsterLabel={monsterLabel} />
+        <Page1Certificate name={name} monsterTarget={monsterTarget} content={kitContent} />
+        <Page2Recipe content={kitContent} />
+        <Page3Labels name={name} bottleLabel={bottleLabel} content={kitContent} />
       </div>
 
       {/* Result modal */}
@@ -317,7 +628,7 @@ export default function MonsterKit() {
                 <p className="text-brand-navy/60 font-medium mb-2">
                   Certificatul lui <span className="text-brand-purple font-black">{name}</span> e gata de printat.
                 </p>
-                <p className="text-brand-navy/40 text-sm mb-8">3 pagini A4 · Format premium · Gata de înrămat</p>
+                <p className="text-brand-navy/40 text-sm mb-8">3 pagini A4 · Adaptat pentru {monsterLabel.toLocaleLowerCase('ro-RO')} · Gata de înrămat</p>
                 <div className="grid grid-cols-3 gap-3 mb-8 text-sm">
                   {['📜 Certificat', '🧪 Rețetă Spray', '🏷️ Etichete'].map(item => (
                     <div key={item} className="bg-brand-navy/5 rounded-2xl py-3 px-2 font-bold text-brand-navy/70">{item}</div>
@@ -325,8 +636,9 @@ export default function MonsterKit() {
                 </div>
                 <motion.button
                   onClick={handleDownload}
+                  disabled={isDownloading}
                   whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-                  className="w-full bg-brand-navy text-brand-cream py-5 rounded-2xl font-black text-lg border-b-8 border-brand-gold flex items-center justify-center gap-3 shadow-xl transition-all"
+                  className="w-full bg-brand-navy text-brand-cream py-5 rounded-2xl font-black text-lg border-b-8 border-brand-gold flex items-center justify-center gap-3 shadow-xl transition-all disabled:opacity-50"
                 >
                   <Download size={22} /> Descarcă PDF-ul Complet
                 </motion.button>
@@ -343,7 +655,7 @@ export default function MonsterKit() {
    PDF PAGE COMPONENTS
 ══════════════════════════════════════════════════ */
 
-function Page1Certificate({ name, monsterLabel, content }: { name: string; monsterLabel: string; content: MonsterKitContent }) {
+function Page1Certificate({ name, monsterTarget, content }: { name: string; monsterTarget: string; content: MonsterKitContent }) {
   const heroName = name.trim() || 'EROUL NOSTRU';
   return (
     <div id="mk-page-1" className="mk-page" style={{ display: 'none' }}>
@@ -355,32 +667,27 @@ function Page1Certificate({ name, monsterLabel, content }: { name: string; monst
       <div className="mk-content">
         <p className="mk-ministry">Ministerul Protecției Magice · Regatul Viselor Liniștite</p>
         <h1 className="mk-title">CERTIFICAT OFICIAL<br/>DE PROTECȚIE MAGICĂ</h1>
-        <p className="mk-subtitle">împotriva {monsterLabel} și a tuturor Ființelor Nedorite</p>
+        <p className="mk-subtitle">împotriva {monsterTarget} și a fricilor de noapte</p>
         <Divider stars={3} />
 
         <div className="mk-beneficiary-box">
-          <span className="mk-beneficiary-label">Se acordă micuțului / micuței erou / eroine</span>
+          <span className="mk-beneficiary-label">Se acordă copilului curajos</span>
           <div className="mk-beneficiary-name">{heroName}</div>
         </div>
 
         <p className="mk-body">
           Prin autoritatea conferită de <em>Ordinul Dragonului Somnoros</em> și cu binecuvântarea{' '}
           <em>Zânei Luminilor de Noapte</em>, <span dangerouslySetInnerHTML={{ __html: content.body }} />{' '}
-          <em>Prezentul certificat este valabil la nesfârșit.</em>
+          <em>Certificatul se activează prin citire, zâmbet și îmbrățișare.</em>
         </p>
 
         <Divider stars={1} />
 
         <p className="mk-clauses-title">Clauze Oficiale Antimonstru · Articole de Lege Magică</p>
         <div className="mk-clauses-grid">
-          {[
-            ['Art. I',   'Monștrilor cu picioare mirositoare le este strict interzis accesul sub pat, în dulap și în spatele ușii.'],
-            ['Art. II',  'Nicio umbră nu are dreptul să se miște, să crească sau să facă grimase fără permisiune scrisă.'],
-            ['Art. III', 'Zgomotele misterioase din noapte sunt obligate să se identifice; dacă nu o fac, devin pisici adormite.'],
-            ['Art. IV',  'Orice monstru care ignoră prezentul certificat va fi transformat în nori de vată roz și dus de vânt.'],
-          ].map(([art, text]) => (
-            <div key={art} className="mk-clause">
-              <span className="mk-clause-num">{art}</span>{text}
+          {content.clauses.map((clause) => (
+            <div key={clause.art} className="mk-clause">
+              <span className="mk-clause-num">{clause.art}</span>{clause.text}
             </div>
           ))}
         </div>
@@ -390,19 +697,19 @@ function Page1Certificate({ name, monsterLabel, content }: { name: string; monst
         <div className="mk-seal-row">
           <div className="mk-sig-block">
             <div className="mk-sig-line" />
-            <div className="mk-sig-name">Mag. Umberto din Tărâmul de Sus</div>
-            <div className="mk-sig-title">Comandantul Gardienilor de sub Pat</div>
+            <div className="mk-sig-name">{content.signatures[0].name}</div>
+            <div className="mk-sig-title">{content.signatures[0].title}</div>
           </div>
           <DragonSeal />
           <div className="mk-sig-block">
             <div className="mk-sig-line" />
-            <div className="mk-sig-name">Luminia din Crăpătura Stelelor</div>
-            <div className="mk-sig-title">Zâna Luminilor de Noapte</div>
+            <div className="mk-sig-name">{content.signatures[1].name}</div>
+            <div className="mk-sig-title">{content.signatures[1].title}</div>
           </div>
         </div>
 
         <Divider stars={1} narrow />
-        <p className="mk-validity">Valabil pe toată durata copilăriei · Se reînnoiește automat în fiecare noapte la miezul nopții</p>
+        <p className="mk-validity">Valabil pentru ritualuri de seară, sub supravegherea unui adult</p>
         <p className="mk-cert-number">Nr. #0001 · Seria SOMN-LINIȘTIT</p>
       </div>
     </div>
@@ -458,19 +765,18 @@ function Page2Recipe({ content }: { content: MonsterKitContent }) {
         <div className="mk-incantation-box" style={{ marginTop: '50px' }}>
           <p className="mk-incantation-label">Descântecul de Activare · Se rostește în șoaptă</p>
           <p className="mk-incantation-text">
-            „<span dangerouslySetInnerHTML={{ __html: content.spell }} />”
+            „{content.spell}”
           </p>
         </div>
 
         <Divider stars={1} narrow />
 
         <p className="mk-disclaimer">
-          ⚠️ Inofensiv pentru oameni, animale de companie și spiriduși prietenoși
-          &nbsp;·&nbsp; Eficacitate garantată 100% față de toți monștrii
+          ⚠️ Ritual de joacă pentru seară, pregătit de un adult cu ingrediente inofensive
         </p>
 
         <div className="mk-mini-seal-row">
-          {['Aprobat de\nDragonul Somnoros', 'Nr. Rețetă\nSPRAY-007', 'Zâna Luminilor\nde Noapte'].map((t, i) => (
+          {(content.miniSeals || ['Aprobat de\nDragonul Somnoros', 'Nr. Rețetă\nSPRAY-007', 'Zâna Luminilor\nde Noapte']).map((t, i) => (
             <React.Fragment key={t}>
               <div className="mk-mini-seal">{t.split('\n').map((l, j) => <span key={j}>{l}<br /></span>)}</div>
               {i < 2 && <span className="mk-mini-dot">✦</span>}
@@ -482,7 +788,7 @@ function Page2Recipe({ content }: { content: MonsterKitContent }) {
   );
 }
 
-function Page3Labels({ name, monsterLabel }: { name: string; monsterLabel: string }) {
+function Page3Labels({ name, bottleLabel, content }: { name: string; bottleLabel: string; content: MonsterKitContent }) {
   const safeName = name.trim() || 'EROUL';
   return (
     <div id="mk-page-3" className="mk-page mk-page-parchment" style={{ display: 'none' }}>
@@ -499,13 +805,13 @@ function Page3Labels({ name, monsterLabel }: { name: string; monsterLabel: strin
             <div className="mk-label-main">
               <p className="mk-label-ministry">MINISTERUL PROTECȚIEI MAGICE</p>
               <h2 className="mk-label-title">SPRAY MAGIC</h2>
-              <h3 className="mk-label-subtitle">ANTI-{monsterLabel.toUpperCase()}</h3>
+              <h3 className="mk-label-subtitle">ANTI-{bottleLabel}</h3>
               <div className="mk-label-divider" />
               <div className="mk-label-stars">✦ ✦ ✦ ✦ ✦</div>
               <div className="mk-label-divider" style={{ marginTop: 10 }} />
               <p className="mk-label-owner">Proprietar: <strong>{safeName}</strong></p>
               <p className="mk-label-formula">Formula Secretă Nr. SPRAY-007</p>
-              <p className="mk-label-ingredients">Praf de stele · Esență de curaj · Sclipici invizibil</p>
+              <p className="mk-label-ingredients">{content.labelIngredients}</p>
               <p className="mk-label-validity">VALABIL PÂNĂ LA: SFÂRȘITUL MONȘTRILOR</p>
             </div>
           </div>
@@ -525,13 +831,7 @@ function Page3Labels({ name, monsterLabel }: { name: string; monsterLabel: strin
           <div className="mk-label-cut-wrap" style={{ flex: 1 }}>
             <div className="mk-instr-label">
               <p className="mk-instr-title">INSTRUCȚIUNI</p>
-              {[
-                '1.  Agită flaconul de 7 ori',
-                '2.  Rostește descântecul magic',
-                '3.  Pulverizează de 3 ori sub pat',
-                '4.  Repetă la dulap și ușă',
-                '5.  Dormi liniștit/ă!  ✓',
-              ].map(line => <p key={line} className="mk-instr-line">{line}</p>)}
+              {content.instructionLines.map(line => <p key={line} className="mk-instr-line">{line}</p>)}
               <p className="mk-instr-footer">SPRAY-007 · SOMN LINIȘTIT</p>
             </div>
           </div>
@@ -604,21 +904,6 @@ function DragonSeal() {
         <p className="mk-dragon-seal-text">SIGILIUL<br/>DRAGONULUI<br/>SOMNOROS<br/>· AUTENTIC ·</p>
       </div>
     </div>
-  );
-}
-
-function DragonSealSmall() {
-  return (
-    <svg viewBox="0 0 80 80" width="44" height="44" fill="none" style={{ margin: '5px auto', display: 'block' }}>
-      <ellipse cx="40" cy="47" rx="12" ry="10" fill="#c9a84c" opacity="0.85"/>
-      <ellipse cx="40" cy="30" rx="9" ry="8" fill="#c9a84c" opacity="0.85"/>
-      <ellipse cx="47" cy="32" rx="5" ry="4" fill="#c9a84c" opacity="0.75"/>
-      <path d="M52 47 Q66 43 68 55 Q60 51 52 51" fill="#c9a84c" opacity="0.8"/>
-      <path d="M28 41 Q13 28 17 17 Q25 31 34 39" fill="#c9a84c" opacity="0.65"/>
-      <path d="M52 41 Q67 28 63 17 Q55 31 46 39" fill="#c9a84c" opacity="0.65"/>
-      <circle cx="45" cy="28" r="2.5" fill="#0e0f23"/>
-      <path d="M51 28 Q58 22 55 15 Q51 20 49 15 Q47 21 51 28Z" fill="#f4e4a0" opacity="0.8"/>
-    </svg>
   );
 }
 
@@ -709,12 +994,14 @@ const CERT_STYLES = `
   font-weight: 600; letter-spacing: 0.05em;
   border-bottom: 1px solid rgba(201,168,76,0.42);
   display: inline-block; min-width: 300px; padding-bottom: 6px;
+  max-width: 540px; overflow-wrap: anywhere;
 }
 
 /* ── Body text ── */
 .mk-body {
   font-size: 13.5px; line-height: 1.75; color: #d4c5e8;
   text-align: center; font-style: italic; margin: 11px 0;
+  overflow-wrap: anywhere;
 }
 .mk-body em { color: #f4e4a0; font-style: normal; font-weight: 500; }
 
@@ -732,6 +1019,7 @@ const CERT_STYLES = `
   border: 1px solid rgba(201,168,76,0.18);
   border-radius: 3px; padding: 11px 14px;
   font-size: 12px; color: #bfb3d4; line-height: 1.65; text-align: left;
+  overflow-wrap: anywhere;
 }
 .mk-clause-num {
   font-family: 'Cinzel', serif; color: #c9a84c;
@@ -804,8 +1092,8 @@ const CERT_STYLES = `
   color: rgba(201,168,76,0.18); line-height: 1; flex-shrink: 0;
   width: 24px; text-align: right; margin-top: 1px;
 }
-.mk-ing-name   { font-size: 13.5px; font-weight: 500; color: #f4e4a0; line-height: 1.3; }
-.mk-ing-detail { font-size: 11px; color: #9a8bc0; font-style: italic; margin-top: 3px; }
+.mk-ing-name   { font-size: 13.5px; font-weight: 500; color: #f4e4a0; line-height: 1.3; overflow-wrap: anywhere; }
+.mk-ing-detail { font-size: 11px; color: #9a8bc0; font-style: italic; margin-top: 3px; overflow-wrap: anywhere; }
 
 .mk-step { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 18px; }
 .mk-step-num {
@@ -816,8 +1104,8 @@ const CERT_STYLES = `
   text-align: center; line-height: 22px;
   margin-top: 1px;
 }
-.mk-step-l1 { font-size: 13px; color: #d4c5e8; line-height: 1.45; }
-.mk-step-l2 { font-size: 12px; color: #bfb3d4; font-style: italic; margin-top: 3px; }
+.mk-step-l1 { font-size: 13px; color: #d4c5e8; line-height: 1.45; overflow-wrap: anywhere; }
+.mk-step-l2 { font-size: 12px; color: #bfb3d4; font-style: italic; margin-top: 3px; overflow-wrap: anywhere; }
 
 .mk-incantation-box {
   background: rgba(201,168,76,0.06);
@@ -832,6 +1120,7 @@ const CERT_STYLES = `
 }
 .mk-incantation-text {
   font-size: 16px; font-style: italic; color: #d4c5e8; line-height: 1.75;
+  overflow-wrap: anywhere;
 }
 .mk-incantation-text strong { color: #f4e4a0; font-style: normal; }
 
@@ -858,21 +1147,21 @@ const CERT_STYLES = `
   display: inline-block;
 }
 .mk-label-main {
-  width: 440px;
+  width: 560px;
   background: linear-gradient(160deg, #0e0f23, #0d1535);
   border: 2px solid #c9a84c; border-radius: 12px;
-  padding: 20px 32px; text-align: center;
+  padding: 28px 40px; text-align: center;
 }
 .mk-label-ministry {
   font-family: 'Cinzel', serif; font-size: 7.5px; letter-spacing: 0.26em;
   color: #c9a84c; text-transform: uppercase; opacity: 0.78; margin-bottom: 10px;
 }
 .mk-label-title {
-  font-family: 'Cinzel', serif; font-size: 28px; font-weight: 700;
+  font-family: 'Cinzel', serif; font-size: 34px; font-weight: 700;
   color: #f4e4a0; letter-spacing: 0.05em; margin: 0 0 5px;
 }
 .mk-label-subtitle {
-  font-family: 'Cinzel', serif; font-size: 13px; color: #c9a84c;
+  font-family: 'Cinzel', serif; font-size: 15px; color: #c9a84c;
   letter-spacing: 0.12em; margin-bottom: 10px;
 }
 .mk-label-divider {
@@ -881,21 +1170,21 @@ const CERT_STYLES = `
   opacity: 0.45; margin: 8px 0;
 }
 .mk-label-stars   { color: #c9a84c; font-size: 14px; letter-spacing: 8px; margin: 6px 0; }
-.mk-label-owner   { font-family: 'Cinzel', serif; font-size: 10px; color: #d4c5e8; margin: 8px 0 3px; letter-spacing: 0.1em; }
+.mk-label-owner   { font-family: 'Cinzel', serif; font-size: 12px; color: #d4c5e8; margin: 10px 0 5px; letter-spacing: 0.1em; overflow-wrap: anywhere; }
 .mk-label-owner strong   { color: #f4e4a0; }
-.mk-label-formula        { font-size: 11px; color: #9a8bc0; font-style: italic; margin-bottom: 3px; }
-.mk-label-ingredients    { font-size: 10.5px; color: #bfb3d4; font-style: italic; margin-bottom: 5px; }
+.mk-label-formula        { font-size: 13px; color: #9a8bc0; font-style: italic; margin-bottom: 4px; }
+.mk-label-ingredients    { font-size: 12px; color: #bfb3d4; font-style: italic; margin-bottom: 7px; overflow-wrap: anywhere; }
 .mk-label-validity {
   font-family: 'Cinzel', serif; font-size: 7px;
   color: rgba(201,168,76,0.5); letter-spacing: 0.15em; text-transform: uppercase;
 }
 
 .mk-labels-bottom-row {
-  display: flex; gap: 24px; align-items: flex-start;
+  display: flex; gap: 28px; align-items: flex-start; justify-content: center;
 }
 
 .mk-seal-label {
-  width: 152px; height: 152px; border-radius: 50%;
+  width: 180px; height: 180px; border-radius: 50%;
   background: linear-gradient(160deg, #0e0f23, #0d1535);
   border: 2.5px solid #c9a84c;
   display: flex; align-items: center; justify-content: center;
@@ -910,7 +1199,8 @@ const CERT_STYLES = `
 .mk-instr-label {
   background: linear-gradient(160deg, #0e0f23, #0d1535);
   border: 2px solid #c9a84c; border-radius: 12px;
-  padding: 18px 24px; text-align: center;
+  width: 420px;
+  padding: 26px 32px; text-align: center;
   display: flex; flex-direction: column; justify-content: center;
 }
 .mk-instr-title {
@@ -918,7 +1208,7 @@ const CERT_STYLES = `
   color: #c9a84c; letter-spacing: 0.24em; text-transform: uppercase;
   opacity: 0.9; margin-bottom: 12px;
 }
-.mk-instr-line   { font-size: 12.5px; color: #d4c5e8; margin: 4px 0; }
+.mk-instr-line   { font-size: 15px; color: #d4c5e8; margin: 6px 0; overflow-wrap: anywhere; }
 .mk-instr-footer {
   font-family: 'Cinzel', serif; font-size: 7px;
   color: rgba(201,168,76,0.4); letter-spacing: 0.14em; margin-top: 10px;

@@ -1,42 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Povestea Mea Magică
+
+Demo Next.js pentru un produs digital în limba română: povești personalizate pentru copii, kituri anti-frică și truse rapide de activități pentru părinți.
+
+## Status
+
+- Modul curent: demo interactiv.
+- Plăți Stripe: intenționat amânate pentru o etapă ulterioară.
+- Livrare email/comenzi: neactivată încă.
+- Generare AI: Gemini pentru text, ElevenLabs pentru previzualizare audio.
 
 ## Getting Started
 
-First, run the development server:
+Instalează dependențele și pornește serverul local:
 
 ```bash
 npm install
 npm run dev
 ```
 
-Create a local env file before using the AI features:
+Configurează variabilele locale înainte de folosirea funcțiilor AI:
 
 ```bash
 cp .env.example .env.local
 ```
 
-Then fill in:
+Completează:
 
 - `GEMINI_API_KEY` for story, monster-kit, and emergency-kit generation.
 - `ELEVENLABS_API_KEY` for the voice preview API.
 
-Open [http://localhost:3010](http://localhost:3010) with your browser to see the result.
+Deschide [http://localhost:3010](http://localhost:3010).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run dev
+npm run lint
+npm run build
+```
 
-## Learn More
+## Production Checklist
 
-To learn more about Next.js, take a look at the following resources:
+- Add authenticated Stripe checkout and verified webhook fulfillment.
+- Add rate limiting and stricter validation around AI endpoints.
+- Add server-side order persistence and email delivery.
+- Add monitoring/error tracking.
+- Review legal copy after payments, analytics, and data retention are finalized.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Deploy
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The app is deployable on Vercel or any platform that supports Next.js App Router. Add the required environment variables before enabling AI features.

@@ -28,7 +28,7 @@ export default function MobileCTA() {
             href="#creator"
             className="block w-full bg-brand-purple text-brand-cream py-4 rounded-2xl font-black text-center shadow-[0_10px_30px_rgba(155,89,182,0.4)] border-b-4 border-brand-purple-light"
           >
-            Creează Povestea 🪄
+            Încearcă gratuit
           </a>
         </motion.div>
       )}

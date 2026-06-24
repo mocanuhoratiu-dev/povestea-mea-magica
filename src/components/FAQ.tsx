@@ -7,19 +7,19 @@ import { ChevronDown } from "lucide-react";
 const faqs = [
   {
     question: "Cât durează până primesc povestea?",
-    answer: "Procesarea este instantanee. Imediat ce plata este confirmată, sistemul nostru generează povestea și o trimite pe adresa de email introdusă.",
+    answer: "În demo, povestea se generează direct în browser în aproximativ câteva secunde, în funcție de disponibilitatea serviciilor AI.",
   },
   {
     question: "În ce format primesc fișierele?",
-    answer: "Vei primi un fișier PDF de înaltă calitate, optimizat pentru tablete, telefoane sau imprimare, și un fișier MP3 pentru varianta audio (dacă este selectată).",
+    answer: "Poți descărca un PDF generat local în browser. Previzualizarea audio este disponibilă separat pentru testarea vocii.",
   },
   {
-    question: "Pot schimba datele după ce am plătit?",
-    answer: "Deoarece generarea este automată și instantanee, te rugăm să verifici cu atenție datele înainte de plată. Dacă totuși apare o greșeală majoră, contactează-ne pe email.",
+    question: "Pot schimba datele după generare?",
+    answer: "Da. Modifici numele, vârsta, tema sau contextul și generezi din nou. Pentru lansarea comercială vom adăuga și un flux clar de comandă.",
   },
   {
-    question: "Este sigură plata cu cardul?",
-    answer: "Da, folosim Stripe, cel mai sigur procesator de plăți la nivel mondial. Nu stocăm datele cardului tău pe serverele noastre.",
+    question: "Pot folosi textele pentru copii mici?",
+    answer: "Da, prompturile sunt gândite pentru un ton blând, potrivit pentru copii. Totuși, recomandăm ca un adult să citească rezultatul înainte de folosire.",
   },
 ];
 

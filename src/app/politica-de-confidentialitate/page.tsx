@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Sparkles, ChevronLeft, ShieldCheck } from "lucide-react";
+import { ChevronLeft, ShieldCheck } from "lucide-react";
 
 export default function PrivacyPage() {
   return (
@@ -18,36 +18,36 @@ export default function PrivacyPage() {
           <div className="prose prose-brand max-w-none text-brand-navy/80 space-y-8 font-medium">
             <section>
               <h2 className="text-2xl font-black text-brand-navy mb-4">Protejăm Datele Micuților</h2>
-              <p>La Povestea Mea Magică, siguranța și confidențialitatea datelor tale și ale copilului tău sunt prioritatea noastră numărul unu. Nu vindem și nu partajăm datele tale cu terțe părți în scopuri de marketing.</p>
+              <p>La Povestea Mea Magică, siguranța și confidențialitatea datelor tale și ale copilului tău sunt prioritare. Site-ul rulează momentan ca demo, fără conturi de utilizator și fără plăți active.</p>
             </section>
 
             <section>
               <h2 className="text-2xl font-black text-brand-navy mb-4">Ce Date Colectăm?</h2>
               <ul className="list-disc pl-6 space-y-2">
-                <li><strong>Datele de personalizare:</strong> Numele și vârsta copilului (folosite exclusiv pentru a genera povestea).</li>
-                <li><strong>Datele de contact:</strong> Adresa ta de email (pentru livrarea poveștii și comunicări despre comandă).</li>
-                <li><strong>Datele de plată:</strong> Procesate direct de Stripe. Noi nu avem acces la datele cardului tău.</li>
+                <li><strong>Datele de personalizare:</strong> Numele, vârsta, tema, frica sau contextul introduse în formulare.</li>
+                <li><strong>Date tehnice:</strong> Informații standard necesare pentru funcționarea serviciilor web și AI.</li>
+                <li><strong>Date de plată:</strong> Nu colectăm date de plată în modul demo.</li>
               </ul>
             </section>
 
             <section>
               <h2 className="text-2xl font-black text-brand-navy mb-4">Cum Folosim Datele?</h2>
-              <p>Datele sunt folosite strict pentru a crea produsul comandat și pentru a-l livra pe email. Numele copilului rămâne stocat doar în baza de date securizată pentru a-ți permite să re-descarci povestea dacă ai nevoie.</p>
+              <p>Datele introduse sunt trimise către serviciile AI configurate pentru a genera conținutul solicitat. În demo, fișierele sunt create și descărcate din browser; nu există cont de client sau bibliotecă de comenzi.</p>
             </section>
 
             <section>
               <h2 className="text-2xl font-black text-brand-navy mb-4">Drepturile Tale (GDPR)</h2>
-              <p>Conform GDPR, ai dreptul de a solicita ștergerea datelor tale din sistemul nostru oricând. Trimite-ne un email la privacy@povesteamagica.ro și ne vom ocupa imediat.</p>
+              <p>Conform GDPR, ai dreptul să soliciți informații, corectare sau ștergere pentru datele care ar putea fi procesate de noi. Ne poți contacta la privacy@povesteamagica.ro.</p>
             </section>
 
             <section>
               <h2 className="text-2xl font-black text-brand-navy mb-4">Cookie-uri</h2>
-              <p>Folosim cookie-uri esențiale pentru a asigura buna funcționare a site-ului și a coșului de cumpărături. Nimic invaziv, doar magie tehnică!</p>
+              <p>În prezent, site-ul nu include un coș de cumpărături activ. Dacă vom adăuga analytics, plăți sau cookie-uri opționale, politica va fi actualizată înainte de lansare.</p>
             </section>
           </div>
 
           <div className="mt-16 pt-10 border-t border-brand-navy/5 text-center">
-            <p className="text-brand-navy/40 text-sm italic">Ultima actualizare: 2 Mai 2026</p>
+            <p className="text-brand-navy/40 text-sm italic">Ultima actualizare: 24 Iunie 2026</p>
           </div>
         </div>
       </div>

@@ -20,8 +20,8 @@ const steps = [
   },
   {
     icon: <Rocket className="w-10 h-10 text-white" />,
-    title: "Zboară la Lectură!",
-    description: "Primești instant PDF-ul și varianta Audio. E timpul pentru cea mai cool poveste!",
+    title: "Descarcă și testează",
+    description: "Generezi o previzualizare, o asculți în browser și descarci PDF-ul ca să vezi exact cum arată produsul.",
     color: "bg-brand-blue",
     shadow: "shadow-brand-blue/30",
   },
@@ -41,7 +41,7 @@ export default function HowItWorks() {
             whileInView={{ opacity: 1, scale: 1 }}
             className="inline-block px-6 py-2 rounded-full bg-brand-blue/10 text-brand-blue font-bold text-sm mb-4"
           >
-            Suntem super rapizi! ⚡
+            Previzualizare interactivă
           </motion.div>
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
@@ -49,7 +49,7 @@ export default function HowItWorks() {
             viewport={{ once: true }}
             className="font-nunito font-extrabold text-4xl md:text-5xl text-brand-navy"
           >
-            Cum creăm <span className="text-brand-pink">Magia</span>? ✨
+            Cum prinde formă <span className="text-brand-pink">magia</span>
           </motion.h2>
         </div>
 

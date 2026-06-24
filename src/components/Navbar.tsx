@@ -46,7 +46,7 @@ export default function Navbar() {
           href="#creator"
           className="bg-brand-navy text-white px-5 md:px-8 py-2.5 md:py-3 rounded-full font-black text-sm md:text-base hover:bg-brand-purple transition-all shadow-lg active:scale-95"
         >
-          Începe Acum
+          Încearcă gratuit
         </Link>
       </div>
     </motion.nav>

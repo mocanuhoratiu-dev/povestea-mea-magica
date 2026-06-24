@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Rocket, Trees, Castle, Sparkles, Star, ShieldCheck, Download } from "lucide-react";
+import { Castle, FileText, Image as ImageIcon, RefreshCw, Rocket, ShieldCheck, Sparkles, Star, Trees } from "lucide-react";
 import MagicalLoader from "./MagicalLoader";
 
 const STORY_PDF_STYLES = `
@@ -35,21 +35,26 @@ const STORY_PDF_STYLES = `
 }
 .story-pdf-content {
   position: relative; z-index: 10;
-  padding: 80px 100px; height: 100%;
+  padding: 52px 58px 56px; height: 100%;
   display: flex; flex-direction: column;
 }
 
 /* Cover Page */
 .story-cover-title {
-  font-family: 'Cinzel', serif; font-size: 38px; font-weight: 700;
-  color: #1a0a2e; text-align: center; margin-top: 40px; line-height: 1.2;
+  font-family: 'Cinzel', serif; font-size: 34px; font-weight: 700;
+  color: #1a0a2e; text-align: center; margin-top: 34px; line-height: 1.15;
+  max-width: 620px; margin-left: auto; margin-right: auto; overflow-wrap: anywhere;
 }
 .story-cover-subtitle {
-  font-family: 'Cinzel', serif; font-size: 14px; letter-spacing: 0.3em;
+  font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: 0.24em;
   color: #c9a84c; text-align: center; margin-top: 15px; text-transform: uppercase;
 }
+.story-cover-name {
+  font-family: 'Crimson Pro', serif; font-size: 22px; color: #4a2c5f;
+  text-align: center; margin: 18px 0 0;
+}
 .story-cover-img-wrap {
-  margin: 60px auto; width: 450px; height: 450px;
+  margin: 42px auto; width: 470px; height: 470px;
   border: 8px solid white; border-radius: 20px;
   box-shadow: 0 20px 40px rgba(0,0,0,0.1);
   overflow: hidden;
@@ -59,20 +64,64 @@ const STORY_PDF_STYLES = `
   font-family: 'Cinzel', serif; font-size: 10px; color: #c9a84c;
   letter-spacing: 0.2em; opacity: 0.7;
 }
+.story-dedication-kicker {
+  font-family: 'Cinzel', serif; font-size: 12px; letter-spacing: 0.22em;
+  color: #c9a84c; text-align: center; text-transform: uppercase; margin: 170px 0 28px;
+}
+.story-dedication-text {
+  font-size: 34px; line-height: 1.35; color: #1a0a2e; text-align: center;
+  max-width: 560px; margin: 0 auto;
+}
+.story-note-text {
+  font-size: 24px; line-height: 1.5; color: #4a2c5f; text-align: center;
+  max-width: 560px; margin: 42px auto 0;
+}
+.story-profile-title {
+  font-family: 'Cinzel', serif; font-size: 30px; color: #1a0a2e;
+  text-align: center; margin: 52px 0 34px;
+}
+.story-profile-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 18px;
+}
+.story-profile-item {
+  border: 1px solid rgba(201,168,76,0.45); background: rgba(255,255,255,0.24);
+  padding: 18px 20px; min-height: 94px;
+}
+.story-profile-label {
+  display: block; font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.16em;
+  color: #a87f2a; text-transform: uppercase; margin-bottom: 8px;
+}
+.story-profile-value {
+  font-size: 20px; line-height: 1.25; color: #2d3436;
+  overflow-wrap: anywhere;
+}
+.story-illustration-wrap {
+  margin: auto; width: 610px; height: 760px; border: 8px solid white;
+  border-radius: 22px; overflow: hidden; box-shadow: 0 18px 42px rgba(0,0,0,0.14);
+}
 
 /* Text Page */
 .story-text-body {
-  font-size: 19px; line-height: 1.8; color: #2d3436;
-  text-align: justify; white-space: pre-wrap;
+  font-size: 17.5px; line-height: 1.38; color: #2d3436;
+  text-align: left;
 }
-.story-drop-cap {
-  float: left; font-family: 'Cinzel', serif; font-size: 64px;
-  line-height: 52px; padding-top: 4px; padding-right: 8px; padding-left: 3px;
-  color: #c9a84c; font-weight: 700;
-  text-shadow: 1px 1px 0 rgba(0,0,0,0.05);
+.story-text-body--roomy {
+  font-size: 19px; line-height: 1.5;
+}
+.story-text-body--compact {
+  font-size: 16.6px; line-height: 1.34;
+}
+.story-paragraph {
+  margin: 0 0 9px;
+}
+.story-text-body--roomy .story-paragraph {
+  margin-bottom: 13px;
+}
+.story-paragraph:last-child {
+  margin-bottom: 0;
 }
 .story-text-page-num {
-  position: absolute; bottom: 50px; left: 0; right: 0;
+  position: absolute; bottom: 31px; left: 0; right: 0;
   text-align: center; font-family: 'Cinzel', serif; font-size: 10px;
   color: #c9a84c; opacity: 0.6;
 }
@@ -82,11 +131,42 @@ const STORY_PDF_STYLES = `
 `;
 
 function loadScript(src: string): Promise<void> {
-  return new Promise((resolve) => {
-    if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
-    const s = document.createElement('script');
-    s.src = src; s.onload = () => resolve();
-    document.head.appendChild(s);
+  return new Promise((resolve, reject) => {
+    const existing = document.querySelector<HTMLScriptElement>(`script[src="${src}"]`);
+
+    if (existing?.dataset.loaded === "true") {
+      resolve();
+      return;
+    }
+
+    if (existing?.dataset.loading === "true") {
+      existing.addEventListener("load", () => resolve(), { once: true });
+      existing.addEventListener("error", () => reject(new Error(`Nu am putut încărca ${src}.`)), { once: true });
+      return;
+    }
+
+    existing?.remove();
+
+    const script = document.createElement("script");
+    const timeout = window.setTimeout(() => {
+      script.remove();
+      reject(new Error(`Încărcarea a durat prea mult: ${src}.`));
+    }, 15000);
+
+    script.src = src;
+    script.dataset.loading = "true";
+    script.onload = () => {
+      window.clearTimeout(timeout);
+      script.dataset.loading = "false";
+      script.dataset.loaded = "true";
+      resolve();
+    };
+    script.onerror = () => {
+      window.clearTimeout(timeout);
+      script.remove();
+      reject(new Error(`Nu am putut încărca ${src}.`));
+    };
+    document.head.appendChild(script);
   });
 }
 
@@ -125,9 +205,16 @@ const lessons = [
   "Descoperirea naturii 🌱",
 ];
 
+const toneOptions = [
+  "Liniștită de somn",
+  "Aventură blândă",
+  "Amuzantă",
+  "Emoțională și caldă",
+];
+
 const packages = [
-  { id: "pdf", name: "Poveste Digitală PDF 📖", desc: "Primești povestea instant pe email", price: "19.99 RON" },
-  { id: "full", name: "Pachet Magic + Audio 🎧", desc: "PDF + Voce magică personalizată", price: "39.99 RON" }
+  { id: "pdf", name: "Poveste PDF", desc: "Generează și descarcă o previzualizare", price: "PDF" },
+  { id: "full", name: "Poveste + Audio", desc: "PDF + test de voce în browser", price: "Audio" }
 ];
 
 const backgroundStars = Array.from({ length: 20 }, (_, i) => ({
@@ -142,6 +229,11 @@ type PdfInstance = {
   addImage: (imageData: string, format: string, x: number, y: number, width: number, height: number) => void;
   addPage: () => void;
   save: (filename: string) => void;
+  setFont: (fontName: string, fontStyle?: string) => void;
+  setFontSize: (size: number) => void;
+  setTextColor: (r: number, g?: number, b?: number) => void;
+  splitTextToSize: (text: string, maxWidth: number) => string[];
+  text: (text: string | string[], x: number, y: number, options?: { lineHeightFactor?: number }) => void;
 };
 
 type PdfConstructor = new (orientation: "p", unit: "mm", format: "a4") => PdfInstance;
@@ -160,6 +252,158 @@ type WindowWithPdfLibraries = Window & typeof globalThis & {
   html2canvas: Html2Canvas;
 };
 
+type StoryApiData = {
+  title?: string;
+  text?: string;
+  imagePrompt?: string;
+  fallback?: boolean;
+  note?: string;
+};
+
+function buildStoryImageUrl(prompt: string, seedParts: string[]) {
+  const finalPrompt = [
+    prompt,
+    "single square cover illustration",
+    "premium watercolor and gouache children's book art",
+    "soft bedtime lighting",
+    "expressive child protagonist",
+    "no text, no letters, no watermark",
+  ].join(", ");
+  const seed = encodeURIComponent(seedParts.join("-").replace(/\s+/g, "-").slice(0, 80));
+
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(finalPrompt)}?nologo=true&width=1024&height=1024&seed=${seed}-cover-${Date.now()}`;
+}
+
+function getWordCount(text: string) {
+  return text.trim().split(/\s+/).filter(Boolean).length;
+}
+
+function getThemeLabel(themeId: string) {
+  return themes.find((theme) => theme.id === themeId)?.label || themeId;
+}
+
+function splitLongText(text: string, maxChars: number): string[] {
+  const sentences = text.match(/[^.!?]+[.!?]+["”]?|[^.!?]+$/g) || [text];
+  const chunks: string[] = [];
+  let current = "";
+
+  for (const sentence of sentences.map((s) => s.trim()).filter(Boolean)) {
+    const candidate = current ? `${current} ${sentence}` : sentence;
+    if (candidate.length <= maxChars) {
+      current = candidate;
+      continue;
+    }
+    if (current) chunks.push(current);
+    if (sentence.length <= maxChars) {
+      current = sentence;
+      continue;
+    }
+
+    const words = sentence.split(/\s+/);
+    let wordChunk = "";
+    for (const word of words) {
+      const wordCandidate = wordChunk ? `${wordChunk} ${word}` : word;
+      if (wordCandidate.length > maxChars && wordChunk) {
+        chunks.push(wordChunk);
+        wordChunk = word;
+      } else {
+        wordChunk = wordCandidate;
+      }
+    }
+    current = wordChunk;
+  }
+
+  if (current) chunks.push(current);
+  return chunks;
+}
+
+function pageTextLength(units: string[]) {
+  return units.reduce((total, unit, index) => total + unit.length + (index > 0 ? 2 : 0), 0);
+}
+
+function rebalanceShortFinalPage(pages: string[][], targetChars: number) {
+  const minFinalChars = Math.floor(targetChars * 0.78);
+
+  while (pages.length > 1) {
+    const lastPage = pages[pages.length - 1];
+    const previousPage = pages[pages.length - 2];
+    const lastLength = pageTextLength(lastPage);
+    const previousLength = pageTextLength(previousPage);
+
+    if (lastLength >= minFinalChars || previousPage.length < 2 || previousLength <= targetChars * 0.9) {
+      break;
+    }
+
+    lastPage.unshift(previousPage.pop() as string);
+  }
+}
+
+function paginateStory(text: string, maxChars = 3650): string[] {
+  const units = text
+    .replace(/\r\n/g, "\n")
+    .split(/\n{2,}/)
+    .map((paragraph) => paragraph.replace(/\s+/g, " ").trim())
+    .filter(Boolean)
+    .flatMap((paragraph) => (
+      paragraph.length > maxChars * 0.82
+        ? splitLongText(paragraph, Math.floor(maxChars * 0.64))
+        : [paragraph]
+    ));
+
+  if (!units.length) return [text];
+
+  const totalLength = pageTextLength(units);
+  const pageCount = Math.max(1, Math.ceil(totalLength / maxChars));
+  const targetChars = Math.ceil(totalLength / pageCount);
+  const pages: string[][] = [];
+  let current: string[] = [];
+
+  for (let index = 0; index < units.length; index += 1) {
+    const unit = units[index];
+    const remainingPages = pageCount - pages.length - 1;
+    const candidate = [...current, unit];
+    const candidateLength = pageTextLength(candidate);
+    const remainingLength = pageTextLength(units.slice(index + 1));
+    const restCanFit = remainingPages <= 0 || remainingLength <= remainingPages * maxChars;
+
+    if (current.length && candidateLength > maxChars) {
+      pages.push(current);
+      current = [unit];
+      continue;
+    }
+
+    if (current.length && candidateLength > targetChars && restCanFit) {
+      pages.push(current);
+      current = [unit];
+      continue;
+    }
+
+    current = candidate;
+  }
+
+  if (current.length) pages.push(current);
+  rebalanceShortFinalPage(pages, targetChars);
+
+  return pages.map((page) => page.join("\n\n"));
+}
+
+function storyTextDensityClass(chunk: string) {
+  if (chunk.length < 2500) return "story-text-body story-text-body--roomy";
+  if (chunk.length > 3500) return "story-text-body story-text-body--compact";
+  return "story-text-body";
+}
+
+function addSearchableTextLayer(pdf: PdfInstance, text: string, pageWidth: number) {
+  const cleanText = text.replace(/\s+/g, " ").trim();
+  if (!cleanText) return;
+
+  pdf.setFont("times", "normal");
+  pdf.setFontSize(6);
+  pdf.setTextColor(255, 255, 255);
+  const lines = pdf.splitTextToSize(cleanText, pageWidth - 20).slice(0, 80);
+  pdf.text(lines, 10, 10, { lineHeightFactor: 1.05 });
+}
+
 export default function StoryCreator() {
   const [name, setName] = useState("");
   const [age, setAge] = useState("1");
@@ -167,7 +411,14 @@ export default function StoryCreator() {
   const [lesson, setLesson] = useState(lessons[0]);
   const [packageType, setPackageType] = useState("full");
   const [isLoading, setIsLoading] = useState(false);
+  const [storyTitle, setStoryTitle] = useState("");
   const [storyText, setStoryText] = useState("");
+  const [storyDetails, setStoryDetails] = useState("");
+  const [themeDetail, setThemeDetail] = useState("");
+  const [lessonDetail, setLessonDetail] = useState("");
+  const [tone, setTone] = useState(toneOptions[0]);
+  const [imagePrompt, setImagePrompt] = useState("");
+  const [generationNote, setGenerationNote] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [showResult, setShowResult] = useState(false);
   const [isVoiceLoading, setIsVoiceLoading] = useState(false);
@@ -181,6 +432,23 @@ export default function StoryCreator() {
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
+  const refreshImage = (coverPrompt: string, title: string) => {
+    setImageUrl(buildStoryImageUrl(coverPrompt, [name, selectedTheme, title]));
+  };
+
+  const buildStoryRequest = () => ({
+    type: "story",
+    name,
+    age,
+    theme: selectedTheme,
+    lesson,
+    context: storyDetails,
+    tone,
+    themeDetail,
+    lessonDetail,
+    package: packageType,
+  });
+
   const handleCheckout = async () => {
     if (!name) return;
     setIsLoading(true);
@@ -188,32 +456,38 @@ export default function StoryCreator() {
       const response = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "story", name, age, theme: selectedTheme, lesson, package: packageType }),
+        body: JSON.stringify(buildStoryRequest()),
       });
 
       const result = await response.json();
       
       if (result.success) {
-        const text = result.data?.text || result.data?.choices?.[0]?.message?.content || "Magia a sosit!";
+        const data = (result.data || {}) as StoryApiData;
+        const title = data.title || `Povestea lui ${name.trim()}`;
+        const text = data.text || result.data?.choices?.[0]?.message?.content || "Magia a sosit!";
+        const coverPrompt = data.imagePrompt || `${title}. ${text.slice(0, 700)}`;
         
-        // Sanitize for URL
-        const simpleName = name.replace(/[^a-zA-Z0-9]/g, '') || "Hero";
-        const simpleTheme = selectedTheme.replace(/[^a-zA-Z0-9]/g, '') || "Magic";
-        const artisticPrompt = `magical children book illustration, ${simpleTheme} theme, character ${simpleName}, vibrant colors, 8k`;
-        const img = `https://image.pollinations.ai/prompt/${encodeURIComponent(artisticPrompt)}?nologo=true&width=800&height=800&seed=${Date.now()}`;
-        
+        setStoryTitle(title);
         setStoryText(text);
-        setImageUrl(img);
+        setImagePrompt(coverPrompt);
+        setGenerationNote(data.fallback ? data.note || "Am folosit varianta stabilă. Poți edita povestea înainte de PDF." : "");
+        refreshImage(coverPrompt, title);
         setShowResult(true);
       } else {
         throw new Error(result.error || "Eroare API");
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Ceva n-a mers bine. Încearcă din nou.";
-      alert(`⚠️ ${message}`);
+      alert(message);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleRegenerateImages = () => {
+    if (!storyText || !storyTitle) return;
+    const fallbackPrompt = imagePrompt || `${storyTitle}. ${storyText.slice(0, 700)}`;
+    refreshImage(fallbackPrompt, storyTitle);
   };
 
   const handleTestVoice = async () => {
@@ -266,44 +540,64 @@ export default function StoryCreator() {
 
     const downloadPDF = async () => {
       setIsLoading(true);
-      await Promise.all([
-        loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'),
-        loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'),
-      ]);
+      try {
+        await Promise.all([
+          loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'),
+          loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'),
+        ]);
 
-      const { jsPDF } = (window as WindowWithPdfLibraries).jspdf;
-      const html2canvas = (window as WindowWithPdfLibraries).html2canvas;
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const W = pdf.internal.pageSize.getWidth();
-      const H = pdf.internal.pageSize.getHeight();
+        const { jsPDF } = (window as WindowWithPdfLibraries).jspdf;
+        const html2canvas = (window as WindowWithPdfLibraries).html2canvas;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const W = pdf.internal.pageSize.getWidth();
+        const H = pdf.internal.pageSize.getHeight();
 
-      // Get all story pages
-      const pages = document.querySelectorAll('[id^="story-page-"]');
-      
-      for (let i = 0; i < pages.length; i++) {
-        const el = pages[i] as HTMLElement;
-        el.style.display = 'block';
+        const pages = document.querySelectorAll('[id^="story-page-"]');
         
-        const canvas = await html2canvas(el, {
-          scale: 2.5,
-          useCORS: true,
-          logging: false,
-          windowWidth: 794,
-          windowHeight: 1123
-        });
-        
-        pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, W, H);
-        el.style.display = 'none';
-        
-        if (i < pages.length - 1) pdf.addPage();
+        for (let i = 0; i < pages.length; i++) {
+          const el = pages[i] as HTMLElement;
+          el.style.display = 'block';
+          
+          try {
+            const canvas = await html2canvas(el, {
+              scale: 2.5,
+              useCORS: true,
+              logging: false,
+              windowWidth: 794,
+              windowHeight: 1123
+            });
+            
+            addSearchableTextLayer(pdf, el.innerText, W);
+            pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, W, H);
+          } finally {
+            el.style.display = 'none';
+          }
+          
+          if (i < pages.length - 1) pdf.addPage();
+        }
+
+        pdf.save(`Povestea_lui_${name.trim() || "Erou"}.pdf`);
+      } catch (error) {
+        console.error(error);
+        alert(error instanceof Error ? error.message : "Nu am putut genera PDF-ul.");
+      } finally {
+        setIsLoading(false);
       }
-
-      pdf.save(`Povestea_lui_${name.trim() || "Erou"}.pdf`);
-      setIsLoading(false);
     };
 
-    // Helper to split text into pages (approximate)
-    const storyChunks = storyText.match(/[\s\S]{1,1600}/g) || [storyText];
+    const storyChunks = paginateStory(storyText);
+    const selectedThemeLabel = getThemeLabel(selectedTheme);
+    const wordCount = getWordCount(storyText);
+    const profileItems = [
+      ["Vârstă", `${age} ani`],
+      ["Lumea", themeDetail || selectedThemeLabel],
+      ["Lecția", lessonDetail || lesson],
+      ["Ton", tone],
+      ["Detalii copil", storyDetails],
+    ].filter(([, value]) => Boolean(value));
+    const pdfPageCount = storyText
+      ? 3 + storyChunks.length
+      : 0;
 
     return (
       <section id="creator" className="py-20 md:py-32 magic-gradient relative overflow-hidden px-4">
@@ -321,37 +615,65 @@ export default function StoryCreator() {
           {(['tl','tr','bl','br'] as const).map(pos => <CornerSVG key={pos} pos={pos} />)}
           <div className="story-pdf-content" style={{ justifyContent: 'center' }}>
             <p className="story-cover-subtitle">O Aventură Magică Creată Pentru</p>
-            <h1 className="story-cover-title">{name.toUpperCase() || "EROUL NOSTRU"}</h1>
+            <h1 className="story-cover-title">{(storyTitle || `Povestea lui ${name}`).toUpperCase()}</h1>
+            <p className="story-cover-name">Creată pentru {name || "micul erou"}</p>
             <div className="story-cover-img-wrap">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               {imageUrl && <img src={imageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
             </div>
-            <p className="story-cover-footer">Povestea Mea Magică · Ediție de Colecție</p>
+            <p className="story-cover-footer">Povestea Mea Magică · Previzualizare</p>
           </div>
         </div>
 
-        {/* Story Pages */}
-        {storyChunks.map((chunk, idx) => {
-          const isFirstPage = idx === 0;
-          const firstChar = chunk.charAt(0);
-          const restOfChunk = chunk.slice(1);
-          return (
-            <div key={idx} id={`story-page-${idx + 1}`} className="story-pdf-page" style={{ display: 'none' }}>
-              <div className="story-pdf-bg" />
-              <div className="story-pdf-border" />
-              {(['tl','tr','bl','br'] as const).map(pos => <CornerSVG key={pos} pos={pos} />)}
-              <div className="story-pdf-content">
-                <div className="story-text-body">
-                  {isFirstPage ? (
-                    <><span className="story-drop-cap">{firstChar}</span>{restOfChunk}</>
-                  ) : (
-                    chunk
-                  )}
-                </div>
-                <div className="story-text-page-num">Pagina {idx + 1}</div>
+        {storyText && (
+          <div id="story-page-dedication" className="story-pdf-page" style={{ display: 'none' }}>
+            <div className="story-pdf-bg" />
+            <div className="story-pdf-border" />
+            <div className="story-pdf-inner-border" />
+            {(['tl','tr','bl','br'] as const).map(pos => <CornerSVG key={pos} pos={pos} />)}
+            <div className="story-pdf-content">
+              <p className="story-dedication-kicker">Dedicație</p>
+              <p className="story-dedication-text">Pentru {name || "micul erou"}, cu toată magia unei seri liniștite.</p>
+            </div>
+          </div>
+        )}
+
+        {storyText && (
+          <div id="story-page-profile" className="story-pdf-page" style={{ display: 'none' }}>
+            <div className="story-pdf-bg" />
+            <div className="story-pdf-border" />
+            <div className="story-pdf-inner-border" />
+            {(['tl','tr','bl','br'] as const).map(pos => <CornerSVG key={pos} pos={pos} />)}
+            <div className="story-pdf-content">
+              <h2 className="story-profile-title">Creată special pentru {name || "micul erou"}</h2>
+              <div className="story-profile-grid">
+                {profileItems.slice(0, 8).map(([label, value]) => (
+                  <div key={label} className="story-profile-item">
+                    <span className="story-profile-label">{label}</span>
+                    <span className="story-profile-value">{value}</span>
+                  </div>
+                ))}
               </div>
             </div>
-          );
-        })}
+          </div>
+        )}
+
+        {/* Story Pages */}
+        {storyChunks.map((chunk, idx) => (
+          <div key={idx} id={`story-page-${idx + 1}`} className="story-pdf-page" style={{ display: 'none' }}>
+            <div className="story-pdf-bg" />
+            <div className="story-pdf-border" />
+            {(['tl','tr','bl','br'] as const).map(pos => <CornerSVG key={pos} pos={pos} />)}
+            <div className="story-pdf-content">
+              <div className={storyTextDensityClass(chunk)}>
+                {chunk.split(/\n{2,}/).map((paragraph, paragraphIndex) => (
+                  <p key={paragraphIndex} className="story-paragraph">{paragraph}</p>
+                ))}
+              </div>
+              <div className="story-text-page-num">Pagina {idx + 1}</div>
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Result Modal */}
@@ -380,7 +702,26 @@ export default function StoryCreator() {
               <div className="flex-1 overflow-y-auto p-6 md:p-12 custom-scrollbar" id="story-content">
                 <div className="text-center mb-8 pt-4">
                   <Sparkles className="text-brand-purple w-10 h-10 mx-auto mb-4 animate-pulse" />
-                  <h3 className="font-nunito font-black text-2xl md:text-3xl text-brand-navy px-4">Povestea lui {name} ✨</h3>
+                  <h3 className="font-nunito font-black text-2xl md:text-3xl text-brand-navy px-4">{storyTitle || `Povestea lui ${name}`} ✨</h3>
+                  <div className="mt-5 grid grid-cols-3 gap-3 text-center">
+                    <div className="rounded-2xl bg-white/70 p-3 border border-brand-purple/10">
+                      <p className="text-xs font-black uppercase tracking-wider text-brand-navy/45">Cuvinte</p>
+                      <p className="font-black text-brand-purple text-lg">{wordCount}</p>
+                    </div>
+                    <div className="rounded-2xl bg-white/70 p-3 border border-brand-purple/10">
+                      <p className="text-xs font-black uppercase tracking-wider text-brand-navy/45">Pagini PDF</p>
+                      <p className="font-black text-brand-purple text-lg">{pdfPageCount}</p>
+                    </div>
+                    <div className="rounded-2xl bg-white/70 p-3 border border-brand-purple/10">
+                      <p className="text-xs font-black uppercase tracking-wider text-brand-navy/45">Ilustrații</p>
+                      <p className="font-black text-brand-purple text-lg">1</p>
+                    </div>
+                  </div>
+                  {generationNote && (
+                    <p className="mt-4 rounded-2xl bg-brand-gold/15 border border-brand-gold/30 px-4 py-3 text-sm font-bold text-brand-navy/70">
+                      {generationNote}
+                    </p>
+                  )}
                 </div>
   
                 {imageUrl && (
@@ -392,10 +733,11 @@ export default function StoryCreator() {
                       className="rounded-[1.5rem] md:rounded-[2rem] overflow-hidden shadow-2xl border-4 border-white bg-brand-navy/5 aspect-square relative"
                     >
                       <div className="absolute inset-0 bg-gradient-to-r from-brand-navy/5 via-brand-purple/10 to-brand-navy/5 animate-pulse z-0" />
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img 
                         key={imageUrl}
                         src={imageUrl} 
-                        alt="Ilustrație Magică" 
+                        alt={storyTitle || "Ilustrație Magică"} 
                         referrerPolicy="no-referrer"
                         className="w-full h-full object-cover block relative z-10 transition-opacity duration-500"
                         onLoad={(e) => (e.currentTarget.style.opacity = "1")}
@@ -404,10 +746,32 @@ export default function StoryCreator() {
                     </motion.div>
                   </div>
                 )}
-  
-                <div className="prose prose-brand max-w-none text-brand-navy/80 font-medium whitespace-pre-wrap leading-relaxed text-base md:text-lg pb-10">
-                  {storyText}
+
+                <div className="grid grid-cols-2 gap-3 mb-8">
+                  <button
+                    onClick={handleCheckout}
+                    disabled={isLoading}
+                    className="flex items-center justify-center gap-2 bg-white text-brand-purple border-2 border-brand-purple/20 py-3 rounded-xl font-black text-sm shadow-sm hover:bg-brand-cream transition-all disabled:opacity-50"
+                  >
+                    <RefreshCw className="w-4 h-4" /> Regenerează povestea
+                  </button>
+                  <button
+                    onClick={handleRegenerateImages}
+                    disabled={!storyText}
+                    className="flex items-center justify-center gap-2 bg-white text-brand-purple border-2 border-brand-purple/20 py-3 rounded-xl font-black text-sm shadow-sm hover:bg-brand-cream transition-all disabled:opacity-50"
+                  >
+                    <ImageIcon className="w-4 h-4" /> Regenerează coperta
+                  </button>
                 </div>
+  
+                <div className="mb-4 flex items-center gap-2 text-brand-navy/70 font-black uppercase tracking-wider text-xs">
+                  <FileText className="w-4 h-4" /> Editează textul înainte de PDF
+                </div>
+                <textarea
+                  value={storyText}
+                  onChange={(event) => setStoryText(event.target.value)}
+                  className="w-full min-h-[420px] rounded-2xl bg-white/75 border-2 border-brand-purple/10 focus:border-brand-purple outline-none p-5 text-brand-navy/85 font-medium leading-relaxed text-base md:text-lg resize-y shadow-inner"
+                />
               </div>
   
               <div className="p-6 md:p-8 bg-white/50 border-t border-brand-navy/5 backdrop-blur-sm grid grid-cols-2 gap-4">
@@ -473,7 +837,7 @@ export default function StoryCreator() {
             </h2>
           </motion.div>
           <p className="mt-4 text-brand-cream/90 text-lg md:text-xl font-medium">
-            Creează o lume magică pentru puiul tău
+            Testează o poveste personalizată înainte să activăm comenzile plătite
           </p>
         </div>
 
@@ -527,6 +891,19 @@ export default function StoryCreator() {
 
               <div>
                 <label className="block text-sm md:text-base font-black text-brand-navy mb-2 md:mb-3 uppercase tracking-wider">
+                  Detalii despre lume
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ex: o rachetă roz, o pădure cu licurici, un castel din nori..."
+                  value={themeDetail}
+                  onChange={(e) => setThemeDetail(e.target.value)}
+                  className="w-full px-6 py-4 rounded-2xl bg-brand-cream/30 border-4 border-transparent focus:border-brand-purple outline-none transition-all text-brand-navy font-bold text-base md:text-lg shadow-inner"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm md:text-base font-black text-brand-navy mb-2 md:mb-3 uppercase tracking-wider">
                   Ce învățăm astăzi? 💡
                 </label>
                 <select
@@ -537,12 +914,60 @@ export default function StoryCreator() {
                   {lessons.map((l) => <option key={l} value={l}>{l}</option>)}
                 </select>
               </div>
+
+              <div>
+                <label className="block text-sm md:text-base font-black text-brand-navy mb-2 md:mb-3 uppercase tracking-wider">
+                  Cum să apară lecția
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ex: să prindă curaj fără să fie împinsă, să împartă când simte că e pregătită..."
+                  value={lessonDetail}
+                  onChange={(e) => setLessonDetail(e.target.value)}
+                  className="w-full px-6 py-4 rounded-2xl bg-brand-cream/30 border-4 border-transparent focus:border-brand-purple outline-none transition-all text-brand-navy font-bold text-base md:text-lg shadow-inner"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm md:text-base font-black text-brand-navy mb-2 md:mb-3 uppercase tracking-wider">
+                  Tonul poveștii
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  {toneOptions.map((option) => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => setTone(option)}
+                      className={`px-4 py-3 rounded-2xl border-4 text-left font-black text-sm transition-all ${
+                        tone === option
+                          ? "border-brand-purple bg-white text-brand-purple shadow-md"
+                          : "border-transparent bg-brand-cream/30 text-brand-navy/65"
+                      }`}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm md:text-base font-black text-brand-navy mb-2 md:mb-3 uppercase tracking-wider">
+                  Detalii despre copil
+                </label>
+                <textarea
+                  placeholder="Opțional: iubește trenurile, are o pisică pe nume Mimi, e curioasă, adoarme greu seara..."
+                  value={storyDetails}
+                  onChange={(e) => setStoryDetails(e.target.value)}
+                  rows={4}
+                  className="w-full px-6 py-4 rounded-2xl bg-brand-cream/30 border-4 border-transparent focus:border-brand-purple outline-none transition-all text-brand-navy font-bold text-base md:text-lg shadow-inner resize-none"
+                />
+              </div>
             </div>
 
             <div className="flex flex-col justify-between space-y-8">
               <div className="bg-brand-cream/30 p-6 md:p-8 rounded-[2rem] border-2 border-dashed border-brand-purple/20">
                 <h4 className="font-black text-brand-navy text-lg mb-6 flex items-center gap-2">
-                  <ShieldCheck className="text-brand-purple" /> Alege Pachetul
+                  <ShieldCheck className="text-brand-purple" /> Alege previzualizarea
                 </h4>
                 <div className="space-y-4">
                   {packages.map((pkg) => (
@@ -559,6 +984,7 @@ export default function StoryCreator() {
                         <span className="font-bold text-brand-navy text-sm md:text-base">{pkg.name}</span>
                         <span className="font-black text-brand-purple">{pkg.price}</span>
                       </div>
+                      <p className="mt-2 text-sm text-brand-navy/50 font-bold">{pkg.desc}</p>
                     </button>
                   ))}
                 </div>
@@ -570,7 +996,7 @@ export default function StoryCreator() {
                   disabled={!name}
                   className="w-full bg-brand-purple text-white py-5 md:py-6 rounded-2xl md:rounded-[2.5rem] font-black text-xl md:text-2xl shadow-2xl hover:bg-brand-navy transition-all flex items-center justify-center gap-4 disabled:opacity-30 disabled:cursor-not-allowed group"
                 >
-                  Creează Povestea <Sparkles className="group-hover:rotate-12 transition-transform" />
+                  Generează previzualizarea <Sparkles className="group-hover:rotate-12 transition-transform" />
                 </button>
 
                 <button

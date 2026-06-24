@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Quicksand, Nunito } from "next/font/google";
 import "./globals.css";
+import SmoothScroll from "@/components/SmoothScroll";
+import MobileCTA from "@/components/MobileCTA";
+import Navbar from "@/components/Navbar";
 
 const quicksand = Quicksand({
   variable: "--font-quicksand",
@@ -13,14 +16,9 @@ const nunito = Nunito({
 });
 
 export const metadata: Metadata = {
-  title: "Povestea Mea Magică | Creează Aventuri Personalizate ✨",
-  description: "Transformă-ți copilul în eroul propriei povești! Povești și audio-book-uri personalizate cu ajutorul AI, livrate instant.",
+  title: "Povestea Mea Magică | Povești personalizate pentru copii",
+  description: "Creează povești, kituri anti-frică și activități de urgență personalizate pentru copilul tău, în română, cu ajutorul AI.",
 };
-
-import SmoothScroll from "@/components/SmoothScroll";
-import MobileCTA from "@/components/MobileCTA";
-
-import Navbar from "@/components/Navbar";
 
 export default function RootLayout({
   children,
@@ -32,6 +30,7 @@ export default function RootLayout({
       <body className="antialiased font-quicksand bg-brand-cream">
         <Navbar />
         <SmoothScroll>{children}</SmoothScroll>
+        <MobileCTA />
       </body>
     </html>
   );
