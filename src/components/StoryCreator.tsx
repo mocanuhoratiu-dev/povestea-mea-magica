@@ -258,6 +258,7 @@ type StoryApiData = {
   imagePrompt?: string;
   fallback?: boolean;
   note?: string;
+  model?: string;
 };
 
 function buildStoryImageUrl(prompt: string, seedParts: string[]) {
@@ -470,7 +471,11 @@ export default function StoryCreator() {
         setStoryTitle(title);
         setStoryText(text);
         setImagePrompt(coverPrompt);
-        setGenerationNote(data.fallback ? data.note || "Am folosit varianta stabilă. Poți edita povestea înainte de PDF." : "");
+        setGenerationNote(
+          data.fallback
+            ? data.note || "Am folosit varianta stabilă. Poți edita povestea înainte de PDF."
+            : data.model ? `Generată cu AI (${data.model}).` : ""
+        );
         refreshImage(coverPrompt, title);
         setShowResult(true);
       } else {

@@ -26,7 +26,13 @@ type GeminiResponse = {
   };
 };
 
-type GeminiTextResult = { text: string; error?: never } | { text?: never; error: string };
+type GeminiTextResult = { text: string; model: string; error?: never } | { text?: never; model?: never; error: string };
+
+type StoryPromptConfig = {
+  prompt: string;
+  wordTarget: string;
+  maxOutputTokens: number;
+};
 
 function stripHtml(value: unknown): string {
   return String(value ?? "")
@@ -62,6 +68,27 @@ function normalizeRomanianText(value: string): string {
     .replace(/\bmancarea\b/g, "mâncarea");
 }
 
+function removeDecorativeEmoji(value: string): string {
+  return value
+    .replace(/[\uFE0E\uFE0F]/g, "")
+    .replace(/\p{Extended_Pictographic}/gu, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function removeLeadingChildReference(value: string, name: string): string {
+  const escapedName = escapeRegExp(name);
+  return value
+    .replace(new RegExp(`^${escapedName}\\s+(iubește|adora|îi plac|ii plac|are|vrea|prinde|învață|invata)\\s+`, "i"), "")
+    .replace(new RegExp(`^${escapedName}\\s+`, "i"), "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function sanitizeStoryText(value: unknown): string {
   return normalizeRomanianText(
     String(value ?? "")
@@ -92,33 +119,128 @@ function sanitizeStoryPayload(value: unknown, fallbackName: string, themeLabel: 
   return { title, text, imagePrompt };
 }
 
+function parseJsonObject(text: string): unknown {
+  const trimmed = text
+    .trim()
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```$/i, "")
+    .trim();
+
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    const firstBrace = trimmed.indexOf("{");
+    const lastBrace = trimmed.lastIndexOf("}");
+    if (firstBrace === -1 || lastBrace === -1 || lastBrace <= firstBrace) {
+      throw new Error("Nu am găsit un obiect JSON în răspunsul AI.");
+    }
+    return JSON.parse(trimmed.slice(firstBrace, lastBrace + 1));
+  }
+}
+
 function buildStableStoryPayload(data: GenerateRequest, themeLabel: string) {
   const name = stripHtml(data.name) || "Eroul";
   const age = stripHtml(data.age) || "4";
-  const lesson = stripHtml(data.lesson) || "curaj și încredere";
-  const tone = stripHtml(data.tone) || "Liniștită de somn";
+  const lesson = removeDecorativeEmoji(stripHtml(data.lesson)) || "curaj și încredere";
   const worldDetail = stripHtml(data.themeDetail) || `o lume ${themeLabel.toLocaleLowerCase("ro-RO")} plină de lumină blândă`;
   const lessonDetail = stripHtml(data.lessonDetail) || "lecția apare printr-o alegere mică, făcută cu răbdare";
-  const childDetails = stripHtml(data.context) || "curiozitatea și imaginația copilului";
-  const title = `${name} și Scânteia Curajului`;
+  const childDetails = removeLeadingChildReference(stripHtml(data.context), name);
+  const cleanLessonDetail = removeLeadingChildReference(lessonDetail, name);
+  const personalToken = childDetails
+    ? `Pe marginea potecii au apărut semne care păreau alese special pentru ${name}: ${childDetails}.`
+    : `Pe marginea potecii au apărut semne mici, ca niște indicii pregătite anume pentru ${name}.`;
+  const lessonChoice = data.lessonDetail
+    ? `${name} și-a amintit ce avea de încercat: ${cleanLessonDetail}.`
+    : `${name} a înțeles că ${lesson.toLocaleLowerCase("ro-RO")} începe cu un pas mic și sincer.`;
+  const title = `${name} și Lumina din ${themeLabel}`;
 
   const text = [
-    `Într-o seară liniștită, ${name}, care avea ${age} ani, a descoperit lângă pernă o scânteie mică, rotundă și caldă. Nu era o stea obișnuită, ci o invitație către ${worldDetail}. Scânteia a clipit de trei ori, ca și cum ar fi spus: „Vino, avem nevoie de tine.” Povestea avea tonul ales de părinte: ${tone.toLocaleLowerCase("ro-RO")}. ${name} a zâmbit, și-a luat curajul în buzunar și a pășit încet în aventura care tocmai începea.`,
-    `Lumea din jur era construită din lucruri cunoscute și lucruri nemaivăzute. Totul părea pregătit special pentru ${name}: poteci care se aprindeau când erau atinse, sunete moi ca o poveste spusă în șoaptă și mici semne care aminteau de ${childDetails}. În depărtare, o poartă aurie se închisese, iar dincolo de ea rămăsese blocată Lumina de Seară, cea care ajuta toate visele bune să ajungă la copii.`,
-    `Paznicul porții, un spiriduș cu pălărie prea mare, i-a explicat că poarta nu putea fi deschisă cu forță. Se deschidea doar când cineva învăța ${lesson.toLocaleLowerCase("ro-RO")} fără grabă și fără teamă. ${name} a ascultat atent. Nu părea o misiune cu săbii sau tunete, ci una cu inimă, răbdare și pași mici. Iar asta o făcea cu adevărat importantă.`,
-    `Mai întâi, ${name} a întâlnit un pod subțire făcut din nori. Podul tremura ușor și părea să spună că nu este sigur pe el. ${name} a respirat adânc și a făcut primul pas. Apoi încă unul. Cu fiecare pas, podul devenea mai luminos. Așa a înțeles că uneori curajul nu înseamnă să nu simți emoții, ci să mergi mai departe cu blândețe, exact în ritmul tău.`,
-    `La mijlocul drumului, scânteia s-a oprit lângă o cutie mică. Înăuntru era o cheie, dar cheia avea nevoie de o promisiune. ${name} s-a gândit la lecția zilei: ${lessonDetail}. A promis să încerce, să ceară ajutor când are nevoie și să țină minte că fiecare pas mic contează. Atunci cheia s-a încălzit în palmă și a început să cânte încetișor.`,
-    `Când ${name} s-a întors la poarta aurie, spiridușul a făcut o reverență. Cheia a intrat singură în broască, iar Lumina de Seară a ieșit ca o pătură caldă peste întreaga lume. Totul s-a liniștit. Potecile au clipit, norii s-au așezat, iar scânteia mică s-a lipit de pieptul lui ${name}, acolo unde curajul se simțea ca o lumină prietenoasă.`,
-    `Înainte să adoarmă, ${name} a auzit șoapta Luminii de Seară: „Ai reușit pentru că ai fost tu.” Camera era din nou camera cunoscută, dar povestea rămăsese acolo, invizibilă și caldă. Iar când pleoapele s-au închis, ${name} a știut că mâine va putea încerca din nou, cu aceeași scânteie mică și magică în inimă.`,
+    `În seara aceea, ${name}, care avea ${age} ani, a găsit pe pernă o luminiță cât un nasture. Nu pâlpâia ca o lampă și nici nu stătea locului ca o stea. Se mișca încet, ca și cum ar fi vrut să arate drumul către ${worldDetail}. Când ${name} a atins-o cu vârful degetului, camera s-a umplut de o lumină caldă, iar podeaua s-a transformat într-o potecă nouă.`,
+    `${name} a pășit cu grijă. Lumea de dincolo mirosea a seară bună și a aventură blândă. ${personalToken} În depărtare, o lumină mare, rotundă, tremura prinsă într-un felinar închis. Fără ea, visele bune nu mai știau drumul spre copii.`,
+    `Lângă felinar stătea un paznic mic, cu o cheie prea grea pentru buzunarul lui. „Felinarul se deschide doar când cineva învață ${lesson.toLocaleLowerCase("ro-RO")} printr-o faptă adevărată”, a spus el. ${name} s-a uitat la cheie. Nu părea o misiune de forță, ci una în care trebuia să asculți ce simți și să alegi cu grijă.`,
+    `Drumul până la felinar trecea peste un pod subțire. Podul scârțâia ușor și se legăna ca o panglică în vânt. ${name} a simțit un nod mic în burtică. În loc să fugă, s-a oprit, a respirat încet și a spus cu voce joasă: „Am emoții, dar pot încerca pas cu pas.” Atunci prima scândură s-a aprins sub tălpi.`,
+    `La mijlocul podului, luminița de pe pernă s-a schimbat într-o busolă mică. ${lessonChoice} A cerut ajutor paznicului, care a ținut capătul podului, iar ${name} a continuat. Cu fiecare pas, podul devenea mai sigur, ca și cum ar fi prins încredere odată cu copilul care mergea pe el.`,
+    `Când a ajuns la felinar, cheia nu mai părea grea. ${name} a pus-o în încuietoare și a rostit încet: „Pot să fiu curajos/curajoasă în felul meu.” Felinarul s-a deschis, iar lumina lui a alergat prin ${themeLabel.toLocaleLowerCase("ro-RO")}, aprinzând potecile, frunzele, ferestrele și toate colțurile care așteptau un vis bun.`,
+    `În clipa următoare, ${name} era din nou în pat. Pe pernă nu mai era luminița, dar în piept rămăsese o căldură mică și sigură. Camera era liniștită, noaptea era prietenoasă, iar ${name} știa că, ori de câte ori va avea emoții, poate începe cu un pas mic, o vorbă sinceră și puțin curaj.`,
   ].join("\n\n");
 
   return {
     title,
-    text,
-    imagePrompt: `English prompt: square children's book cover of ${name}, age ${age}, holding a tiny warm courage spark in a ${themeLabel} world, based on a gentle bedtime adventure about ${lesson}, premium watercolor and gouache, soft bedtime light, no text`,
+    text: normalizeRomanianText(text),
+    imagePrompt: `English prompt: square children's book cover of ${name}, age ${age}, holding a tiny warm light on a path through ${themeLabel}, include ${childDetails || worldDetail}, gentle bedtime adventure about ${lesson}, premium watercolor and gouache, soft bedtime light, no text`,
     fallback: true,
     note: `Am folosit varianta stabilă pentru că serviciul AI este temporar aglomerat. Textul poate fi editat înainte de PDF.`,
   };
+}
+
+function cleanPromptValue(value: unknown, fallback = "") {
+  return stripHtml(value).slice(0, 180) || fallback;
+}
+
+function getStoryLengthConfig(age: string | undefined) {
+  const ageNumber = Number.parseInt(age || "", 10) || 4;
+  if (ageNumber <= 3) {
+    return { wordTarget: "520-680", paragraphTarget: "6-7", maxOutputTokens: 1400 };
+  }
+  if (ageNumber <= 6) {
+    return { wordTarget: "650-820", paragraphTarget: "7-8", maxOutputTokens: 1700 };
+  }
+  return { wordTarget: "760-950", paragraphTarget: "8-9", maxOutputTokens: 2100 };
+}
+
+function buildStoryPrompt(data: GenerateRequest, themeLabel: string): StoryPromptConfig {
+  const name = cleanPromptValue(data.name, "Eroul");
+  const age = cleanPromptValue(data.age, "4");
+  const lesson = cleanPromptValue(data.lesson, "Curaj și încredere");
+  const tone = cleanPromptValue(data.tone, "Liniștită de somn");
+  const worldDetail = cleanPromptValue(data.themeDetail);
+  const lessonDetail = cleanPromptValue(data.lessonDetail);
+  const childDetails = cleanPromptValue(data.context);
+  const { wordTarget, paragraphTarget, maxOutputTokens } = getStoryLengthConfig(age);
+
+  const requiredDetails = [
+    `numele copilului: ${name}`,
+    `vârsta: ${age} ani`,
+    `lumea aleasă: ${themeLabel}`,
+    `lecția: ${lesson}`,
+    worldDetail ? `detaliu de lume: ${worldDetail}` : "",
+    lessonDetail ? `cum apare lecția: ${lessonDetail}` : "",
+    childDetails ? `detalii despre copil: ${childDetails}` : "",
+  ].filter(Boolean);
+
+  const prompt = `Scrie o poveste premium, personalizată, pentru un copil.
+
+CONTEXT OBLIGATORIU:
+${requiredDetails.map((detail, index) => `${index + 1}. ${detail}`).join("\n")}
+
+STIL:
+- Limba: română naturală, caldă, fără romgleză.
+- Ton: ${tone}.
+- Potrivită pentru ${age} ani: propoziții clare, imagini concrete, emoții blânde.
+- Fără violență, sarcasm, sperieturi intense, morală ținută ca discurs, markdown sau emoji.
+
+REGULI DE PERSONALIZARE:
+- ${name} este protagonistul/protagonista activ(ă), nu doar un nume lipit în text.
+- Folosește numele "${name}" în titlu, în prima propoziție și apoi natural de 5-8 ori.
+- Dacă există detalii despre copil, transformă cel puțin unul într-un obiect, gest, prieten sau indiciu important din poveste.
+- Dacă există detalii despre lume, ele trebuie să schimbe decorul și soluția, nu să apară doar într-o frază decorativă.
+- Lecția "${lesson}" trebuie învățată printr-o alegere concretă făcută de ${name}, nu explicată de narator.
+- Povestea trebuie să aibă început, problemă mică, încercare, alegere, rezolvare și final liniștitor de seară.
+
+STRUCTURĂ:
+- ${wordTarget} de cuvinte.
+- ${paragraphTarget} paragrafe separate prin două newline-uri.
+- Fiecare paragraf trebuie să avanseze acțiunea.
+- Nu inventa detalii personale sensibile. Nu inventa frați, boli, școală sau părinți dacă nu au fost menționați.
+
+Returnează DOAR JSON valid, fără \`\`\`json și fără text înainte/după:
+{
+  "title": "titlu scurt în română, cu numele copilului",
+  "text": "povestea completă, cu paragrafe separate prin două newline-uri",
+  "imagePrompt": "English prompt for one square children's book cover showing the main scene from this exact story, including the child protagonist, the chosen world, one meaningful personalized detail if provided, premium watercolor and gouache, soft bedtime light, no text"
+}`;
+
+  return { prompt, wordTarget, maxOutputTokens };
 }
 
 function sanitizeMonsterKit(value: unknown) {
@@ -182,15 +304,26 @@ function sanitizeEmergencyKit(value: unknown) {
 async function generateGeminiText({
   apiKey,
   prompt,
+  model = process.env.GEMINI_MODEL || "gemini-2.5-flash",
   responseMimeType,
+  maxOutputTokens,
+  temperature = 0.8,
 }: {
   apiKey: string;
   prompt: string;
+  model?: string;
   responseMimeType?: "application/json";
+  maxOutputTokens?: number;
+  temperature?: number;
 }): Promise<GeminiTextResult> {
+  const generationConfig = {
+    ...(responseMimeType ? { responseMimeType } : {}),
+    ...(maxOutputTokens ? { maxOutputTokens } : {}),
+    temperature,
+  };
   const body = JSON.stringify({
     contents: [{ parts: [{ text: prompt }] }],
-    ...(responseMimeType ? { generationConfig: { responseMimeType } } : {}),
+    generationConfig,
   });
 
   const { statusCode, responseBody, requestError } = await new Promise<{
@@ -202,7 +335,7 @@ async function generateGeminiText({
       const request = https.request(
         {
           hostname: "generativelanguage.googleapis.com",
-          path: `/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`,
+          path: `/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`,
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -224,6 +357,9 @@ async function generateGeminiText({
       request.on("error", (error) => {
         resolve({ statusCode: 500, responseBody: "", requestError: error.message });
       });
+      request.setTimeout(30000, () => {
+        request.destroy(new Error(`Modelul ${model} a depășit timpul de răspuns.`));
+      });
       request.write(body);
       request.end();
     }
@@ -241,15 +377,64 @@ async function generateGeminiText({
   }
 
   if (statusCode < 200 || statusCode >= 300) {
-    return { error: payload.error?.message || "Gemini API a returnat o eroare." };
+    return { error: payload.error?.message || `Gemini API a returnat o eroare pentru ${model}.` };
   }
 
   const text = payload.candidates?.[0]?.content?.parts?.map((part) => part.text || "").join("").trim();
   if (!text) {
-    return { error: "Gemini nu a returnat conținut pentru această cerere." };
+    return { error: `Gemini nu a returnat conținut pentru această cerere (${model}).` };
   }
 
-  return { text };
+  return { text, model };
+}
+
+function getGeminiModelCandidates() {
+  const configuredModels = [
+    process.env.GEMINI_MODEL,
+    ...(process.env.GEMINI_FALLBACK_MODELS || "").split(","),
+    "gemini-2.5-flash",
+    "gemini-2.0-flash",
+    "gemini-1.5-flash",
+  ];
+
+  return Array.from(
+    new Set(
+      configuredModels
+        .map((model) => model?.trim())
+        .filter((model): model is string => Boolean(model))
+    )
+  );
+}
+
+async function generateStoryWithModelFallback({
+  apiKey,
+  prompt,
+  maxOutputTokens,
+}: {
+  apiKey: string;
+  prompt: string;
+  maxOutputTokens: number;
+}): Promise<GeminiTextResult> {
+  const errors: string[] = [];
+
+  for (const model of getGeminiModelCandidates()) {
+    const generated = await generateGeminiText({
+      apiKey,
+      prompt,
+      model,
+      responseMimeType: "application/json",
+      maxOutputTokens,
+      temperature: 0.75,
+    });
+
+    if (!("error" in generated)) {
+      return generated;
+    }
+
+    errors.push(`${model}: ${generated.error}`);
+  }
+
+  return { error: errors.join(" | ") || "Gemini nu a răspuns cu niciun model disponibil." };
 }
 
 export async function POST(req: Request) {
@@ -297,42 +482,19 @@ export async function POST(req: Request) {
       if ("error" in generated) {
         return NextResponse.json({ success: false, error: generated.error }, { status: 500 });
       }
-      const jsonText = generated.text;
-      const result = sanitizeMonsterKit(JSON.parse(jsonText));
+      const result = sanitizeMonsterKit(parseJsonObject(generated.text));
 
       return NextResponse.json({ success: true, data: result });
     }
 
     if (data.type === "story") {
       const themeLabel = data.theme === 'space' ? 'Spațiu' : data.theme === 'forest' ? 'Pădure Fermecată' : 'Castel Magic';
-      const personalizationParts = [
-        data.themeDetail ? `Lume: ${stripHtml(data.themeDetail)}` : "",
-        data.lessonDetail ? `Lecție: ${stripHtml(data.lessonDetail)}` : "",
-        data.context ? `Detalii copil: ${stripHtml(data.context)}` : "",
-      ].filter(Boolean);
-      const personalization = personalizationParts.join(" | ");
-      const tone = stripHtml(data.tone) || "Liniștită de somn";
-      const ageNumber = Number.parseInt(data.age || "", 10) || 4;
-      const wordTarget = ageNumber <= 3 ? "800-950" : ageNumber <= 6 ? "950-1150" : "1100-1300";
-      const paragraphTarget = ageNumber <= 3 ? "7-8" : "8-9";
-      
-      const prompt = `Scrie o poveste personalizată pentru copii, în română.
-      Copil: "${data.name}", ${data.age} ani. Lume: "${themeLabel}". Lecție: "${data.lesson}". Ton: ${tone}.
-      ${personalization ? `Detalii de integrat natural: ${personalization}.` : "Personalizează prin nume, vârstă, lume și lecție."}
+      const { prompt, maxOutputTokens } = buildStoryPrompt(data, themeLabel);
 
-      Reguli: copilul este protagonist activ; folosește numele în titlu, prima propoziție și natural de 7-10 ori; lumea influențează problema și rezolvarea; lecția se vede prin acțiuni, fără predică; limbaj potrivit pentru ${data.age} ani; fără violență, markdown sau emoji; ${wordTarget} de cuvinte în ${paragraphTarget} paragrafe.
-
-      Returnează doar JSON strict:
-      {
-        "title": "titlu scurt în română, cu numele copilului",
-        "text": "povestea completă, paragrafe separate prin două newline-uri",
-        "imagePrompt": "English prompt for one square children's book cover based on the central story scene, describe the child protagonist and setting, premium watercolor and gouache, soft bedtime light, no text"
-      }`;
-
-      const generated = await generateGeminiText({
+      const generated = await generateStoryWithModelFallback({
         apiKey,
         prompt,
-        responseMimeType: "application/json",
+        maxOutputTokens,
       });
       if ("error" in generated) {
         return NextResponse.json({
@@ -343,7 +505,7 @@ export async function POST(req: Request) {
       }
       let result: ReturnType<typeof sanitizeStoryPayload>;
       try {
-        result = sanitizeStoryPayload(JSON.parse(generated.text), data.name || "Eroul", themeLabel);
+        result = sanitizeStoryPayload(parseJsonObject(generated.text), data.name || "Eroul", themeLabel);
       } catch {
         return NextResponse.json({
           success: true,
@@ -352,7 +514,7 @@ export async function POST(req: Request) {
         });
       }
 
-      return NextResponse.json({ success: true, data: result });
+      return NextResponse.json({ success: true, data: { ...result, model: generated.model } });
     }
 
     if (data.type === "emergency") {
@@ -391,8 +553,7 @@ export async function POST(req: Request) {
       if ("error" in generated) {
         return NextResponse.json({ success: false, error: generated.error }, { status: 500 });
       }
-      const jsonText = generated.text;
-      const result = sanitizeEmergencyKit(JSON.parse(jsonText));
+      const result = sanitizeEmergencyKit(parseJsonObject(generated.text));
 
       return NextResponse.json({ success: true, data: result });
     }

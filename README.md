@@ -26,8 +26,9 @@ cp .env.example .env.local
 
 Completează:
 
-- `GEMINI_API_KEY` for story, monster-kit, and emergency-kit generation.
-- `ELEVENLABS_API_KEY` for the voice preview API.
+- `GEMINI_API_KEY` for AI story generation.
+- `GEMINI_MODEL` and `GEMINI_FALLBACK_MODELS` to control Gemini model fallback without code changes.
+- `ELEVENLABS_API_KEY` for the optional voice preview API.
 
 Deschide [http://localhost:3010](http://localhost:3010).
 
@@ -41,12 +42,16 @@ npm run build
 
 ## Production Checklist
 
+- Configure production environment variables from `.env.example`.
+- Use a Gemini key with production quota/billing enabled.
+- Verify `/api/health` returns `ready: true` after deploy.
+- Generate real samples on the deployed domain and download all PDFs.
+- Add server-side order persistence and email delivery.
 - Add authenticated Stripe checkout and verified webhook fulfillment.
 - Add rate limiting and stricter validation around AI endpoints.
-- Add server-side order persistence and email delivery.
 - Add monitoring/error tracking.
 - Review legal copy after payments, analytics, and data retention are finalized.
 
 ## Deploy
 
-The app is deployable on Vercel or any platform that supports Next.js App Router. Add the required environment variables before enabling AI features.
+The app is deployable on Vercel or any platform that supports Next.js App Router. See [`docs/production.md`](docs/production.md) for the production environment setup.
