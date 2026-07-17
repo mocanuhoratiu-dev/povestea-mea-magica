@@ -328,15 +328,18 @@ function rebalanceShortFinalPage(pages: string[][], targetChars: number) {
 }
 
 function paginateStory(text: string, pageCount = 4): string[] {
+  const maxUnitChars = 900;
   let units = text
     .replace(/\r\n/g, "\n")
     .split(/\n{2,}/)
     .map((paragraph) => paragraph.replace(/\s+/g, " ").trim())
-    .filter(Boolean);
+    .filter(Boolean)
+    .flatMap((paragraph) => splitLongText(paragraph, maxUnitChars));
 
   if (!units.length) return [text];
 
-  // Keep the story as four readable spreads, without breaking sentences or paragraphs.
+  // Keep four balanced story pages. Long paragraphs are split on sentences first so
+  // one oversized paragraph cannot leave the next printed page nearly empty.
   while (units.length < pageCount) {
     const longestIndex = units.reduce(
       (longest, unit, index) => (unit.length > units[longest].length ? index : longest),
@@ -389,8 +392,8 @@ function paginateStory(text: string, pageCount = 4): string[] {
 }
 
 function storyTextDensityClass(chunk: string) {
-  if (chunk.length < 2500) return "story-text-body story-text-body--roomy";
-  if (chunk.length > 3500) return "story-text-body story-text-body--compact";
+  if (chunk.length < 3300) return "story-text-body story-text-body--roomy";
+  if (chunk.length > 5200) return "story-text-body story-text-body--compact";
   return "story-text-body";
 }
 

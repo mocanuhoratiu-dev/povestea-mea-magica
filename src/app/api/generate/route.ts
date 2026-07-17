@@ -32,6 +32,7 @@ type GeminiTextResult = { text: string; model: string; error?: never } | { text?
 type StoryPromptConfig = {
   prompt: string;
   wordTarget: string;
+  minWords: number;
   maxOutputTokens: number;
 };
 
@@ -301,12 +302,12 @@ function cleanPromptValue(value: unknown, fallback = "") {
 function getStoryLengthConfig(age: string | undefined) {
   const ageNumber = Number.parseInt(age || "", 10) || 4;
   if (ageNumber <= 3) {
-    return { wordTarget: "850-1.000", paragraphTarget: "10-12", maxOutputTokens: 3400 };
+    return { wordTarget: "1.800-2.000", minWords: 1800, paragraphTarget: "20-22", maxOutputTokens: 6200 };
   }
   if (ageNumber <= 6) {
-    return { wordTarget: "1.050-1.250", paragraphTarget: "12-14", maxOutputTokens: 4200 };
+    return { wordTarget: "2.000-2.200", minWords: 2000, paragraphTarget: "22-24", maxOutputTokens: 7000 };
   }
-  return { wordTarget: "1.250-1.450", paragraphTarget: "14-16", maxOutputTokens: 4800 };
+  return { wordTarget: "2.200-2.400", minWords: 2200, paragraphTarget: "24-26", maxOutputTokens: 7800 };
 }
 
 function buildStoryPrompt(data: GenerateRequest, themeLabel: string): StoryPromptConfig {
@@ -317,7 +318,7 @@ function buildStoryPrompt(data: GenerateRequest, themeLabel: string): StoryPromp
   const worldDetail = cleanPromptValue(data.themeDetail);
   const lessonDetail = cleanPromptValue(data.lessonDetail);
   const childDetails = cleanPromptValue(data.context);
-  const { wordTarget, paragraphTarget, maxOutputTokens } = getStoryLengthConfig(age);
+  const { wordTarget, minWords, paragraphTarget, maxOutputTokens } = getStoryLengthConfig(age);
 
   const requiredDetails = [
     `numele copilului: ${name}`,
@@ -351,8 +352,9 @@ REGULI DE PERSONALIZARE:
 STRUCTURĂ:
 - ${wordTarget} de cuvinte.
 - ${paragraphTarget} paragrafe separate prin două newline-uri.
-- Textul va fi așezat pe exact patru pagini de poveste, după copertă și dedicație. Construiește patru momente echilibrate: plecarea, explorarea, alegerea curajoasă și întoarcerea liniștită.
-- Nu scrie sub limita inferioară de cuvinte. Povestea trebuie să aibă substanță pentru citit seara, nu un rezumat.
+- Textul va fi așezat pe exact patru pagini de poveste, după copertă și dedicație. Scrie patru capitole echilibrate, fiecare de aproximativ 450-550 de cuvinte: 1) plecarea, 2) explorarea, 3) alegerea curajoasă, 4) întoarcerea liniștită.
+- Nu scrie sub ${minWords} cuvinte. Numără cu atenție înainte de răspuns. Povestea trebuie să aibă substanță pentru citit seara, nu un rezumat.
+- Nu comprima finalul. Fiecare dintre cele patru capitole trebuie să conțină acțiune, dialog sau observații senzoriale și o mică schimbare pentru ${name}.
 - Fiecare paragraf trebuie să avanseze acțiunea.
 - Nu inventa detalii personale sensibile. Nu inventa frați, boli, școală sau părinți dacă nu au fost menționați.
 
@@ -363,7 +365,7 @@ Returnează DOAR JSON valid, fără \`\`\`json și fără text înainte/după:
   "imagePrompt": "English prompt for one square children's book cover showing the main scene from this exact story, including the child protagonist, the chosen world, one meaningful personalized detail if provided, premium watercolor and gouache, soft bedtime light, no text"
 }`;
 
-  return { prompt, wordTarget, maxOutputTokens };
+  return { prompt, wordTarget, minWords, maxOutputTokens };
 }
 
 function sanitizeMonsterKit(value: unknown) {
