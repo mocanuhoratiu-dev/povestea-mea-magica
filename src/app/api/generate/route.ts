@@ -275,7 +275,13 @@ function buildStableStoryPayload(data: GenerateRequest, themeLabel: string) {
     `Lângă felinar stătea un paznic mic, cu o cheie prea grea pentru buzunarul lui. „Felinarul se deschide doar când cineva învață ${lesson.toLocaleLowerCase("ro-RO")} printr-o faptă adevărată”, a spus el. ${name} s-a uitat la cheie. Nu părea o misiune de forță, ci una în care trebuia să asculți ce simți și să alegi cu grijă.`,
     `Drumul până la felinar trecea peste un pod subțire. Podul scârțâia ușor și se legăna ca o panglică în vânt. ${name} a simțit un nod mic în burtică. În loc să fugă, s-a oprit, a respirat încet și a spus cu voce joasă: „Am emoții, dar pot încerca pas cu pas.” Atunci prima scândură s-a aprins sub tălpi.`,
     `La mijlocul podului, luminița de pe pernă s-a schimbat într-o busolă mică. ${lessonChoice} A cerut ajutor paznicului, care a ținut capătul podului, iar ${name} a continuat. Cu fiecare pas, podul devenea mai sigur, ca și cum ar fi prins încredere odată cu copilul care mergea pe el.`,
-    `Când a ajuns la felinar, cheia nu mai părea grea. ${name} a pus-o în încuietoare și a rostit încet: „Pot să fiu curajos/curajoasă în felul meu.” Felinarul s-a deschis, iar lumina lui a alergat prin ${themeLabel.toLocaleLowerCase("ro-RO")}, aprinzând potecile, frunzele, ferestrele și toate colțurile care așteptau un vis bun.`,
+    `Dincolo de pod se afla o grădină de oglinzi rotunde. Fiecare oglindă arăta o emoție: una era tremurată, alta curioasă, alta puțin supărată că drumul fusese greu. ${name} a privit cu atenție și a ales oglinda care semăna cel mai mult cu ce simțea. Când a spus cu voce tare ce vede, oglinda s-a făcut mică, cât o monedă, și i-a arătat o potecă nouă către felinar.`,
+    `Pe potecă au apărut trei porți. Prima promitea o scurtătură strălucitoare, dar era încuiată. A doua avea o sonerie care făcea mult zgomot. A treia părea simplă și liniștită, însă cerea răbdare. ${name} s-a gândit la semnele de pe drum și a ales poarta care îi lăsa timp să observe, să respire și să meargă în ritmul său. Paznicul a zâmbit: aceasta era alegerea pe care o aștepta.`,
+    `După poartă, busola a început să arate spre un clopoțel ascuns printre fire de iarbă. ${name} l-a găsit cu grijă și l-a scuturat o singură dată. Sunetul lui nu era tare, ci cald, ca atunci când se închide ușa camerei înainte de somn. Deodată, norii de deasupra ${themeLabel.toLocaleLowerCase("ro-RO")} s-au dat puțin la o parte, iar felinarul a primit o dâră subțire de lumină.`,
+    `Mai rămânea doar o rotiță lipsă, ascunsă într-un cuib de frunze. Acolo, un pui de pasăre nu îndrăznea să se miște. ${name} nu s-a grăbit să ia rotița. I-a vorbit blând, a rămas aproape și i-a lăsat timp să se liniștească. Când puiul a simțit că e în siguranță, a împins rotița spre ${name}. Chiar și lucrurile mici se pot mișca atunci când cineva le oferă răbdare.`,
+    `Cu rotița în palmă, ${name} s-a întors la felinar. Cheia nu mai părea grea, iar busola nu mai tremura. Paznicul a ținut felinarul, iar ${name} a potrivit rotița, a răsucit cheia și a rostit încet: „Pot să fiu curajos/curajoasă în felul meu.” Felinarul s-a deschis, iar lumina lui a alergat prin ${themeLabel.toLocaleLowerCase("ro-RO")}, aprinzând potecile, frunzele, ferestrele și toate colțurile care așteptau un vis bun.`,
+    `Lumina a ajuns și la grădina de oglinzi. Emoțiile din ele nu au dispărut, dar au început să lumineze pe rând, ca niște felinare mici. ${name} a înțeles că nu trebuie să alunge fiecare emoție ca să poată merge mai departe. Uneori e de ajuns să o observe, să o numească și să aleagă următorul pas cu grijă. Atunci, drumul devine mai ușor de văzut.`,
+    `Paznicul i-a dăruit lui ${name} o scânteie rotundă, pe care nu trebuia să o țină în buzunar. „O vei găsi de fiecare dată când respiri, când ceri ajutor sau când alegi să încerci încă o dată”, a spus el. ${name} a pus mâna pe inimă și a simțit că scânteia știa deja drumul spre casă.`,
     `În clipa următoare, ${name} era din nou în pat. Pe pernă nu mai era luminița, dar în piept rămăsese o căldură mică și sigură. Camera era liniștită, noaptea era prietenoasă, iar ${name} știa că, ori de câte ori va avea emoții, poate începe cu un pas mic, o vorbă sinceră și puțin curaj.`,
   ].join("\n\n");
 
@@ -295,12 +301,12 @@ function cleanPromptValue(value: unknown, fallback = "") {
 function getStoryLengthConfig(age: string | undefined) {
   const ageNumber = Number.parseInt(age || "", 10) || 4;
   if (ageNumber <= 3) {
-    return { wordTarget: "520-680", paragraphTarget: "6-7", maxOutputTokens: 1800 };
+    return { wordTarget: "850-1.000", paragraphTarget: "10-12", maxOutputTokens: 3400 };
   }
   if (ageNumber <= 6) {
-    return { wordTarget: "650-820", paragraphTarget: "7-8", maxOutputTokens: 2200 };
+    return { wordTarget: "1.050-1.250", paragraphTarget: "12-14", maxOutputTokens: 4200 };
   }
-  return { wordTarget: "760-950", paragraphTarget: "8-9", maxOutputTokens: 2600 };
+  return { wordTarget: "1.250-1.450", paragraphTarget: "14-16", maxOutputTokens: 4800 };
 }
 
 function buildStoryPrompt(data: GenerateRequest, themeLabel: string): StoryPromptConfig {
@@ -345,6 +351,8 @@ REGULI DE PERSONALIZARE:
 STRUCTURĂ:
 - ${wordTarget} de cuvinte.
 - ${paragraphTarget} paragrafe separate prin două newline-uri.
+- Textul va fi așezat pe exact patru pagini de poveste, după copertă și dedicație. Construiește patru momente echilibrate: plecarea, explorarea, alegerea curajoasă și întoarcerea liniștită.
+- Nu scrie sub limita inferioară de cuvinte. Povestea trebuie să aibă substanță pentru citit seara, nu un rezumat.
 - Fiecare paragraf trebuie să avanseze acțiunea.
 - Nu inventa detalii personale sensibile. Nu inventa frați, boli, școală sau părinți dacă nu au fost menționați.
 

@@ -77,25 +77,6 @@ const STORY_PDF_STYLES = `
   font-size: 24px; line-height: 1.5; color: #4a2c5f; text-align: center;
   max-width: 560px; margin: 42px auto 0;
 }
-.story-profile-title {
-  font-family: 'Cinzel', serif; font-size: 30px; color: #1a0a2e;
-  text-align: center; margin: 52px 0 34px;
-}
-.story-profile-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 18px;
-}
-.story-profile-item {
-  border: 1px solid rgba(201,168,76,0.45); background: rgba(255,255,255,0.24);
-  padding: 18px 20px; min-height: 94px;
-}
-.story-profile-label {
-  display: block; font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.16em;
-  color: #a87f2a; text-transform: uppercase; margin-bottom: 8px;
-}
-.story-profile-value {
-  font-size: 20px; line-height: 1.25; color: #2d3436;
-  overflow-wrap: anywhere;
-}
 .story-illustration-wrap {
   margin: auto; width: 610px; height: 760px; border: 8px solid white;
   border-radius: 22px; overflow: hidden; box-shadow: 0 18px 42px rgba(0,0,0,0.14);
@@ -290,10 +271,6 @@ function getWordCount(text: string) {
   return text.trim().split(/\s+/).filter(Boolean).length;
 }
 
-function getThemeLabel(themeId: string) {
-  return themes.find((theme) => theme.id === themeId)?.label || themeId;
-}
-
 function splitLongText(text: string, maxChars: number): string[] {
   const sentences = text.match(/[^.!?]+[.!?]+["”]?|[^.!?]+$/g) || [text];
   const chunks: string[] = [];
@@ -350,51 +327,63 @@ function rebalanceShortFinalPage(pages: string[][], targetChars: number) {
   }
 }
 
-function paginateStory(text: string, maxChars = 3650): string[] {
-  const units = text
+function paginateStory(text: string, pageCount = 4): string[] {
+  let units = text
     .replace(/\r\n/g, "\n")
     .split(/\n{2,}/)
     .map((paragraph) => paragraph.replace(/\s+/g, " ").trim())
-    .filter(Boolean)
-    .flatMap((paragraph) => (
-      paragraph.length > maxChars * 0.82
-        ? splitLongText(paragraph, Math.floor(maxChars * 0.64))
-        : [paragraph]
-    ));
+    .filter(Boolean);
 
   if (!units.length) return [text];
 
-  const totalLength = pageTextLength(units);
-  const pageCount = Math.max(1, Math.ceil(totalLength / maxChars));
-  const targetChars = Math.ceil(totalLength / pageCount);
-  const pages: string[][] = [];
-  let current: string[] = [];
+  // Keep the story as four readable spreads, without breaking sentences or paragraphs.
+  while (units.length < pageCount) {
+    const longestIndex = units.reduce(
+      (longest, unit, index) => (unit.length > units[longest].length ? index : longest),
+      0
+    );
+    const splitUnits = splitLongText(units[longestIndex], Math.max(420, Math.ceil(units[longestIndex].length / 2)));
 
-  for (let index = 0; index < units.length; index += 1) {
-    const unit = units[index];
-    const remainingPages = pageCount - pages.length - 1;
-    const candidate = [...current, unit];
-    const candidateLength = pageTextLength(candidate);
-    const remainingLength = pageTextLength(units.slice(index + 1));
-    const restCanFit = remainingPages <= 0 || remainingLength <= remainingPages * maxChars;
-
-    if (current.length && candidateLength > maxChars) {
-      pages.push(current);
-      current = [unit];
-      continue;
-    }
-
-    if (current.length && candidateLength > targetChars && restCanFit) {
-      pages.push(current);
-      current = [unit];
-      continue;
-    }
-
-    current = candidate;
+    if (splitUnits.length < 2) break;
+    units = [...units.slice(0, longestIndex), ...splitUnits, ...units.slice(longestIndex + 1)];
   }
 
-  if (current.length) pages.push(current);
-  rebalanceShortFinalPage(pages, targetChars);
+  const pagesToCreate = Math.min(pageCount, units.length);
+  const pages: string[][] = [];
+  let index = 0;
+
+  for (let pageIndex = 0; pageIndex < pagesToCreate; pageIndex += 1) {
+    const pagesRemaining = pagesToCreate - pageIndex;
+    const remainingLength = pageTextLength(units.slice(index));
+    const targetChars = Math.ceil(remainingLength / pagesRemaining);
+    const current: string[] = [];
+
+    while (index < units.length) {
+      const candidate = [...current, units[index]];
+      const mustLeaveUnitForEachPage = units.length - (index + 1) < pagesRemaining - 1;
+
+      if (
+        current.length &&
+        pageTextLength(candidate) > targetChars * 1.12 &&
+        !mustLeaveUnitForEachPage
+      ) {
+        break;
+      }
+
+      current.push(units[index]);
+      index += 1;
+
+      if (pageTextLength(current) >= targetChars && units.length - index >= pagesRemaining - 1) {
+        break;
+      }
+    }
+
+    if (current.length) pages.push(current);
+  }
+
+  if (pages.length > 1) {
+    rebalanceShortFinalPage(pages, Math.ceil(pageTextLength(units) / pages.length));
+  }
 
   return pages.map((page) => page.join("\n\n"));
 }
@@ -428,6 +417,8 @@ export default function StoryCreator() {
   const [storyDetails, setStoryDetails] = useState("");
   const [themeDetail, setThemeDetail] = useState("");
   const [lessonDetail, setLessonDetail] = useState("");
+  const [dedication, setDedication] = useState("");
+  const [dedicationFrom, setDedicationFrom] = useState("");
   const [tone, setTone] = useState(toneOptions[0]);
   const [imagePrompt, setImagePrompt] = useState("");
   const [generationNote, setGenerationNote] = useState("");
@@ -602,18 +593,11 @@ export default function StoryCreator() {
     };
 
     const storyChunks = paginateStory(storyText);
-    const selectedThemeLabel = getThemeLabel(selectedTheme);
     const wordCount = getWordCount(storyText);
-    const profileItems = [
-      ["Vârstă", `${age} ani`],
-      ["Lumea", themeDetail || selectedThemeLabel],
-      ["Lecția", lessonDetail || lesson],
-      ["Ton", tone],
-      ["Detalii copil", storyDetails],
-    ].filter(([, value]) => Boolean(value));
     const pdfPageCount = storyText
-      ? 3 + storyChunks.length
+      ? 2 + storyChunks.length
       : 0;
+    const dedicationText = dedication.trim() || `Pentru ${name || "micul erou"}, cu toată magia unei seri liniștite.`;
 
     return (
       <section id="creator" className="py-20 md:py-32 magic-gradient relative overflow-hidden px-4">
@@ -649,27 +633,8 @@ export default function StoryCreator() {
             {(['tl','tr','bl','br'] as const).map(pos => <CornerSVG key={pos} pos={pos} />)}
             <div className="story-pdf-content">
               <p className="story-dedication-kicker">Dedicație</p>
-              <p className="story-dedication-text">Pentru {name || "micul erou"}, cu toată magia unei seri liniștite.</p>
-            </div>
-          </div>
-        )}
-
-        {storyText && (
-          <div id="story-page-profile" className="story-pdf-page" style={{ display: 'none' }}>
-            <div className="story-pdf-bg" />
-            <div className="story-pdf-border" />
-            <div className="story-pdf-inner-border" />
-            {(['tl','tr','bl','br'] as const).map(pos => <CornerSVG key={pos} pos={pos} />)}
-            <div className="story-pdf-content">
-              <h2 className="story-profile-title">Creată special pentru {name || "micul erou"}</h2>
-              <div className="story-profile-grid">
-                {profileItems.slice(0, 8).map(([label, value]) => (
-                  <div key={label} className="story-profile-item">
-                    <span className="story-profile-label">{label}</span>
-                    <span className="story-profile-value">{value}</span>
-                  </div>
-                ))}
-              </div>
+              <p className="story-dedication-text">{dedicationText}</p>
+              {dedicationFrom.trim() && <p className="story-note-text">Cu drag, {dedicationFrom.trim()}</p>}
             </div>
           </div>
         )}
@@ -985,6 +950,34 @@ export default function StoryCreator() {
                   onChange={(e) => setStoryDetails(e.target.value)}
                   rows={4}
                   className="w-full px-6 py-4 rounded-2xl bg-brand-cream/30 border-4 border-transparent focus:border-brand-purple outline-none transition-all text-brand-navy font-bold text-base md:text-lg shadow-inner resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm md:text-base font-black text-brand-navy mb-2 md:mb-3 uppercase tracking-wider">
+                  Mesaj de dedicație
+                </label>
+                <textarea
+                  placeholder="Ex: Pentru Eva, să ai mereu curajul să explorezi lumea în felul tău."
+                  value={dedication}
+                  onChange={(e) => setDedication(e.target.value)}
+                  rows={3}
+                  maxLength={280}
+                  className="w-full px-6 py-4 rounded-2xl bg-brand-cream/30 border-4 border-transparent focus:border-brand-purple outline-none transition-all text-brand-navy font-bold text-base md:text-lg shadow-inner resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm md:text-base font-black text-brand-navy mb-2 md:mb-3 uppercase tracking-wider">
+                  Semnat de
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ex: Mama și Tata, Bunica Ana..."
+                  value={dedicationFrom}
+                  onChange={(e) => setDedicationFrom(e.target.value)}
+                  maxLength={80}
+                  className="w-full px-6 py-4 rounded-2xl bg-brand-cream/30 border-4 border-transparent focus:border-brand-purple outline-none transition-all text-brand-navy font-bold text-base md:text-lg shadow-inner"
                 />
               </div>
             </div>
