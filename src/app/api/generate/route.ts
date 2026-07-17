@@ -295,12 +295,12 @@ function cleanPromptValue(value: unknown, fallback = "") {
 function getStoryLengthConfig(age: string | undefined) {
   const ageNumber = Number.parseInt(age || "", 10) || 4;
   if (ageNumber <= 3) {
-    return { wordTarget: "520-680", paragraphTarget: "6-7", maxOutputTokens: 2200 };
+    return { wordTarget: "520-680", paragraphTarget: "6-7", maxOutputTokens: 1800 };
   }
   if (ageNumber <= 6) {
-    return { wordTarget: "650-820", paragraphTarget: "7-8", maxOutputTokens: 2800 };
+    return { wordTarget: "650-820", paragraphTarget: "7-8", maxOutputTokens: 2200 };
   }
-  return { wordTarget: "760-950", paragraphTarget: "8-9", maxOutputTokens: 3400 };
+  return { wordTarget: "760-950", paragraphTarget: "8-9", maxOutputTokens: 2600 };
 }
 
 function buildStoryPrompt(data: GenerateRequest, themeLabel: string): StoryPromptConfig {
@@ -423,6 +423,7 @@ async function generateGeminiText({
   responseMimeType,
   responseJsonSchema,
   maxOutputTokens,
+  thinkingBudget,
   temperature = 0.8,
 }: {
   apiKey: string;
@@ -431,12 +432,14 @@ async function generateGeminiText({
   responseMimeType?: "application/json";
   responseJsonSchema?: Record<string, unknown>;
   maxOutputTokens?: number;
+  thinkingBudget?: number;
   temperature?: number;
 }): Promise<GeminiTextResult> {
   const generationConfig = {
     ...(responseMimeType ? { responseMimeType } : {}),
     ...(responseJsonSchema ? { responseJsonSchema } : {}),
     ...(maxOutputTokens ? { maxOutputTokens } : {}),
+    ...(thinkingBudget === undefined ? {} : { thinkingConfig: { thinkingBudget } }),
     temperature,
   };
   const body = JSON.stringify({
@@ -513,6 +516,7 @@ async function generateVertexText({
   responseMimeType,
   responseJsonSchema,
   maxOutputTokens,
+  thinkingBudget,
   temperature = 0.8,
 }: Omit<Parameters<typeof generateGeminiText>[0], "apiKey">): Promise<GeminiTextResult> {
   const project = process.env.VERTEX_AI_PROJECT_ID?.trim();
@@ -535,6 +539,7 @@ async function generateVertexText({
         ...(responseMimeType ? { responseMimeType } : {}),
         ...(responseJsonSchema ? { responseJsonSchema } : {}),
         ...(maxOutputTokens ? { maxOutputTokens } : {}),
+        ...(thinkingBudget === undefined ? {} : { thinkingConfig: { thinkingBudget } }),
         temperature,
       },
     });
@@ -555,10 +560,11 @@ async function generateAiText({
   responseMimeType,
   responseJsonSchema,
   maxOutputTokens,
+  thinkingBudget,
   temperature,
 }: Omit<Parameters<typeof generateGeminiText>[0], "apiKey">): Promise<GeminiTextResult> {
   if (getAiProvider() === "vertex") {
-    return generateVertexText({ prompt, model, responseMimeType, responseJsonSchema, maxOutputTokens, temperature });
+    return generateVertexText({ prompt, model, responseMimeType, responseJsonSchema, maxOutputTokens, thinkingBudget, temperature });
   }
 
   const apiKey = process.env.GEMINI_API_KEY?.trim();
@@ -566,7 +572,7 @@ async function generateAiText({
     return { error: "GEMINI_API_KEY lipsește din configurare." };
   }
 
-  return generateGeminiText({ apiKey, prompt, model, responseMimeType, responseJsonSchema, maxOutputTokens, temperature });
+  return generateGeminiText({ apiKey, prompt, model, responseMimeType, responseJsonSchema, maxOutputTokens, thinkingBudget, temperature });
 }
 
 function getGeminiModelCandidates() {
@@ -603,6 +609,7 @@ async function generateStoryWithModelFallback({
       responseMimeType: "application/json",
       responseJsonSchema: STORY_RESPONSE_SCHEMA,
       maxOutputTokens,
+      thinkingBudget: 0,
       temperature: 0.75,
     });
 
