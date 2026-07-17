@@ -3,26 +3,19 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
-import { isProductionMode } from "@/lib/siteMode";
 
 const faqs = [
   {
     question: "Cât durează până primesc povestea?",
-    answer: isProductionMode
-      ? "Povestea se generează direct în browser în aproximativ câteva secunde, în funcție de disponibilitatea serviciilor AI."
-      : "În demo, povestea se generează direct în browser în aproximativ câteva secunde, în funcție de disponibilitatea serviciilor AI.",
+    answer: "Povestea se generează direct în browser în aproximativ câteva secunde, în funcție de disponibilitatea serviciilor AI.",
   },
   {
     question: "În ce format primesc fișierele?",
-    answer: isProductionMode
-      ? "Poți descărca un PDF generat local în browser. Testul audio este disponibil separat pentru verificarea vocii."
-      : "Poți descărca un PDF generat local în browser. Previzualizarea audio este disponibilă separat pentru testarea vocii.",
+    answer: "Poți descărca un PDF generat local în browser. Fragmentul audio este disponibil separat pentru verificarea vocii.",
   },
   {
     question: "Pot schimba datele după generare?",
-    answer: isProductionMode
-      ? "Da. Modifici numele, vârsta, tema sau contextul și generezi din nou înainte să descarci PDF-ul final."
-      : "Da. Modifici numele, vârsta, tema sau contextul și generezi din nou. Pentru lansarea comercială vom adăuga și un flux clar de comandă.",
+    answer: "Da. Modifici numele, vârsta, tema sau contextul și generezi din nou înainte să descarci PDF-ul final.",
   },
   {
     question: "Pot folosi textele pentru copii mici?",

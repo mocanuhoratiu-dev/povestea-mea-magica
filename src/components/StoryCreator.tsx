@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Castle, FileText, Image as ImageIcon, RefreshCw, Rocket, ShieldCheck, Sparkles, Star, Trees } from "lucide-react";
 import MagicalLoader from "./MagicalLoader";
-import { isProductionMode, siteCopy } from "@/lib/siteMode";
+import { siteCopy } from "@/lib/siteMode";
 
 const STORY_PDF_STYLES = `
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap');
@@ -197,15 +197,9 @@ const toneOptions = [
 const packages = [
   {
     id: "pdf",
-    name: "Poveste PDF",
-    desc: isProductionMode ? "Generează și descarcă PDF-ul personalizat" : "Generează și descarcă o previzualizare",
-    price: "PDF",
-  },
-  {
-    id: "full",
-    name: "Poveste + Audio",
-    desc: isProductionMode ? "PDF + test audio în browser" : "PDF + test de voce în browser",
-    price: "Audio",
+    name: "Poveste PDF personalizată",
+    desc: "Copertă, dedicație și patru pagini de poveste pregătite pentru print.",
+    price: "29 lei",
   }
 ];
 
@@ -455,7 +449,7 @@ export default function StoryCreator() {
     package: packageType,
   });
 
-  const handleCheckout = async () => {
+  const handleGenerateStory = async () => {
     if (!name) return;
     setIsLoading(true);
     try {
@@ -624,7 +618,7 @@ export default function StoryCreator() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               {imageUrl && <img src={imageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
             </div>
-            <p className="story-cover-footer">Povestea Mea Magică · {isProductionMode ? "Poveste personalizată" : "Previzualizare"}</p>
+            <p className="story-cover-footer">Povestea Mea Magică · Poveste personalizată</p>
           </div>
         </div>
 
@@ -733,7 +727,7 @@ export default function StoryCreator() {
 
                 <div className="grid grid-cols-2 gap-3 mb-8">
                   <button
-                    onClick={handleCheckout}
+                    onClick={handleGenerateStory}
                     disabled={isLoading}
                     className="flex items-center justify-center gap-2 bg-white text-brand-purple border-2 border-brand-purple/20 py-3 rounded-xl font-black text-sm shadow-sm hover:bg-brand-cream transition-all disabled:opacity-50"
                   >
@@ -1009,11 +1003,14 @@ export default function StoryCreator() {
                     </button>
                   ))}
                 </div>
+                <p className="mt-4 rounded-2xl bg-brand-gold/15 px-4 py-3 text-sm font-bold leading-relaxed text-brand-navy/70">
+                  În această etapă poți genera direct, fără plată online. Prețul de lansare este afișat pentru produsul ales.
+                </p>
               </div>
 
               <div className="space-y-4">
                 <button
-                  onClick={handleCheckout}
+                  onClick={handleGenerateStory}
                   disabled={!name}
                   className="w-full bg-brand-purple text-white py-5 md:py-6 rounded-2xl md:rounded-[2.5rem] font-black text-xl md:text-2xl shadow-2xl hover:bg-brand-navy transition-all flex items-center justify-center gap-4 disabled:opacity-30 disabled:cursor-not-allowed group"
                 >

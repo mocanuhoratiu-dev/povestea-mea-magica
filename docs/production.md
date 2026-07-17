@@ -13,10 +13,9 @@ npm run build
 
 ## Required Environment Variables
 
-Set these in the hosting provider for Production and Preview environments:
+Set these in the hosting provider:
 
 ```bash
-NEXT_PUBLIC_SITE_MODE=production
 AI_PROVIDER=vertex
 VERTEX_AI_PROJECT_ID=project-e0c2efff-d456-48f9-9fe
 VERTEX_AI_LOCATION=global
@@ -24,7 +23,7 @@ VERTEX_AI_MODEL=gemini-2.5-flash
 VERTEX_AI_FALLBACK_MODELS=gemini-2.5-flash-lite
 ```
 
-`NEXT_PUBLIC_SITE_MODE=production` removes demo/free wording from the public website copy. Use `demo` locally or on preview deployments when testing unfinished commercial flows.
+The public interface always uses the final direct-generation wording: products show their launch prices, then generate directly without an active payment step.
 
 Deploy the app to Cloud Run and attach the dedicated service account to the service. Cloud Run supplies Application Default Credentials automatically, so no service-account JSON key is stored in Git or in the application environment.
 
@@ -45,7 +44,7 @@ gcloud run deploy povestea-mea-magica \
   --source . \
   --region europe-west3 \
   --service-account povestea-mea-magica-ai@project-e0c2efff-d456-48f9-9fe.iam.gserviceaccount.com \
-  --set-env-vars AI_PROVIDER=vertex,VERTEX_AI_PROJECT_ID=project-e0c2efff-d456-48f9-9fe,VERTEX_AI_LOCATION=global,VERTEX_AI_MODEL=gemini-2.5-flash,NEXT_PUBLIC_SITE_MODE=production
+  --set-env-vars AI_PROVIDER=vertex,VERTEX_AI_PROJECT_ID=project-e0c2efff-d456-48f9-9fe,VERTEX_AI_LOCATION=global,VERTEX_AI_MODEL=gemini-2.5-flash
 ```
 
 The health endpoint reports `ready: true` only when the active provider has both the required project/key configuration. It never exposes secret values.

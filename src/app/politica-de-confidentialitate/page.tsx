@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { ChevronLeft, ShieldCheck } from "lucide-react";
-import { isProductionMode } from "@/lib/siteMode";
 
 export default function PrivacyPage() {
   return (
@@ -20,9 +19,7 @@ export default function PrivacyPage() {
             <section>
               <h2 className="text-2xl font-black text-brand-navy mb-4">Protejăm Datele Micuților</h2>
               <p>
-                {isProductionMode
-                  ? "La Povestea Mea Magică, siguranța și confidențialitatea datelor tale și ale copilului tău sunt prioritare. În versiunea curentă nu există conturi de utilizator și nu colectăm plăți online."
-                  : "La Povestea Mea Magică, siguranța și confidențialitatea datelor tale și ale copilului tău sunt prioritare. Site-ul rulează momentan ca demo, fără conturi de utilizator și fără plăți active."}
+                La Povestea Mea Magică, siguranța și confidențialitatea datelor tale și ale copilului tău sunt prioritare. În versiunea curentă nu există conturi de utilizator și nu colectăm plăți online.
               </p>
             </section>
 
@@ -31,16 +28,14 @@ export default function PrivacyPage() {
               <ul className="list-disc pl-6 space-y-2">
                 <li><strong>Datele de personalizare:</strong> Numele, vârsta, tema, frica sau contextul introduse în formulare.</li>
                 <li><strong>Date tehnice:</strong> Informații standard necesare pentru funcționarea serviciilor web și AI.</li>
-                <li><strong>Date de plată:</strong> {isProductionMode ? "Nu colectăm date de plată în versiunea curentă." : "Nu colectăm date de plată în modul demo."}</li>
+                <li><strong>Date de plată:</strong> Nu colectăm date de plată în versiunea curentă.</li>
               </ul>
             </section>
 
             <section>
               <h2 className="text-2xl font-black text-brand-navy mb-4">Cum Folosim Datele?</h2>
               <p>
-                {isProductionMode
-                  ? "Datele introduse sunt trimise către serviciile AI configurate pentru a genera conținutul solicitat. Fișierele sunt create și descărcate din browser; în versiunea curentă nu există cont de client sau bibliotecă de comenzi."
-                  : "Datele introduse sunt trimise către serviciile AI configurate pentru a genera conținutul solicitat. În demo, fișierele sunt create și descărcate din browser; nu există cont de client sau bibliotecă de comenzi."}
+                Datele introduse sunt trimise către serviciile AI configurate pentru a genera conținutul solicitat. Fișierele sunt create și descărcate din browser; în versiunea curentă nu există cont de client sau bibliotecă de comenzi.
               </p>
             </section>
 

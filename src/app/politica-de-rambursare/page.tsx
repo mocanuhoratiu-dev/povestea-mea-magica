@@ -18,7 +18,7 @@ export default function RefundPolicyPage() {
           <div className="prose prose-brand max-w-none text-brand-navy/80 space-y-8 font-medium">
             <section>
               <h2 className="text-2xl font-black text-brand-navy mb-4">Versiunea curentă</h2>
-              <p>În acest moment, plățile online nu sunt active. Materialele generate pot fi testate și descărcate local din browser, fără procesare de plată prin site.</p>
+              <p>În acest moment, plățile online nu sunt active. Materialele se generează și se descarcă direct din browser, fără procesare de plată prin site.</p>
             </section>
 
             <section>

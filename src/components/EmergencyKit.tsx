@@ -506,6 +506,9 @@ export default function EmergencyKit() {
           <p className="mt-4 text-brand-navy/60 text-lg max-w-xl mx-auto">
             Așteptarea e grea? Copilul și-a pierdut răbdarea? Generează un PDF cu misiuni secrete adaptate locului în care sunteți.
           </p>
+          <p className="mt-3 text-sm font-bold text-orange-600">
+            Preț de lansare: 19 lei. Generează direct, fără plată online în această etapă.
+          </p>
         </div>
 
         <motion.div

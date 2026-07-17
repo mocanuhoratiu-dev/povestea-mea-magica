@@ -2,7 +2,6 @@
 
 import { Check, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
-import { isProductionMode } from "@/lib/siteMode";
 
 const products = [
   {
@@ -52,7 +51,7 @@ export default function Pricing() {
             Alege materialul potrivit pentru copilul tău
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg font-medium leading-relaxed text-brand-navy/65">
-            Prețurile de mai jos sunt pregătite pentru activarea checkout-ului. Până atunci, poți genera și verifica materialele în browser.
+            Alege materialul potrivit și creează-l direct. Prețurile de lansare sunt afișate aici, iar plata online va fi activată ulterior.
           </p>
         </div>
 
@@ -96,7 +95,7 @@ export default function Pricing() {
                 href={product.href}
                 className="mt-auto inline-flex w-full items-center justify-center rounded-2xl bg-brand-navy px-5 py-4 text-center text-base font-black text-white shadow-lg transition-all hover:bg-brand-purple"
               >
-                {isProductionMode ? product.cta : "Testează în browser"}
+                {product.cta}
               </a>
             </motion.article>
           ))}
@@ -107,7 +106,7 @@ export default function Pricing() {
             Pachet recomandat: toate cele 3 materiale la <span className="text-brand-purple">49 lei</span>
           </p>
           <p className="mt-2 text-sm font-bold text-brand-navy/55">
-            Bundle-ul devine oferta principală când activăm Stripe și livrarea automată.
+            Oferta pachetului este pregătită pentru activarea plăților online.
           </p>
         </div>
       </div>

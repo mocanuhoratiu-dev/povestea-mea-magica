@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { UserCircle, Wand, Rocket } from "lucide-react";
-import { isProductionMode, siteCopy } from "@/lib/siteMode";
+import { siteCopy } from "@/lib/siteMode";
 
 const steps = [
   {
@@ -21,10 +21,8 @@ const steps = [
   },
   {
     icon: <Rocket className="w-10 h-10 text-white" />,
-    title: "Descarcă și testează",
-    description: isProductionMode
-      ? "Generezi conținutul, îl verifici în browser și descarci PDF-ul pregătit pentru print sau citit seara."
-      : "Generezi o previzualizare, o asculți în browser și descarci PDF-ul ca să vezi exact cum arată produsul.",
+    title: "Generează și descarcă",
+    description: "Generezi conținutul, îl verifici în browser și descarci PDF-ul pregătit pentru print sau citit seara.",
     color: "bg-brand-blue",
     shadow: "shadow-brand-blue/30",
   },

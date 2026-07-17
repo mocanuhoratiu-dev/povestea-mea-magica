@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck, Download, Sparkles, Star } from 'lucide-react';
 import MagicalLoader from './MagicalLoader';
-import { isProductionMode } from '@/lib/siteMode';
 
 /* ─── Types ─────────────────────────────────────── */
 interface Monster { id: string; label: string; icon: string; }
@@ -558,9 +557,10 @@ export default function MonsterKit() {
             Scut Magic <span className="text-brand-gold">pentru Noapte</span> 🛡️
           </h2>
           <p className="mt-4 text-brand-cream/70 text-lg max-w-xl mx-auto">
-            {isProductionMode
-              ? 'Generează un kit printabil cu certificat, rețeta spray-ului magic și etichete pentru flacon.'
-              : 'Generează o previzualizare printabilă cu certificat, rețeta spray-ului magic și etichete pentru flacon.'}
+            Generează un kit printabil cu certificat, rețeta spray-ului magic și etichete pentru flacon.
+          </p>
+          <p className="mt-3 text-sm font-bold text-brand-gold">
+            Preț de lansare: 19 lei. Generează direct, fără plată online în această etapă.
           </p>
         </div>
 

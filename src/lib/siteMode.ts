@@ -1,23 +1,15 @@
-export type SiteMode = "demo" | "production";
-
-export const siteMode: SiteMode =
-  process.env.NEXT_PUBLIC_SITE_MODE === "production" ? "production" : "demo";
-
-export const isProductionMode = siteMode === "production";
+// The public experience is intentionally the final direct-generation flow.
+export const siteMode = "production" as const;
 
 export const siteCopy = {
-  navCta: isProductionMode ? "Creează povestea" : "Încearcă gratuit",
-  mobileCta: isProductionMode ? "Creează povestea" : "Încearcă gratuit",
-  heroCta: isProductionMode ? "Creează povestea" : "Creează o previzualizare",
-  heroBadge: isProductionMode ? "Atelier digital pentru copii" : "Previzualizare interactivă",
-  storyIntro: isProductionMode
-    ? "Creează o poveste personalizată, verific-o și descarcă PDF-ul direct din browser."
-    : "Testează o poveste personalizată înainte să activăm comenzile plătite.",
-  storyPackageTitle: isProductionMode ? "Alege produsul" : "Alege previzualizarea",
-  storyGenerateCta: isProductionMode ? "Generează povestea" : "Generează previzualizarea",
-  voicePreviewCta: isProductionMode ? "Ascultă un test audio" : "Ascultă un test (Previzualizare)",
-  footerStatusTitle: isProductionMode ? "Status Serviciu" : "Status Lansare",
-  footerStatusText: isProductionMode
-    ? "Poveștile și kiturile pot fi generate și descărcate digital. Comenzile plătite și livrarea automată pe email vor fi activate în etapa Stripe."
-    : "Site-ul este în modul demo. Comenzile plătite și livrarea automată vor fi activate separat.",
+  navCta: "Creează povestea",
+  mobileCta: "Creează povestea",
+  heroCta: "Creează povestea",
+  heroBadge: "Atelier digital pentru copii",
+  storyIntro: "Alege produsul, vezi prețul de lansare și generează direct PDF-ul personalizat în browser.",
+  storyPackageTitle: "Produsul ales",
+  storyGenerateCta: "Generează povestea",
+  voicePreviewCta: "Ascultă un fragment audio",
+  footerStatusTitle: "Generare directă",
+  footerStatusText: "Poveștile și kiturile se generează și se descarcă digital. Prețurile sunt afișate, iar plata online va fi activată ulterior.",
 };
