@@ -37,6 +37,17 @@ type StoryPromptConfig = {
 
 type AiProvider = "gemini" | "vertex";
 
+const STORY_RESPONSE_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["title", "text", "imagePrompt"],
+  properties: {
+    title: { type: "string" },
+    text: { type: "string" },
+    imagePrompt: { type: "string" },
+  },
+} as const;
+
 function getAiProvider(): AiProvider {
   return process.env.AI_PROVIDER?.trim().toLowerCase() === "vertex" ? "vertex" : "gemini";
 }
@@ -410,6 +421,7 @@ async function generateGeminiText({
   prompt,
   model = process.env.GEMINI_MODEL || "gemini-2.5-flash",
   responseMimeType,
+  responseJsonSchema,
   maxOutputTokens,
   temperature = 0.8,
 }: {
@@ -417,11 +429,13 @@ async function generateGeminiText({
   prompt: string;
   model?: string;
   responseMimeType?: "application/json";
+  responseJsonSchema?: Record<string, unknown>;
   maxOutputTokens?: number;
   temperature?: number;
 }): Promise<GeminiTextResult> {
   const generationConfig = {
     ...(responseMimeType ? { responseMimeType } : {}),
+    ...(responseJsonSchema ? { responseJsonSchema } : {}),
     ...(maxOutputTokens ? { maxOutputTokens } : {}),
     temperature,
   };
@@ -497,6 +511,7 @@ async function generateVertexText({
   prompt,
   model = process.env.VERTEX_AI_MODEL || "gemini-2.5-flash",
   responseMimeType,
+  responseJsonSchema,
   maxOutputTokens,
   temperature = 0.8,
 }: Omit<Parameters<typeof generateGeminiText>[0], "apiKey">): Promise<GeminiTextResult> {
@@ -518,6 +533,7 @@ async function generateVertexText({
       contents: prompt,
       config: {
         ...(responseMimeType ? { responseMimeType } : {}),
+        ...(responseJsonSchema ? { responseJsonSchema } : {}),
         ...(maxOutputTokens ? { maxOutputTokens } : {}),
         temperature,
       },
@@ -537,11 +553,12 @@ async function generateAiText({
   prompt,
   model,
   responseMimeType,
+  responseJsonSchema,
   maxOutputTokens,
   temperature,
 }: Omit<Parameters<typeof generateGeminiText>[0], "apiKey">): Promise<GeminiTextResult> {
   if (getAiProvider() === "vertex") {
-    return generateVertexText({ prompt, model, responseMimeType, maxOutputTokens, temperature });
+    return generateVertexText({ prompt, model, responseMimeType, responseJsonSchema, maxOutputTokens, temperature });
   }
 
   const apiKey = process.env.GEMINI_API_KEY?.trim();
@@ -549,7 +566,7 @@ async function generateAiText({
     return { error: "GEMINI_API_KEY lipsește din configurare." };
   }
 
-  return generateGeminiText({ apiKey, prompt, model, responseMimeType, maxOutputTokens, temperature });
+  return generateGeminiText({ apiKey, prompt, model, responseMimeType, responseJsonSchema, maxOutputTokens, temperature });
 }
 
 function getGeminiModelCandidates() {
@@ -584,6 +601,7 @@ async function generateStoryWithModelFallback({
       prompt,
       model,
       responseMimeType: "application/json",
+      responseJsonSchema: STORY_RESPONSE_SCHEMA,
       maxOutputTokens,
       temperature: 0.75,
     });
