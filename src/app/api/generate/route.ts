@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { GoogleGenAI } from "@google/genai";
 import https from "node:https";
 
 type GenerateRequest = {
@@ -33,6 +34,33 @@ type StoryPromptConfig = {
   wordTarget: string;
   maxOutputTokens: number;
 };
+
+type AiProvider = "gemini" | "vertex";
+
+function getAiProvider(): AiProvider {
+  return process.env.AI_PROVIDER?.trim().toLowerCase() === "vertex" ? "vertex" : "gemini";
+}
+
+function getVertexCredentials() {
+  const encodedCredentials = process.env.VERTEX_AI_SERVICE_ACCOUNT_JSON_BASE64?.trim();
+  if (!encodedCredentials) {
+    return undefined;
+  }
+
+  try {
+    return JSON.parse(Buffer.from(encodedCredentials, "base64").toString("utf8"));
+  } catch {
+    throw new Error("VERTEX_AI_SERVICE_ACCOUNT_JSON_BASE64 nu conține un JSON Base64 valid.");
+  }
+}
+
+function isAiConfigured() {
+  if (getAiProvider() === "vertex") {
+    return Boolean(process.env.VERTEX_AI_PROJECT_ID?.trim());
+  }
+
+  return Boolean(process.env.GEMINI_API_KEY?.trim());
+}
 
 function stripHtml(value: unknown): string {
   return String(value ?? "")
@@ -335,11 +363,12 @@ async function generateGeminiText({
       const request = https.request(
         {
           hostname: "generativelanguage.googleapis.com",
-          path: `/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`,
+          path: `/v1beta/models/${encodeURIComponent(model)}:generateContent`,
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             "Content-Length": Buffer.byteLength(body),
+            "x-goog-api-key": apiKey,
           },
         },
         (response) => {
@@ -388,13 +417,72 @@ async function generateGeminiText({
   return { text, model };
 }
 
+async function generateVertexText({
+  prompt,
+  model = process.env.VERTEX_AI_MODEL || "gemini-2.5-flash",
+  responseMimeType,
+  maxOutputTokens,
+  temperature = 0.8,
+}: Omit<Parameters<typeof generateGeminiText>[0], "apiKey">): Promise<GeminiTextResult> {
+  const project = process.env.VERTEX_AI_PROJECT_ID?.trim();
+  if (!project) {
+    return { error: "VERTEX_AI_PROJECT_ID lipsește din configurare." };
+  }
+
+  try {
+    const credentials = getVertexCredentials();
+    const client = new GoogleGenAI({
+      vertexai: true,
+      project,
+      location: process.env.VERTEX_AI_LOCATION?.trim() || "global",
+      ...(credentials ? { googleAuthOptions: { credentials } } : {}),
+    });
+    const response = await client.models.generateContent({
+      model,
+      contents: prompt,
+      config: {
+        ...(responseMimeType ? { responseMimeType } : {}),
+        ...(maxOutputTokens ? { maxOutputTokens } : {}),
+        temperature,
+      },
+    });
+    const text = response.text?.trim();
+    if (!text) {
+      return { error: `Vertex AI nu a returnat conținut pentru această cerere (${model}).` };
+    }
+
+    return { text, model };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Vertex AI nu a putut genera conținut." };
+  }
+}
+
+async function generateAiText({
+  prompt,
+  model,
+  responseMimeType,
+  maxOutputTokens,
+  temperature,
+}: Omit<Parameters<typeof generateGeminiText>[0], "apiKey">): Promise<GeminiTextResult> {
+  if (getAiProvider() === "vertex") {
+    return generateVertexText({ prompt, model, responseMimeType, maxOutputTokens, temperature });
+  }
+
+  const apiKey = process.env.GEMINI_API_KEY?.trim();
+  if (!apiKey) {
+    return { error: "GEMINI_API_KEY lipsește din configurare." };
+  }
+
+  return generateGeminiText({ apiKey, prompt, model, responseMimeType, maxOutputTokens, temperature });
+}
+
 function getGeminiModelCandidates() {
+  const isVertex = getAiProvider() === "vertex";
   const configuredModels = [
-    process.env.GEMINI_MODEL,
-    ...(process.env.GEMINI_FALLBACK_MODELS || "").split(","),
+    isVertex ? process.env.VERTEX_AI_MODEL : process.env.GEMINI_MODEL,
+    ...((isVertex ? process.env.VERTEX_AI_FALLBACK_MODELS : process.env.GEMINI_FALLBACK_MODELS) || "").split(","),
     "gemini-2.5-flash",
-    "gemini-2.0-flash",
-    "gemini-1.5-flash",
+    "gemini-2.5-flash-lite",
   ];
 
   return Array.from(
@@ -407,19 +495,16 @@ function getGeminiModelCandidates() {
 }
 
 async function generateStoryWithModelFallback({
-  apiKey,
   prompt,
   maxOutputTokens,
 }: {
-  apiKey: string;
   prompt: string;
   maxOutputTokens: number;
 }): Promise<GeminiTextResult> {
   const errors: string[] = [];
 
   for (const model of getGeminiModelCandidates()) {
-    const generated = await generateGeminiText({
-      apiKey,
+    const generated = await generateAiText({
       prompt,
       model,
       responseMimeType: "application/json",
@@ -440,15 +525,19 @@ async function generateStoryWithModelFallback({
 export async function POST(req: Request) {
   try {
     const data = (await req.json()) as GenerateRequest;
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
+    if (!isAiConfigured()) {
       if (data.type === "story") {
         const themeLabel = data.theme === 'space' ? 'Spațiu' : data.theme === 'forest' ? 'Pădure Fermecată' : 'Castel Magic';
         return NextResponse.json({ success: true, data: buildStableStoryPayload(data, themeLabel) });
       }
 
       return NextResponse.json(
-        { success: false, error: "GEMINI_API_KEY lipsește din .env.local." },
+        {
+          success: false,
+          error: getAiProvider() === "vertex"
+            ? "VERTEX_AI_PROJECT_ID lipsește din .env.local."
+            : "GEMINI_API_KEY lipsește din .env.local.",
+        },
         { status: 500 }
       );
     }
@@ -474,8 +563,7 @@ export async function POST(req: Request) {
         "spell": "Un descântec vesel și magic în RIME PERFECTE (format AABB), compus din exact 4 versuri scurte, fără HTML. TREBUIE să includă numele copilului și să alunge monstrul/frica respectivă."
       }`;
 
-      const generated = await generateGeminiText({
-        apiKey,
+      const generated = await generateAiText({
         prompt,
         responseMimeType: "application/json",
       });
@@ -492,7 +580,6 @@ export async function POST(req: Request) {
       const { prompt, maxOutputTokens } = buildStoryPrompt(data, themeLabel);
 
       const generated = await generateStoryWithModelFallback({
-        apiKey,
         prompt,
         maxOutputTokens,
       });
@@ -545,8 +632,7 @@ export async function POST(req: Request) {
         ]
       }`;
 
-      const generated = await generateGeminiText({
-        apiKey,
+      const generated = await generateAiText({
         prompt,
         responseMimeType: "application/json",
       });

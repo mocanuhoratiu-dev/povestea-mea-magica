@@ -1,6 +1,6 @@
 # Production Setup
 
-This project is ready to run as a production pre-commerce experience before Stripe is enabled. The main production risk is AI provider availability: free Gemini quota can return high-demand or quota errors, so production should use a Gemini key with billing/quota enabled.
+This project is ready to run as a production pre-commerce experience before Stripe is enabled. For production, use Vertex AI: its Gemini usage is billed through Google Cloud and can use eligible Google Cloud credits.
 
 ## Pre-Deploy Checks
 
@@ -17,14 +17,38 @@ Set these in the hosting provider for Production and Preview environments:
 
 ```bash
 NEXT_PUBLIC_SITE_MODE=production
-GEMINI_API_KEY=
-GEMINI_MODEL=gemini-2.5-flash
-GEMINI_FALLBACK_MODELS=gemini-2.0-flash
+AI_PROVIDER=vertex
+VERTEX_AI_PROJECT_ID=project-e0c2efff-d456-48f9-9fe
+VERTEX_AI_LOCATION=global
+VERTEX_AI_MODEL=gemini-2.5-flash
+VERTEX_AI_FALLBACK_MODELS=gemini-2.5-flash-lite
 ```
 
 `NEXT_PUBLIC_SITE_MODE=production` removes demo/free wording from the public website copy. Use `demo` locally or on preview deployments when testing unfinished commercial flows.
 
-`GEMINI_API_KEY` is required for real AI story generation. The app has a local fallback story path, but paying customers should not depend on it.
+Deploy the app to Cloud Run and attach the dedicated service account to the service. Cloud Run supplies Application Default Credentials automatically, so no service-account JSON key is stored in Git or in the application environment.
+
+### Vertex AI setup
+
+1. In Google Cloud, select `project-e0c2efff-d456-48f9-9fe` and confirm that its billing account has the available promotional credits.
+2. Enable the Vertex AI API in **APIs & Services**.
+3. Go to **IAM & Admin -> Service Accounts**, create `povestea-mea-magica-ai` and grant it **Agent Platform User** / **Vertex AI User** (`roles/aiplatform.user`).
+4. Do not create a service-account JSON key. The current project policy blocks it, and Cloud Run does not need one.
+5. For local development, keep the stable fallback enabled or run short authenticated tests in Cloud Shell. The production app will use Cloud Run's runtime identity.
+
+### Cloud Run deploy flow
+
+From Cloud Shell, after the repository is available there:
+
+```bash
+gcloud run deploy povestea-mea-magica \
+  --source . \
+  --region europe-west3 \
+  --service-account povestea-mea-magica-ai@project-e0c2efff-d456-48f9-9fe.iam.gserviceaccount.com \
+  --set-env-vars AI_PROVIDER=vertex,VERTEX_AI_PROJECT_ID=project-e0c2efff-d456-48f9-9fe,VERTEX_AI_LOCATION=global,VERTEX_AI_MODEL=gemini-2.5-flash,NEXT_PUBLIC_SITE_MODE=production
+```
+
+The health endpoint reports `ready: true` only when the active provider has both the required project/key configuration. It never exposes secret values.
 
 ## Optional Environment Variables
 
@@ -46,36 +70,28 @@ RESEND_API_KEY=
 N8N_WEBHOOK_URL=
 ```
 
-## Vercel Deploy Flow
-
-1. Import the GitHub repository in Vercel.
-2. Framework preset: Next.js.
-3. Build command: `npm run build`.
-4. Install command: `npm install`.
-5. Add the environment variables above in Project Settings -> Environment Variables.
-6. Deploy.
-7. Open `/api/health` on the deployed domain.
-
 Expected production health response:
 
 ```json
 {
   "ready": true,
   "siteMode": "production",
+  "aiProvider": "vertex",
   "checks": {
-    "geminiApiKey": true,
+    "vertexAiProject": true,
+    "vertexAiCredentials": true,
     "elevenlabsApiKey": true
   }
 }
 ```
 
-If `ready` is `false`, production is missing the Gemini key.
+If `ready` is `false`, production is missing a required Vertex AI configuration value or the Cloud Run runtime identity.
 
 ## AI Provider Notes
 
-- Free Gemini keys can fail with high demand or quota errors.
-- For production, enable billing/quota on the Google AI project or switch to a provider with stable quota.
-- Keep `GEMINI_MODEL` configurable so the model can be changed without a code deploy.
+- Vertex AI consumes Google Cloud billing and supports budgets and alerts in Cloud Billing.
+- Keep `VERTEX_AI_MODEL` configurable so the model can be changed without a code deploy.
+- `AI_PROVIDER=gemini` remains available for local fallback with `GEMINI_API_KEY`, but it uses AI Studio billing rather than Vertex AI.
 - The app currently tries model fallbacks and then uses a local stable story fallback if all AI calls fail.
 
 ## Launch Gate Before Stripe

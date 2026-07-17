@@ -7,7 +7,7 @@ Produs digital Next.js în limba română: povești personalizate pentru copii, 
 - Modul curent: experiență pre-commerce, cu mod demo/local controlat prin `NEXT_PUBLIC_SITE_MODE`.
 - Plăți Stripe: intenționat amânate pentru o etapă ulterioară.
 - Livrare email/comenzi: neactivată încă.
-- Generare AI: Gemini pentru text, ElevenLabs pentru previzualizare audio.
+- Generare AI: Vertex AI (Gemini) pentru text, ElevenLabs pentru previzualizare audio.
 
 ## Getting Started
 
@@ -27,8 +27,9 @@ cp .env.example .env.local
 Completează:
 
 - `NEXT_PUBLIC_SITE_MODE` as `demo` locally or `production` on the public site.
-- `GEMINI_API_KEY` for AI story generation.
-- `GEMINI_MODEL` and `GEMINI_FALLBACK_MODELS` to control Gemini model fallback without code changes.
+- `AI_PROVIDER=vertex` pentru Vertex AI, care consumă facturarea/creditele Google Cloud.
+- `VERTEX_AI_PROJECT_ID` și `VERTEX_AI_LOCATION` pentru Vertex AI. În Cloud Run, aplicația folosește automat identitatea service account-ului; pentru dezvoltare locală, vezi `docs/production.md`.
+- `GEMINI_API_KEY` rămâne disponibil doar ca fallback pentru Gemini Developer API / AI Studio.
 - `ELEVENLABS_API_KEY` for the optional voice preview API.
 
 Deschide [http://localhost:3010](http://localhost:3010).

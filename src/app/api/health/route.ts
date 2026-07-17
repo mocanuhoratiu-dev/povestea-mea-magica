@@ -6,21 +6,32 @@ function configured(value: string | undefined) {
 }
 
 export function GET() {
+  const aiProvider = process.env.AI_PROVIDER?.trim().toLowerCase() === "vertex" ? "vertex" : "gemini";
   const checks = {
     geminiApiKey: configured(process.env.GEMINI_API_KEY),
+    vertexAiProject: configured(process.env.VERTEX_AI_PROJECT_ID),
+    vertexAiCredentials:
+      configured(process.env.VERTEX_AI_SERVICE_ACCOUNT_JSON_BASE64) ||
+      configured(process.env.GOOGLE_APPLICATION_CREDENTIALS) ||
+      configured(process.env.K_SERVICE),
     elevenlabsApiKey: configured(process.env.ELEVENLABS_API_KEY),
   };
 
-  const ready = checks.geminiApiKey;
+  // Cloud Run exposes application default credentials through its runtime identity.
+  const storyAiReady = aiProvider === "vertex"
+    ? checks.vertexAiProject && checks.vertexAiCredentials
+    : checks.geminiApiKey;
+  const ready = storyAiReady;
 
   return NextResponse.json(
     {
       ready,
       siteMode,
+      aiProvider,
       environment: process.env.VERCEL_ENV || process.env.NODE_ENV || "unknown",
       checks,
       features: {
-        storyAi: checks.geminiApiKey,
+        storyAi: storyAiReady,
         storyFallback: true,
         voicePreview: checks.elevenlabsApiKey,
         stripeCheckout: false,
