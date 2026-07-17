@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck, Download, Sparkles, Star } from 'lucide-react';
 import MagicalLoader from './MagicalLoader';
+import { isProductionMode } from '@/lib/siteMode';
 
 /* ─── Types ─────────────────────────────────────── */
 interface Monster { id: string; label: string; icon: string; }
@@ -28,6 +29,8 @@ const monsters: Monster[] = [
   { id: 'monstrul de sub pat',   label: 'Monstrul de sub Pat',  icon: '🛌' },
   { id: 'zgomotele ciudate',     label: 'Zgomotele Ciudate',    icon: '🔊' },
   { id: 'dulapul scartaitor',    label: 'Dulapul Scârțâitor',   icon: '🚪' },
+  { id: 'frica de intuneric',    label: 'Frica de Întuneric',   icon: '🕯️' },
+  { id: 'vise urate',            label: 'Visele Urâte',         icon: '🌙' },
 ];
 
 const MONSTER_KITS: Record<string, MonsterKitContent> = {
@@ -154,6 +157,68 @@ const MONSTER_KITS: Record<string, MonsterKitContent> = {
       '5.  Închide ochii și dormi liniștit/ă!  ✓',
     ],
     labelIngredients: 'Picături de pace · Lumină galbenă · Cristale pentru uși cuminți'
+  },
+  'frica de intuneric': {
+    body: "întunericul din această cameră este transformat într-o <em>pătură de noapte blândă</em>. Nicio umbră nu are voie să pară mai mare decât este, iar fiecare colț primește o picătură de lumină curajoasă.",
+    ingredients: [
+      { num: '1', icon: '💧', name: 'Apă', detail: 'Apă de Stea Liniștită' },
+      { num: '2', icon: '🍯', name: 'O picătură de miere', detail: 'Miere de Gând Bun' },
+      { num: '3', icon: '🧂', name: 'Un praf de sare', detail: 'Cristale de Lumină Mică' }
+    ],
+    steps: [
+      { roman: 'I', l1: 'Agită flaconul lângă lumina de veghe,', l2: 'ca noaptea să devină prietenoasă.' },
+      { roman: 'II', l1: 'Pulverizează spre colțurile camerei,', l2: 'rostind cuvinte de curaj blând.' }
+    ],
+    spell: "Noapte bună, noapte lină, în cameră aprind lumină! Întuneric, fii cuminte, somnul bun vine-nainte!",
+    clauses: [
+      { art: 'Art. I', text: 'Întunericul este declarat pătură de somn, nu loc de speriat sau inventat griji.' },
+      { art: 'Art. II', text: 'Colțurile camerei primesc pază de lumină mică până dimineața.' },
+      { art: 'Art. III', text: 'Orice formă neclară trebuie să se prezinte drept mobilă, perdea sau jucărie.' },
+      { art: 'Art. IV', text: 'Curajul copilului crește cu fiecare respirație lentă și fiecare gând bun.' },
+    ],
+    signatures: [
+      { name: 'Luminel de Veghe', title: 'Paznicul Nopților Blânde' },
+      { name: 'Stela Somn-Ușor', title: 'Zâna Colțurilor Luminate' },
+    ],
+    instructionLines: [
+      '1.  Agită flaconul de 6 ori',
+      '2.  Rostește descântecul lângă pat',
+      '3.  Pulverizează spre colțuri',
+      '4.  Aprinde lumina de veghe pentru o clipă',
+      '5.  Respiră încet și lasă noaptea să fie blândă!  ✓',
+    ],
+    labelIngredients: 'Apă de stea · Miere de gând bun · Cristale de lumină'
+  },
+  'vise urate': {
+    body: "visele acestei nopți sunt filtrate printr-un <em>nor de povești bune</em>. Orice vis încurcat trebuie să treacă prin poarta curajului și să se transforme într-o aventură mică, sigură și luminoasă.",
+    ingredients: [
+      { num: '1', icon: '💧', name: 'Apă', detail: 'Rouă de Vis Bun' },
+      { num: '2', icon: '🍋', name: 'Zeamă de lămâie', detail: 'Rază Galbenă de Dimineață' },
+      { num: '3', icon: '🍬', name: 'Un vârf de zahăr', detail: 'Pulbere de Nor Pufos' }
+    ],
+    steps: [
+      { roman: 'I', l1: 'Amestecă ingredientele în liniște,', l2: 'imaginând un nor moale deasupra pernei.' },
+      { roman: 'II', l1: 'Pulverizează lângă pernă, nu pe pernă,', l2: 'și invită doar visele bune să intre.' }
+    ],
+    spell: "Vise rele, rătăciți, în nori pufoși vă risipiți! Vine somnul bun și clar, cu lumină-n buzunar!",
+    clauses: [
+      { art: 'Art. I', text: 'Visele urâte sunt obligate să se micșoreze până devin povești fără putere de speriat.' },
+      { art: 'Art. II', text: 'Perna primește pază de nor pufos și gânduri bune până dimineața.' },
+      { art: 'Art. III', text: 'Orice imagine neplăcută trebuie să se transforme într-o scenă sigură, amuzantă sau luminoasă.' },
+      { art: 'Art. IV', text: 'Copilul poate cere ajutor, apă, îmbrățișare sau o poveste scurtă ori de câte ori are nevoie.' },
+    ],
+    signatures: [
+      { name: 'Noris Puf-de-Vis', title: 'Filtratorul Viselor Încurcate' },
+      { name: 'Mira Dimineață-Bună', title: 'Zâna Gândurilor Luminoase' },
+    ],
+    instructionLines: [
+      '1.  Agită flaconul de 5 ori',
+      '2.  Rostește descântecul în șoaptă',
+      '3.  Pulverizează lângă pat, nu pe pernă',
+      '4.  Alege un gând bun pentru vis',
+      '5.  Închide ochii și lasă norul pufos să vegheze!  ✓',
+    ],
+    labelIngredients: 'Rouă de vis bun · Rază de dimineață · Nor pufos'
   }
 };
 
@@ -238,6 +303,8 @@ const monsterCopy: Record<string, { target: string; label: string }> = {
   'monstrul de sub pat': { target: 'monstrului de sub pat', label: 'MONSTRU DE SUB PAT' },
   'zgomotele ciudate': { target: 'zgomotelor ciudate', label: 'ZGOMOTE CIUDATE' },
   'dulapul scartaitor': { target: 'dulapului scârțâitor', label: 'DULAP SCÂRȚÂITOR' },
+  'frica de intuneric': { target: 'fricii de întuneric', label: 'ÎNTUNERIC' },
+  'vise urate': { target: 'viselor urâte', label: 'VISE URÂTE' },
 };
 
 const monsterDefaults: Record<string, { location: string; helper: string; ritual: string }> = {
@@ -260,6 +327,16 @@ const monsterDefaults: Record<string, { location: string; helper: string; ritual
     location: 'ușile dulapului',
     helper: 'pătura preferată',
     ritual: 'spus noapte bună hainelor din dulap',
+  },
+  'frica de intuneric': {
+    location: 'colțurile întunecate ale camerei',
+    helper: 'lumina de veghe sau o lanternă mică',
+    ritual: 'număratul a trei lucruri sigure din cameră',
+  },
+  'vise urate': {
+    location: 'lângă pat și noptieră',
+    helper: 'o poveste scurtă cu final bun',
+    ritual: 'alegerea unui gând frumos pentru vis',
   },
 };
 
@@ -481,7 +558,9 @@ export default function MonsterKit() {
             Scut Magic <span className="text-brand-gold">pentru Noapte</span> 🛡️
           </h2>
           <p className="mt-4 text-brand-cream/70 text-lg max-w-xl mx-auto">
-            Generează o previzualizare printabilă cu certificat, rețeta spray-ului magic și etichete pentru flacon.
+            {isProductionMode
+              ? 'Generează un kit printabil cu certificat, rețeta spray-ului magic și etichete pentru flacon.'
+              : 'Generează o previzualizare printabilă cu certificat, rețeta spray-ului magic și etichete pentru flacon.'}
           </p>
         </div>
 
@@ -583,6 +662,10 @@ export default function MonsterKit() {
                 ))}
               </div>
             </div>
+
+            <p className="rounded-2xl bg-brand-gold/15 border border-brand-gold/30 px-5 py-4 text-sm font-bold leading-relaxed text-brand-navy/65">
+              Notă pentru adult: spray-ul magic este un ritual simbolic de joacă. Prepară-l doar cu ingrediente alimentare inofensive, pulverizează în aer sau lângă obiecte, niciodată pe piele, față, ochi, pernă sau animale.
+            </p>
 
             <motion.button
               type="submit" disabled={!name.trim()}

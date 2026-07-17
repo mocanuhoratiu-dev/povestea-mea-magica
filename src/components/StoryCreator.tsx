@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Castle, FileText, Image as ImageIcon, RefreshCw, Rocket, ShieldCheck, Sparkles, Star, Trees } from "lucide-react";
 import MagicalLoader from "./MagicalLoader";
+import { isProductionMode, siteCopy } from "@/lib/siteMode";
 
 const STORY_PDF_STYLES = `
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap');
@@ -213,8 +214,18 @@ const toneOptions = [
 ];
 
 const packages = [
-  { id: "pdf", name: "Poveste PDF", desc: "Generează și descarcă o previzualizare", price: "PDF" },
-  { id: "full", name: "Poveste + Audio", desc: "PDF + test de voce în browser", price: "Audio" }
+  {
+    id: "pdf",
+    name: "Poveste PDF",
+    desc: isProductionMode ? "Generează și descarcă PDF-ul personalizat" : "Generează și descarcă o previzualizare",
+    price: "PDF",
+  },
+  {
+    id: "full",
+    name: "Poveste + Audio",
+    desc: isProductionMode ? "PDF + test audio în browser" : "PDF + test de voce în browser",
+    price: "Audio",
+  }
 ];
 
 const backgroundStars = Array.from({ length: 20 }, (_, i) => ({
@@ -626,7 +637,7 @@ export default function StoryCreator() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               {imageUrl && <img src={imageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
             </div>
-            <p className="story-cover-footer">Povestea Mea Magică · Previzualizare</p>
+            <p className="story-cover-footer">Povestea Mea Magică · {isProductionMode ? "Poveste personalizată" : "Previzualizare"}</p>
           </div>
         </div>
 
@@ -842,7 +853,7 @@ export default function StoryCreator() {
             </h2>
           </motion.div>
           <p className="mt-4 text-brand-cream/90 text-lg md:text-xl font-medium">
-            Testează o poveste personalizată înainte să activăm comenzile plătite
+            {siteCopy.storyIntro}
           </p>
         </div>
 
@@ -898,6 +909,9 @@ export default function StoryCreator() {
                 <label className="block text-sm md:text-base font-black text-brand-navy mb-2 md:mb-3 uppercase tracking-wider">
                   Detalii despre lume
                 </label>
+                <p className="mb-3 text-sm font-bold leading-relaxed text-brand-navy/45">
+                  Scrie 1-2 imagini concrete. Exemplu: o pădure cu licurici albaștri, o rachetă roz sau un castel din nori.
+                </p>
                 <input
                   type="text"
                   placeholder="Ex: o rachetă roz, o pădure cu licurici, un castel din nori..."
@@ -924,6 +938,9 @@ export default function StoryCreator() {
                 <label className="block text-sm md:text-base font-black text-brand-navy mb-2 md:mb-3 uppercase tracking-wider">
                   Cum să apară lecția
                 </label>
+                <p className="mb-3 text-sm font-bold leading-relaxed text-brand-navy/45">
+                  Spune ce vrei să exerseze copilul prin acțiune, nu ca morală. Exemplu: să ceară ajutor sau să spună ce simte.
+                </p>
                 <input
                   type="text"
                   placeholder="Ex: să prindă curaj fără să fie împinsă, să împartă când simte că e pregătită..."
@@ -959,6 +976,9 @@ export default function StoryCreator() {
                 <label className="block text-sm md:text-base font-black text-brand-navy mb-2 md:mb-3 uppercase tracking-wider">
                   Detalii despre copil
                 </label>
+                <p className="mb-3 text-sm font-bold leading-relaxed text-brand-navy/45">
+                  Cele mai bune povești ies din detalii mici: jucăria preferată, culoarea favorită, animalul iubit, ceva ce îl/o liniștește.
+                </p>
                 <textarea
                   placeholder="Opțional: iubește trenurile, are o pisică pe nume Mimi, e curioasă, adoarme greu seara..."
                   value={storyDetails}
@@ -972,7 +992,7 @@ export default function StoryCreator() {
             <div className="flex flex-col justify-between space-y-8">
               <div className="bg-brand-cream/30 p-6 md:p-8 rounded-[2rem] border-2 border-dashed border-brand-purple/20">
                 <h4 className="font-black text-brand-navy text-lg mb-6 flex items-center gap-2">
-                  <ShieldCheck className="text-brand-purple" /> Alege previzualizarea
+                  <ShieldCheck className="text-brand-purple" /> {siteCopy.storyPackageTitle}
                 </h4>
                 <div className="space-y-4">
                   {packages.map((pkg) => (
@@ -1001,7 +1021,7 @@ export default function StoryCreator() {
                   disabled={!name}
                   className="w-full bg-brand-purple text-white py-5 md:py-6 rounded-2xl md:rounded-[2.5rem] font-black text-xl md:text-2xl shadow-2xl hover:bg-brand-navy transition-all flex items-center justify-center gap-4 disabled:opacity-30 disabled:cursor-not-allowed group"
                 >
-                  Generează previzualizarea <Sparkles className="group-hover:rotate-12 transition-transform" />
+                  {siteCopy.storyGenerateCta} <Sparkles className="group-hover:rotate-12 transition-transform" />
                 </button>
 
                 <button
@@ -1009,7 +1029,7 @@ export default function StoryCreator() {
                   disabled={isVoiceLoading || !name}
                   className="w-full bg-brand-cream text-brand-purple py-4 rounded-2xl font-bold text-lg shadow-md hover:bg-white transition-all flex items-center justify-center gap-2 border-2 border-brand-purple/20"
                 >
-                  {isVoiceLoading ? <Sparkles className="animate-spin w-5 h-5" /> : "🎧 Ascultă un test (Previzualizare)"}
+                  {isVoiceLoading ? <Sparkles className="animate-spin w-5 h-5" /> : `🎧 ${siteCopy.voicePreviewCta}`}
                 </button>
               </div>
             </div>

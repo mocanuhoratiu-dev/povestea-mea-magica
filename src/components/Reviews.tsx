@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Star } from "lucide-react";
+import { isProductionMode } from "@/lib/siteMode";
 
 const testimonials = [
   {
@@ -11,7 +12,7 @@ const testimonials = [
   },
   {
     name: "PDF-uri gata de folosit",
-    role: "Previzualizare, editare și descărcare locală",
+    role: isProductionMode ? "Editare, verificare și descărcare locală" : "Previzualizare, editare și descărcare locală",
     text: "Părintele poate verifica textul, ajusta povestea și descărca un material printabil fără pași tehnici complicați.",
   },
   {

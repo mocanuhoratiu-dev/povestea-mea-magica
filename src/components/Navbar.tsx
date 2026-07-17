@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Sparkles } from "lucide-react";
 import Link from "next/link";
+import { siteCopy } from "@/lib/siteMode";
 
 export default function Navbar() {
   return (
@@ -46,7 +47,7 @@ export default function Navbar() {
           href="#creator"
           className="bg-brand-navy text-white px-5 md:px-8 py-2.5 md:py-3 rounded-full font-black text-sm md:text-base hover:bg-brand-purple transition-all shadow-lg active:scale-95"
         >
-          Încearcă gratuit
+          {siteCopy.navCta}
         </Link>
       </div>
     </motion.nav>

@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { UserCircle, Wand, Rocket } from "lucide-react";
+import { isProductionMode, siteCopy } from "@/lib/siteMode";
 
 const steps = [
   {
@@ -21,7 +22,9 @@ const steps = [
   {
     icon: <Rocket className="w-10 h-10 text-white" />,
     title: "Descarcă și testează",
-    description: "Generezi o previzualizare, o asculți în browser și descarci PDF-ul ca să vezi exact cum arată produsul.",
+    description: isProductionMode
+      ? "Generezi conținutul, îl verifici în browser și descarci PDF-ul pregătit pentru print sau citit seara."
+      : "Generezi o previzualizare, o asculți în browser și descarci PDF-ul ca să vezi exact cum arată produsul.",
     color: "bg-brand-blue",
     shadow: "shadow-brand-blue/30",
   },
@@ -41,7 +44,7 @@ export default function HowItWorks() {
             whileInView={{ opacity: 1, scale: 1 }}
             className="inline-block px-6 py-2 rounded-full bg-brand-blue/10 text-brand-blue font-bold text-sm mb-4"
           >
-            Previzualizare interactivă
+            {siteCopy.heroBadge}
           </motion.div>
           <motion.h2
             initial={{ opacity: 0, y: 20 }}

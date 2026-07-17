@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Utensils, Car, Stethoscope, CloudRain, Sparkles, Download, ShieldCheck } from "lucide-react";
+import { Utensils, Car, Stethoscope, CloudRain, Sparkles, Download, ShieldCheck, Plane, Clock3 } from "lucide-react";
 import MagicalLoader from "./MagicalLoader";
 
 type TrueFalseItem = {
@@ -195,6 +195,8 @@ const contexts = [
   { id: "la un drum lung cu masina", label: "La Drum Lung", icon: <Car /> },
   { id: "in sala de asteptare la doctor", label: "La Doctor", icon: <Stethoscope /> },
   { id: "in casa, ploua afara", label: "Acasă (Ploaie)", icon: <CloudRain /> },
+  { id: "in aeroport sau avion", label: "Aeroport/Avion", icon: <Plane /> },
+  { id: "la coada sau institutii", label: "La Coadă", icon: <Clock3 /> },
 ];
 
 const durationOptions = [
@@ -300,6 +302,52 @@ const EMERGENCY_KITS: Record<string, EmergencyKitData> = {
       { q: "Ploaia ajută plantele să crească.", a: "Adevărat. Apa din ploaie hrănește plantele și pământul." },
       { q: "Norii sunt făcuți din vată de zahăr.", a: "Fals. Norii sunt formați din picături foarte mici de apă sau cristale de gheață." },
       { q: "Putem inventa jocuri interesante chiar și când stăm în casă.", a: "Adevărat. Imaginația poate transforma camera într-o lume întreagă." },
+    ],
+  },
+  "in aeroport sau avion": {
+    missionTitle: "Expediția Norilor Cuminți",
+    missionNote: "Creată pentru aeroporturi, porți de îmbarcare și zboruri, când răbdarea trebuie să stea pe scaun cu centura pusă.",
+    radar: [
+      "Un panou cu litere sau numere",
+      "O valiză cu o culoare interesantă",
+      "Un avion, o poartă sau o uniformă",
+      "Un sunet făcut de roți, anunțuri sau motoare",
+    ],
+    riddle: "Am aripi, dar nu sunt pasăre, duc oameni peste zare. Cine sunt?",
+    drawing: "Desenează avionul vostru transformat într-o navă care adună nori pufoși.",
+    patience: "Turnul de Control Calm: inspiră când vezi o valiză, expiră când auzi un anunț. Repetă de 5 ori.",
+    story_starters: [
+      "La poarta de îmbarcare, o valiză mov a început să șoptească o hartă secretă...",
+      "Avionul cu aripi de nor căuta un copilot curajos care să numere stelele...",
+      "Un pașaport magic a deschis o ușă către o țară făcută din nori pufoși...",
+    ],
+    true_or_false: [
+      { q: "Avioanele au aripi care le ajută să se ridice în aer.", a: "Adevărat. Forma aripilor ajută avionul să zboare." },
+      { q: "Centura din avion este doar decor.", a: "Fals. Centura ajută pasagerii să stea în siguranță." },
+      { q: "În aeroport, panourile ajută oamenii să găsească zborul potrivit.", a: "Adevărat. Ele arată porți, ore și destinații." },
+    ],
+  },
+  "la coada sau institutii": {
+    missionTitle: "Misiunea Răbdării Oficiale",
+    missionNote: "Creată pentru cozi, ghișee și instituții, când timpul trece mai încet și copilul are nevoie de o misiune discretă.",
+    radar: [
+      "Un număr afișat, un tichet sau un ceas",
+      "O persoană cu un obiect albastru",
+      "Un scaun liber sau o plantă",
+      "Un semn cu litere mari",
+    ],
+    riddle: "Stau la rând fără să fug, aștept calm și nu mă smulg. Ce exersez?",
+    drawing: "Desenează un robot politicos care știe să stea la rând și să zâmbească.",
+    patience: "Agentul Tăcut: alege 5 obiecte din jur și inventează pentru fiecare o superputere în șoaptă.",
+    story_starters: [
+      "Într-o instituție foarte serioasă, un creion a primit misiunea să facă lumea să zâmbească...",
+      "Un tichet de ordine a fugit de pe ecran și a cerut ajutorul unui agent răbdător...",
+      "Când coada a devenit prea lungă, podeaua s-a transformat într-o hartă secretă...",
+    ],
+    true_or_false: [
+      { q: "Când stăm la rând, fiecare persoană își așteaptă rândul.", a: "Adevărat. Rândul ajută oamenii să fie tratați corect." },
+      { q: "Răbdarea înseamnă să nu ai niciodată emoții.", a: "Fals. Poți avea emoții și totuși poți aștepta cu ajutor." },
+      { q: "Un joc de observație poate face așteptarea să pară mai scurtă.", a: "Adevărat. Când mintea are o misiune, timpul trece mai ușor." },
     ],
   },
 };
@@ -492,7 +540,7 @@ export default function EmergencyKit() {
               <label className="block font-nunito font-black text-brand-navy text-lg mb-4 text-center">
                 Unde vă aflați acum?
               </label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                 {contexts.map(c => (
                   <button key={c.id} type="button" onClick={() => setSelectedContext(c.id)}
                     className={`flex flex-col items-center gap-3 p-5 rounded-2xl border-4 transition-all duration-200 ${

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { siteMode } from "@/lib/siteMode";
 
 export async function POST(req: Request) {
   const body = await req.text();
@@ -8,7 +9,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       received: true,
-      mode: "demo",
+      mode: siteMode,
       message: `Stripe fulfillment is intentionally parked for later. Ignored event: ${event.type || "unknown"}.`,
     });
   } catch (err) {

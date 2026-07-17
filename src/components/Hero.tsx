@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { motion, useSpring, useMotionValue, useTransform } from "framer-motion";
 import Image from "next/image";
+import { siteCopy } from "@/lib/siteMode";
 
 export default function Hero() {
   const mouseX = useMotionValue(0);
@@ -78,7 +79,7 @@ export default function Hero() {
               whileTap={{ scale: 0.95 }}
               className="bg-brand-purple text-brand-cream px-10 py-5 rounded-[2rem] font-extrabold text-xl shadow-2xl hover:shadow-brand-purple/40 transition-all animate-glow text-center border-b-4 border-brand-purple-light"
             >
-              Creează o previzualizare
+              {siteCopy.heroCta}
             </motion.a>
           </div>
         </motion.div>

@@ -1,6 +1,6 @@
 # Production Setup
 
-This project is ready to run as a production demo before Stripe is enabled. The main production risk is AI provider availability: free Gemini quota can return high-demand or quota errors, so production should use a Gemini key with billing/quota enabled.
+This project is ready to run as a production pre-commerce experience before Stripe is enabled. The main production risk is AI provider availability: free Gemini quota can return high-demand or quota errors, so production should use a Gemini key with billing/quota enabled.
 
 ## Pre-Deploy Checks
 
@@ -16,10 +16,13 @@ npm run build
 Set these in the hosting provider for Production and Preview environments:
 
 ```bash
+NEXT_PUBLIC_SITE_MODE=production
 GEMINI_API_KEY=
 GEMINI_MODEL=gemini-2.5-flash
 GEMINI_FALLBACK_MODELS=gemini-2.0-flash
 ```
+
+`NEXT_PUBLIC_SITE_MODE=production` removes demo/free wording from the public website copy. Use `demo` locally or on preview deployments when testing unfinished commercial flows.
 
 `GEMINI_API_KEY` is required for real AI story generation. The app has a local fallback story path, but paying customers should not depend on it.
 
@@ -58,6 +61,7 @@ Expected production health response:
 ```json
 {
   "ready": true,
+  "siteMode": "production",
   "checks": {
     "geminiApiKey": true,
     "elevenlabsApiKey": true
@@ -79,5 +83,5 @@ If `ready` is `false`, production is missing the Gemini key.
 - Confirm `/api/health` is ready on production.
 - Generate at least three stories with different ages/themes.
 - Download all three PDFs from production.
-- Confirm legal pages still match the no-payment/demo state.
+- Confirm legal pages still match the no-payment production state.
 - Keep Stripe variables unset until checkout and fulfillment are implemented.

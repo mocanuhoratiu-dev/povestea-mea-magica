@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Sparkles, ChevronLeft } from "lucide-react";
+import { isProductionMode } from "@/lib/siteMode";
 
 export default function TermsPage() {
   return (
@@ -18,22 +19,38 @@ export default function TermsPage() {
           <div className="prose prose-brand max-w-none text-brand-navy/80 space-y-8 font-medium">
             <section>
               <h2 className="text-2xl font-black text-brand-navy mb-4">1. Introducere</h2>
-              <p>Bun venit la Povestea Mea Magică! Site-ul este în prezent disponibil ca demo interactiv. Prin folosirea lui, ești de acord cu termenii descriși mai jos.</p>
+              <p>
+                {isProductionMode
+                  ? "Bun venit la Povestea Mea Magică! Site-ul oferă instrumente digitale pentru generarea de povești și kituri personalizate pentru copii. Prin folosirea lui, ești de acord cu termenii descriși mai jos."
+                  : "Bun venit la Povestea Mea Magică! Site-ul este în prezent disponibil ca demo interactiv. Prin folosirea lui, ești de acord cu termenii descriși mai jos."}
+              </p>
             </section>
 
             <section>
               <h2 className="text-2xl font-black text-brand-navy mb-4">2. Serviciul Nostru</h2>
-              <p>Demo-ul permite generarea de povești digitale, kituri anti-frică și truse de activități pe baza datelor introduse de utilizator, precum nume, vârstă, temă sau context. Un adult ar trebui să verifice conținutul înainte de a-l folosi cu un copil.</p>
+              <p>
+                {isProductionMode
+                  ? "Serviciul permite generarea de povești digitale, kituri anti-frică și truse de activități pe baza datelor introduse de utilizator, precum nume, vârstă, temă sau context. Un adult ar trebui să verifice conținutul înainte de a-l folosi cu un copil."
+                  : "Demo-ul permite generarea de povești digitale, kituri anti-frică și truse de activități pe baza datelor introduse de utilizator, precum nume, vârstă, temă sau context. Un adult ar trebui să verifice conținutul înainte de a-l folosi cu un copil."}
+              </p>
             </section>
 
             <section>
               <h2 className="text-2xl font-black text-brand-navy mb-4">3. Plăți și Livrare</h2>
-              <p>Plățile online și livrarea automată pe email nu sunt active în modul demo. Fișierele generate pot fi descărcate local din browser, iar fluxul comercial complet va fi comunicat separat la lansare.</p>
+              <p>
+                {isProductionMode
+                  ? "În versiunea curentă, plățile online și livrarea automată pe email nu sunt încă active. Fișierele generate pot fi descărcate local din browser, iar fluxul comercial complet va fi activat separat."
+                  : "Plățile online și livrarea automată pe email nu sunt active în modul demo. Fișierele generate pot fi descărcate local din browser, iar fluxul comercial complet va fi comunicat separat la lansare."}
+              </p>
             </section>
 
             <section>
               <h2 className="text-2xl font-black text-brand-navy mb-4">4. Drepturi de Autor</h2>
-              <p>Textele și machetele generate în demo sunt oferite pentru testare și uz personal. Nu este permisă revânzarea sau redistribuirea lor ca produs comercial fără acord scris.</p>
+              <p>
+                {isProductionMode
+                  ? "Textele și machetele generate sunt oferite pentru uz personal. Nu este permisă revânzarea sau redistribuirea lor ca produs comercial fără acord scris."
+                  : "Textele și machetele generate în demo sunt oferite pentru testare și uz personal. Nu este permisă revânzarea sau redistribuirea lor ca produs comercial fără acord scris."}
+              </p>
             </section>
 
             <section>

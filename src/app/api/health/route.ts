@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { siteMode } from "@/lib/siteMode";
 
 function configured(value: string | undefined) {
   return Boolean(value && value.trim().length > 0);
@@ -15,6 +16,7 @@ export function GET() {
   return NextResponse.json(
     {
       ready,
+      siteMode,
       environment: process.env.VERCEL_ENV || process.env.NODE_ENV || "unknown",
       checks,
       features: {

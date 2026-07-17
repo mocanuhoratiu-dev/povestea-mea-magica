@@ -2,6 +2,7 @@
 
 import { Sparkles } from "lucide-react";
 import Link from "next/link";
+import { siteCopy } from "@/lib/siteMode";
 
 export default function Footer() {
   return (
@@ -25,15 +26,17 @@ export default function Footer() {
             <ul className="space-y-4 text-brand-cream/60">
               <li><Link href="/termeni-si-conditii" className="hover:text-brand-gold transition-colors">Termeni și Condiții</Link></li>
               <li><Link href="/politica-de-confidentialitate" className="hover:text-brand-gold transition-colors">Politică de Confidențialitate</Link></li>
+              <li><Link href="/politica-de-rambursare" className="hover:text-brand-gold transition-colors">Politică de Rambursare</Link></li>
+              <li><Link href="/siguranta-ai" className="hover:text-brand-gold transition-colors">Siguranță AI</Link></li>
               <li><Link href="mailto:contact@povesteamagica.ro" className="hover:text-brand-gold transition-colors">Contact</Link></li>
               <li><Link href="#creator" className="hover:text-brand-gold transition-colors">Atelierul de Povești</Link></li>
             </ul>
           </div>
 
           <div>
-            <h4 className="font-bold text-lg mb-6">Status Lansare</h4>
+            <h4 className="font-bold text-lg mb-6">{siteCopy.footerStatusTitle}</h4>
             <p className="text-sm text-brand-cream/60 mb-4">
-              Site-ul este în modul demo. Comenzile plătite și livrarea automată vor fi activate separat.
+              {siteCopy.footerStatusText}
             </p>
             <Link href="mailto:contact@povesteamagica.ro" className="inline-flex rounded-xl bg-brand-cream/10 px-4 py-3 text-sm font-bold hover:bg-brand-purple transition-colors">
               Scrie-ne

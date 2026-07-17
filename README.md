@@ -1,10 +1,10 @@
 # Povestea Mea Magică
 
-Demo Next.js pentru un produs digital în limba română: povești personalizate pentru copii, kituri anti-frică și truse rapide de activități pentru părinți.
+Produs digital Next.js în limba română: povești personalizate pentru copii, kituri anti-frică și truse rapide de activități pentru părinți.
 
 ## Status
 
-- Modul curent: demo interactiv.
+- Modul curent: experiență pre-commerce, cu mod demo/local controlat prin `NEXT_PUBLIC_SITE_MODE`.
 - Plăți Stripe: intenționat amânate pentru o etapă ulterioară.
 - Livrare email/comenzi: neactivată încă.
 - Generare AI: Gemini pentru text, ElevenLabs pentru previzualizare audio.
@@ -26,6 +26,7 @@ cp .env.example .env.local
 
 Completează:
 
+- `NEXT_PUBLIC_SITE_MODE` as `demo` locally or `production` on the public site.
 - `GEMINI_API_KEY` for AI story generation.
 - `GEMINI_MODEL` and `GEMINI_FALLBACK_MODELS` to control Gemini model fallback without code changes.
 - `ELEVENLABS_API_KEY` for the optional voice preview API.
