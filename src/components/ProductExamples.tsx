@@ -27,13 +27,13 @@ export default function ProductExamples() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-14 text-center">
           <div className="inline-flex rounded-full bg-white px-5 py-2 text-sm font-black uppercase tracking-widest text-brand-purple">
-            Exemple reale PDF
+            Materiale gata de generare
           </div>
           <h2 className="mt-5 font-nunito text-4xl md:text-5xl font-extrabold text-brand-navy">
-            Vezi cum arată materialele înainte de launch
+            Descoperă materialele personalizate
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg font-medium leading-relaxed text-brand-navy/65">
-            Exemplele sunt randări reale din PDF-urile generate în browser, folosite pentru verificarea layout-ului.
+            Fiecare PDF este creat din alegerile tale și pregătit pentru citit, print sau folosit imediat.
           </p>
         </div>
 

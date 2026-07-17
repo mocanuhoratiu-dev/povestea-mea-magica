@@ -9,7 +9,6 @@ export const siteCopy = {
   storyIntro: "Alege produsul, vezi prețul de lansare și generează direct PDF-ul personalizat în browser.",
   storyPackageTitle: "Produsul ales",
   storyGenerateCta: "Generează povestea",
-  voicePreviewCta: "Ascultă un fragment audio",
   footerStatusTitle: "Generare directă",
   footerStatusText: "Poveștile și kiturile se generează și se descarcă digital. Prețurile sunt afișate, iar plata online va fi activată ulterior.",
 };

@@ -643,7 +643,7 @@ export default function MonsterKit() {
               </div>
             </div>
 
-            {/* Preview what's inside */}
+            {/* PDF contents */}
             <div className="bg-brand-navy/5 rounded-2xl p-6 border-2 border-dashed border-brand-navy/10">
               <p className="font-bold text-brand-navy/60 text-sm uppercase tracking-wider mb-4 flex items-center gap-2">
                 <Sparkles size={14} /> Ce primești în PDF

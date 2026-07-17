@@ -421,7 +421,6 @@ export default function StoryCreator() {
   const [generationNote, setGenerationNote] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [showResult, setShowResult] = useState(false);
-  const [isVoiceLoading, setIsVoiceLoading] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
@@ -492,38 +491,6 @@ export default function StoryCreator() {
     if (!storyText || !storyTitle) return;
     const fallbackPrompt = imagePrompt || `${storyTitle}. ${storyText.slice(0, 700)}`;
     refreshImage(fallbackPrompt, storyTitle);
-  };
-
-  const handleTestVoice = async () => {
-    if (!name) {
-      alert("Introdu un nume pentru test!");
-      return;
-    }
-    setIsVoiceLoading(true);
-    try {
-      const testText = `Salut, ${name}! Sunt gata să-ți citesc o poveste magică. Ești pregătit?`;
-      const response = await fetch("/api/narrate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: testText }),
-      });
-      
-      if (!response.ok) {
-        const errJson = await response.json();
-        alert(`❌ Eroare Voce: ${errJson.error?.message || errJson.detail?.status || "Ceva nu a mers bine"}`);
-        return;
-      }
-
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const audio = new Audio(url);
-      audio.play();
-    } catch (err) {
-      console.error(err);
-      alert("Eroare la voce.");
-    } finally {
-      setIsVoiceLoading(false);
-    }
   };
 
     const [isSpeaking, setIsSpeaking] = useState(false);
@@ -1015,14 +982,6 @@ export default function StoryCreator() {
                   className="w-full bg-brand-purple text-white py-5 md:py-6 rounded-2xl md:rounded-[2.5rem] font-black text-xl md:text-2xl shadow-2xl hover:bg-brand-navy transition-all flex items-center justify-center gap-4 disabled:opacity-30 disabled:cursor-not-allowed group"
                 >
                   {siteCopy.storyGenerateCta} <Sparkles className="group-hover:rotate-12 transition-transform" />
-                </button>
-
-                <button
-                  onClick={handleTestVoice}
-                  disabled={isVoiceLoading || !name}
-                  className="w-full bg-brand-cream text-brand-purple py-4 rounded-2xl font-bold text-lg shadow-md hover:bg-white transition-all flex items-center justify-center gap-2 border-2 border-brand-purple/20"
-                >
-                  {isVoiceLoading ? <Sparkles className="animate-spin w-5 h-5" /> : `🎧 ${siteCopy.voicePreviewCta}`}
                 </button>
               </div>
             </div>
