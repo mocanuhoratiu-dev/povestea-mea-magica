@@ -310,6 +310,58 @@ function getStoryLengthConfig(age: string | undefined) {
   return { wordTarget: "2.200-2.400", minWords: 2200, paragraphTarget: "24-26", maxOutputTokens: 7800 };
 }
 
+function getWordCount(value: string) {
+  return sanitizeStoryText(value).split(/\s+/).filter(Boolean).length;
+}
+
+function buildStoryContinuationPrompt({
+  data,
+  themeLabel,
+  title,
+  storySoFar,
+  targetWords,
+}: {
+  data: GenerateRequest;
+  themeLabel: string;
+  title: string;
+  storySoFar: string;
+  targetWords: number;
+}) {
+  const name = cleanPromptValue(data.name, "Eroul");
+  const age = cleanPromptValue(data.age, "4");
+  const lesson = cleanPromptValue(data.lesson, "Curaj și încredere");
+  const tone = cleanPromptValue(data.tone, "Liniștită de somn");
+  const worldDetail = cleanPromptValue(data.themeDetail);
+  const lessonDetail = cleanPromptValue(data.lessonDetail);
+  const childDetails = cleanPromptValue(data.context);
+
+  return `Continuă această poveste personalizată pentru copil. Povestea de mai jos este deja prima parte; NU o repeta și NU o rezuma.
+
+DATE OBLIGATORII:
+- copil: ${name}, ${age} ani
+- lume: ${themeLabel}${worldDetail ? `, cu detaliul: ${worldDetail}` : ""}
+- lecție: ${lesson}${lessonDetail ? `, arătată prin: ${lessonDetail}` : ""}${childDetails ? `
+- detaliu personal de păstrat: ${childDetails}` : ""}
+- ton: ${tone}
+
+PARTEA SCRISĂ DEJA:
+${storySoFar}
+
+SARCINĂ:
+- Scrie EXCLUSIV continuarea, nu rescrie partea de mai sus.
+- Continuarea începe cu o nouă mică întorsătură firească în aceeași aventură, apoi dezvoltă două-trei scene noi și se încheie din nou liniștitor, pregătind somnul.
+- Scrie aproximativ ${targetWords} cuvinte, în 10-12 paragrafe separate prin două newline-uri. Fiecare paragraf are o acțiune, un dialog sau o observație senzorială. Nu comprima finalul.
+- ${name} rămâne personaj activ; lumea aleasă și lecția schimbă în mod real ce se întâmplă.
+- Română naturală, potrivită pentru ${age} ani. Fără markdown, emoji, violență sau explicații morale.
+
+Returnează DOAR JSON valid, fără \`\`\`json și fără text înainte/după:
+{
+  "title": "${title}",
+  "text": "doar continuarea, cu paragrafe separate prin două newline-uri",
+  "imagePrompt": "English prompt for the same square children's book cover, based on the completed story, no text"
+}`;
+}
+
 function buildStoryPrompt(data: GenerateRequest, themeLabel: string): StoryPromptConfig {
   const name = cleanPromptValue(data.name, "Eroul");
   const age = cleanPromptValue(data.age, "4");
@@ -688,7 +740,7 @@ export async function POST(req: Request) {
 
     if (data.type === "story") {
       const themeLabel = data.theme === 'space' ? 'Spațiu' : data.theme === 'forest' ? 'Pădure Fermecată' : 'Castel Magic';
-      const { prompt, maxOutputTokens } = buildStoryPrompt(data, themeLabel);
+      const { prompt, maxOutputTokens, minWords } = buildStoryPrompt(data, themeLabel);
 
       const generated = await generateStoryWithModelFallback({
         prompt,
@@ -712,7 +764,43 @@ export async function POST(req: Request) {
         });
       }
 
-      return NextResponse.json({ success: true, data: { ...result, model: generated.model } });
+      // Gemini can occasionally stop early even with a generous output limit. Add a coherent
+      // second act instead of returning a thin story that leaves most PDF pages blank.
+      let wordCount = getWordCount(result.text);
+      for (let attempt = 0; wordCount < minWords && attempt < 2; attempt += 1) {
+        const targetWords = Math.max(1200, minWords - wordCount + 400);
+        const continuation = await generateStoryWithModelFallback({
+          prompt: buildStoryContinuationPrompt({
+            data,
+            themeLabel,
+            title: result.title,
+            storySoFar: result.text,
+            targetWords,
+          }),
+          maxOutputTokens: Math.max(maxOutputTokens, 6200),
+        });
+
+        if ("error" in continuation) {
+          break;
+        }
+
+        try {
+          const addition = sanitizeStoryPayload(parseStoryJson(continuation.text), data.name || "Eroul", themeLabel).text;
+          if (getWordCount(addition) < 400) {
+            break;
+          }
+          result = { ...result, text: `${result.text}\n\n${addition}` };
+          wordCount = getWordCount(result.text);
+        } catch {
+          break;
+        }
+      }
+
+      return NextResponse.json({
+        success: true,
+        data: { ...result, model: generated.model },
+        ...(wordCount < minWords ? { warning: "Povestea este mai scurtă decât ținta din cauza unui răspuns AI incomplet." } : {}),
+      });
     }
 
     if (data.type === "emergency") {
