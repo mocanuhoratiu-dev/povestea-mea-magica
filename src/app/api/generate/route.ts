@@ -295,12 +295,12 @@ function cleanPromptValue(value: unknown, fallback = "") {
 function getStoryLengthConfig(age: string | undefined) {
   const ageNumber = Number.parseInt(age || "", 10) || 4;
   if (ageNumber <= 3) {
-    return { wordTarget: "520-680", paragraphTarget: "6-7", maxOutputTokens: 1400 };
+    return { wordTarget: "520-680", paragraphTarget: "6-7", maxOutputTokens: 2200 };
   }
   if (ageNumber <= 6) {
-    return { wordTarget: "650-820", paragraphTarget: "7-8", maxOutputTokens: 1700 };
+    return { wordTarget: "650-820", paragraphTarget: "7-8", maxOutputTokens: 2800 };
   }
-  return { wordTarget: "760-950", paragraphTarget: "8-9", maxOutputTokens: 2100 };
+  return { wordTarget: "760-950", paragraphTarget: "8-9", maxOutputTokens: 3400 };
 }
 
 function buildStoryPrompt(data: GenerateRequest, themeLabel: string): StoryPromptConfig {
