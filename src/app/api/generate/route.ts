@@ -162,7 +162,49 @@ function parseJsonObject(text: string): unknown {
     if (firstBrace === -1 || lastBrace === -1 || lastBrace <= firstBrace) {
       throw new Error("Nu am găsit un obiect JSON în răspunsul AI.");
     }
-    return JSON.parse(trimmed.slice(firstBrace, lastBrace + 1));
+    const candidate = trimmed.slice(firstBrace, lastBrace + 1);
+    try {
+      return JSON.parse(candidate);
+    } catch {
+      // Some otherwise-valid model responses contain literal paragraph breaks in a JSON string.
+      // JSON requires those characters to be escaped, so normalize them before the final parse.
+      let repaired = "";
+      let insideString = false;
+      let escaped = false;
+
+      for (const character of candidate) {
+        if (escaped) {
+          repaired += character;
+          escaped = false;
+          continue;
+        }
+        if (character === "\\") {
+          repaired += character;
+          escaped = true;
+          continue;
+        }
+        if (character === '"') {
+          insideString = !insideString;
+          repaired += character;
+          continue;
+        }
+        if (insideString && character === "\n") {
+          repaired += "\\n";
+          continue;
+        }
+        if (insideString && character === "\r") {
+          repaired += "\\r";
+          continue;
+        }
+        if (insideString && character === "\t") {
+          repaired += "\\t";
+          continue;
+        }
+        repaired += character;
+      }
+
+      return JSON.parse(repaired.replace(/,(\s*[}\]])/g, "$1"));
+    }
   }
 }
 
