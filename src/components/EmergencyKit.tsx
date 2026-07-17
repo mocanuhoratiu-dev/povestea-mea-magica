@@ -40,6 +40,10 @@ const EMERGENCY_STYLES = `
 .ek-header {
   text-align: center; margin-top: 40px;
 }
+.ek-activity-kicker {
+  color: #ff9f43; font-size: 14px; font-weight: 900;
+  letter-spacing: 3px; text-transform: uppercase; margin-bottom: 10px;
+}
 .ek-title {
   font-family: 'Nunito', sans-serif; font-size: 42px; font-weight: 900;
   color: #ff9f43; text-transform: uppercase; letter-spacing: 2px;
@@ -55,6 +59,10 @@ const EMERGENCY_STYLES = `
   font-size: 24px; font-weight: 900; color: #ff9f43;
   border-bottom: 2px solid #ff9f43; padding-bottom: 10px; margin-bottom: 20px;
   display: flex; align-items: center; gap: 10px;
+}
+.ek-activity-instruction {
+  margin: 0 0 24px; color: #636e72; font-size: 18px;
+  font-weight: 700; line-height: 1.45; text-align: center;
 }
 .ek-radar-grid {
   display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
@@ -378,11 +386,11 @@ function cleanText(value: string, fallback: string, maxLength = 50) {
   return `${clean.slice(0, maxLength - 3).trim()}...`;
 }
 
-function getAgeTone(age: string) {
+function getAgeGuidance(age: string) {
   const ageNumber = Number.parseInt(age, 10) || 4;
-  if (ageNumber <= 3) return "cu răspunsuri scurte, desen mult și întrebări foarte simple";
-  if (ageNumber <= 6) return "cu provocări scurte, jocuri de observație și povești amuzante";
-  return "cu misiuni mai istețe, indicii de observat și întrebări puțin mai provocatoare";
+  if (ageNumber <= 3) return "Alege un singur pas pe rând și bifează fiecare descoperire împreună cu copilul.";
+  if (ageNumber <= 6) return "Citește câte o cerință, apoi lasă copilul să aleagă următorul pas.";
+  return "Invită copilul să inventeze propriile indicii înainte de următoarea activitate.";
 }
 
 function buildEmergencyKit({
@@ -405,13 +413,17 @@ function buildEmergencyKit({
   const favorite = cleanText(interest, "imaginația lui/ei", 42);
   const selectedDuration = cleanText(duration, "10-20 minute", 18);
   const selectedMode = cleanText(activityMode, "mix", 24);
-  const ageTone = getAgeTone(age);
+  const ageGuidance = getAgeGuidance(age);
+  const modeGuidance = selectedMode === "liniștite"
+    ? "Păstrează misiunea în șoaptă și fă fiecare pas pe rând."
+    : selectedMode === "cu mișcare mică"
+      ? "Adaugă trei mișcări mici, ca un cod secret de agent."
+      : "Alternează observația liniștită cu o mișcare mică de agent."
 
   return {
     ...base,
-    missionNote: `${base.missionNote} Adaptată pentru ${heroName}, ${age} ani, ${ageTone}. Durată țintă: ${selectedDuration}. Stil: ${selectedMode}.`,
-    drawing: `${base.drawing} Include în desen și ${favorite}.`,
-    patience: `${base.patience} Dacă mai este timp, transformă ${favorite} într-un cod secret de liniștire.`,
+    drawing: `${base.drawing} Agentul ${heroName} poate include în desen și ${favorite}.`,
+    patience: `${base.patience} ${modeGuidance} ${ageGuidance} Dacă mai este timp, transformă ${favorite} într-un cod secret de liniștire.`,
     story_starters: (base.story_starters || []).map((starter, index) => (
       index === 0
         ? `${starter} În poveste apare și ${favorite}.`
@@ -624,13 +636,13 @@ export default function EmergencyKit() {
           <div id="ek-page-0" className="ek-page">
             <div className="ek-border">
               <div className="ek-header">
-                <div className="ek-title">{ekData.missionTitle || "Misiune Secretă"}</div>
-                <div className="ek-subtitle">Agent special: {name} ({age} ani)</div>
+                <div className="ek-activity-kicker">Activitatea 1</div>
+                <div className="ek-title">Radarul Magic</div>
+                <div className="ek-subtitle">Observă, găsește, bifează</div>
               </div>
 
               <div className="ek-section">
-                <div className="ek-section-title">🔍 Radarul Magic</div>
-                <p style={{marginBottom: 20, fontSize: 18, color: '#666'}}>{ekData.missionNote || "Găsește aceste 4 lucruri în jurul tău și bifează căsuțele!"}</p>
+                <p className="ek-activity-instruction">Găsește cele patru lucruri din jurul tău și bifează fiecare descoperire.</p>
                 <div className="ek-radar-grid">
                   {ekData.radar?.map((r: string, idx: number) => (
                     <div key={idx} className="ek-radar-item">
@@ -654,7 +666,9 @@ export default function EmergencyKit() {
           <div id="ek-page-1" className="ek-page">
             <div className="ek-border">
               <div className="ek-header">
-                <div className="ek-title">Creativitate & Răbdare</div>
+                <div className="ek-activity-kicker">Activitatea 2</div>
+                <div className="ek-title">Creionul Agentului</div>
+                <div className="ek-subtitle">Desenează și ai răbdare</div>
               </div>
 
               <div className="ek-section">
@@ -676,8 +690,9 @@ export default function EmergencyKit() {
           <div id="ek-page-2" className="ek-page">
             <div className="ek-border">
               <div className="ek-header">
-                <div className="ek-title">Pagina Creativă</div>
-                <div className="ek-subtitle">Inventează o poveste! 🖊️</div>
+                <div className="ek-activity-kicker">Activitatea 3</div>
+                <div className="ek-title">Povestea Continuă</div>
+                <div className="ek-subtitle">Alege un început și inventează mai departe</div>
               </div>
 
               <div className="ek-section">
@@ -699,8 +714,9 @@ export default function EmergencyKit() {
           <div id="ek-page-3" className="ek-page">
             <div className="ek-border">
               <div className="ek-header">
-                <div className="ek-title">Provocarea Finală</div>
-                <div className="ek-subtitle">Hai să vedem ce descoperi! 🧠</div>
+                <div className="ek-activity-kicker">Activitatea 4</div>
+                <div className="ek-title">Adevărat sau Fals</div>
+                <div className="ek-subtitle">Gândește, alege și încercuiește</div>
               </div>
 
               <div className="ek-section">

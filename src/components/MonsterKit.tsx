@@ -1180,12 +1180,12 @@ const CERT_STYLES = `
 
 .mk-step { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 18px; }
 .mk-step-num {
-  flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%;
+  flex: 0 0 24px; width: 24px; height: 24px; box-sizing: border-box; border-radius: 50%;
   border: 1px solid rgba(201,168,76,0.4);
   background: rgba(201,168,76,0.08);
   font-family: 'Cinzel', serif; font-size: 8.5px; color: #c9a84c;
-  text-align: center; line-height: 22px;
-  margin-top: 1px;
+  display: flex; align-items: center; justify-content: center;
+  text-align: center; line-height: 1; padding: 0; margin-top: 1px;
 }
 .mk-step-l1 { font-size: 13px; color: #d4c5e8; line-height: 1.45; overflow-wrap: anywhere; }
 .mk-step-l2 { font-size: 12px; color: #bfb3d4; font-style: italic; margin-top: 3px; overflow-wrap: anywhere; }

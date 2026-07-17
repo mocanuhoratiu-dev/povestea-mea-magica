@@ -36,7 +36,7 @@ const STORY_PDF_STYLES = `
 }
 .story-pdf-content {
   position: relative; z-index: 10;
-  padding: 52px 58px 56px; height: 100%;
+  padding: 52px 58px 84px; height: 100%; box-sizing: border-box;
   display: flex; flex-direction: column;
 }
 
@@ -304,7 +304,7 @@ function pageTextLength(units: string[]) {
   return units.reduce((total, unit, index) => total + unit.length + (index > 0 ? 2 : 0), 0);
 }
 
-function rebalanceShortFinalPage(pages: string[][], targetChars: number) {
+function rebalanceShortFinalPage(pages: string[][], targetChars: number, maxChars: number) {
   const minFinalChars = Math.floor(targetChars * 0.78);
 
   while (pages.length > 1) {
@@ -313,7 +313,15 @@ function rebalanceShortFinalPage(pages: string[][], targetChars: number) {
     const lastLength = pageTextLength(lastPage);
     const previousLength = pageTextLength(previousPage);
 
-    if (lastLength >= minFinalChars || previousPage.length < 2 || previousLength <= targetChars * 0.9) {
+    const movedUnit = previousPage[previousPage.length - 1];
+
+    if (
+      lastLength >= minFinalChars ||
+      previousPage.length < 2 ||
+      previousLength <= targetChars * 0.9 ||
+      !movedUnit ||
+      lastLength + movedUnit.length + 2 > maxChars
+    ) {
       break;
     }
 
@@ -321,8 +329,9 @@ function rebalanceShortFinalPage(pages: string[][], targetChars: number) {
   }
 }
 
-function paginateStory(text: string, pageCount = 4): string[] {
-  const maxUnitChars = 900;
+function paginateStory(text: string, minimumPageCount = 4): string[] {
+  const maxUnitChars = 620;
+  const maxPageChars = 2700;
   let units = text
     .replace(/\r\n/g, "\n")
     .split(/\n{2,}/)
@@ -332,9 +341,9 @@ function paginateStory(text: string, pageCount = 4): string[] {
 
   if (!units.length) return [text];
 
-  // Keep four balanced story pages. Long paragraphs are split on sentences first so
-  // one oversized paragraph cannot leave the next printed page nearly empty.
-  while (units.length < pageCount) {
+  // Keep at least four balanced story pages, but add a page whenever the printable
+  // area would otherwise overflow. Each unit ends at a sentence whenever possible.
+  while (units.length < minimumPageCount) {
     const longestIndex = units.reduce(
       (longest, unit, index) => (unit.length > units[longest].length ? index : longest),
       0
@@ -345,49 +354,41 @@ function paginateStory(text: string, pageCount = 4): string[] {
     units = [...units.slice(0, longestIndex), ...splitUnits, ...units.slice(longestIndex + 1)];
   }
 
-  const pagesToCreate = Math.min(pageCount, units.length);
+  const totalChars = pageTextLength(units);
+  const plannedPageCount = Math.max(minimumPageCount, Math.ceil(totalChars / maxPageChars));
+  const targetChars = Math.ceil(totalChars / plannedPageCount);
+  const preferredPageLimit = Math.min(maxPageChars, Math.ceil(targetChars * 1.12));
   const pages: string[][] = [];
-  let index = 0;
+  let current: string[] = [];
 
-  for (let pageIndex = 0; pageIndex < pagesToCreate; pageIndex += 1) {
-    const pagesRemaining = pagesToCreate - pageIndex;
-    const remainingLength = pageTextLength(units.slice(index));
-    const targetChars = Math.ceil(remainingLength / pagesRemaining);
-    const current: string[] = [];
+  for (const unit of units) {
+    const candidateLength = pageTextLength([...current, unit]);
+    const mayUsePlannedBreak = pages.length < plannedPageCount - 1;
 
-    while (index < units.length) {
-      const candidate = [...current, units[index]];
-      const mustLeaveUnitForEachPage = units.length - (index + 1) < pagesRemaining - 1;
-
-      if (
-        current.length &&
-        pageTextLength(candidate) > targetChars * 1.12 &&
-        !mustLeaveUnitForEachPage
-      ) {
-        break;
-      }
-
-      current.push(units[index]);
-      index += 1;
-
-      if (pageTextLength(current) >= targetChars && units.length - index >= pagesRemaining - 1) {
-        break;
-      }
+    if (
+      current.length &&
+      (candidateLength > maxPageChars || (mayUsePlannedBreak && candidateLength > preferredPageLimit))
+    ) {
+      pages.push(current);
+      current = [unit];
+      continue;
     }
 
-    if (current.length) pages.push(current);
+    current.push(unit);
   }
 
+  if (current.length) pages.push(current);
+
   if (pages.length > 1) {
-    rebalanceShortFinalPage(pages, Math.ceil(pageTextLength(units) / pages.length));
+    rebalanceShortFinalPage(pages, Math.ceil(totalChars / pages.length), maxPageChars);
   }
 
   return pages.map((page) => page.join("\n\n"));
 }
 
 function storyTextDensityClass(chunk: string) {
-  if (chunk.length < 3300) return "story-text-body story-text-body--roomy";
-  if (chunk.length > 5200) return "story-text-body story-text-body--compact";
+  if (chunk.length < 1700) return "story-text-body story-text-body--roomy";
+  if (chunk.length > 2500) return "story-text-body story-text-body--compact";
   return "story-text-body";
 }
 
