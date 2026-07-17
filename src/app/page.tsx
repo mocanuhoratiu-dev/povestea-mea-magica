@@ -4,7 +4,6 @@ import StoryCreator from "@/components/StoryCreator";
 import MonsterKit from "@/components/MonsterKit";
 import EmergencyKit from "@/components/EmergencyKit";
 import Pricing from "@/components/Pricing";
-import ProductExamples from "@/components/ProductExamples";
 import Reviews from "@/components/Reviews";
 import FAQ from "@/components/FAQ";
 import Footer from "@/components/Footer";
@@ -15,7 +14,6 @@ export default function Home() {
       <Hero />
       <HowItWorks />
       <StoryCreator />
-      <ProductExamples />
       <MonsterKit />
       <EmergencyKit />
       <Pricing />

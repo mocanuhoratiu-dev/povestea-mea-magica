@@ -28,8 +28,9 @@ export default function Footer() {
               <li><Link href="/politica-de-confidentialitate" className="hover:text-brand-gold transition-colors">Politică de Confidențialitate</Link></li>
               <li><Link href="/politica-de-rambursare" className="hover:text-brand-gold transition-colors">Politică de Rambursare</Link></li>
               <li><Link href="/siguranta-ai" className="hover:text-brand-gold transition-colors">Siguranță AI</Link></li>
+              <li><Link href="/modele" className="hover:text-brand-gold transition-colors">Modele PDF</Link></li>
               <li><Link href="mailto:contact@povesteamagica.ro" className="hover:text-brand-gold transition-colors">Contact</Link></li>
-              <li><Link href="#creator" className="hover:text-brand-gold transition-colors">Atelierul de Povești</Link></li>
+              <li><Link href="/#creator" className="hover:text-brand-gold transition-colors">Atelierul de Povești</Link></li>
             </ul>
           </div>
 
