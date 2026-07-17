@@ -208,6 +208,40 @@ function parseJsonObject(text: string): unknown {
   }
 }
 
+function decodeLooseJsonString(value: string): string {
+  return value
+    .replace(/\\n/g, "\n")
+    .replace(/\\r/g, "\r")
+    .replace(/\\t/g, "\t")
+    .replace(/\\"/g, '"')
+    .replace(/\\\\/g, "\\");
+}
+
+function parseStoryJson(text: string): unknown {
+  try {
+    return parseJsonObject(text);
+  } catch {
+    const source = text
+      .trim()
+      .replace(/^```(?:json)?\s*/i, "")
+      .replace(/\s*```$/i, "")
+      .trim();
+    const titleMatch = source.match(/"title"\s*:\s*"([\s\S]*?)"\s*,\s*"text"\s*:/i);
+    const textMatch = source.match(/"text"\s*:\s*"([\s\S]*?)"\s*,\s*"imagePrompt"\s*:/i);
+    const imagePromptMatch = source.match(/"imagePrompt"\s*:\s*"([\s\S]*?)"\s*}\s*$/i);
+
+    if (!titleMatch || !textMatch || !imagePromptMatch) {
+      throw new Error("Răspunsul AI nu conține câmpurile necesare pentru poveste.");
+    }
+
+    return {
+      title: decodeLooseJsonString(titleMatch[1]),
+      text: decodeLooseJsonString(textMatch[1]),
+      imagePrompt: decodeLooseJsonString(imagePromptMatch[1]),
+    };
+  }
+}
+
 function buildStableStoryPayload(data: GenerateRequest, themeLabel: string) {
   const name = stripHtml(data.name) || "Eroul";
   const age = stripHtml(data.age) || "4";
@@ -634,7 +668,7 @@ export async function POST(req: Request) {
       }
       let result: ReturnType<typeof sanitizeStoryPayload>;
       try {
-        result = sanitizeStoryPayload(parseJsonObject(generated.text), data.name || "Eroul", themeLabel);
+        result = sanitizeStoryPayload(parseStoryJson(generated.text), data.name || "Eroul", themeLabel);
       } catch {
         return NextResponse.json({
           success: true,
