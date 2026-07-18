@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles } from "lucide-react";
+import LanternSignature from "@/components/LanternSignature";
 
 const loadingMessages = [
-  "🪄 Chemăm personajele din tărâmul fermecat...",
-  "🌌 Pictăm cerul de poveste...",
-  "📜 Scriem fiecare cuvânt cu grijă...",
-  "✨ Presărăm magia finală..."
+  "Lanterna adună detaliile poveștii...",
+  "Așezăm cu grijă lumea copilului...",
+  "Scriem aventura pe pagini...",
+  "Pregătim ultima scânteie..."
 ];
 
 export default function MagicalLoader({ isVisible }: { isVisible: boolean }) {
@@ -31,20 +31,7 @@ export default function MagicalLoader({ isVisible }: { isVisible: boolean }) {
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-[10000] bg-brand-navy flex flex-col items-center justify-center text-brand-cream"
         >
-          <motion.div
-            animate={{ 
-              rotate: [0, 360],
-              scale: [1, 1.2, 1]
-            }}
-            transition={{ 
-              duration: 2, 
-              repeat: Infinity, 
-              ease: "linear" 
-            }}
-            className="mb-8"
-          >
-            <Sparkles size={80} className="text-brand-gold" />
-          </motion.div>
+          <LanternSignature className="mb-10" size="lg" tone="paper" label="Lanterna creează materialul" />
           
           <div className="h-16 flex items-center justify-center">
             <AnimatePresence mode="wait">
@@ -61,12 +48,12 @@ export default function MagicalLoader({ isVisible }: { isVisible: boolean }) {
             </AnimatePresence>
           </div>
           
-          <div className="mt-12 w-48 h-2 bg-white/10 rounded-full overflow-hidden">
+          <div className="mt-12 h-1.5 w-52 overflow-hidden bg-white/10">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: "100%" }}
               transition={{ duration: 3, ease: "easeInOut" }}
-              className="h-full bg-brand-purple"
+              className="h-full bg-brand-gold"
             />
           </div>
         </motion.div>

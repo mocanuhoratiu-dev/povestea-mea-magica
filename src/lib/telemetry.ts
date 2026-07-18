@@ -18,6 +18,7 @@ type TelemetryFields = {
 
 type TelemetryEvent =
   | "pmm_site_visited"
+  | "pmm_story_preview_started"
   | "pmm_product_started"
   | "pmm_generation_completed"
   | "pmm_generation_failed"

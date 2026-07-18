@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { checkTelemetryRateLimit, requestExceedsBodyLimit } from "@/lib/requestProtection";
 import { isTelemetryProduct, logTelemetry, type GenerationMode } from "@/lib/telemetry";
 
-const CLIENT_EVENTS = new Set(["site_visited", "product_started", "generation_completed", "pdf_downloaded", "feedback_requested"]);
+const CLIENT_EVENTS = new Set(["site_visited", "story_preview_started", "product_started", "generation_completed", "pdf_downloaded", "feedback_requested"]);
 const GENERATION_MODES = new Set<GenerationMode>(["ai", "fallback", "template"]);
 
 function readBoundedInteger(value: unknown, max: number) {
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Sursă de generare necunoscută." }, { status: 400 });
     }
 
-    logTelemetry(`pmm_${event}` as "pmm_site_visited" | "pmm_product_started" | "pmm_generation_completed" | "pmm_pdf_downloaded" | "pmm_feedback_requested", {
+    logTelemetry(`pmm_${event}` as "pmm_site_visited" | "pmm_story_preview_started" | "pmm_product_started" | "pmm_generation_completed" | "pmm_pdf_downloaded" | "pmm_feedback_requested", {
       ...(isTelemetryProduct(product) ? { product } : {}),
       result: "success",
       ...(generationMode ? { generationMode: generationMode as GenerationMode } : {}),

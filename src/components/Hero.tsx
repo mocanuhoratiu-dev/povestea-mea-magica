@@ -3,7 +3,8 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { ArrowDown, ArrowRight, Eye } from "lucide-react";
-import BrandMark from "@/components/BrandMark";
+import InstantStoryPreview from "@/components/InstantStoryPreview";
+import LanternSignature from "@/components/LanternSignature";
 import { siteCopy } from "@/lib/siteMode";
 
 export default function Hero() {
@@ -18,7 +19,7 @@ export default function Hero() {
         className="object-cover object-[64%_50%] opacity-65"
       />
       <div className="absolute inset-0 bg-brand-navy/65" />
-      <div className="relative mx-auto flex min-h-[470px] max-w-7xl flex-col justify-center lg:min-h-[490px]">
+      <div className="relative mx-auto grid min-h-[500px] max-w-7xl items-center gap-12 py-8 lg:min-h-[540px] lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,.74fr)] lg:gap-16">
         <motion.div
           initial={{ y: 28, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -26,7 +27,7 @@ export default function Hero() {
           className="max-w-2xl"
         >
           <div className="mb-7 flex items-center gap-3">
-            <BrandMark className="h-12 w-12" tone="paper" title="Lanterna Magică" />
+            <LanternSignature size="sm" className="shrink-0" tone="paper" label="Lanterna Magică" />
             <div>
               <p className="text-xs font-black uppercase tracking-[0.16em] text-brand-gold">Povestea Mea Magică</p>
               <p className="mt-1 text-sm font-semibold text-brand-cream/75">{siteCopy.heroBadge}</p>
@@ -55,6 +56,9 @@ export default function Hero() {
               <Eye size={19} /> Vezi modelele
             </a>
           </div>
+        </motion.div>
+        <motion.div initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.12, ease: "easeOut" }} className="w-full max-w-md justify-self-end">
+          <InstantStoryPreview />
         </motion.div>
         <a href="#alege-materialul" className="absolute bottom-0 hidden items-center gap-2 text-sm font-bold text-brand-cream/75 transition-colors hover:text-brand-gold md:inline-flex">
           Descoperă materialele <ArrowDown size={16} />

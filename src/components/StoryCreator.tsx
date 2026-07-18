@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Castle, FileText, Image as ImageIcon, RefreshCw, Rocket, ShieldCheck, Sparkles, Star, Trees } from "lucide-react";
-import BrandMark from "@/components/BrandMark";
+import LanternSignature from "@/components/LanternSignature";
 import MagicalLoader from "./MagicalLoader";
 import FeedbackInvite from "./FeedbackInvite";
 import { siteCopy } from "@/lib/siteMode";
@@ -447,6 +447,19 @@ export default function StoryCreator() {
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const initialName = params.get("nume")?.replace(/[^a-zA-ZĂÂÎȘȚăâîșț\-\s]/g, "").trim().slice(0, 24);
+    const initialTheme = params.get("lume");
+
+    const frame = window.requestAnimationFrame(() => {
+      if (initialName) setName(initialName);
+      if (initialTheme && themes.some((theme) => theme.id === initialTheme)) setSelectedTheme(initialTheme);
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
   const setPollinationsFallbackImage = () => {
     setImageUrl(buildPollinationsFallbackUrl(selectedTheme, lesson));
   };
@@ -824,7 +837,7 @@ export default function StoryCreator() {
       <div className="max-w-5xl mx-auto relative z-10">
         <div className="text-center mb-12 md:mb-16 px-4">
           <motion.div initial={{ scale: 0.9 }} whileInView={{ scale: 1 }} className="inline-flex flex-col items-center">
-            <BrandMark className="mb-4 h-12 w-12" tone="paper" title="Lanterna Magică" />
+            <LanternSignature className="mb-5" size="sm" tone="paper" label="Lanterna Magică" />
             <p className="text-xs font-black uppercase tracking-[0.16em] text-brand-gold">Pentru seară</p>
             <h2 className="mt-3 font-nunito text-4xl font-extrabold leading-tight text-brand-cream md:text-6xl">Povestea de Seară</h2>
           </motion.div>
