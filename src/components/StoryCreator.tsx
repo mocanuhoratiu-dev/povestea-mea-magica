@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Castle, FileText, Image as ImageIcon, RefreshCw, Rocket, ShieldCheck, Sparkles, Star, Trees } from "lucide-react";
+import { Castle, Cloud, FileText, Footprints, Image as ImageIcon, RefreshCw, Rocket, ShieldCheck, Sparkles, Star, Trees, Waves } from "lucide-react";
 import LanternSignature from "@/components/LanternSignature";
 import MagicalLoader from "./MagicalLoader";
 import FeedbackInvite from "./FeedbackInvite";
@@ -189,8 +189,11 @@ function CornerSVG({ pos }: { pos: 'tl'|'tr'|'bl'|'br' }) {
 
 const themes = [
   { id: "space", label: "Spațiu", icon: <Rocket />, color: "bg-blue-400 text-white" },
-  { id: "forest", label: "Pădure", icon: <Trees />, color: "bg-green-400 text-white" },
-  { id: "castle", label: "Castel", icon: <Castle />, color: "bg-orange-400 text-white" },
+  { id: "forest", label: "Pădure fermecată", icon: <Trees />, color: "bg-green-400 text-white" },
+  { id: "castle", label: "Castel din nori", icon: <Castle />, color: "bg-orange-400 text-white" },
+  { id: "ocean", label: "Oceanul de cristal", icon: <Waves />, color: "bg-cyan-500 text-white" },
+  { id: "dinosaurs", label: "Valea dinozaurilor", icon: <Footprints />, color: "bg-lime-500 text-white" },
+  { id: "clouds", label: "Orașul din nori", icon: <Cloud />, color: "bg-sky-400 text-white" },
 ];
 
 const lessons = [

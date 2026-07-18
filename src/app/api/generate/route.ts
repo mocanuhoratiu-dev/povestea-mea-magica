@@ -46,6 +46,75 @@ type AiProvider = "gemini" | "vertex";
 
 const SUPPORTED_TYPES = new Set<NonNullable<GenerateRequest["type"]>>(["monster", "story", "emergency"]);
 
+const STORY_THEMES = {
+  space: {
+    label: "Spațiu",
+    promptDetail: "un observator plutitor, planete somnoroase și pasarele de praf de stele",
+    defaultDetail: "un observator plutitor deasupra unei planete adormite",
+    path: "o pasarelă de lumină dintre stele",
+    mirrorPlace: "o galerie de hublouri rotunde, care oglindeau emoții blânde",
+    hiddenPlace: "lângă o constelație desenată în praf de stele",
+    friend: "un pui de pasăre cu pene argintii",
+    scenery: "hublourile, constelațiile, planetele și inelele de lumină",
+  },
+  forest: {
+    label: "Pădure fermecată",
+    promptDetail: "licurici albaștri, rădăcini moi și frunze care lucesc ca felinarele",
+    defaultDetail: "o pădure fermecată cu licurici albaștri și poteci moi de mușchi",
+    path: "un pod din rădăcini moi",
+    mirrorPlace: "o poiană cu oglinzi rotunde, agățate între frunze",
+    hiddenPlace: "printre clopoței de pădure și fire de iarbă",
+    friend: "un pui de pasăre cu pene aurii",
+    scenery: "frunzele, licuricii, ferestrele din copaci și potecile de mușchi",
+  },
+  castle: {
+    label: "Castel din nori",
+    promptDetail: "turnuri calde, scări plutitoare și vitralii care păstrează lumina serii",
+    defaultDetail: "un castel din nori, cu turnuri calde și ferestre luminoase",
+    path: "o punte de piatră albă dintre două turnuri",
+    mirrorPlace: "o sală de oglinzi rotunde, cu vitralii de seară",
+    hiddenPlace: "sub o scară plutitoare, lângă un ghiveci cu ierburi de argint",
+    friend: "un pui de pasăre cu o pană aurie",
+    scenery: "turnurile, vitraliile, ferestrele și podurile plutitoare",
+  },
+  ocean: {
+    label: "Oceanul de cristal",
+    promptDetail: "ape transparente, corali luminoși, scoici de perle și valuri liniștite",
+    defaultDetail: "un ocean de cristal cu corali luminoși și scoici care șoptesc încet",
+    path: "un pod de corali netezi, deasupra unei ape limpezi",
+    mirrorPlace: "o grădină de bule rotunde, care oglindeau emoții blânde",
+    hiddenPlace: "între corali mici și iarbă de mare care se legăna încet",
+    friend: "o vidră mică cu mustăți argintii",
+    scenery: "coralii, scoicile, valurile line și grădinile de lumină de sub apă",
+  },
+  dinosaurs: {
+    label: "Valea dinozaurilor blânzi",
+    promptDetail: "dinozauri prietenoși, frunze uriașe, lumini calde și munți rotunjiți",
+    defaultDetail: "o vale cu dinozauri blânzi, frunze uriașe și felinare calde",
+    path: "o pasarelă din frunze late, deasupra unui pârâu strălucitor",
+    mirrorPlace: "o poiană cu pietre rotunde, care oglindeau emoții blânde",
+    hiddenPlace: "sub o frunză uriașă, lângă semințe luminoase",
+    friend: "un pui de brahiozaur cu pete aurii",
+    scenery: "frunzele uriașe, urmele luminoase, munții rotunjiți și felinarele din vale",
+  },
+  clouds: {
+    label: "Orașul din nori",
+    promptDetail: "case mici pe nori, felinare plutitoare și poduri pufoase de seară",
+    defaultDetail: "un oraș din nori cu felinare plutitoare și case cu acoperișuri rotunde",
+    path: "un pod pufos dintre două case de nori",
+    mirrorPlace: "o piațetă cu oglinzi rotunde, atârnate de felinare",
+    hiddenPlace: "lângă o fereastră de nori, printre fire de ceață aurie",
+    friend: "un iepuraș de nori cu urechi luminoase",
+    scenery: "casele de nori, felinarele plutitoare, ferestrele și podurile pufoase",
+  },
+} as const;
+
+type StoryThemeId = keyof typeof STORY_THEMES;
+
+function getStoryTheme(theme: string | undefined) {
+  return STORY_THEMES[theme as StoryThemeId] ?? STORY_THEMES.space;
+}
+
 function cleanRequestText(value: unknown, maxLength: number) {
   if (typeof value !== "string") return "";
   return value.replace(/[\u0000-\u001F\u007F]/g, " ").replace(/\s+/g, " ").trim().slice(0, maxLength);
@@ -75,7 +144,7 @@ function normalizeGenerateRequest(value: unknown): GenerateRequest | null {
 
   if (!normalized.name) return null;
   if (normalized.age && !/^(?:[1-9]|10)$/.test(normalized.age)) return null;
-  if (normalized.theme && !["space", "forest", "castle"].includes(normalized.theme)) return null;
+  if (normalized.theme && !(normalized.theme in STORY_THEMES)) return null;
 
   return normalized;
 }
@@ -363,17 +432,18 @@ function parseStoryJson(text: string): unknown {
   }
 }
 
-function buildStableStoryPayload(data: GenerateRequest, themeLabel: string) {
+function buildStableStoryPayload(data: GenerateRequest, theme: (typeof STORY_THEMES)[StoryThemeId]) {
   const name = stripHtml(data.name) || "Eroul";
   const age = stripHtml(data.age) || "4";
+  const themeLabel = theme.label;
   const lesson = removeDecorativeEmoji(stripHtml(data.lesson)) || "curaj și încredere";
-  const worldDetail = stripHtml(data.themeDetail) || `o lume ${themeLabel.toLocaleLowerCase("ro-RO")} plină de lumină blândă`;
+  const worldDetail = stripHtml(data.themeDetail) || theme.defaultDetail;
   const lessonDetail = stripHtml(data.lessonDetail) || "lecția apare printr-o alegere mică, făcută cu răbdare";
   const childDetails = removeLeadingChildReference(stripHtml(data.context), name);
   const cleanLessonDetail = removeLeadingChildReference(lessonDetail, name);
   const personalToken = childDetails
-    ? `Pe marginea potecii au apărut semne care păreau alese special pentru ${name}: ${childDetails}.`
-    : `Pe marginea potecii au apărut semne mici, ca niște indicii pregătite anume pentru ${name}.`;
+    ? `Pe marginea drumului au apărut semne care păreau alese special pentru ${name}: ${childDetails}.`
+    : `Pe marginea drumului au apărut semne mici, ca niște indicii pregătite anume pentru ${name}.`;
   const lessonChoice = data.lessonDetail
     ? `${name} și-a amintit ce avea de încercat: ${cleanLessonDetail}.`
     : `${name} a înțeles că ${lesson.toLocaleLowerCase("ro-RO")} începe cu un pas mic și sincer.`;
@@ -383,13 +453,13 @@ function buildStableStoryPayload(data: GenerateRequest, themeLabel: string) {
     `În seara aceea, ${name}, care avea ${age} ani, a găsit pe pernă o luminiță cât un nasture. Nu pâlpâia ca o lampă și nici nu stătea locului ca o stea. Se mișca încet, ca și cum ar fi vrut să arate drumul către ${worldDetail}. Când ${name} a atins-o cu vârful degetului, camera s-a umplut de o lumină caldă, iar podeaua s-a transformat într-o potecă nouă.`,
     `${name} a pășit cu grijă. Lumea de dincolo mirosea a seară bună și a aventură blândă. ${personalToken} În depărtare, o lumină mare, rotundă, tremura prinsă într-un felinar închis. Fără ea, visele bune nu mai știau drumul spre copii.`,
     `Lângă felinar stătea un paznic mic, cu o cheie prea grea pentru buzunarul lui. „Felinarul se deschide doar când cineva învață ${lesson.toLocaleLowerCase("ro-RO")} printr-o faptă adevărată”, a spus el. ${name} s-a uitat la cheie. Nu părea o misiune de forță, ci una în care trebuia să asculți ce simți și să alegi cu grijă.`,
-    `Drumul până la felinar trecea peste un pod subțire. Podul scârțâia ușor și se legăna ca o panglică în vânt. ${name} a simțit un nod mic în burtică. În loc să fugă, s-a oprit, a respirat încet și a spus cu voce joasă: „Am emoții, dar pot încerca pas cu pas.” Atunci prima scândură s-a aprins sub tălpi.`,
-    `La mijlocul podului, luminița de pe pernă s-a schimbat într-o busolă mică. ${lessonChoice} A cerut ajutor paznicului, care a ținut capătul podului, iar ${name} a continuat. Cu fiecare pas, podul devenea mai sigur, ca și cum ar fi prins încredere odată cu copilul care mergea pe el.`,
-    `Dincolo de pod se afla o grădină de oglinzi rotunde. Fiecare oglindă arăta o emoție: una era tremurată, alta curioasă, alta puțin supărată că drumul fusese greu. ${name} a privit cu atenție și a ales oglinda care semăna cel mai mult cu ce simțea. Când a spus cu voce tare ce vede, oglinda s-a făcut mică, cât o monedă, și i-a arătat o potecă nouă către felinar.`,
+    `Drumul până la felinar trecea peste ${theme.path}. Se legăna ușor, ca o panglică în vânt. ${name} a simțit un nod mic în burtică. În loc să fugă, s-a oprit, a respirat încet și a spus cu voce joasă: „Am emoții, dar pot încerca pas cu pas.” Atunci prima treaptă s-a aprins sub tălpi.`,
+    `La mijlocul drumului, luminița de pe pernă s-a schimbat într-o busolă mică. ${lessonChoice} A cerut ajutor paznicului, care a rămas aproape, iar ${name} a continuat. Cu fiecare pas, drumul devenea mai sigur, ca și cum ar fi prins încredere odată cu copilul care mergea pe el.`,
+    `Dincolo de drum se afla ${theme.mirrorPlace}. Fiecare oglindă arăta o emoție: una era tremurată, alta curioasă, alta puțin supărată că drumul fusese greu. ${name} a privit cu atenție și a ales oglinda care semăna cel mai mult cu ce simțea. Când a spus cu voce tare ce vede, oglinda s-a făcut mică, cât o monedă, și i-a arătat o potecă nouă către felinar.`,
     `Pe potecă au apărut trei porți. Prima promitea o scurtătură strălucitoare, dar era încuiată. A doua avea o sonerie care făcea mult zgomot. A treia părea simplă și liniștită, însă cerea răbdare. ${name} s-a gândit la semnele de pe drum și a ales poarta care îi lăsa timp să observe, să respire și să meargă în ritmul său. Paznicul a zâmbit: aceasta era alegerea pe care o aștepta.`,
-    `După poartă, busola a început să arate spre un clopoțel ascuns printre fire de iarbă. ${name} l-a găsit cu grijă și l-a scuturat o singură dată. Sunetul lui nu era tare, ci cald, ca atunci când se închide ușa camerei înainte de somn. Deodată, norii de deasupra ${themeLabel.toLocaleLowerCase("ro-RO")} s-au dat puțin la o parte, iar felinarul a primit o dâră subțire de lumină.`,
-    `Mai rămânea doar o rotiță lipsă, ascunsă într-un cuib de frunze. Acolo, un pui de pasăre nu îndrăznea să se miște. ${name} nu s-a grăbit să ia rotița. I-a vorbit blând, a rămas aproape și i-a lăsat timp să se liniștească. Când puiul a simțit că e în siguranță, a împins rotița spre ${name}. Chiar și lucrurile mici se pot mișca atunci când cineva le oferă răbdare.`,
-    `Cu rotița în palmă, ${name} s-a întors la felinar. Cheia nu mai părea grea, iar busola nu mai tremura. Paznicul a ținut felinarul, iar ${name} a potrivit rotița, a răsucit cheia și a rostit încet: „Pot să fiu curajos/curajoasă în felul meu.” Felinarul s-a deschis, iar lumina lui a alergat prin ${themeLabel.toLocaleLowerCase("ro-RO")}, aprinzând potecile, frunzele, ferestrele și toate colțurile care așteptau un vis bun.`,
+    `După poartă, busola a început să arate spre un clopoțel ascuns ${theme.hiddenPlace}. ${name} l-a găsit cu grijă și l-a scuturat o singură dată. Sunetul lui nu era tare, ci cald, ca atunci când se închide ușa camerei înainte de somn. Deodată, lumina a trecut ușor prin ${theme.scenery}, iar felinarul a primit o dâră subțire de lumină.`,
+    `Mai rămânea doar o rotiță lipsă, ascunsă ${theme.hiddenPlace}. Acolo, ${theme.friend} nu îndrăznea să se miște. ${name} nu s-a grăbit să ia rotița. I-a vorbit blând, a rămas aproape și i-a lăsat timp să se liniștească. Când prietenul cel mic a simțit că e în siguranță, a împins rotița spre ${name}. Chiar și lucrurile mici se pot mișca atunci când cineva le oferă răbdare.`,
+    `Cu rotița în palmă, ${name} s-a întors la felinar. Cheia nu mai părea grea, iar busola nu mai tremura. Paznicul a ținut felinarul, iar ${name} a potrivit rotița, a răsucit cheia și a rostit încet: „Pot să fiu curajos/curajoasă în felul meu.” Felinarul s-a deschis, iar lumina lui a alergat prin ${theme.scenery}, aprinzând toate colțurile care așteptau un vis bun.`,
     `Lumina a ajuns și la grădina de oglinzi. Emoțiile din ele nu au dispărut, dar au început să lumineze pe rând, ca niște felinare mici. ${name} a înțeles că nu trebuie să alunge fiecare emoție ca să poată merge mai departe. Uneori e de ajuns să o observe, să o numească și să aleagă următorul pas cu grijă. Atunci, drumul devine mai ușor de văzut.`,
     `Paznicul i-a dăruit lui ${name} o scânteie rotundă, pe care nu trebuia să o țină în buzunar. „O vei găsi de fiecare dată când respiri, când ceri ajutor sau când alegi să încerci încă o dată”, a spus el. ${name} a pus mâna pe inimă și a simțit că scânteia știa deja drumul spre casă.`,
     `În clipa următoare, ${name} era din nou în pat. Pe pernă nu mai era luminița, dar în piept rămăsese o căldură mică și sigură. Camera era liniștită, noaptea era prietenoasă, iar ${name} știa că, ori de câte ori va avea emoții, poate începe cu un pas mic, o vorbă sinceră și puțin curaj.`,
@@ -398,7 +468,7 @@ function buildStableStoryPayload(data: GenerateRequest, themeLabel: string) {
   return {
     title,
     text: normalizeRomanianText(text),
-    imagePrompt: `English prompt: square children's book cover of ${name}, age ${age}, holding a tiny warm light on a path through ${themeLabel}, include ${childDetails || worldDetail}, gentle bedtime adventure about ${lesson}, premium watercolor and gouache, soft bedtime light, no text`,
+    imagePrompt: `English prompt: square children's book cover of ${name}, age ${age}, holding a tiny warm light on a path through ${themeLabel}, include ${theme.promptDetail}, ${childDetails || worldDetail}, gentle bedtime adventure about ${lesson}, premium watercolor and gouache, soft bedtime light, no text`,
     fallback: true,
     note: `Am folosit varianta stabilă pentru că serviciul AI este temporar aglomerat. Textul poate fi editat înainte de PDF.`,
   };
@@ -461,12 +531,14 @@ function buildStoryContinuationPrompt({
   const worldDetail = cleanPromptValue(data.themeDetail);
   const lessonDetail = cleanPromptValue(data.lessonDetail);
   const childDetails = cleanPromptValue(data.context);
+  const worldSignature = getStoryTheme(data.theme).promptDetail;
 
   return `Continuă această poveste personalizată pentru copil. Povestea de mai jos este deja prima parte; NU o repeta și NU o rezuma.
 
 DATE OBLIGATORII:
 - copil: ${name}, ${age} ani
 - lume: ${themeLabel}${worldDetail ? `, cu detaliul: ${worldDetail}` : ""}
+- repere care trebuie să apară firesc: ${worldSignature}
 - lecție: ${lesson}${lessonDetail ? `, arătată prin: ${lessonDetail}` : ""}${childDetails ? `
 - detaliu personal de păstrat: ${childDetails}` : ""}
 - ton: ${tone}
@@ -497,12 +569,14 @@ function buildStoryPrompt(data: GenerateRequest, themeLabel: string): StoryPromp
   const worldDetail = cleanPromptValue(data.themeDetail);
   const lessonDetail = cleanPromptValue(data.lessonDetail);
   const childDetails = cleanPromptValue(data.context);
+  const worldSignature = getStoryTheme(data.theme).promptDetail;
   const { wordTarget, minWords, paragraphTarget, maxOutputTokens } = getStoryLengthConfig(age);
 
   const requiredDetails = [
     `numele copilului: ${name}`,
     `vârsta: ${age} ani`,
     `lumea aleasă: ${themeLabel}`,
+    `repere esențiale ale lumii: ${worldSignature}`,
     `lecția: ${lesson}`,
     worldDetail ? `detaliu de lume: ${worldDetail}` : "",
     lessonDetail ? `cum apare lecția: ${lessonDetail}` : "",
@@ -878,8 +952,8 @@ export async function POST(req: Request) {
 
     if (!isAiConfigured()) {
       if (data.type === "story") {
-        const themeLabel = data.theme === 'space' ? 'Spațiu' : data.theme === 'forest' ? 'Pădure Fermecată' : 'Castel Magic';
-        const fallback = buildStableStoryPayload(data, themeLabel);
+        const theme = getStoryTheme(data.theme);
+        const fallback = buildStableStoryPayload(data, theme);
         const storyWithCover = await attachVertexCover(fallback);
         logTelemetry("pmm_generation_completed", {
           product,
@@ -965,7 +1039,8 @@ Returnează doar JSON valid conform schemei, fără Markdown.`;
     }
 
     if (data.type === "story") {
-      const themeLabel = data.theme === 'space' ? 'Spațiu' : data.theme === 'forest' ? 'Pădure Fermecată' : 'Castel Magic';
+      const theme = getStoryTheme(data.theme);
+      const themeLabel = theme.label;
       const { prompt, maxOutputTokens, minWords } = buildStoryPrompt(data, themeLabel);
 
       const generated = await generateStoryWithModelFallback({
@@ -973,7 +1048,7 @@ Returnează doar JSON valid conform schemei, fără Markdown.`;
         maxOutputTokens,
       });
       if ("error" in generated) {
-        const fallback = buildStableStoryPayload(data, themeLabel);
+        const fallback = buildStableStoryPayload(data, theme);
         const storyWithCover = await attachVertexCover(fallback);
         logTelemetry("pmm_generation_completed", {
           product,
@@ -993,7 +1068,7 @@ Returnează doar JSON valid conform schemei, fără Markdown.`;
       try {
         result = sanitizeStoryPayload(parseStoryJson(generated.text), data.name || "Eroul", themeLabel);
       } catch {
-        const fallback = buildStableStoryPayload(data, themeLabel);
+        const fallback = buildStableStoryPayload(data, theme);
         const storyWithCover = await attachVertexCover(fallback);
         logTelemetry("pmm_generation_completed", {
           product,

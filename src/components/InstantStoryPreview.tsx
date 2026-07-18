@@ -28,6 +28,27 @@ const worlds = [
     line: "a descoperit o cheie aurie ascunsă sub prima stea de pe cer.",
     accent: "bg-brand-orange",
   },
+  {
+    id: "ocean",
+    label: "Prin ocean",
+    title: "Scoica de la miezul nopții",
+    line: "a primit de la un val mic o scoică ce știa drumul spre grădina de corali adormiți.",
+    accent: "bg-cyan-400",
+  },
+  {
+    id: "dinosaurs",
+    label: "Cu dinozauri",
+    title: "Valea dinozaurilor blânzi",
+    line: "a urmărit o urmă luminoasă până la o vale unde dinozaurii își spuneau „noapte bună”.",
+    accent: "bg-lime-400",
+  },
+  {
+    id: "clouds",
+    label: "Prin nori",
+    title: "Felinarul din orașul de nori",
+    line: "a ajuns într-un oraș construit pe nori, unde felinarele se aprind cu o idee curajoasă.",
+    accent: "bg-sky-400",
+  },
 ] as const;
 
 function sanitizeName(value: string) {
