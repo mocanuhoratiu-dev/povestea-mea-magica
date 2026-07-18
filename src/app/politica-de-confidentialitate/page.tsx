@@ -19,7 +19,7 @@ export default function PrivacyPage() {
             <section>
               <h2 className="text-2xl font-black text-brand-navy mb-4">Protejăm Datele Micuților</h2>
               <p>
-                La Povestea Mea Magică, siguranța și confidențialitatea datelor tale și ale copilului tău sunt prioritare. În versiunea curentă nu există conturi de utilizator și nu colectăm plăți online.
+                La Povestea Mea Magică, siguranța și confidențialitatea datelor tale și ale copilului tău sunt prioritare. În versiunea curentă nu există conturi de utilizator, nu colectăm plăți online și nu păstrăm în aplicație poveștile sau PDF-urile create.
               </p>
             </section>
 
@@ -28,6 +28,7 @@ export default function PrivacyPage() {
               <ul className="list-disc pl-6 space-y-2">
                 <li><strong>Datele de personalizare:</strong> Numele, vârsta, tema, frica sau contextul introduse în formulare.</li>
                 <li><strong>Date tehnice:</strong> Informații standard necesare pentru funcționarea serviciilor web și AI.</li>
+                <li><strong>Statistici agregate de utilizare:</strong> Număr de vizite, produs început/generat, rezultat AI sau fallback, număr de pagini/cuvinte și descărcări PDF. Nu trimitem în aceste statistici numele copilului, textul poveștii, dedicația, prompturile sau un identificator de client.</li>
                 <li><strong>Date de plată:</strong> Nu colectăm date de plată în versiunea curentă.</li>
               </ul>
             </section>
@@ -35,7 +36,7 @@ export default function PrivacyPage() {
             <section>
               <h2 className="text-2xl font-black text-brand-navy mb-4">Cum Folosim Datele?</h2>
               <p>
-                Datele introduse sunt trimise către serviciile AI configurate pentru a genera conținutul solicitat. Fișierele sunt create și descărcate din browser; în versiunea curentă nu există cont de client sau bibliotecă de comenzi.
+                Datele introduse sunt trimise către serviciile AI configurate pentru a genera conținutul solicitat. Fișierele sunt create și descărcate din browser; în versiunea curentă nu există cont de client sau bibliotecă de comenzi. Statisticile agregate ne ajută să vedem ce produse sunt folosite și dacă o generare sau descărcare are probleme, fără a construi profiluri despre copil sau familie.
               </p>
             </section>
 
@@ -46,12 +47,12 @@ export default function PrivacyPage() {
 
             <section>
               <h2 className="text-2xl font-black text-brand-navy mb-4">Cookie-uri</h2>
-              <p>În prezent, site-ul nu include un coș de cumpărături activ. Dacă vom adăuga analytics, plăți sau cookie-uri opționale, politica va fi actualizată înainte de lansare.</p>
+              <p>Nu folosim cookie-uri de publicitate sau un identificator persistent pentru statisticile agregate. Browserul păstrează doar un marcaj temporar de sesiune, fără ID de client, pentru a nu număra aceeași vizită de mai multe ori. Dacă vom adăuga cookie-uri opționale, analytics la nivel de persoană, plăți sau conturi, politica și fluxul de consimțământ vor fi actualizate înainte de activare.</p>
             </section>
           </div>
 
           <div className="mt-16 pt-10 border-t border-brand-navy/5 text-center">
-            <p className="text-brand-navy/40 text-sm italic">Ultima actualizare: 24 Iunie 2026</p>
+            <p className="text-brand-navy/40 text-sm italic">Ultima actualizare: 18 Iulie 2026</p>
           </div>
         </div>
       </div>

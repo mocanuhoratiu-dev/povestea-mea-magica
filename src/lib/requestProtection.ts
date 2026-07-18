@@ -8,6 +8,11 @@ type RateLimitResult = {
   retryAfterSeconds: number;
 };
 
+type RateLimitOptions = {
+  windowMs?: number;
+  maxRequests?: number;
+};
+
 const buckets = new Map<string, RateLimitBucket>();
 const MAX_TRACKED_CLIENTS = 10_000;
 
@@ -42,9 +47,9 @@ function pruneExpiredBuckets(now: number) {
  * instances, so this intentionally complements, rather than replaces, an edge
  * rate limit when traffic grows.
  */
-export function checkRateLimit(request: Request, scope: string): RateLimitResult {
-  const windowMs = readPositiveInteger(process.env.GENERATE_RATE_LIMIT_WINDOW_MS, 60 * 60 * 1000);
-  const maxRequests = readPositiveInteger(process.env.GENERATE_RATE_LIMIT_MAX, 5);
+export function checkRateLimit(request: Request, scope: string, options: RateLimitOptions = {}): RateLimitResult {
+  const windowMs = options.windowMs ?? readPositiveInteger(process.env.GENERATE_RATE_LIMIT_WINDOW_MS, 60 * 60 * 1000);
+  const maxRequests = options.maxRequests ?? readPositiveInteger(process.env.GENERATE_RATE_LIMIT_MAX, 5);
   const now = Date.now();
   const key = `${scope}:${clientKey(request)}`;
   const existing = buckets.get(key);
@@ -62,6 +67,13 @@ export function checkRateLimit(request: Request, scope: string): RateLimitResult
 
   existing.count += 1;
   return { allowed: true, retryAfterSeconds };
+}
+
+export function checkTelemetryRateLimit(request: Request) {
+  return checkRateLimit(request, "telemetry", {
+    windowMs: readPositiveInteger(process.env.TELEMETRY_RATE_LIMIT_WINDOW_MS, 24 * 60 * 60 * 1000),
+    maxRequests: readPositiveInteger(process.env.TELEMETRY_RATE_LIMIT_MAX, 120),
+  });
 }
 
 export function requestExceedsBodyLimit(request: Request, maxBytes = 12_000) {

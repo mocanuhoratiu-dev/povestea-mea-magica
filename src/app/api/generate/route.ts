@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import https from "node:https";
 import { checkRateLimit, requestExceedsBodyLimit } from "@/lib/requestProtection";
+import { logTelemetry, type TelemetryProduct } from "@/lib/telemetry";
 
 type GenerateRequest = {
   type?: "monster" | "story" | "emergency";
@@ -720,6 +721,9 @@ async function generateStoryWithModelFallback({
 }
 
 export async function POST(req: Request) {
+  const startedAt = Date.now();
+  let product: TelemetryProduct | undefined;
+
   try {
     if (requestExceedsBodyLimit(req)) {
       return NextResponse.json(
@@ -744,12 +748,30 @@ export async function POST(req: Request) {
       );
     }
 
+    product = data.type;
+
     if (!isAiConfigured()) {
       if (data.type === "story") {
         const themeLabel = data.theme === 'space' ? 'Spațiu' : data.theme === 'forest' ? 'Pădure Fermecată' : 'Castel Magic';
-        return NextResponse.json({ success: true, data: buildStableStoryPayload(data, themeLabel) });
+        const fallback = buildStableStoryPayload(data, themeLabel);
+        logTelemetry("pmm_generation_completed", {
+          product,
+          result: "success",
+          generationMode: "fallback",
+          durationMs: Date.now() - startedAt,
+          wordCount: getWordCount(fallback.text),
+          aiProvider: getAiProvider(),
+        });
+        return NextResponse.json({ success: true, data: fallback });
       }
 
+      logTelemetry("pmm_generation_failed", {
+        product,
+        result: "error",
+        errorCode: "configuration",
+        durationMs: Date.now() - startedAt,
+        aiProvider: getAiProvider(),
+      });
       return NextResponse.json(
         {
           success: false,
@@ -787,10 +809,25 @@ export async function POST(req: Request) {
         responseMimeType: "application/json",
       });
       if ("error" in generated) {
+        logTelemetry("pmm_generation_failed", {
+          product,
+          result: "error",
+          errorCode: "ai_error",
+          durationMs: Date.now() - startedAt,
+          aiProvider: getAiProvider(),
+        });
         return NextResponse.json({ success: false, error: generated.error }, { status: 500 });
       }
       const result = sanitizeMonsterKit(parseJsonObject(generated.text));
 
+      logTelemetry("pmm_generation_completed", {
+        product,
+        result: "success",
+        generationMode: "ai",
+        durationMs: Date.now() - startedAt,
+        aiProvider: getAiProvider(),
+        model: generated.model,
+      });
       return NextResponse.json({ success: true, data: result });
     }
 
@@ -803,9 +840,18 @@ export async function POST(req: Request) {
         maxOutputTokens,
       });
       if ("error" in generated) {
+        const fallback = buildStableStoryPayload(data, themeLabel);
+        logTelemetry("pmm_generation_completed", {
+          product,
+          result: "success",
+          generationMode: "fallback",
+          durationMs: Date.now() - startedAt,
+          wordCount: getWordCount(fallback.text),
+          aiProvider: getAiProvider(),
+        });
         return NextResponse.json({
           success: true,
-          data: buildStableStoryPayload(data, themeLabel),
+          data: fallback,
           warning: generated.error,
         });
       }
@@ -813,9 +859,18 @@ export async function POST(req: Request) {
       try {
         result = sanitizeStoryPayload(parseStoryJson(generated.text), data.name || "Eroul", themeLabel);
       } catch {
+        const fallback = buildStableStoryPayload(data, themeLabel);
+        logTelemetry("pmm_generation_completed", {
+          product,
+          result: "success",
+          generationMode: "fallback",
+          durationMs: Date.now() - startedAt,
+          wordCount: getWordCount(fallback.text),
+          aiProvider: getAiProvider(),
+        });
         return NextResponse.json({
           success: true,
-          data: buildStableStoryPayload(data, themeLabel),
+          data: fallback,
           warning: "Răspunsul AI nu a putut fi citit ca JSON.",
         });
       }
@@ -852,6 +907,15 @@ export async function POST(req: Request) {
         }
       }
 
+      logTelemetry("pmm_generation_completed", {
+        product,
+        result: "success",
+        generationMode: "ai",
+        durationMs: Date.now() - startedAt,
+        wordCount,
+        aiProvider: getAiProvider(),
+        model: generated.model,
+      });
       return NextResponse.json({
         success: true,
         data: { ...result, model: generated.model },
@@ -892,10 +956,25 @@ export async function POST(req: Request) {
         responseMimeType: "application/json",
       });
       if ("error" in generated) {
+        logTelemetry("pmm_generation_failed", {
+          product,
+          result: "error",
+          errorCode: "ai_error",
+          durationMs: Date.now() - startedAt,
+          aiProvider: getAiProvider(),
+        });
         return NextResponse.json({ success: false, error: generated.error }, { status: 500 });
       }
       const result = sanitizeEmergencyKit(parseJsonObject(generated.text));
 
+      logTelemetry("pmm_generation_completed", {
+        product,
+        result: "success",
+        generationMode: "ai",
+        durationMs: Date.now() - startedAt,
+        aiProvider: getAiProvider(),
+        model: generated.model,
+      });
       return NextResponse.json({ success: true, data: result });
     }
 
@@ -903,6 +982,13 @@ export async function POST(req: Request) {
 
   } catch (error) {
     console.error("Eroare API Generate:", error);
+    logTelemetry("pmm_generation_failed", {
+      product,
+      result: "error",
+      errorCode: "unknown",
+      durationMs: Date.now() - startedAt,
+      aiProvider: getAiProvider(),
+    });
     const message = error instanceof Error ? error.message : "Magia a întârziat puțin. Încearcă din nou!";
     return NextResponse.json({ success: false, error: message }, { status: 500 });
   }

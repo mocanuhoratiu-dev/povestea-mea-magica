@@ -58,11 +58,17 @@ The health endpoint reports `ready: true` only when the active provider has both
 ELEVENLABS_API_KEY=
 GENERATE_RATE_LIMIT_WINDOW_MS=3600000
 GENERATE_RATE_LIMIT_MAX=5
+TELEMETRY_RATE_LIMIT_WINDOW_MS=86400000
+TELEMETRY_RATE_LIMIT_MAX=120
 ```
 
 This enables the voice preview API. Without it, story text and PDFs still work.
 
 The rate limit is a best-effort, per-instance Cloud Run safeguard for public beta. Before paid traffic or a multi-instance rollout, add a shared edge rate limit and configure Cloud Billing budget alerts.
+
+## Aggregate Product Metrics
+
+The app emits privacy-conscious, structured Cloud Run logs for visits, starts, completed generations, errors and successful PDF downloads. It never sends a child's name, story text, dedication, prompt or a customer identifier in those events. Follow [`docs/analytics.md`](analytics.md) once after deployment to create the persistent Cloud Monitoring counters.
 
 ## Parked For Stripe/Order Phase
 

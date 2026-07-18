@@ -4,6 +4,7 @@ import "./globals.css";
 import SmoothScroll from "@/components/SmoothScroll";
 import MobileCTA from "@/components/MobileCTA";
 import Navbar from "@/components/Navbar";
+import UsageTelemetry from "@/components/UsageTelemetry";
 import { siteUrl } from "@/lib/siteMode";
 
 const quicksand = Quicksand({
@@ -55,6 +56,7 @@ export default function RootLayout({
   return (
     <html lang="ro" className={`scroll-smooth ${quicksand.variable} ${nunito.variable}`}>
       <body className="antialiased font-quicksand bg-brand-cream">
+        <UsageTelemetry />
         <Navbar />
         <SmoothScroll>{children}</SmoothScroll>
         <MobileCTA />

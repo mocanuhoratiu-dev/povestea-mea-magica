@@ -8,6 +8,7 @@ Produs digital Next.js în limba română: povești personalizate pentru copii, 
 - Plăți Stripe: intenționat amânate pentru o etapă ulterioară.
 - Livrare email/comenzi: neactivată încă.
 - Generare AI: Vertex AI (Gemini) pentru text, ElevenLabs pentru previzualizare audio.
+- Observabilitate: evenimente agregate fără conținut personalizat pentru vizite, generări, fallback-uri, erori și descărcări PDF. Vezi [`docs/analytics.md`](docs/analytics.md).
 
 ## Getting Started
 

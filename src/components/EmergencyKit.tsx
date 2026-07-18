@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Utensils, Car, Stethoscope, CloudRain, Sparkles, Download, ShieldCheck, Plane, Clock3 } from "lucide-react";
 import MagicalLoader from "./MagicalLoader";
+import { trackEvent } from "@/lib/clientTelemetry";
 
 type TrueFalseItem = {
   q: string;
@@ -453,6 +454,8 @@ export default function EmergencyKit() {
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
+    trackEvent("product_started", { product: "emergency" });
+    trackEvent("generation_completed", { product: "emergency", generationMode: "template", pageCount: 6 });
     setEkData(buildEmergencyKit({ name, age, selectedContext, interest, duration, activityMode }));
     setShowResult(true);
   };
@@ -495,6 +498,7 @@ export default function EmergencyKit() {
       }
 
       pdf.save(`Trusa_Urgenta_${name.trim()}.pdf`);
+      trackEvent("pdf_downloaded", { product: "emergency", pageCount: pages.length });
     } catch (error) {
       console.error(error);
       alert(error instanceof Error ? error.message : "Nu am putut genera PDF-ul.");

@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck, Download, Sparkles, Star } from 'lucide-react';
 import MagicalLoader from './MagicalLoader';
+import { trackEvent } from "@/lib/clientTelemetry";
 
 /* ─── Types ─────────────────────────────────────── */
 interface Monster { id: string; label: string; icon: string; }
@@ -482,6 +483,8 @@ export default function MonsterKit() {
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
+    trackEvent('product_started', { product: 'monster' });
+    trackEvent('generation_completed', { product: 'monster', generationMode: 'template', pageCount: 3 });
     setShowResult(true);
   };
   const handleDownload = async () => {
@@ -515,6 +518,7 @@ export default function MonsterKit() {
         if (i < 3) pdf.addPage();
       }
       pdf.save(`Kit_Magic_${name.trim()}.pdf`);
+      trackEvent('pdf_downloaded', { product: 'monster', pageCount: 3 });
     } catch (error) {
       console.error(error);
       alert(error instanceof Error ? error.message : 'Nu am putut genera PDF-ul.');

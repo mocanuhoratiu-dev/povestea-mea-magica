@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Castle, FileText, Image as ImageIcon, RefreshCw, Rocket, ShieldCheck, Sparkles, Star, Trees } from "lucide-react";
 import MagicalLoader from "./MagicalLoader";
 import { siteCopy } from "@/lib/siteMode";
+import { trackEvent } from "@/lib/clientTelemetry";
 
 const STORY_PDF_STYLES = `
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap');
@@ -453,6 +454,7 @@ export default function StoryCreator() {
 
   const handleGenerateStory = async () => {
     if (!name) return;
+    trackEvent("product_started", { product: "story" });
     setIsLoading(true);
     try {
       const response = await fetch("/api/generate", {
@@ -551,6 +553,11 @@ export default function StoryCreator() {
         }
 
         pdf.save(`Povestea_lui_${name.trim() || "Erou"}.pdf`);
+        trackEvent("pdf_downloaded", {
+          product: "story",
+          pageCount: pages.length,
+          wordCount: getWordCount(storyText),
+        });
       } catch (error) {
         console.error(error);
         alert(error instanceof Error ? error.message : "Nu am putut genera PDF-ul.");
