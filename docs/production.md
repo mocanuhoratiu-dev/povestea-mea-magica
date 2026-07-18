@@ -16,6 +16,7 @@ npm run build
 Set these in the hosting provider:
 
 ```bash
+NEXT_PUBLIC_SITE_URL=https://your-final-domain.ro
 AI_PROVIDER=vertex
 VERTEX_AI_PROJECT_ID=project-e0c2efff-d456-48f9-9fe
 VERTEX_AI_LOCATION=global
@@ -23,7 +24,9 @@ VERTEX_AI_MODEL=gemini-2.5-flash
 VERTEX_AI_FALLBACK_MODELS=gemini-2.5-flash-lite
 ```
 
-The public interface always uses the final direct-generation wording: products show their launch prices, then generate directly without an active payment step.
+The public interface currently runs as a free public beta: materials generate directly without an active payment step, while launch prices remain visible for the future commercial phase.
+
+Set `NEXT_PUBLIC_SITE_URL` to the final HTTPS domain before connecting Search Console. It powers canonical URLs, Open Graph metadata, `robots.txt`, and `sitemap.xml`.
 
 Deploy the app to Cloud Run and attach the dedicated service account to the service. Cloud Run supplies Application Default Credentials automatically, so no service-account JSON key is stored in Git or in the application environment.
 
@@ -53,9 +56,13 @@ The health endpoint reports `ready: true` only when the active provider has both
 
 ```bash
 ELEVENLABS_API_KEY=
+GENERATE_RATE_LIMIT_WINDOW_MS=3600000
+GENERATE_RATE_LIMIT_MAX=5
 ```
 
 This enables the voice preview API. Without it, story text and PDFs still work.
+
+The rate limit is a best-effort, per-instance Cloud Run safeguard for public beta. Before paid traffic or a multi-instance rollout, add a shared edge rate limit and configure Cloud Billing budget alerts.
 
 ## Parked For Stripe/Order Phase
 

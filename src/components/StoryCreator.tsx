@@ -972,7 +972,7 @@ export default function StoryCreator() {
                   ))}
                 </div>
                 <p className="mt-4 rounded-2xl bg-brand-gold/15 px-4 py-3 text-sm font-bold leading-relaxed text-brand-navy/70">
-                  În această etapă poți genera direct, fără plată online. Prețul de lansare este afișat pentru produsul ales.
+                  În beta publică poți genera direct și gratuit. Prețul de lansare este afișat pentru produsul ales, înainte de activarea plăților online.
                 </p>
               </div>
 

@@ -51,7 +51,7 @@ export default function Pricing() {
             Alege materialul potrivit pentru copilul tău
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg font-medium leading-relaxed text-brand-navy/65">
-            Alege materialul potrivit și creează-l direct. Prețurile de lansare sunt afișate aici, iar plata online va fi activată ulterior.
+            În beta publică, poți genera și descărca gratuit materialele. Prețurile de mai jos sunt cele planificate pentru lansarea comercială, când plata online va fi activată.
           </p>
         </div>
 
@@ -106,7 +106,7 @@ export default function Pricing() {
             Pachet recomandat: toate cele 3 materiale la <span className="text-brand-purple">49 lei</span>
           </p>
           <p className="mt-2 text-sm font-bold text-brand-navy/55">
-            Oferta pachetului este pregătită pentru activarea plăților online.
+            În beta publică poți testa gratuit fiecare material înainte de activarea plăților online.
           </p>
         </div>
       </div>

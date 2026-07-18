@@ -69,7 +69,7 @@ export default function Hero() {
             Copilul tău, <span className="text-brand-purple italic">eroul</span> poveștii! 🐉
           </h1>
           <p className="mt-6 text-xl text-brand-navy/80 leading-relaxed max-w-xl font-medium">
-            Creează în câteva secunde o poveste de seară, un kit anti-frică sau o activitate de salvare pentru momentele lungi de așteptare.
+            Creează o poveste de seară, un kit anti-frică sau o activitate pentru momentele lungi de așteptare. În beta publică, materialele se generează gratuit.
           </p>
           
           <div className="mt-10 flex flex-col sm:flex-row gap-6">

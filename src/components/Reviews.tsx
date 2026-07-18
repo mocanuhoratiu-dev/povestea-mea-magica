@@ -1,23 +1,29 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Star } from "lucide-react";
+import { FileCheck2, HeartHandshake, Sparkles, Star } from "lucide-react";
 
-const testimonials = [
+const benefits = [
   {
-    name: "Personalizare reală",
-    role: "Nume, vârstă, lume și detalii ale copilului",
+    title: "Personalizare reală",
+    detail: "Nume, vârstă, lume și detalii ale copilului",
     text: "Fiecare material pornește de la alegerile părintelui, astfel încât copilul să simtă că povestea sau misiunea este despre el.",
+    icon: Sparkles,
+    accent: "text-brand-pink border-brand-pink",
   },
   {
-    name: "PDF-uri gata de folosit",
-    role: "Editare, verificare și descărcare locală",
+    title: "PDF-uri gata de folosit",
+    detail: "Editare, verificare și descărcare locală",
     text: "Părintele poate verifica textul, ajusta povestea și descărca un material printabil fără pași tehnici complicați.",
+    icon: FileCheck2,
+    accent: "text-brand-purple border-brand-purple",
   },
   {
-    name: "Ajutor în momente concrete",
-    role: "Somn, frici de noapte și așteptări lungi",
+    title: "Ajutor în momente concrete",
+    detail: "Somn, frici de noapte și așteptări lungi",
     text: "Produsele sunt gândite pentru situații reale din viața de părinte: seara, la drum, la restaurant sau în sala de așteptare.",
+    icon: HeartHandshake,
+    accent: "text-brand-blue border-brand-blue",
   },
 ];
 
@@ -50,7 +56,10 @@ export default function Reviews() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {testimonials.map((t, index) => (
+          {benefits.map((benefit, index) => {
+            const Icon = benefit.icon;
+
+            return (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 20 }}
@@ -58,26 +67,23 @@ export default function Reviews() {
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
               whileHover={{ scale: 1.02 }}
-              className={`bg-white p-10 rounded-[3rem] shadow-xl border-t-8 ${
-                index === 0 ? "border-brand-pink" : index === 1 ? "border-brand-purple" : "border-brand-blue"
-              }`}
+              className={`bg-white p-10 rounded-[2rem] shadow-xl border-t-8 ${benefit.accent}`}
             >
-              <div className="flex gap-1 mb-6">
-                {[1, 2, 3, 4, 5].map((s) => (
-                  <Star key={s} className="w-6 h-6 fill-brand-gold text-brand-gold" />
-                ))}
+              <div className={`mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-cream ${benefit.accent.split(" ")[0]}`}>
+                <Icon size={24} strokeWidth={2.5} />
               </div>
-              <p className="text-brand-navy/80 italic mb-8 leading-relaxed text-lg font-medium">
-                &ldquo;{t.text}&rdquo;
+              <h3 className="font-nunito text-2xl font-black text-brand-navy">{benefit.title}</h3>
+              <p className="mt-3 text-brand-navy/80 leading-relaxed text-lg font-medium">
+                {benefit.text}
               </p>
               <div className="flex items-center gap-4 pt-6 border-t border-brand-navy/5">
                 <div>
-                  <h4 className="font-black text-brand-navy text-lg">{t.name}</h4>
-                  <p className="text-xs font-bold text-brand-navy/40 uppercase tracking-tight">{t.role}</p>
+                  <p className="text-xs font-bold text-brand-navy/40 uppercase tracking-tight">{benefit.detail}</p>
                 </div>
               </div>
             </motion.div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

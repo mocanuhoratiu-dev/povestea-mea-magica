@@ -6,6 +6,10 @@ import { ChevronDown } from "lucide-react";
 
 const faqs = [
   {
+    question: "Este gratuit în această etapă?",
+    answer: "Da. Site-ul este în beta publică: poți genera, verifica și descărca materialele gratuit. Prețurile afișate sunt cele planificate pentru lansarea comercială, când plata online va fi activată.",
+  },
+  {
     question: "Cât durează până primesc povestea?",
     answer: "Povestea se generează direct în browser în aproximativ câteva secunde, în funcție de disponibilitatea serviciilor AI.",
   },

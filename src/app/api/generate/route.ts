@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import https from "node:https";
+import { checkRateLimit, requestExceedsBodyLimit } from "@/lib/requestProtection";
 
 type GenerateRequest = {
   type?: "monster" | "story" | "emergency";
@@ -37,6 +38,39 @@ type StoryPromptConfig = {
 };
 
 type AiProvider = "gemini" | "vertex";
+
+const SUPPORTED_TYPES = new Set<NonNullable<GenerateRequest["type"]>>(["monster", "story", "emergency"]);
+
+function cleanRequestText(value: unknown, maxLength: number) {
+  if (typeof value !== "string") return "";
+  return value.replace(/[\u0000-\u001F\u007F]/g, " ").replace(/\s+/g, " ").trim().slice(0, maxLength);
+}
+
+function normalizeGenerateRequest(value: unknown): GenerateRequest | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+
+  const data = value as Record<string, unknown>;
+  if (!SUPPORTED_TYPES.has(data.type as NonNullable<GenerateRequest["type"]>)) return null;
+
+  const normalized: GenerateRequest = {
+    type: data.type as GenerateRequest["type"],
+    name: cleanRequestText(data.name, 80),
+    age: cleanRequestText(data.age, 2),
+    theme: cleanRequestText(data.theme, 24),
+    lesson: cleanRequestText(data.lesson, 120),
+    monster: cleanRequestText(data.monster, 100),
+    context: cleanRequestText(data.context, 280),
+    tone: cleanRequestText(data.tone, 80),
+    themeDetail: cleanRequestText(data.themeDetail, 180),
+    lessonDetail: cleanRequestText(data.lessonDetail, 180),
+  };
+
+  if (!normalized.name) return null;
+  if (normalized.age && !/^(?:[1-9]|10)$/.test(normalized.age)) return null;
+  if (normalized.theme && !["space", "forest", "castle"].includes(normalized.theme)) return null;
+
+  return normalized;
+}
 
 const STORY_RESPONSE_SCHEMA = {
   type: "object",
@@ -687,7 +721,29 @@ async function generateStoryWithModelFallback({
 
 export async function POST(req: Request) {
   try {
-    const data = (await req.json()) as GenerateRequest;
+    if (requestExceedsBodyLimit(req)) {
+      return NextResponse.json(
+        { success: false, error: "Cererea este prea mare. Păstrează detaliile scurte și încearcă din nou." },
+        { status: 413 }
+      );
+    }
+
+    const limit = checkRateLimit(req, "generate");
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { success: false, error: "Ai ajuns la limita de generări pentru moment. Încearcă din nou mai târziu." },
+        { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } }
+      );
+    }
+
+    const data = normalizeGenerateRequest(await req.json());
+    if (!data) {
+      return NextResponse.json(
+        { success: false, error: "Verifică numele copilului și opțiunile alese, apoi încearcă din nou." },
+        { status: 400 }
+      );
+    }
+
     if (!isAiConfigured()) {
       if (data.type === "story") {
         const themeLabel = data.theme === 'space' ? 'Spațiu' : data.theme === 'forest' ? 'Pădure Fermecată' : 'Castel Magic';
