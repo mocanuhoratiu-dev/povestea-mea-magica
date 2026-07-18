@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { siteMode } from "@/lib/siteMode";
+import { commerce, siteMode } from "@/lib/siteMode";
 
 function configured(value: string | undefined) {
   return Boolean(value && value.trim().length > 0);
@@ -37,7 +37,7 @@ export function GET() {
         storyCoverFallback: true,
         storyFallback: true,
         voicePreview: checks.elevenlabsApiKey,
-        stripeCheckout: false,
+        stripeCheckout: commerce.acceptsPayments,
       },
       timestamp: new Date().toISOString(),
     },

@@ -38,7 +38,7 @@ export default function Hero() {
           <p className="mt-6 max-w-xl text-lg font-medium leading-relaxed text-brand-cream/90 md:text-xl">
             Povești de seară, ritualuri pentru nopțile cu emoții și misiuni pentru timpul de așteptare. Făcute pentru momentul vostru.
           </p>
-          <p className="mt-4 max-w-xl text-sm font-bold leading-relaxed text-brand-cream/75">{siteCopy.launchAccess}</p>
+          <p className="mt-5 max-w-xl border-l-2 border-brand-gold bg-brand-navy/30 px-4 py-3 text-sm font-bold leading-relaxed text-brand-cream/85">{siteCopy.launchAccess}</p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <motion.a
               href="#alege-materialul"

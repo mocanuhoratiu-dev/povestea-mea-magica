@@ -4,7 +4,7 @@ Produs digital Next.js în limba română: povești personalizate pentru copii, 
 
 ## Status
 
-- Modul curent: experiență pre-commerce, cu mod demo/local controlat prin `NEXT_PUBLIC_SITE_MODE`.
+- Modul curent: acces de lansare. Materialele se generează direct, iar prețurile sunt informative până când checkout-ul este activ.
 - Plăți Stripe: intenționat amânate pentru o etapă ulterioară.
 - Livrare email/comenzi: neactivată încă.
 - Generare AI: Vertex AI (Gemini) pentru text, ElevenLabs pentru previzualizare audio.
@@ -50,7 +50,7 @@ npm run build
 - Verify `/api/health` returns `ready: true` after deploy.
 - Generate real samples on the deployed domain and download all PDFs.
 - Add server-side order persistence and email delivery.
-- Add authenticated Stripe checkout and verified webhook fulfillment.
+- Add authenticated Stripe checkout, verified webhook fulfillment, server-side order persistence and email delivery together.
 - Add rate limiting and stricter validation around AI endpoints.
 - Add monitoring/error tracking.
 - Review legal copy after payments, analytics, and data retention are finalized.

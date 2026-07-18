@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Castle, FileText, Image as ImageIcon, RefreshCw, Rocket, ShieldCheck, Sparkles, Star, Trees } from "lucide-react";
 import BrandMark from "@/components/BrandMark";
 import MagicalLoader from "./MagicalLoader";
+import FeedbackInvite from "./FeedbackInvite";
 import { siteCopy } from "@/lib/siteMode";
 import { trackEvent } from "@/lib/clientTelemetry";
 
@@ -796,6 +797,9 @@ export default function StoryCreator() {
                   Descarcă PDF 📥
                 </button>
               </div>
+              <div className="bg-white/50 px-6 pb-6 md:px-8 md:pb-8">
+                <FeedbackInvite product="story" compact />
+              </div>
             </motion.div>
           </motion.div>
         )}
@@ -959,9 +963,6 @@ export default function StoryCreator() {
                   </div>
                   <p className="mt-2 text-sm text-brand-navy/50 font-bold">{packages[0].desc}</p>
                 </div>
-                <p className="mt-4 border-l-2 border-brand-gold bg-brand-gold/10 px-4 py-3 text-sm font-bold leading-relaxed text-brand-navy/70">
-                  {siteCopy.launchAccess}
-                </p>
               </div>
 
               <div className="space-y-4">

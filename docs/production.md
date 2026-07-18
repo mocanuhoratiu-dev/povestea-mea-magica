@@ -1,6 +1,6 @@
 # Production Setup
 
-This project is ready to run as a production pre-commerce experience before Stripe is enabled. For production, use Vertex AI: its Gemini usage is billed through Google Cloud and can use eligible Google Cloud credits.
+This project is ready to run as a production launch-access experience before Stripe is enabled. For production, use Vertex AI: its Gemini usage is billed through Google Cloud and can use eligible Google Cloud credits.
 
 ## Pre-Deploy Checks
 
@@ -25,7 +25,7 @@ VERTEX_AI_FALLBACK_MODELS=gemini-2.5-flash-lite
 VERTEX_AI_IMAGE_MODEL=gemini-2.5-flash-image
 ```
 
-The public interface currently runs as a free public beta: materials generate directly without an active payment step, while launch prices remain visible for the future commercial phase.
+The public interface currently runs with launch access: materials generate directly without an active payment step, while commercial prices remain visible for the future paid phase.
 
 Set `NEXT_PUBLIC_SITE_URL` to the final HTTPS domain before connecting Search Console. It powers canonical URLs, Open Graph metadata, `robots.txt`, and `sitemap.xml`.
 
@@ -113,5 +113,11 @@ If `ready` is `false`, production is missing a required Vertex AI configuration 
 - Confirm `/api/health` is ready on production.
 - Generate at least three stories with different ages/themes.
 - Download all three PDFs from production.
+- Collect and review real parent feedback. Only publish a quote when the family has explicitly agreed.
 - Confirm legal pages still match the no-payment production state.
-- Keep Stripe variables unset until checkout and fulfillment are implemented.
+- Add legal business identity and a support response commitment to the public legal/contact surfaces.
+- Implement an authenticated Stripe Checkout Session endpoint. Never expose a secret key to the browser.
+- Persist a minimal server-side order record before fulfillment, then verify every Stripe webhook signature before granting access or sending a receipt.
+- Add the delivery email flow and retry/error handling before switching `commerce.acceptsPayments` to `true`.
+- Test Stripe test mode from payment through receipt, PDF access, cancellation and support handling.
+- Keep Stripe variables unset until the complete checkout and fulfillment flow is implemented.

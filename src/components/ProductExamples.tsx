@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowRight, BookOpen, ShieldCheck, TimerReset } from "lucide-react";
-import { siteCopy } from "@/lib/siteMode";
 
 const examples = [
   {
@@ -93,6 +92,9 @@ export default function ProductExamples() {
                 <ul className="mt-6 space-y-2 border-t border-brand-navy/10 pt-5 text-sm font-bold text-brand-navy/75">
                   {example.features.map((feature) => <li key={feature} className="flex gap-2"><span className={example.accentText}>✦</span>{feature}</li>)}
                 </ul>
+                <a href="/modele" className="mt-5 inline-flex w-fit items-center gap-2 border-b border-brand-navy/20 pb-1 text-sm font-black text-brand-navy/70 transition-colors hover:border-brand-purple hover:text-brand-purple">
+                  Răsfoiește pagini din model <ArrowRight size={15} />
+                </a>
                 <div className="mt-7 flex items-end justify-between gap-4">
                   <div>
                     <p className="font-nunito text-3xl font-black text-brand-navy">{example.price}</p>
@@ -106,7 +108,6 @@ export default function ProductExamples() {
             </motion.article>
           ))}
         </div>
-        <p className="mt-8 text-center text-sm font-bold text-brand-navy/60">{siteCopy.launchAccess}</p>
       </div>
     </section>
   );

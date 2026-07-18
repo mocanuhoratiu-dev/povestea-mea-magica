@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Utensils, Car, Stethoscope, CloudRain, Sparkles, Download, Plane, Clock3 } from "lucide-react";
 import BrandMark from "./BrandMark";
 import MagicalLoader from "./MagicalLoader";
+import FeedbackInvite from "./FeedbackInvite";
 import { trackEvent } from "@/lib/clientTelemetry";
 
 type TrueFalseItem = {
@@ -607,9 +608,6 @@ export default function EmergencyKit() {
           <p className="mt-4 text-brand-navy/60 text-lg max-w-xl mx-auto">
             Misiuni mici pentru drum, restaurant, medic sau orice moment în care timpul pare să treacă mai greu.
           </p>
-          <p className="mt-3 text-sm font-bold text-brand-orange">
-            Acces de lansare gratuit. Preț la lansarea comercială: 19 lei.
-          </p>
         </div>
 
         <motion.div
@@ -921,6 +919,7 @@ export default function EmergencyKit() {
                 >
                   <Download size={22} /> Descarcă Trusa PDF
                 </motion.button>
+                <FeedbackInvite product="emergency" compact />
               </div>
             </motion.div>
           </motion.div>

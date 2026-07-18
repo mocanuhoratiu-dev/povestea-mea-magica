@@ -20,12 +20,13 @@ export default function Navbar() {
           </span>
         </Link>
 
-        <div className="hidden items-center gap-8 lg:flex">
+        <div className="hidden items-center gap-6 lg:flex">
           {[
             { label: "Povestea de seară", href: "/#creator" },
             { label: "Scutul de noapte", href: "/#monster-away" },
             { label: "Trusa de răbdare", href: "/#emergency-kit" },
             { label: "Modele", href: "/modele" },
+            { label: "Despre", href: "/despre" },
           ].map((item) => (
             <Link 
               key={item.label} 

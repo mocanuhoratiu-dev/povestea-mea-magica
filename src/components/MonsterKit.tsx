@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck, Download, Sparkles, Star } from 'lucide-react';
 import BrandMark from './BrandMark';
 import MagicalLoader from './MagicalLoader';
+import FeedbackInvite from './FeedbackInvite';
 import { trackEvent } from "@/lib/clientTelemetry";
 
 /* ─── Types ─────────────────────────────────────── */
@@ -647,9 +648,6 @@ export default function MonsterKit() {
           <p className="mt-4 text-brand-cream/70 text-lg max-w-xl mx-auto">
             Un ritual blând de seară, cu certificat, rețetă simbolică și etichete pentru flacon.
           </p>
-          <p className="mt-3 text-sm font-bold text-brand-gold">
-            Acces de lansare gratuit. Preț la lansarea comercială: 19 lei.
-          </p>
         </div>
 
         {/* Form card */}
@@ -813,6 +811,7 @@ export default function MonsterKit() {
                 >
                   <Download size={22} /> Descarcă PDF-ul Complet
                 </motion.button>
+                <FeedbackInvite product="monster" compact />
               </div>
             </motion.div>
           </motion.div>

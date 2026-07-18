@@ -31,7 +31,7 @@ const faqs = [
   },
   {
     question: "Care sunt prețurile?",
-    answer: "La lansarea comercială, Povestea de Seară va costa 29 lei, iar Scutul de Noapte și Trusa de Răbdare câte 19 lei. Pachetul cu toate trei va fi 49 lei. În prezent, accesul de lansare este gratuit și poți genera direct.",
+    answer: "Povestea de Seară este 29 lei, iar Scutul de Noapte și Trusa de Răbdare sunt câte 19 lei. Pachetul cu toate trei este 49 lei. Vei vedea clar pasul de plată înainte ca aceste prețuri să devină aplicabile.",
   },
   {
     question: "Sunt materialele un sfat medical sau terapeutic?",

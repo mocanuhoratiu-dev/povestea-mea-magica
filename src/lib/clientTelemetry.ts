@@ -2,7 +2,7 @@
 
 import type { GenerationMode, TelemetryProduct } from "@/lib/telemetry";
 
-type ClientEvent = "site_visited" | "product_started" | "generation_completed" | "pdf_downloaded";
+type ClientEvent = "site_visited" | "product_started" | "generation_completed" | "pdf_downloaded" | "feedback_requested";
 
 type ClientTelemetryFields = {
   product?: TelemetryProduct;

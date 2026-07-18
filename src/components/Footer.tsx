@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import BrandMark from "@/components/BrandMark";
-import { siteCopy } from "@/lib/siteMode";
 
 export default function Footer() {
   return (
@@ -23,6 +22,7 @@ export default function Footer() {
               <li><Link href="/#monster-away" className="transition-colors hover:text-brand-gold">Scutul de Noapte</Link></li>
               <li><Link href="/#emergency-kit" className="transition-colors hover:text-brand-gold">Trusa de Răbdare</Link></li>
               <li><Link href="/modele" className="transition-colors hover:text-brand-gold">Modele PDF</Link></li>
+              <li><Link href="/despre" className="transition-colors hover:text-brand-gold">Despre proiect</Link></li>
             </ul>
           </div>
           <div>
@@ -38,7 +38,7 @@ export default function Footer() {
         </div>
         <div className="flex flex-col gap-3 pt-8 text-sm font-medium text-brand-cream/45 md:flex-row md:items-center md:justify-between">
           <p>© 2026 Povestea Mea Magică. Toate drepturile rezervate.</p>
-          <p>{siteCopy.footerStatusText}</p>
+          <p>Materiale digitale pentru familii, create pentru momente de folosit împreună.</p>
         </div>
       </div>
     </footer>

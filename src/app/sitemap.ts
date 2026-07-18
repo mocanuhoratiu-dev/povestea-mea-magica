@@ -3,6 +3,7 @@ import { siteUrl } from "@/lib/siteMode";
 
 const publicPages = [
   "",
+  "/despre",
   "/modele",
   "/termeni-si-conditii",
   "/politica-de-confidentialitate",
