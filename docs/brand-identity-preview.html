@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="ro">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Povestea Mea Magică - Direcție de brand</title>
+    <style>
+      :root {
+        --ink: #24324f;
+        --paper: #fff9ee;
+        --plum: #8052a0;
+        --light: #e5b84f;
+        --sunrise: #d97786;
+        --journey: #5b93af;
+        --waiting: #d88b4a;
+        --green: #5e967a;
+        --line: #ded7c9;
+      }
+
+      * { box-sizing: border-box; }
+      html { background: var(--paper); }
+      body {
+        margin: 0;
+        color: var(--ink);
+        font-family: Nunito, Avenir Next, Avenir, ui-rounded, system-ui, sans-serif;
+        background: linear-gradient(180deg, #fffdf8 0%, var(--paper) 55%, #f4ecde 100%);
+      }
+
+      .shell { max-width: 1240px; margin: 0 auto; padding: 32px 28px 72px; }
+      .eyebrow {
+        margin: 0 0 10px;
+        color: var(--plum);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 1.6px;
+        text-transform: uppercase;
+      }
+      .section-title {
+        margin: 0;
+        font-size: clamp(26px, 4vw, 42px);
+        line-height: 1.08;
+        letter-spacing: 0;
+      }
+      .section-copy {
+        max-width: 660px;
+        margin: 12px 0 0;
+        color: #586273;
+        font-size: 16px;
+        line-height: 1.65;
+      }
+
+      .hero {
+        position: relative;
+        overflow: hidden;
+        min-height: 472px;
+        padding: clamp(30px, 6vw, 72px);
+        border: 1px solid #334766;
+        border-radius: 8px;
+        color: var(--paper);
+        background: var(--ink);
+        box-shadow: 0 20px 55px rgba(36, 50, 79, .18);
+      }
+      .hero::before {
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(circle at 1px 1px, rgba(229, 184, 79, .48) 1px, transparent 0);
+        background-size: 38px 38px;
+        opacity: .22;
+        content: "";
+      }
+      .hero-grid {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: minmax(0, 1.05fr) minmax(260px, .95fr);
+        gap: clamp(28px, 7vw, 90px);
+        align-items: center;
+      }
+      .status {
+        display: inline-flex;
+        align-items: center;
+        min-height: 28px;
+        padding: 4px 10px;
+        border: 1px solid rgba(255, 249, 238, .36);
+        border-radius: 999px;
+        color: #f8df99;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: .5px;
+        text-transform: uppercase;
+      }
+      .brand-lockup {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin: 24px 0 29px;
+      }
+      .brand-name {
+        margin: 0;
+        color: var(--paper);
+        font-family: Georgia, Times New Roman, serif;
+        font-size: clamp(33px, 5vw, 58px);
+        font-weight: 400;
+        line-height: .9;
+      }
+      .brand-name span { color: #e6c363; font-style: italic; }
+      .hero h1 {
+        max-width: 565px;
+        margin: 0;
+        color: #fffaf1;
+        font-size: clamp(24px, 3vw, 39px);
+        line-height: 1.18;
+        letter-spacing: 0;
+      }
+      .hero p {
+        max-width: 510px;
+        margin: 17px 0 0;
+        color: #d9e0ed;
+        font-size: 16px;
+        line-height: 1.65;
+      }
+      .brand-mark { width: 88px; flex: 0 0 88px; }
+      .mark-wrap {
+        display: grid;
+        min-height: 280px;
+        place-items: center;
+      }
+      .lantern { width: min(100%, 285px); filter: drop-shadow(0 18px 18px rgba(8, 15, 31, .28)); }
+      .quote {
+        margin-top: 28px;
+        padding-left: 15px;
+        border-left: 2px solid var(--light);
+        color: #f8df99;
+        font-family: Georgia, Times New Roman, serif;
+        font-size: 17px;
+        font-style: italic;
+        line-height: 1.5;
+      }
+
+      .grid { display: grid; gap: 18px; margin-top: 29px; }
+      .foundation { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .tile {
+        min-height: 175px;
+        padding: 22px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 253, 248, .84);
+      }
+      .tile-kicker {
+        margin: 0 0 13px;
+        color: var(--plum);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 1.2px;
+        text-transform: uppercase;
+      }
+      .tile strong { display: block; font-size: 19px; line-height: 1.25; }
+      .tile p { margin: 10px 0 0; color: #5c6572; font-size: 14px; line-height: 1.55; }
+
+      section { padding-top: 80px; }
+      .palette { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .swatch {
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fffdf8;
+      }
+      .swatch-color { height: 104px; }
+      .swatch-meta { padding: 13px 14px 15px; }
+      .swatch-name { display: block; font-size: 14px; font-weight: 800; }
+      .swatch-hex { display: block; margin-top: 4px; color: #737b88; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+      .swatch-role { display: block; margin-top: 8px; color: #555f6d; font-size: 12px; line-height: 1.4; }
+
+      .product-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .product {
+        position: relative;
+        overflow: hidden;
+        min-height: 320px;
+        padding: 27px;
+        border-radius: 8px;
+      }
+      .product .product-icon { width: 46px; height: 46px; margin-bottom: 46px; }
+      .product .product-name { margin: 0; font-family: Georgia, Times New Roman, serif; font-size: 31px; font-weight: 400; line-height: 1.05; }
+      .product .product-copy { max-width: 270px; margin: 12px 0 0; font-size: 14px; line-height: 1.55; }
+      .product .product-code { position: absolute; right: 21px; bottom: 21px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; font-weight: 800; letter-spacing: 1px; }
+      .story { color: #432f55; background: #f4e9f2; border: 1px solid #dcc5d9; }
+      .night { color: #fff9ee; background: var(--ink); border: 1px solid #354969; }
+      .patience { color: #273b53; background: #f9ecd9; border: 1px solid #e2c797; }
+      .story .product-copy, .patience .product-copy { color: #5d5f69; }
+      .night .product-copy { color: #dbe2ed; }
+      .story .product-code { color: var(--plum); }
+      .night .product-code { color: #f3d778; }
+      .patience .product-code { color: var(--waiting); }
+      .mini-path { position: absolute; right: -30px; top: 17px; width: 170px; height: 120px; border-top: 2px solid currentColor; border-radius: 50%; opacity: .22; transform: rotate(-22deg); }
+
+      .type-grid { grid-template-columns: 1.15fr .85fr; align-items: stretch; }
+      .type-panel, .voice-panel { padding: clamp(25px, 4vw, 42px); border-radius: 8px; }
+      .type-panel { color: var(--paper); background: var(--ink); }
+      .type-sans { margin: 18px 0 0; font-size: clamp(31px, 5vw, 56px); font-weight: 800; line-height: 1; }
+      .type-serif { margin: 7px 0 0; color: #f3d778; font-family: Georgia, Times New Roman, serif; font-size: clamp(29px, 5vw, 55px); font-style: italic; line-height: 1; }
+      .type-caption { margin: 26px 0 0; color: #c9d3e3; font-size: 14px; line-height: 1.6; }
+      .voice-panel { border: 1px solid var(--line); background: #fffdf8; }
+      .voice-panel blockquote { margin: 20px 0 0; color: var(--plum); font-family: Georgia, Times New Roman, serif; font-size: clamp(25px, 3vw, 35px); font-style: italic; line-height: 1.24; }
+      .voice-panel p { margin: 18px 0 0; color: #596373; font-size: 14px; line-height: 1.6; }
+
+      .apply { padding: 32px; border: 1px solid #d5cbba; border-radius: 8px; background: #f7f0e4; }
+      .apply ol { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin: 28px 0 0; padding: 0; list-style: none; counter-reset: steps; }
+      .apply li { counter-increment: steps; color: #4f5a6a; font-size: 14px; line-height: 1.55; }
+      .apply li::before { display: grid; width: 30px; height: 30px; margin-bottom: 11px; place-items: center; border: 1px solid #b89a58; border-radius: 50%; color: var(--ink); content: counter(steps); font-family: Georgia, Times New Roman, serif; font-weight: 700; }
+      .apply strong { color: var(--ink); }
+      .approval { margin-top: 22px; color: #6a5542; font-size: 13px; line-height: 1.5; }
+
+      @media (max-width: 820px) {
+        .shell { padding: 16px 16px 48px; }
+        .hero { min-height: auto; padding: 34px 24px; }
+        .hero-grid, .type-grid { grid-template-columns: 1fr; }
+        .mark-wrap { display: none; }
+        .foundation, .palette { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .product-row, .apply ol { grid-template-columns: 1fr; }
+        section { padding-top: 58px; }
+      }
+      @media (max-width: 470px) {
+        .foundation, .palette { grid-template-columns: 1fr; }
+        .brand-name { font-size: 39px; }
+        .brand-lockup { gap: 11px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="hero">
+        <div class="hero-grid">
+          <div>
+            <span class="status">Direcție de brand pentru aprobare</span>
+            <div class="brand-lockup">
+              <svg class="brand-mark" viewBox="0 0 180 180" aria-label="Simbol propus: Lanterna Magică" role="img">
+                <path d="M67 45c0-28 46-28 46 0" fill="none" stroke="#E5B84F" stroke-linecap="round" stroke-width="8" />
+                <path d="M58 53h64l11 17-8 74c-1 11-9 18-19 18H74c-10 0-18-7-19-18l-8-74z" fill="#324564" stroke="#E5B84F" stroke-linejoin="round" stroke-width="5" />
+                <path d="M69 77h42v56H69z" fill="#F9D871" />
+                <path d="M90 85l6 15 15 6-15 6-6 15-6-15-15-6 15-6z" fill="#8052A0" />
+                <path d="M53 71h80M55 146h70" fill="none" stroke="#E5B84F" stroke-linecap="round" stroke-width="5" />
+                <path d="M138 65c17-10 25-17 33-28M146 83c19 0 27-4 34-11M41 91c-16 8-24 16-31 27" fill="none" stroke="#F9D871" stroke-linecap="round" stroke-width="4" />
+                <path d="M162 21l3 8 8 3-8 3-3 8-3-8-8-3 8-3zM30 117l2 6 6 2-6 2-2 6-2-6-6-2 6-2z" fill="#E5B84F" />
+              </svg>
+              <p class="brand-name">Povestea Mea<br /><span>Magică</span></p>
+            </div>
+            <h1>Momente mici. Magie pe bune.</h1>
+            <p>Materiale personalizate care transformă serile, emoțiile și timpii de așteptare în ritualuri simple, pline de imaginație.</p>
+            <div class="quote">„Magie practică pentru momentele mici ale copilăriei.”</div>
+          </div>
+          <div class="mark-wrap">
+            <svg class="lantern" viewBox="0 0 180 180" aria-hidden="true">
+              <path d="M67 45c0-28 46-28 46 0" fill="none" stroke="#E5B84F" stroke-linecap="round" stroke-width="8" />
+              <path d="M58 53h64l11 17-8 74c-1 11-9 18-19 18H74c-10 0-18-7-19-18l-8-74z" fill="#324564" stroke="#E5B84F" stroke-linejoin="round" stroke-width="5" />
+              <path d="M69 77h42v56H69z" fill="#F9D871" />
+              <path d="M90 85l6 15 15 6-15 6-6 15-6-15-15-6 15-6z" fill="#8052A0" />
+              <path d="M53 71h80M55 146h70" fill="none" stroke="#E5B84F" stroke-linecap="round" stroke-width="5" />
+              <path d="M138 65c17-10 25-17 33-28M146 83c19 0 27-4 34-11M41 91c-16 8-24 16-31 27" fill="none" stroke="#F9D871" stroke-linecap="round" stroke-width="4" />
+              <path d="M162 21l3 8 8 3-8 3-3 8-3-8-8-3 8-3zM30 117l2 6 6 2-6 2-2 6-2-6-6-2 6-2z" fill="#E5B84F" />
+            </svg>
+          </div>
+        </div>
+      </header>
+
+      <section>
+        <p class="eyebrow">Fundația</p>
+        <h2 class="section-title">Un brand care ajută, nu doar încântă</h2>
+        <div class="grid foundation">
+          <article class="tile"><p class="tile-kicker">Rol</p><strong>Ghidul blând</strong><p>Calm, atent și organizat. Vorbește părinților cu respect și oferă copilului o lume a lui.</p></article>
+          <article class="tile"><p class="tile-kicker">Promisiune</p><strong>Magie practică</strong><p>Imaginație aplicată unor momente reale: somn, emoții, așteptare și conectare.</p></article>
+          <article class="tile"><p class="tile-kicker">Emoție</p><strong>Siguranță cu lumină</strong><p>Nu spectacol, nu haos. O atmosferă caldă care face loc curajului și jocului.</p></article>
+          <article class="tile"><p class="tile-kicker">Dovadă</p><strong>Personal, gata de folosit</strong><p>Un material construit pentru contextul copilului, ușor de citit, printat și păstrat.</p></article>
+        </div>
+      </section>
+
+      <section>
+        <p class="eyebrow">Paletă</p>
+        <h2 class="section-title">O singură lume, trei atmosfere</h2>
+        <p class="section-copy">Hârtia și cerneala sunt constantele. Fiecare produs primește un accent distinct, dar toate vorbesc aceeași limbă vizuală.</p>
+        <div class="grid palette">
+          <article class="swatch"><div class="swatch-color" style="background:#24324f"></div><div class="swatch-meta"><span class="swatch-name">Cerneală</span><span class="swatch-hex">#24324F</span><span class="swatch-role">Liniște, încredere, structură</span></div></article>
+          <article class="swatch"><div class="swatch-color" style="background:#fff9ee"></div><div class="swatch-meta"><span class="swatch-name">Hârtie</span><span class="swatch-hex">#FFF9EE</span><span class="swatch-role">Căldură, aer, print prietenos</span></div></article>
+          <article class="swatch"><div class="swatch-color" style="background:#8052a0"></div><div class="swatch-meta"><span class="swatch-name">Prună</span><span class="swatch-hex">#8052A0</span><span class="swatch-role">Identitate, povești, imaginație</span></div></article>
+          <article class="swatch"><div class="swatch-color" style="background:#e5b84f"></div><div class="swatch-meta"><span class="swatch-name">Lumină</span><span class="swatch-hex">#E5B84F</span><span class="swatch-role">Lanternă, semn, detaliu cald</span></div></article>
+          <article class="swatch"><div class="swatch-color" style="background:#d97786"></div><div class="swatch-meta"><span class="swatch-name">Răsărit</span><span class="swatch-hex">#D97786</span><span class="swatch-role">Accent pentru Povestea de Seară</span></div></article>
+          <article class="swatch"><div class="swatch-color" style="background:#5b93af"></div><div class="swatch-meta"><span class="swatch-name">Călătorie</span><span class="swatch-hex">#5B93AF</span><span class="swatch-role">Accent pentru Scutul de Noapte</span></div></article>
+          <article class="swatch"><div class="swatch-color" style="background:#d88b4a"></div><div class="swatch-meta"><span class="swatch-name">Așteptare</span><span class="swatch-hex">#D88B4A</span><span class="swatch-role">Accent pentru Trusa de Răbdare</span></div></article>
+          <article class="swatch"><div class="swatch-color" style="background:#5e967a"></div><div class="swatch-meta"><span class="swatch-name">Verde liniștit</span><span class="swatch-hex">#5E967A</span><span class="swatch-role">Confirmări, echilibru, progres</span></div></article>
+        </div>
+      </section>
+
+      <section>
+        <p class="eyebrow">Familia de produse</p>
+        <h2 class="section-title">Trei ritualuri, același semn de lumină</h2>
+        <div class="grid product-row">
+          <article class="product story"><div class="mini-path"></div><svg class="product-icon" viewBox="0 0 48 48" aria-hidden="true"><path d="M10 35V13c8-4 15-1 14 5v21c-1-6-7-8-14-4zm28 0V13c-8-4-15-1-14 5v21c1-6 7-8 14-4z" fill="none" stroke="#8052A0" stroke-linejoin="round" stroke-width="2"/><path d="M24 8l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="#D97786"/></svg><h3 class="product-name">Povestea de Seară</h3><p class="product-copy">O aventură în care copilul tău este eroul. Pentru apropiere, imaginație și un final de zi mai bun.</p><span class="product-code">01 / POVESTE</span></article>
+          <article class="product night"><div class="mini-path"></div><svg class="product-icon" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 5l15 6v10c0 10-6 17-15 22C15 38 9 31 9 21V11z" fill="none" stroke="#E5B84F" stroke-linejoin="round" stroke-width="2"/><path d="M24 14l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="#E5B84F"/></svg><h3 class="product-name">Scutul de Noapte</h3><p class="product-copy">Un ritual blând pentru nopțile cu emoții. Pași mici, cuvinte potrivite și curaj pe înțelesul copilului.</p><span class="product-code">02 / NOAPTE</span></article>
+          <article class="product patience"><div class="mini-path"></div><svg class="product-icon" viewBox="0 0 48 48" aria-hidden="true"><path d="M12 12h24v27H12zM17 7h14v5H17z" fill="none" stroke="#D88B4A" stroke-linejoin="round" stroke-width="2"/><path d="M19 22h10M19 28h7M19 34h11" fill="none" stroke="#5E967A" stroke-linecap="round" stroke-width="2"/></svg><h3 class="product-name">Trusa de Răbdare</h3><p class="product-copy">Misiuni mici pentru drumuri, cozi și momente care par prea lungi. Practică pentru părinte, jucăușă pentru copil.</p><span class="product-code">03 / RĂBDARE</span></article>
+        </div>
+      </section>
+
+      <section>
+        <p class="eyebrow">Ton și tipografie</p>
+        <h2 class="section-title">Clar pentru părinte. Fermecător pentru copil.</h2>
+        <div class="grid type-grid">
+          <article class="type-panel"><p class="tile-kicker" style="color:#f3d778">Sistem propus</p><p class="type-sans">Nunito</p><p class="type-serif">Crimson Pro</p><p class="type-caption">Interfața rămâne prietenoasă și ușor de parcurs. Povestea poate deveni mai literară, fără ca fiecare produs să capete o altă voce.</p></article>
+          <article class="voice-panel"><p class="tile-kicker">Voce</p><blockquote>„Pentru Mara, înainte de culcare. O poveste în care curajul ei luminează drumul spre somn.”</blockquote><p>Calmă, luminoasă, concretă. Fără jargon tehnic, promisiuni exagerate sau formule de basm golite de sens.</p></article>
+        </div>
+      </section>
+
+      <section>
+        <article class="apply">
+          <p class="eyebrow">După confirmare</p>
+          <h2 class="section-title">Aplicarea direcției</h2>
+          <ol>
+            <li><strong>Semnul și sistemul</strong><br />Logo vectorial, favicon, steluțe, separatoare și reguli de spațiere.</li>
+            <li><strong>Site și modele</strong><br />Homepage, creatori și pagina de exemple rescrise în aceeași limbă vizuală.</li>
+            <li><strong>PDF-uri și lansare</strong><br />Coperți, grile, sigilii și conținut unificate pentru toate cele trei produse.</li>
+          </ol>
+          <p class="approval">Acesta este un board de direcție, nu o modificare aplicată. Confirmarea lui declanșează implementarea în produsul live.</p>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

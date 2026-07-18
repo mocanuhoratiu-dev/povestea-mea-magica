@@ -19,8 +19,8 @@ const nunito = Nunito({
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "Povestea Mea Magică | Povești personalizate pentru copii",
-  description: "Creează povești, kituri anti-frică și activități de urgență personalizate pentru copilul tău, în română, cu ajutorul AI.",
+  title: "Povestea Mea Magică | Magie practică pentru copilărie",
+  description: "Povești de seară, ritualuri de noapte și activități personalizate pentru momentele mici ale copilăriei.",
   alternates: {
     canonical: "/",
   },
@@ -29,8 +29,8 @@ export const metadata: Metadata = {
     locale: "ro_RO",
     url: "/",
     siteName: "Povestea Mea Magică",
-    title: "Povestea Mea Magică | Povești personalizate pentru copii",
-    description: "Povești, kituri anti-frică și activități personalizate pentru copilul tău.",
+    title: "Povestea Mea Magică | Magie practică pentru copilărie",
+    description: "Povești de seară, ritualuri de noapte și activități personalizate pentru copilul tău.",
     images: [
       {
         url: "/hero-storybook.png",
@@ -42,8 +42,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Povestea Mea Magică | Povești personalizate pentru copii",
-    description: "Povești, kituri anti-frică și activități personalizate pentru copilul tău.",
+    title: "Povestea Mea Magică | Magie practică pentru copilărie",
+    description: "Povești de seară, ritualuri de noapte și activități personalizate pentru copilul tău.",
     images: ["/hero-storybook.png"],
   },
 };
@@ -55,7 +55,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ro" className={`scroll-smooth ${quicksand.variable} ${nunito.variable}`}>
-      <body className="antialiased font-quicksand bg-brand-cream">
+      <body className="antialiased font-nunito bg-brand-cream">
         <UsageTelemetry />
         <Navbar />
         <SmoothScroll>{children}</SmoothScroll>

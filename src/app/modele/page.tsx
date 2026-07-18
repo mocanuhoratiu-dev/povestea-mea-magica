@@ -1,95 +1,87 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, BookOpen, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, BookOpen, ShieldCheck, TimerReset } from "lucide-react";
+import BrandMark from "@/components/BrandMark";
 
 export const metadata: Metadata = {
   title: "Modele PDF | Povestea Mea Magică",
-  description: "Vezi structura poveștii personalizate, a Scutului Magic pentru Noapte și a Trusei Magice de Urgență.",
+  description: "Vezi forma Poveștii de Seară, a Scutului de Noapte și a Trusei de Răbdare.",
 };
 
 const models = [
   {
-    title: "Poveste personalizată",
+    moment: "Pentru seară",
+    title: "Povestea de Seară",
     price: "29 lei",
-    description: "Copertă cu numele copilului, dedicație și patru pagini de aventură pentru citit seara.",
+    description: "Copertă cu numele copilului, dedicație de la familie și patru pagini de aventură pentru citit împreună.",
     image: "/examples/poveste-contact.png",
     href: "/#creator",
     cta: "Creează povestea",
     accent: "text-brand-purple",
+    border: "border-brand-purple",
     icon: BookOpen,
   },
   {
-    title: "Scut Magic pentru Noapte",
+    moment: "Pentru noapte",
+    title: "Scutul de Noapte",
     price: "19 lei",
-    description: "Certificat de curaj, ritual simbolic, rețeta spray-ului magic și etichete printabile.",
+    description: "Certificat personalizat, ritual blând, rețetă simbolică și etichete care transformă seara într-un moment repetabil.",
     image: "/examples/scut-contact.png",
     href: "/#monster-away",
     cta: "Creează scutul",
     accent: "text-brand-gold",
+    border: "border-brand-gold",
     icon: ShieldCheck,
   },
   {
-    title: "Trusa Magică de Urgență",
+    moment: "Pentru așteptare",
+    title: "Trusa de Răbdare",
     price: "19 lei",
-    description: "Misiuni și jocuri adaptate locului, întrebări care țin copilul implicat și diplomă finală.",
+    description: "Misiuni și jocuri adaptate locului, provocări pentru copil și o diplomă de final pentru păstrat.",
     image: "/examples/trusa-contact.png",
     href: "/#emergency-kit",
-    cta: "Creează trusa",
-    accent: "text-orange-500",
-    icon: Sparkles,
+    cta: "Pregătește trusa",
+    accent: "text-brand-orange",
+    border: "border-brand-orange",
+    icon: TimerReset,
   },
 ];
 
 export default function ModelsPage() {
   return (
-    <main className="min-h-screen bg-brand-cream pt-32 pb-24">
+    <main className="min-h-screen bg-brand-cream pb-24 pt-32">
       <section className="px-6">
-        <div className="mx-auto max-w-7xl">
-          <div className="max-w-3xl">
-            <p className="inline-flex items-center gap-2 rounded-full bg-brand-purple/10 px-4 py-2 text-sm font-black uppercase tracking-widest text-brand-purple">
-              <BookOpen size={16} /> Modele PDF
-            </p>
-            <h1 className="mt-6 font-nunito text-4xl font-extrabold leading-tight text-brand-navy md:text-6xl">
-              Vezi forma fiecărui material
-            </h1>
-            <p className="mt-5 max-w-2xl text-lg font-medium leading-relaxed text-brand-navy/70">
-              Aceste modele arată structura PDF-urilor. La generare, numele, detaliile și conținutul sunt adaptate alegerilor tale.
-            </p>
+        <div className="mx-auto max-w-7xl border-b border-brand-navy/15 pb-14">
+          <div className="flex max-w-3xl items-start gap-5">
+            <BrandMark className="mt-1 h-12 w-12 shrink-0" title="Lanterna Magică" />
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-brand-purple">Modele reale</p>
+              <h1 className="mt-4 font-nunito text-4xl font-black leading-tight text-brand-navy md:text-6xl">Vezi cum prinde formă fiecare moment</h1>
+              <p className="mt-5 max-w-2xl text-lg font-medium leading-relaxed text-brand-navy/70">Modelele arată structura materialelor. La generare, textul, alegerile și detaliile sunt adaptate copilului și contextului vostru.</p>
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="mt-16 px-6">
-        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-12 lg:grid-cols-3">
+      <section className="px-6 pt-14">
+        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 lg:grid-cols-3">
           {models.map((model) => {
             const Icon = model.icon;
-
             return (
-              <article key={model.title} className="flex flex-col">
-                <div className="relative aspect-[4/3] overflow-hidden rounded-lg border border-brand-navy/10 bg-white shadow-xl">
-                  <Image
-                    src={model.image}
-                    alt={`Model ${model.title}`}
-                    fill
-                    sizes="(min-width: 1024px) 33vw, 100vw"
-                    className="object-cover"
-                  />
+              <article key={model.title} className="flex flex-col bg-white shadow-[0_12px_30px_rgba(36,50,79,0.08)]">
+                <div className={`border-t-4 ${model.border}`} />
+                <div className="relative aspect-[4/3] overflow-hidden border-b border-brand-navy/10 bg-brand-navy/5">
+                  <Image src={model.image} alt={`Model ${model.title}`} fill sizes="(min-width: 1024px) 33vw, 100vw" className="object-cover" />
                 </div>
-                <div className="pt-6">
-                  <div className="flex items-center justify-between gap-4">
-                    <h2 className="font-nunito text-2xl font-black text-brand-navy">{model.title}</h2>
-                    <span className={`inline-flex shrink-0 items-center gap-2 font-black ${model.accent}`}>
-                      <Icon size={19} /> {model.price}
-                    </span>
+                <div className="flex flex-1 flex-col p-7">
+                  <div className={`flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] ${model.accent}`}><Icon size={17} /> {model.moment}</div>
+                  <h2 className="mt-4 font-serif text-3xl leading-tight text-brand-navy">{model.title}</h2>
+                  <p className="mt-3 text-base font-medium leading-relaxed text-brand-navy/70">{model.description}</p>
+                  <div className="mt-7 flex items-end justify-between gap-5 border-t border-brand-navy/10 pt-5">
+                    <div><p className="text-2xl font-black text-brand-navy">{model.price}</p><p className="text-xs font-bold text-brand-navy/50">la lansarea comercială</p></div>
+                    <Link href={model.href} className="inline-flex items-center gap-2 text-sm font-black text-brand-purple transition-colors hover:text-brand-navy">{model.cta}<ArrowRight size={17} /></Link>
                   </div>
-                  <p className="mt-3 text-base font-medium leading-relaxed text-brand-navy/65">{model.description}</p>
-                  <Link
-                    href={model.href}
-                    className="mt-6 inline-flex items-center gap-2 font-black text-brand-purple transition-colors hover:text-brand-navy"
-                  >
-                    {model.cta} <ArrowRight size={18} />
-                  </Link>
                 </div>
               </article>
             );
@@ -97,18 +89,10 @@ export default function ModelsPage() {
         </div>
       </section>
 
-      <section className="mt-24 border-y border-brand-navy/10 bg-white px-6 py-14">
+      <section className="mt-24 bg-brand-navy px-6 py-14 text-brand-cream">
         <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-8 md:flex-row md:items-center">
-          <div>
-            <p className="font-nunito text-3xl font-black text-brand-navy">Pachetul complet: 49 lei</p>
-            <p className="mt-2 max-w-xl font-medium text-brand-navy/65">Povestea, Scutul Magic și Trusa de Urgență, fiecare adaptată pentru copilul tău.</p>
-          </div>
-          <Link
-            href="/#creator"
-            className="inline-flex items-center gap-2 rounded-lg bg-brand-navy px-6 py-4 font-black text-white transition-colors hover:bg-brand-purple"
-          >
-            Începe cu o poveste <ArrowRight size={18} />
-          </Link>
+          <div><p className="text-xs font-black uppercase tracking-[0.16em] text-brand-gold">Pachet complet</p><p className="mt-3 font-serif text-4xl">Toate cele trei materiale, 49 lei.</p><p className="mt-3 max-w-xl font-medium leading-relaxed text-brand-cream/75">O poveste, un ritual de noapte și o trusă pentru așteptare, fiecare adaptată pentru copilul tău.</p></div>
+          <Link href="/#alege-materialul" className="inline-flex items-center gap-2 bg-brand-gold px-6 py-4 font-black text-brand-navy transition-colors hover:bg-brand-cream">Alege un moment <ArrowRight size={18} /></Link>
         </div>
       </section>
     </main>

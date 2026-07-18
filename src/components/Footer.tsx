@@ -1,55 +1,44 @@
 "use client";
 
-import { Sparkles } from "lucide-react";
 import Link from "next/link";
+import BrandMark from "@/components/BrandMark";
 import { siteCopy } from "@/lib/siteMode";
 
 export default function Footer() {
   return (
-    <footer className="bg-brand-navy text-brand-cream pt-20 pb-10">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
-          <div className="col-span-1 md:col-span-2">
-            <Link href="/" className="flex items-center gap-2 mb-6">
-              <Sparkles className="text-brand-gold w-6 h-6" />
-              <span className="font-nunito font-bold text-2xl tracking-tight">
-                Povestea Mea <span className="text-brand-purple-light">Magică</span>
-              </span>
-            </Link>
-            <p className="text-brand-cream/60 max-w-sm mb-8 leading-relaxed">
-              Un atelier digital pentru povești personalizate, kituri anti-frică și activități rapide pentru părinți ocupați.
-            </p>
-          </div>
-
+    <footer className="bg-brand-navy px-6 pb-10 pt-20 text-brand-cream">
+      <div className="mx-auto max-w-7xl">
+        <div className="grid gap-12 border-b border-brand-cream/15 pb-14 md:grid-cols-[1.3fr_.8fr_.8fr]">
           <div>
-            <h4 className="font-bold text-lg mb-6">Link-uri Utile</h4>
-            <ul className="space-y-4 text-brand-cream/60">
-              <li><Link href="/termeni-si-conditii" className="hover:text-brand-gold transition-colors">Termeni și Condiții</Link></li>
-              <li><Link href="/politica-de-confidentialitate" className="hover:text-brand-gold transition-colors">Politică de Confidențialitate</Link></li>
-              <li><Link href="/politica-de-rambursare" className="hover:text-brand-gold transition-colors">Politică de Rambursare</Link></li>
-              <li><Link href="/siguranta-ai" className="hover:text-brand-gold transition-colors">Siguranță AI</Link></li>
-              <li><Link href="/modele" className="hover:text-brand-gold transition-colors">Modele PDF</Link></li>
-              <li><Link href="mailto:contact@povesteamagica.ro" className="hover:text-brand-gold transition-colors">Contact</Link></li>
-              <li><Link href="/#alege-materialul" className="hover:text-brand-gold transition-colors">Alege un material</Link></li>
+            <Link href="/" className="flex w-fit items-center gap-3">
+              <BrandMark className="h-11 w-11" tone="paper" title="Povestea Mea Magică" />
+              <span className="font-serif text-2xl leading-none">Povestea Mea <span className="text-brand-gold italic">Magică</span></span>
+            </Link>
+            <p className="mt-6 max-w-md text-base font-medium leading-relaxed text-brand-cream/70">Magie practică pentru serile liniștite, curajul de mâine și timpul care trece mai ușor.</p>
+          </div>
+          <div>
+            <h4 className="text-xs font-black uppercase tracking-[0.16em] text-brand-gold">Materiale</h4>
+            <ul className="mt-5 space-y-3 text-sm font-semibold text-brand-cream/70">
+              <li><Link href="/#creator" className="transition-colors hover:text-brand-gold">Povestea de Seară</Link></li>
+              <li><Link href="/#monster-away" className="transition-colors hover:text-brand-gold">Scutul de Noapte</Link></li>
+              <li><Link href="/#emergency-kit" className="transition-colors hover:text-brand-gold">Trusa de Răbdare</Link></li>
+              <li><Link href="/modele" className="transition-colors hover:text-brand-gold">Modele PDF</Link></li>
             </ul>
           </div>
-
           <div>
-            <h4 className="font-bold text-lg mb-6">{siteCopy.footerStatusTitle}</h4>
-            <p className="text-sm text-brand-cream/60 mb-4">
-              {siteCopy.footerStatusText}
-            </p>
-            <Link href="mailto:contact@povesteamagica.ro" className="inline-flex rounded-xl bg-brand-cream/10 px-4 py-3 text-sm font-bold hover:bg-brand-purple transition-colors">
-              Scrie-ne
-            </Link>
+            <h4 className="text-xs font-black uppercase tracking-[0.16em] text-brand-gold">Încredere</h4>
+            <ul className="mt-5 space-y-3 text-sm font-semibold text-brand-cream/70">
+              <li><Link href="/politica-de-confidentialitate" className="transition-colors hover:text-brand-gold">Confidențialitate</Link></li>
+              <li><Link href="/termeni-si-conditii" className="transition-colors hover:text-brand-gold">Termeni și condiții</Link></li>
+              <li><Link href="/politica-de-rambursare" className="transition-colors hover:text-brand-gold">Politică de rambursare</Link></li>
+              <li><Link href="/siguranta-ai" className="transition-colors hover:text-brand-gold">Siguranța datelor</Link></li>
+              <li><Link href="mailto:contact@povesteamagica.ro" className="transition-colors hover:text-brand-gold">Contact</Link></li>
+            </ul>
           </div>
         </div>
-
-        <div className="pt-10 border-t border-brand-cream/10 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-brand-cream/40">
+        <div className="flex flex-col gap-3 pt-8 text-sm font-medium text-brand-cream/45 md:flex-row md:items-center md:justify-between">
           <p>© 2026 Povestea Mea Magică. Toate drepturile rezervate.</p>
-          <div className="flex gap-6">
-            <span>Creat în România</span>
-          </div>
+          <p>{siteCopy.footerStatusText}</p>
         </div>
       </div>
     </footer>

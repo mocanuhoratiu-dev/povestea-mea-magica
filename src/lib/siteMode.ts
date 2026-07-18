@@ -5,14 +5,14 @@ export const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://povestea-me
   .replace(/\/+$/, "");
 
 export const siteCopy = {
-  navCta: "Alege materialul",
-  mobileCta: "Alege materialul",
-  heroCta: "Alege materialul",
-  heroBadge: "Acces de lansare",
+  navCta: "Alege un moment",
+  mobileCta: "Alege un moment",
+  heroCta: "Alege un moment",
+  heroBadge: "Pentru momentele voastre",
   launchAccess: "Accesul de lansare este gratuit. Prețurile afișate intră în vigoare odată cu plățile online.",
-  storyIntro: "Completezi câteva detalii, vezi rezultatul și descarci PDF-ul direct din browser.",
+  storyIntro: "O aventură personală pentru seara voastră, pregătită pentru citit sau printat.",
   storyPackageTitle: "Ce primești",
-  storyGenerateCta: "Generează povestea",
+  storyGenerateCta: "Creează povestea",
   footerStatusTitle: "Acces de lansare",
   footerStatusText: "Poți genera și descărca toate materialele fără plată acum. Prețurile afișate sunt cele care se vor aplica după activarea plăților online.",
 };

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Castle, FileText, Image as ImageIcon, RefreshCw, Rocket, ShieldCheck, Sparkles, Star, Trees } from "lucide-react";
+import BrandMark from "@/components/BrandMark";
 import MagicalLoader from "./MagicalLoader";
 import { siteCopy } from "@/lib/siteMode";
 import { trackEvent } from "@/lib/clientTelemetry";
@@ -12,7 +13,7 @@ const STORY_PDF_STYLES = `
 
 .story-pdf-page {
   width: 794px; height: 1123px;
-  background-color: #f6e8c3; /* Papyrus/old paper base */
+  background-color: #fff9ee;
   position: relative; overflow: hidden;
   font-family: 'Crimson Pro', serif;
   box-sizing: border-box;
@@ -29,7 +30,7 @@ const STORY_PDF_STYLES = `
 }
 .story-pdf-border {
   position: absolute; inset: 30px;
-  border: 1.5px solid #c9a84c; border-radius: 4px;
+  border: 1.5px solid #e5b84f; border-radius: 4px;
 }
 .story-pdf-inner-border {
   position: absolute; inset: 42px;
@@ -44,15 +45,15 @@ const STORY_PDF_STYLES = `
 /* Cover Page */
 .story-cover-title {
   font-family: 'Cinzel', serif; font-size: 34px; font-weight: 700;
-  color: #1a0a2e; text-align: center; margin-top: 34px; line-height: 1.15;
+  color: #24324f; text-align: center; margin-top: 34px; line-height: 1.15;
   max-width: 620px; margin-left: auto; margin-right: auto; overflow-wrap: anywhere;
 }
 .story-cover-subtitle {
   font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: 0.24em;
-  color: #c9a84c; text-align: center; margin-top: 15px; text-transform: uppercase;
+  color: #e5b84f; text-align: center; margin-top: 15px; text-transform: uppercase;
 }
 .story-cover-name {
-  font-family: 'Crimson Pro', serif; font-size: 22px; color: #4a2c5f;
+  font-family: 'Crimson Pro', serif; font-size: 22px; color: #8052a0;
   text-align: center; margin: 18px 0 0;
 }
 .story-cover-img-wrap {
@@ -68,14 +69,14 @@ const STORY_PDF_STYLES = `
 }
 .story-dedication-kicker {
   font-family: 'Cinzel', serif; font-size: 12px; letter-spacing: 0.22em;
-  color: #c9a84c; text-align: center; text-transform: uppercase; margin: 170px 0 28px;
+  color: #e5b84f; text-align: center; text-transform: uppercase; margin: 170px 0 28px;
 }
 .story-dedication-text {
-  font-size: 34px; line-height: 1.35; color: #1a0a2e; text-align: center;
+  font-size: 34px; line-height: 1.35; color: #24324f; text-align: center;
   max-width: 560px; margin: 0 auto;
 }
 .story-note-text {
-  font-size: 24px; line-height: 1.5; color: #4a2c5f; text-align: center;
+  font-size: 24px; line-height: 1.5; color: #8052a0; text-align: center;
   max-width: 560px; margin: 42px auto 0;
 }
 .story-illustration-wrap {
@@ -85,7 +86,7 @@ const STORY_PDF_STYLES = `
 
 /* Text Page */
 .story-text-body {
-  font-size: 18.5px; line-height: 1.38; color: #2d3436;
+  font-size: 18.5px; line-height: 1.38; color: #24324f;
   text-align: left;
   flex: 0 0 auto;
   margin: auto 0;
@@ -108,7 +109,7 @@ const STORY_PDF_STYLES = `
 .story-text-page-num {
   position: absolute; bottom: 31px; left: 0; right: 0;
   text-align: center; font-family: 'Cinzel', serif; font-size: 10px;
-  color: #c9a84c; opacity: 0.6;
+  color: #e5b84f; opacity: 0.8;
 }
 .story-corner {
   position: absolute; width: 40px; height: 40px; opacity: 0.4;
@@ -168,10 +169,10 @@ function CornerSVG({ pos }: { pos: 'tl'|'tr'|'bl'|'br' }) {
   };
   return (
     <svg style={style} viewBox="0 0 52 52" fill="none">
-      <path d="M2 30 L2 2 L30 2" stroke="#c9a84c" strokeWidth="1.6" />
-      <path d="M2 14 L14 2" stroke="#c9a84c" strokeWidth="0.9" opacity="0.55" />
-      <path d="M2 22 L22 2" stroke="#c9a84c" strokeWidth="0.5" opacity="0.3" />
-      <circle cx="2" cy="2" r="2.6" fill="#c9a84c" opacity="0.85" />
+      <path d="M2 30 L2 2 L30 2" stroke="#e5b84f" strokeWidth="1.6" />
+      <path d="M2 14 L14 2" stroke="#e5b84f" strokeWidth="0.9" opacity="0.55" />
+      <path d="M2 22 L22 2" stroke="#e5b84f" strokeWidth="0.5" opacity="0.3" />
+      <circle cx="2" cy="2" r="2.6" fill="#e5b84f" opacity="0.85" />
     </svg>
   );
 }
@@ -200,7 +201,7 @@ const toneOptions = [
 const packages = [
   {
     id: "pdf",
-    name: "Poveste PDF personalizată",
+    name: "Povestea de Seară",
     desc: "Copertă, dedicație și aproximativ patru pagini de poveste pregătite pentru print.",
     price: "29 lei",
   }
@@ -620,14 +621,14 @@ export default function StoryCreator() {
           <div className="story-pdf-inner-border" />
           {(['tl','tr','bl','br'] as const).map(pos => <CornerSVG key={pos} pos={pos} />)}
           <div className="story-pdf-content" style={{ justifyContent: 'center' }}>
-            <p className="story-cover-subtitle">O Aventură Magică Creată Pentru</p>
+            <p className="story-cover-subtitle">Povestea de Seară</p>
             <h1 className="story-cover-title">{(storyTitle || `Povestea lui ${name}`).toUpperCase()}</h1>
             <p className="story-cover-name">Creată pentru {name || "micul erou"}</p>
             <div className="story-cover-img-wrap">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               {imageUrl && <img src={imageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
             </div>
-            <p className="story-cover-footer">Povestea Mea Magică · Poveste personalizată</p>
+            <p className="story-cover-footer">Povestea Mea Magică · Lanterna Magică</p>
           </div>
         </div>
 
@@ -657,7 +658,7 @@ export default function StoryCreator() {
                   <p key={paragraphIndex} className="story-paragraph">{paragraph}</p>
                 ))}
               </div>
-              <div className="story-text-page-num">Pagina {idx + 1}</div>
+              <div className="story-text-page-num">Povestea Mea Magică · Pagina {idx + 1}</div>
             </div>
           </div>
         ))}
@@ -818,10 +819,10 @@ export default function StoryCreator() {
 
       <div className="max-w-5xl mx-auto relative z-10">
         <div className="text-center mb-12 md:mb-16 px-4">
-          <motion.div initial={{ scale: 0.9 }} whileInView={{ scale: 1 }} className="inline-block">
-            <h2 className="font-nunito font-extrabold text-4xl md:text-6xl text-brand-cream drop-shadow-lg leading-tight">
-              Povestea începe aici
-            </h2>
+          <motion.div initial={{ scale: 0.9 }} whileInView={{ scale: 1 }} className="inline-flex flex-col items-center">
+            <BrandMark className="mb-4 h-12 w-12" tone="paper" title="Lanterna Magică" />
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-brand-gold">Pentru seară</p>
+            <h2 className="mt-3 font-nunito text-4xl font-extrabold leading-tight text-brand-cream md:text-6xl">Povestea de Seară</h2>
           </motion.div>
           <p className="mt-4 text-brand-cream/90 text-lg md:text-xl font-medium">
             {siteCopy.storyIntro}
@@ -832,7 +833,7 @@ export default function StoryCreator() {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="bg-white rounded-[2rem] md:rounded-[4rem] shadow-2xl overflow-hidden p-6 md:p-16 border-4 md:border-8 border-brand-purple/10"
+          className="overflow-hidden border border-brand-purple/20 bg-white p-6 shadow-2xl md:p-16"
         >
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-16">
             <div className="space-y-6 md:space-y-8">
@@ -947,18 +948,18 @@ export default function StoryCreator() {
             </div>
 
             <div className="flex flex-col justify-between space-y-8">
-              <div className="bg-brand-cream/30 p-6 md:p-8 rounded-[2rem] border-2 border-dashed border-brand-purple/20">
+              <div className="border border-dashed border-brand-purple/30 bg-brand-cream/50 p-6 md:p-8">
                 <h4 className="font-black text-brand-navy text-lg mb-6 flex items-center gap-2">
                   <ShieldCheck className="text-brand-purple" /> {siteCopy.storyPackageTitle}
                 </h4>
-                <div className="rounded-2xl border-2 border-brand-purple bg-white p-4 md:p-5">
+                <div className="border border-brand-purple bg-white p-4 md:p-5">
                   <div className="flex justify-between items-center gap-4">
                     <span className="font-bold text-brand-navy text-sm md:text-base">{packages[0].name}</span>
                     <span className="font-black text-brand-purple">{packages[0].price}</span>
                   </div>
                   <p className="mt-2 text-sm text-brand-navy/50 font-bold">{packages[0].desc}</p>
                 </div>
-                <p className="mt-4 rounded-2xl bg-brand-gold/15 px-4 py-3 text-sm font-bold leading-relaxed text-brand-navy/70">
+                <p className="mt-4 border-l-2 border-brand-gold bg-brand-gold/10 px-4 py-3 text-sm font-bold leading-relaxed text-brand-navy/70">
                   {siteCopy.launchAccess}
                 </p>
               </div>
@@ -967,7 +968,7 @@ export default function StoryCreator() {
                 <button
                   onClick={handleGenerateStory}
                   disabled={!name}
-                  className="w-full bg-brand-purple text-white py-5 md:py-6 rounded-2xl md:rounded-[2.5rem] font-black text-xl md:text-2xl shadow-2xl hover:bg-brand-navy transition-all flex items-center justify-center gap-4 disabled:opacity-30 disabled:cursor-not-allowed group"
+                  className="flex w-full items-center justify-center gap-4 bg-brand-purple py-5 text-xl font-black text-white shadow-2xl transition-colors hover:bg-brand-navy disabled:cursor-not-allowed disabled:opacity-30 md:py-6 md:text-2xl"
                 >
                   {siteCopy.storyGenerateCta} <Sparkles className="group-hover:rotate-12 transition-transform" />
                 </button>

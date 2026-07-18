@@ -24,11 +24,11 @@ export default function MobileCTA() {
           initial={{ y: 100 }}
           animate={{ y: 0 }}
           exit={{ y: 100 }}
-          className="fixed bottom-6 left-6 right-6 z-[9990] md:hidden"
+          className="fixed bottom-4 left-4 right-4 z-[9990] md:hidden"
         >
           <Link
             href="/#alege-materialul"
-            className="block w-full bg-brand-purple text-brand-cream py-4 rounded-lg font-black text-center shadow-[0_10px_30px_rgba(155,89,182,0.4)]"
+            className="block w-full bg-brand-navy py-4 text-center font-black text-brand-cream shadow-[0_10px_30px_rgba(36,50,79,0.28)]"
           >
             {siteCopy.mobileCta}
           </Link>

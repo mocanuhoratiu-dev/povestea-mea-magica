@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Utensils, Car, Stethoscope, CloudRain, Sparkles, Download, ShieldCheck, Plane, Clock3 } from "lucide-react";
+import { Utensils, Car, Stethoscope, CloudRain, Sparkles, Download, Plane, Clock3 } from "lucide-react";
+import BrandMark from "./BrandMark";
 import MagicalLoader from "./MagicalLoader";
 import { trackEvent } from "@/lib/clientTelemetry";
 
@@ -27,7 +28,7 @@ const EMERGENCY_STYLES = `
 
 .ek-page {
   width: 794px; height: 1123px;
-  background-color: #fdfaf0;
+  background-color: #fff9ee;
   position: relative; overflow: hidden;
   font-family: 'Nunito', sans-serif;
   box-sizing: border-box;
@@ -35,7 +36,7 @@ const EMERGENCY_STYLES = `
 }
 .ek-border {
   position: absolute; inset: 20px;
-  border: 4px dashed #ff9f43; border-radius: 20px;
+  border: 4px dashed #d88b4a; border-radius: 8px;
   background-color: white;
   box-sizing: border-box;
   padding: 34px 42px;
@@ -44,12 +45,12 @@ const EMERGENCY_STYLES = `
   text-align: center; margin: 0 0 30px;
 }
 .ek-activity-kicker {
-  color: #ff9f43; font-size: 14px; font-weight: 900;
+  color: #d88b4a; font-size: 14px; font-weight: 900;
   letter-spacing: 3px; text-transform: uppercase; margin-bottom: 8px;
 }
 .ek-title {
   font-family: 'Nunito', sans-serif; font-size: 38px; font-weight: 900;
-  color: #ff9f43; text-transform: uppercase; letter-spacing: 2px;
+  color: #d88b4a; text-transform: uppercase; letter-spacing: 2px;
   overflow-wrap: anywhere;
 }
 .ek-subtitle {
@@ -59,8 +60,8 @@ const EMERGENCY_STYLES = `
   margin: 0;
 }
 .ek-section-title {
-  font-size: 24px; font-weight: 900; color: #ff9f43;
-  border-bottom: 2px solid #ff9f43; padding-bottom: 9px; margin-bottom: 18px;
+  font-size: 24px; font-weight: 900; color: #d88b4a;
+  border-bottom: 2px solid #d88b4a; padding-bottom: 9px; margin-bottom: 18px;
   display: flex; align-items: center; gap: 10px;
 }
 .ek-activity-instruction {
@@ -78,10 +79,10 @@ const EMERGENCY_STYLES = `
   overflow-wrap: anywhere;
 }
 .ek-checkbox {
-  flex: 0 0 28px; width: 28px; height: 28px; border: 3px solid #ff9f43; border-radius: 8px; background: white;
+  flex: 0 0 28px; width: 28px; height: 28px; border: 3px solid #d88b4a; border-radius: 8px; background: white;
 }
 .ek-riddle-box {
-  background: #ff9f4315; padding: 22px; border-radius: 15px; border-left: 6px solid #ff9f43;
+  background: #d88b4a15; padding: 22px; border-radius: 8px; border-left: 6px solid #d88b4a;
   font-size: 20px; font-weight: 700; line-height: 1.45; color: #2d3436; font-style: italic; text-align: center;
   overflow-wrap: anywhere;
 }
@@ -91,7 +92,7 @@ const EMERGENCY_STYLES = `
   overflow-wrap: anywhere;
 }
 .ek-drawing-box {
-  border: 3px dashed #ff9f43; height: 490px; border-radius: 20px;
+  border: 3px dashed #d88b4a; height: 490px; border-radius: 8px;
   margin-top: 20px; background: #fafafa;
 }
 .ek-patience-page {
@@ -142,10 +143,16 @@ const EMERGENCY_STYLES = `
   overflow-wrap: anywhere;
 }
 .ek-diploma {
-  margin: 30px 60px; text-align: center; border: 4px double #ff9f43;
+  margin: 30px 60px; text-align: center; border: 4px double #d88b4a;
   border-radius: 20px; padding: 30px; background: #fff9f0;
 }
-.ek-diploma-title { font-size: 28px; font-weight: 900; color: #ff9f43; }
+.ek-diploma-title { font-size: 28px; font-weight: 900; color: #d88b4a; }
+.ek-page::after {
+  content: 'Povestea Mea Magică · Trusa de Răbdare';
+  position: absolute; bottom: 8px; left: 0; right: 0;
+  color: #d88b4a; font-size: 10px; font-weight: 900;
+  letter-spacing: 1.4px; text-align: center; text-transform: uppercase;
+}
 .ek-diploma-name { font-size: 36px; font-weight: 900; color: #2d3436; font-family: 'Caveat', cursive; margin: 10px 0; }
 .ek-diploma-stars { font-size: 36px; letter-spacing: 8px; }
 `;
@@ -586,21 +593,21 @@ export default function EmergencyKit() {
   };
 
   return (
-    <section id="emergency-kit" className="py-20 md:py-32 bg-[#fffdf5] relative overflow-hidden px-4">
+    <section id="emergency-kit" className="relative overflow-hidden bg-brand-cream px-4 py-20 md:py-32">
       <MagicalLoader isVisible={isLoading} />
 
       <div className="max-w-4xl mx-auto relative z-10">
         <div className="text-center mb-14">
-          <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-orange-100 border border-orange-200 text-orange-600 font-bold text-sm uppercase tracking-widest mb-6">
-            <ShieldCheck size={16} /> Salvare pentru Părinți
+          <div className="mb-6 inline-flex items-center gap-2 border border-brand-orange/30 bg-brand-orange/10 px-5 py-2 text-sm font-bold uppercase tracking-widest text-brand-orange">
+            <BrandMark className="h-5 w-5" /> Pentru timpul de așteptare
           </div>
           <h2 className="font-nunito font-extrabold text-4xl md:text-6xl text-brand-navy leading-tight">
-            Trusa Magică <span className="text-orange-500">de Urgență</span> 🚨
+            Trusa de <span className="text-brand-orange">Răbdare</span>
           </h2>
           <p className="mt-4 text-brand-navy/60 text-lg max-w-xl mx-auto">
-            Așteptarea e grea? Copilul și-a pierdut răbdarea? Generează un PDF cu misiuni secrete adaptate locului în care sunteți.
+            Misiuni mici pentru drum, restaurant, medic sau orice moment în care timpul pare să treacă mai greu.
           </p>
-          <p className="mt-3 text-sm font-bold text-orange-600">
+          <p className="mt-3 text-sm font-bold text-brand-orange">
             Acces de lansare gratuit. Preț la lansarea comercială: 19 lei.
           </p>
         </div>
@@ -609,13 +616,13 @@ export default function EmergencyKit() {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="bg-white rounded-[2.5rem] p-8 md:p-14 shadow-2xl border-4 border-orange-100"
+          className="border border-brand-orange/25 bg-white p-8 shadow-2xl md:p-14"
         >
           <form onSubmit={handleGenerate} className="space-y-10">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
                 <label className="block font-nunito font-black text-brand-navy text-lg mb-3">
-                  Cum îl cheamă pe Erou?
+                  Cum îl cheamă copilul?
                 </label>
                 <input
                   type="text" value={name} onChange={e => setName(e.target.value)} placeholder="ex: Sofia"
@@ -642,11 +649,11 @@ export default function EmergencyKit() {
                   <button key={c.id} type="button" onClick={() => setSelectedContext(c.id)}
                     className={`flex flex-col items-center gap-3 p-5 rounded-2xl border-4 transition-all duration-200 ${
                       selectedContext === c.id
-                        ? 'border-orange-500 bg-orange-50 scale-105 shadow-lg'
-                        : 'border-gray-100 bg-white hover:border-orange-200'
+                        ? 'border-brand-orange bg-brand-orange/10 scale-105 shadow-lg'
+                        : 'border-gray-100 bg-white hover:border-brand-orange/30'
                     }`}
                   >
-                    <span className={`p-3 rounded-full ${selectedContext === c.id ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                    <span className={`p-3 rounded-full ${selectedContext === c.id ? 'bg-brand-orange text-white' : 'bg-gray-100 text-gray-500'}`}>
                       {c.icon}
                     </span>
                     <span className="text-sm font-black text-brand-navy text-center">{c.label}</span>
@@ -670,7 +677,7 @@ export default function EmergencyKit() {
               </div>
               <div>
                 <label className="block font-nunito font-black text-brand-navy text-sm mb-2 uppercase tracking-wider">
-                  Cât timp salvăm?
+                  Cât timp aveți?
                 </label>
                 <select
                   value={duration}
@@ -684,7 +691,7 @@ export default function EmergencyKit() {
               </div>
               <div>
                 <label className="block font-nunito font-black text-brand-navy text-sm mb-2 uppercase tracking-wider">
-                  Stil activități
+                  Ritmul activităților
                 </label>
                 <select
                   value={activityMode}
@@ -701,9 +708,9 @@ export default function EmergencyKit() {
             <motion.button
               type="submit" disabled={!name.trim()}
               whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-              className="w-full bg-orange-500 text-white py-6 rounded-2xl font-black text-xl md:text-2xl shadow-xl border-b-8 border-orange-600 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-3 transition-all"
+              className="flex w-full items-center justify-center gap-3 bg-brand-orange py-6 text-xl font-black text-white shadow-xl transition-colors hover:bg-brand-navy disabled:cursor-not-allowed disabled:opacity-30 md:text-2xl"
             >
-              <Sparkles size={28} /> Generează trusa
+              <Sparkles size={28} /> Pregătește trusa
             </motion.button>
           </form>
         </motion.div>
@@ -862,8 +869,8 @@ export default function EmergencyKit() {
             <div className="ek-border" style={{display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
               <div style={{textAlign: 'center', padding: '40px 30px', width: '100%', boxSizing: 'border-box'}}>
                 <div style={{fontSize: 72, marginBottom: 24}}>🏅</div>
-                <div style={{fontSize: 16, color: '#ff9f43', fontWeight: 900, letterSpacing: 4, textTransform: 'uppercase', marginBottom: 20}}>Ministerul Misiunilor Magice</div>
-                <div style={{fontSize: 44, fontWeight: 900, color: '#ff9f43', fontFamily: 'Nunito, sans-serif', borderBottom: '3px solid #ff9f43', paddingBottom: 16, marginBottom: 16}}>DIPLOMĂ DE ONOARE</div>
+                <div style={{fontSize: 16, color: '#d88b4a', fontWeight: 900, letterSpacing: 4, textTransform: 'uppercase', marginBottom: 20}}>Povestea Mea Magică · Trusa de Răbdare</div>
+                <div style={{fontSize: 44, fontWeight: 900, color: '#d88b4a', fontFamily: 'Nunito, sans-serif', borderBottom: '3px solid #d88b4a', paddingBottom: 16, marginBottom: 16}}>DIPLOMĂ DE RĂBDARE</div>
                 <div style={{fontSize: 22, color: '#636e72', fontWeight: 600, marginBottom: 20}}>Se acordă agentului special</div>
                 <div style={{fontFamily: 'Caveat, cursive', fontSize: 64, fontWeight: 900, color: '#2d3436', marginBottom: 20, overflowWrap: 'anywhere'}}>{cleanText(name, "Agentul Special", 28)}</div>
                 <div style={{fontSize: 20, color: '#636e72', fontWeight: 600, marginBottom: 40, lineHeight: 1.6}}>
@@ -895,7 +902,7 @@ export default function EmergencyKit() {
           >
             <motion.div
               initial={{ scale: 0.9, y: 40 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 40 }}
-              className="bg-white max-w-lg w-full rounded-[3rem] border-4 border-orange-400 relative flex flex-col overflow-hidden shadow-2xl"
+              className="relative flex w-full max-w-lg flex-col overflow-hidden border border-brand-orange/40 bg-white shadow-2xl"
             >
               <button onClick={() => setShowResult(false)}
                 className="absolute top-5 right-5 w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-black text-gray-500 transition-all z-10">
@@ -903,14 +910,14 @@ export default function EmergencyKit() {
               </button>
               <div className="p-10 text-center">
                 <div className="text-7xl mb-6 block">🚨</div>
-                <h3 className="font-nunito font-black text-3xl text-brand-navy mb-3">Misiunea a fost creată!</h3>
+                <h3 className="font-nunito font-black text-3xl text-brand-navy mb-3">Trusa este pregătită!</h3>
                 <p className="text-gray-600 font-medium mb-8">
-                  Agentul <span className="text-orange-500 font-black">{name}</span> are activități create pentru <strong>{contexts.find(c => c.id === selectedContext)?.label}</strong>. Trusa are <strong>7 pagini A4</strong>: radar, desen, misiune de răbdare, poveste, adevărat/fals, răspunsuri pentru părinte și diplomă.
+                  {name} are activități create pentru <strong>{contexts.find(c => c.id === selectedContext)?.label}</strong>. Trusa are <strong>7 pagini A4</strong>: radar, desen, misiune de răbdare, poveste, adevărat/fals, răspunsuri pentru părinte și diplomă.
                 </p>
                 <motion.button
                   onClick={handleDownload}
                   whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-                  className="w-full bg-orange-500 text-white py-5 rounded-2xl font-black text-lg border-b-8 border-orange-600 flex items-center justify-center gap-3 shadow-xl transition-all"
+                  className="flex w-full items-center justify-center gap-3 bg-brand-orange py-5 text-lg font-black text-white shadow-xl transition-colors hover:bg-brand-navy"
                 >
                   <Download size={22} /> Descarcă Trusa PDF
                 </motion.button>

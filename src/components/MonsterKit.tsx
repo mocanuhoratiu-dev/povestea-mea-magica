@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck, Download, Sparkles, Star } from 'lucide-react';
+import BrandMark from './BrandMark';
 import MagicalLoader from './MagicalLoader';
 import { trackEvent } from "@/lib/clientTelemetry";
 
@@ -637,14 +638,14 @@ export default function MonsterKit() {
 
         {/* Header */}
         <div className="text-center mb-14">
-          <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-brand-gold/10 border border-brand-gold/20 text-brand-gold font-bold text-sm uppercase tracking-widest mb-6">
-            <ShieldCheck size={16} /> Kit Anti-Monștri
+          <div className="inline-flex items-center gap-2 border border-brand-gold/30 bg-brand-gold/10 px-5 py-2 text-sm font-bold uppercase tracking-widest text-brand-gold mb-6">
+            <BrandMark className="h-5 w-5" tone="paper" /> Ritual de noapte
           </div>
           <h2 className="font-nunito font-extrabold text-4xl md:text-6xl text-brand-cream leading-tight">
-            Scut Magic <span className="text-brand-gold">pentru Noapte</span> 🛡️
+            Scutul <span className="text-brand-gold">de Noapte</span>
           </h2>
           <p className="mt-4 text-brand-cream/70 text-lg max-w-xl mx-auto">
-            Generează un kit printabil cu certificat, rețeta spray-ului magic și etichete pentru flacon.
+            Un ritual blând de seară, cu certificat, rețetă simbolică și etichete pentru flacon.
           </p>
           <p className="mt-3 text-sm font-bold text-brand-gold">
             Acces de lansare gratuit. Preț la lansarea comercială: 19 lei.
@@ -656,7 +657,7 @@ export default function MonsterKit() {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="bg-brand-cream rounded-[2.5rem] p-8 md:p-14 shadow-2xl border-4 border-brand-gold/20"
+          className="border border-brand-gold/25 bg-brand-cream p-8 shadow-2xl md:p-14"
         >
           <form onSubmit={handleGenerate} className="space-y-10">
 
@@ -794,7 +795,7 @@ export default function MonsterKit() {
                   transition={{ duration: 1.2, delay: 0.2 }}
                   className="text-7xl mb-6 block"
                 >🛡️</motion.div>
-                <h3 className="font-nunito font-black text-3xl text-brand-navy mb-3">Kitul este pregătit!</h3>
+                <h3 className="font-nunito font-black text-3xl text-brand-navy mb-3">Scutul este pregătit!</h3>
                 <p className="text-brand-navy/60 font-medium mb-2">
                   Certificatul lui <span className="text-brand-purple font-black">{name}</span> e gata de printat.
                 </p>
@@ -835,7 +836,7 @@ function Page1Certificate({ name, monsterTarget, content }: { name: string; mons
       {(['tl','tr','bl','br'] as const).map(pos => <CornerSVG key={pos} pos={pos} />)}
 
       <div className="mk-content">
-        <p className="mk-ministry">Ministerul Protecției Magice · Regatul Viselor Liniștite</p>
+        <p className="mk-ministry">Povestea Mea Magică · Scutul de Noapte</p>
         <h1 className="mk-title">CERTIFICAT OFICIAL<br/>DE PROTECȚIE MAGICĂ</h1>
         <p className="mk-subtitle">împotriva {monsterTarget} și a fricilor de noapte</p>
         <Divider stars={3} />
@@ -895,7 +896,7 @@ function Page2Recipe({ content }: { content: MonsterKitContent }) {
       {(['tl','tr','bl','br'] as const).map(pos => <CornerSVG key={pos} pos={pos} />)}
 
       <div className="mk-content">
-        <p className="mk-ministry">Laboratorul Alchimic al Ministerului Protecției Magice</p>
+        <p className="mk-ministry">Povestea Mea Magică · Ritual de Noapte</p>
         <h1 className="mk-title" style={{ fontSize: 30 }}>REȚETA SECRETĂ</h1>
         <p className="mk-subtitle">a Spray-ului Anti-Monștri · Formulă Clasificată</p>
         <Divider stars={3} />

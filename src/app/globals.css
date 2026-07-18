@@ -1,13 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --brand-navy: #2A3B5F;
-  --brand-gold: #FFD700;
-  --brand-cream: #FFFBF0;
-  --brand-purple: #9B59B6;
-  --brand-purple-light: #C39BD3;
-  --brand-pink: #FF6BB3;
-  --brand-blue: #5DADE2;
+  --brand-navy: #24324F;
+  --brand-gold: #E5B84F;
+  --brand-cream: #FFF9EE;
+  --brand-purple: #8052A0;
+  --brand-purple-light: #B99ACE;
+  --brand-pink: #D97786;
+  --brand-blue: #5B93AF;
+  --brand-orange: #D88B4A;
+  --brand-green: #5E967A;
   
   --background: var(--brand-cream);
   --foreground: var(--brand-navy);
@@ -21,6 +23,8 @@
   --color-brand-purple-light: var(--brand-purple-light);
   --color-brand-pink: var(--brand-pink);
   --color-brand-blue: var(--brand-blue);
+  --color-brand-orange: var(--brand-orange);
+  --color-brand-green: var(--brand-green);
   
   --font-quicksand: var(--font-quicksand);
   --font-nunito: var(--font-nunito);
@@ -42,18 +46,16 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-quicksand), sans-serif;
+  font-family: var(--font-nunito), sans-serif;
   overflow-x: hidden;
 }
 
 .magic-gradient {
-  background: linear-gradient(135deg, var(--brand-navy) 0%, var(--brand-purple) 100%);
+  background: var(--brand-navy);
 }
 
 .text-magic-gradient {
-  background: linear-gradient(135deg, var(--brand-navy) 0%, var(--brand-purple) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--brand-purple);
 }
 
 .glass-card {
@@ -72,17 +74,17 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(155, 89, 182, 0.3);
-  border-radius: 10px;
+  background: rgba(128, 82, 160, 0.35);
+  border-radius: 8px;
   border: 2px solid transparent;
   background-clip: content-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(155, 89, 182, 0.5);
+  background: rgba(128, 82, 160, 0.55);
 }
 
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: rgba(155, 89, 182, 0.3) transparent;
+  scrollbar-color: rgba(128, 82, 160, 0.35) transparent;
 }
