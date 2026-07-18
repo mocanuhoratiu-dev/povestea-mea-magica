@@ -547,6 +547,30 @@ Returnează DOAR JSON valid, fără \`\`\`json și fără text înainte/după:
   return { prompt, wordTarget, minWords, maxOutputTokens };
 }
 
+function limitMonsterText(value: unknown, maxLength: number) {
+  const clean = stripHtml(value);
+  if (clean.length <= maxLength) return clean;
+  return `${clean.slice(0, maxLength - 3).trim()}...`;
+}
+
+function sanitizeMonsterBody(value: unknown) {
+  const clean = sanitizeEmHtml(value);
+  if (stripHtml(clean).length <= 320) return clean;
+  return limitMonsterText(clean, 320);
+}
+
+function sanitizeMonsterSpell(value: unknown) {
+  return String(value ?? "")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<[^>]*>/g, "")
+    .split(/\r?\n/)
+    .map((line) => line.replace(/\s+/g, " ").trim())
+    .filter(Boolean)
+    .slice(0, 4)
+    .map((line) => limitMonsterText(line, 56))
+    .join("\n");
+}
+
 function sanitizeMonsterKit(value: unknown) {
   const kit = value as {
     body?: unknown;
@@ -556,23 +580,23 @@ function sanitizeMonsterKit(value: unknown) {
   };
 
   return {
-    body: sanitizeEmHtml(kit.body).slice(0, 420),
+    body: sanitizeMonsterBody(kit.body),
     ingredients: Array.isArray(kit.ingredients)
       ? kit.ingredients.slice(0, 4).map((ingredient, index) => ({
           num: stripHtml(ingredient.num) || String(index + 1),
           icon: stripHtml(ingredient.icon).slice(0, 8),
-          name: stripHtml(ingredient.name).slice(0, 30),
-          detail: stripHtml(ingredient.detail).slice(0, 42),
+          name: limitMonsterText(ingredient.name, 26),
+          detail: limitMonsterText(ingredient.detail, 34),
         }))
       : [],
     steps: Array.isArray(kit.steps)
       ? kit.steps.slice(0, 3).map((step, index) => ({
           roman: stripHtml(step.roman) || ["I", "II", "III"][index] || String(index + 1),
-          l1: stripHtml(step.l1).slice(0, 74),
-          l2: stripHtml(step.l2).slice(0, 74),
+          l1: limitMonsterText(step.l1, 56),
+          l2: limitMonsterText(step.l2, 56),
         }))
       : [],
-    spell: stripHtml(kit.spell).slice(0, 300),
+    spell: sanitizeMonsterSpell(kit.spell),
   };
 }
 
@@ -897,15 +921,15 @@ Detalii alese de părinte:
 - Ce îl/o liniștește pe copil: "${helper}".
 - Ritualul de seară: "${ritual}".
 
-Creează conținut personalizat: folosește natural numele copilului, frica aleasă și cel puțin două dintre detaliile de mai sus. Tonul este jucăuș și liniștitor; nu confirma că monștrii există și nu promite rezultate medicale.
+Creează conținut personalizat: folosește natural numele copilului, frica aleasă și cel puțin două dintre detaliile de mai sus. Tonul este jucăuș și liniștitor; nu confirma că monștrii există și nu promite rezultate medicale. Este un joc de imaginație: nu spune că umbrele, obiectele, ingredientele sau jucăriile prind viață, au puteri reale, păzesc copilul ori alungă ceva în mod real. Evită formulele de adresare precum „vrăjitoare” sau „vrăjitor”.
 
-Siguranță: spray-ul este un ritual simbolic pregătit de un adult. Ingredientele trebuie să fie sigure pentru un spray de joacă: apă potabilă și, cel mult, o singură picătură de colorant alimentar. Nu propune uleiuri esențiale, parfum, detergent, oțet, bicarbonat, sare, zahăr, miere, scorțișoară, lichide acide sau aplicare pe corp, față, ochi, pernă ori animale. Dacă ai nevoie de un al treilea ingredient, îl poți numi "un gând curajos" și precizezi în pas că nu se pune în flacon.
+Siguranță: spray-ul este un ritual simbolic pregătit de un adult. Ingredientele trebuie să fie sigure pentru un spray de joacă: apă potabilă și, cel mult, o singură picătură de colorant alimentar. Nu propune uleiuri esențiale, parfum, detergent, oțet, bicarbonat, sare, zahăr, miere, scorțișoară, lichide acide sau aplicare pe corp, față, ochi, pernă, suprafețe ori animale. În pași, spune că spray-ul se pulverizează o singură dată în aer de către un adult. Dacă ai nevoie de un al treilea ingredient, îl poți numi "un gând curajos" și precizezi în pas că nu se pune în flacon.
 
 Conținutul intră într-un template cu spațiu fix. Respectă exact:
-- body: 1-2 propoziții, maximum 420 de caractere; poți folosi cel mult două accente <em>...</em>.
-- ingredients: exact 3; numele comun maximum 30 de caractere și denumirea magică maximum 42 de caractere.
-- steps: exact 3, marcate I, II, III; fiecare l1 și l2 maximum 74 de caractere, fără HTML.
-- spell: exact 4 versuri scurte, maximum 300 de caractere, fără HTML; include numele copilului.
+- body: 1-2 propoziții, maximum 320 de caractere; poți folosi cel mult două accente <em>...</em>.
+- ingredients: exact 3; numele comun maximum 26 de caractere, fără paranteze sau cantități, iar denumirea magică maximum 34 de caractere.
+- steps: exact 3, marcate I, II, III; fiecare l1 și l2 maximum 56 de caractere, fără HTML.
+- spell: exact 4 versuri separate prin caracterul newline \\n, fiecare de maximum 56 de caractere, fără HTML; include numele copilului.
 
 Returnează doar JSON valid conform schemei, fără Markdown.`;
 

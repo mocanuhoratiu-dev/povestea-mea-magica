@@ -367,6 +367,18 @@ function sanitizeEmHtml(value: string) {
     .trim();
 }
 
+function sanitizeSpellText(value: string) {
+  return value
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]*>/g, '')
+    .split(/\r?\n/)
+    .map((line) => line.replace(/\s+/g, ' ').trim())
+    .filter(Boolean)
+    .slice(0, 4)
+    .map((line) => line.length <= 56 ? line : `${line.slice(0, 53).trim()}...`)
+    .join('\n');
+}
+
 function cleanKitContent(content: MonsterKitContent): MonsterKitContent {
   return {
     body: sanitizeEmHtml(content.body),
@@ -381,7 +393,7 @@ function cleanKitContent(content: MonsterKitContent): MonsterKitContent {
       l1: stripHtml(step.l1),
       l2: stripHtml(step.l2),
     })),
-    spell: stripHtml(content.spell),
+    spell: sanitizeSpellText(content.spell),
     clauses: content.clauses.map((clause) => ({
       art: stripHtml(clause.art),
       text: stripHtml(clause.text),
@@ -473,7 +485,7 @@ function mergeMonsterKitContent(generated: Partial<MonsterKitContent>, fallback:
         l2: cleanPlainText(step.l2 || "", fallback.steps[index]?.l2 || "Apoi continuă liniștit", 74),
       }))
     : fallback.steps;
-  const spell = stripHtml(generated.spell || "").trim();
+  const spell = sanitizeSpellText(generated.spell || "");
 
   return cleanKitContent({
     ...fallback,
@@ -1283,7 +1295,7 @@ const CERT_STYLES = `
 }
 .mk-incantation-text {
   font-size: 16px; font-style: italic; color: #d4c5e8; line-height: 1.75;
-  overflow-wrap: anywhere;
+  overflow-wrap: anywhere; white-space: pre-line;
 }
 .mk-incantation-text strong { color: #f4e4a0; font-style: normal; }
 
