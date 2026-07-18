@@ -91,6 +91,47 @@ const STORY_RESPONSE_SCHEMA = {
   },
 } as const;
 
+const MONSTER_RESPONSE_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["body", "ingredients", "steps", "spell"],
+  properties: {
+    body: { type: "string" },
+    ingredients: {
+      type: "array",
+      minItems: 3,
+      maxItems: 3,
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["num", "icon", "name", "detail"],
+        properties: {
+          num: { type: "string" },
+          icon: { type: "string" },
+          name: { type: "string" },
+          detail: { type: "string" },
+        },
+      },
+    },
+    steps: {
+      type: "array",
+      minItems: 3,
+      maxItems: 3,
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["roman", "l1", "l2"],
+        properties: {
+          roman: { type: "string" },
+          l1: { type: "string" },
+          l2: { type: "string" },
+        },
+      },
+    },
+    spell: { type: "string" },
+  },
+} as const;
+
 const EMERGENCY_RESPONSE_SCHEMA = {
   type: "object",
   additionalProperties: false,
@@ -515,23 +556,23 @@ function sanitizeMonsterKit(value: unknown) {
   };
 
   return {
-    body: sanitizeEmHtml(kit.body),
+    body: sanitizeEmHtml(kit.body).slice(0, 420),
     ingredients: Array.isArray(kit.ingredients)
       ? kit.ingredients.slice(0, 4).map((ingredient, index) => ({
           num: stripHtml(ingredient.num) || String(index + 1),
-          icon: stripHtml(ingredient.icon),
-          name: stripHtml(ingredient.name),
-          detail: stripHtml(ingredient.detail),
+          icon: stripHtml(ingredient.icon).slice(0, 8),
+          name: stripHtml(ingredient.name).slice(0, 30),
+          detail: stripHtml(ingredient.detail).slice(0, 42),
         }))
       : [],
     steps: Array.isArray(kit.steps)
       ? kit.steps.slice(0, 3).map((step, index) => ({
           roman: stripHtml(step.roman) || ["I", "II", "III"][index] || String(index + 1),
-          l1: stripHtml(step.l1),
-          l2: stripHtml(step.l2),
+          l1: stripHtml(step.l1).slice(0, 74),
+          l2: stripHtml(step.l2).slice(0, 74),
         }))
       : [],
-    spell: stripHtml(kit.spell),
+    spell: stripHtml(kit.spell).slice(0, 300),
   };
 }
 
@@ -846,29 +887,35 @@ export async function POST(req: Request) {
     }
 
     if (data.type === "monster") {
-      const prompt = `Ești reprezentantul Ministerului Protecției Magice. 
-      Sarcina ta: Inventează o rețetă magică amuzantă și un descântec pentru a alunga monstrul/frica de: "${data.monster}" din camera eroului/eroinei: "${data.name}".
-      REGULĂ CRITICĂ: Părintele va prepara fizic această rețetă într-o STICLĂ CU PULVERIZATOR (spray). Prin urmare, ingredientele trebuie să fie DOAR LICHIDE SAU PULBERI INOFENSIVE care se găsesc în bucătărie și pot fi amestecate cu apă (ex: apă de la robinet, 2 picături de zeamă de lămâie, un praf de sare, un praf de scorțișoară, o picătură de colorant alimentar, puțin zahăr). NU folosi obiecte solide (cum ar fi perne, șosete, jucării).
-      Tu le vei da o denumire magică în câmpul "detail".
-      Returnează răspunsul în format JSON STRICT. Nu adăuga block-uri markdown de tip \`\`\`json.
-      Format JSON necesar:
-      {
-        "body": "podeaua acestei camere este protejată de... (poți folosi doar tag-uri HTML <em> pentru 1-2 accente scurte)",
-        "ingredients": [ 
-          { "num": "1", "icon": "emoji", "name": "nume comun obiect (ex: Apa)", "detail": "denumire magică (ex: Lacrimi de dragon)" },
-          { "num": "2", "icon": "emoji", "name": "nume comun obiect", "detail": "denumire magică" },
-          { "num": "3", "icon": "emoji", "name": "nume comun obiect", "detail": "denumire magică" }
-        ],
-        "steps": [ 
-          { "roman": "I", "l1": "pasul 1 linia 1 (1/2 propoziție, FĂRĂ tag-uri HTML)", "l2": "pasul 1 linia 2 (continuare, FĂRĂ tag-uri HTML)" }, 
-          { "roman": "II", "l1": "pasul 2 linia 1", "l2": "pasul 2 linia 2" } 
-        ],
-        "spell": "Un descântec vesel și magic în RIME PERFECTE (format AABB), compus din exact 4 versuri scurte, fără HTML. TREBUIE să includă numele copilului și să alunge monstrul/frica respectivă."
-      }`;
+      const location = data.context || "camera copilului";
+      const helper = data.interest || "o îmbrățișare și o lumină de veghe";
+      const ritual = data.tone || "trei respirații lente înainte de somn";
+      const prompt = `Ești reprezentantul Ministerului Protecției Magice. Creezi un kit blând, cald și printabil pentru copilul "${data.name}", care se pregătește de somn și are nevoie de ajutor cu: "${data.monster}".
+
+Detalii alese de părinte:
+- Locul care are nevoie de protecție: "${location}".
+- Ce îl/o liniștește pe copil: "${helper}".
+- Ritualul de seară: "${ritual}".
+
+Creează conținut personalizat: folosește natural numele copilului, frica aleasă și cel puțin două dintre detaliile de mai sus. Tonul este jucăuș și liniștitor; nu confirma că monștrii există și nu promite rezultate medicale.
+
+Siguranță: spray-ul este un ritual simbolic pregătit de un adult. Ingredientele trebuie să fie sigure pentru un spray de joacă: apă potabilă și, cel mult, o singură picătură de colorant alimentar. Nu propune uleiuri esențiale, parfum, detergent, oțet, bicarbonat, sare, zahăr, miere, scorțișoară, lichide acide sau aplicare pe corp, față, ochi, pernă ori animale. Dacă ai nevoie de un al treilea ingredient, îl poți numi "un gând curajos" și precizezi în pas că nu se pune în flacon.
+
+Conținutul intră într-un template cu spațiu fix. Respectă exact:
+- body: 1-2 propoziții, maximum 420 de caractere; poți folosi cel mult două accente <em>...</em>.
+- ingredients: exact 3; numele comun maximum 30 de caractere și denumirea magică maximum 42 de caractere.
+- steps: exact 3, marcate I, II, III; fiecare l1 și l2 maximum 74 de caractere, fără HTML.
+- spell: exact 4 versuri scurte, maximum 300 de caractere, fără HTML; include numele copilului.
+
+Returnează doar JSON valid conform schemei, fără Markdown.`;
 
       const generated = await generateAiText({
         prompt,
         responseMimeType: "application/json",
+        responseJsonSchema: MONSTER_RESPONSE_SCHEMA,
+        maxOutputTokens: 1000,
+        thinkingBudget: 0,
+        temperature: 0.8,
       });
       if ("error" in generated) {
         logTelemetry("pmm_generation_failed", {

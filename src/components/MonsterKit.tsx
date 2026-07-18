@@ -457,6 +457,36 @@ function buildPersonalizedKitContent({
   return cleanKitContent(personalized);
 }
 
+function mergeMonsterKitContent(generated: Partial<MonsterKitContent>, fallback: MonsterKitContent): MonsterKitContent {
+  const ingredients = Array.isArray(generated.ingredients) && generated.ingredients.length === 3
+    ? generated.ingredients.map((ingredient, index) => ({
+        num: String(index + 1),
+        icon: cleanPlainText(ingredient.icon || "", fallback.ingredients[index]?.icon || "✦", 8),
+        name: cleanPlainText(ingredient.name || "", fallback.ingredients[index]?.name || "Apă", 30),
+        detail: cleanPlainText(ingredient.detail || "", fallback.ingredients[index]?.detail || "Ingredient magic", 42),
+      }))
+    : fallback.ingredients;
+  const steps = Array.isArray(generated.steps) && generated.steps.length === 3
+    ? generated.steps.map((step, index) => ({
+        roman: ["I", "II", "III"][index],
+        l1: cleanPlainText(step.l1 || "", fallback.steps[index]?.l1 || "Pregătește ritualul cu un adult", 74),
+        l2: cleanPlainText(step.l2 || "", fallback.steps[index]?.l2 || "Apoi continuă liniștit", 74),
+      }))
+    : fallback.steps;
+  const spell = stripHtml(generated.spell || "").trim();
+
+  return cleanKitContent({
+    ...fallback,
+    body: sanitizeEmHtml(generated.body || fallback.body),
+    ingredients,
+    steps,
+    spell: spell || fallback.spell,
+    labelIngredients: ingredients
+      .map((ingredient) => cleanPlainText(ingredient.detail || ingredient.name, ingredient.name, 26))
+      .join(" · "),
+  });
+}
+
 function addSearchableTextLayer(pdf: PdfInstance, text: string, pageWidth: number) {
   const cleanText = text.replace(/\s+/g, ' ').trim();
   if (!cleanText) return;
@@ -475,17 +505,57 @@ export default function MonsterKit() {
   const [name,        setName]        = useState('');
   const [monsterType, setMonsterType] = useState(monsters[0].id);
   const [showResult,  setShowResult]  = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [fearLocation, setFearLocation] = useState('');
   const [calmingHelper, setCalmingHelper] = useState('');
   const [bedtimeRitual, setBedtimeRitual] = useState('');
+  const [generatedContent, setGeneratedContent] = useState<MonsterKitContent | null>(null);
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
     trackEvent('product_started', { product: 'monster' });
-    trackEvent('generation_completed', { product: 'monster', generationMode: 'template', pageCount: 3 });
-    setShowResult(true);
+    setIsGenerating(true);
+
+    const fallback = buildPersonalizedKitContent({
+      name,
+      monsterType,
+      fearLocation,
+      calmingHelper,
+      bedtimeRitual,
+    });
+
+    try {
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'monster',
+          name,
+          monster: monsterType,
+          context: fearLocation,
+          interest: calmingHelper,
+          tone: bedtimeRitual,
+        }),
+      });
+      const payload = await response.json() as { success?: boolean; data?: Partial<MonsterKitContent> };
+
+      if (response.ok && payload.success && payload.data) {
+        setGeneratedContent(mergeMonsterKitContent(payload.data, fallback));
+        trackEvent('generation_completed', { product: 'monster', generationMode: 'ai', pageCount: 3 });
+      } else {
+        setGeneratedContent(fallback);
+        trackEvent('generation_completed', { product: 'monster', generationMode: 'template', pageCount: 3 });
+      }
+    } catch (error) {
+      console.error('Nu am putut genera kitul cu AI:', error);
+      setGeneratedContent(fallback);
+      trackEvent('generation_completed', { product: 'monster', generationMode: 'template', pageCount: 3 });
+    } finally {
+      setIsGenerating(false);
+      setShowResult(true);
+    }
   };
   const handleDownload = async () => {
     setIsDownloading(true);
@@ -531,17 +601,18 @@ export default function MonsterKit() {
   const monsterTarget = monsterCopy[monsterType]?.target ?? monsterLabel.toLocaleLowerCase('ro-RO');
   const bottleLabel = monsterCopy[monsterType]?.label ?? monsterLabel.toLocaleUpperCase('ro-RO');
   const activeDefaults = monsterDefaults[monsterType] || monsterDefaults['umbrele noptii'];
-  const kitContent = buildPersonalizedKitContent({
+  const fallbackContent = buildPersonalizedKitContent({
     name,
     monsterType,
     fearLocation,
     calmingHelper,
     bedtimeRitual,
   });
+  const kitContent = generatedContent || fallbackContent;
 
   return (
     <section id="monster-away" className="py-20 md:py-32 bg-brand-navy relative overflow-hidden px-4">
-      <MagicalLoader isVisible={isDownloading} />
+      <MagicalLoader isVisible={isGenerating || isDownloading} />
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-20">
         {backgroundStars.map((star) => (
@@ -672,11 +743,11 @@ export default function MonsterKit() {
             </p>
 
             <motion.button
-              type="submit" disabled={!name.trim()}
+              type="submit" disabled={!name.trim() || isGenerating}
               whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
               className="w-full bg-brand-navy text-brand-cream py-6 rounded-2xl font-black text-xl md:text-2xl shadow-2xl border-b-8 border-brand-gold disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-3 transition-all"
             >
-              <ShieldCheck size={28} /> Generează kitul
+              <ShieldCheck size={28} /> {isGenerating ? 'Pregătim magia...' : 'Generează kitul'}
             </motion.button>
           </form>
         </motion.div>
