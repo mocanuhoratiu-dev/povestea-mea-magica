@@ -13,6 +13,9 @@ type GenerateRequest = {
   lesson?: string;
   monster?: string;
   context?: string;
+  interest?: string;
+  duration?: string;
+  activityMode?: string;
   tone?: string;
   themeDetail?: string;
   lessonDetail?: string;
@@ -62,6 +65,9 @@ function normalizeGenerateRequest(value: unknown): GenerateRequest | null {
     lesson: cleanRequestText(data.lesson, 120),
     monster: cleanRequestText(data.monster, 100),
     context: cleanRequestText(data.context, 280),
+    interest: cleanRequestText(data.interest, 100),
+    duration: cleanRequestText(data.duration, 24),
+    activityMode: cleanRequestText(data.activityMode, 32),
     tone: cleanRequestText(data.tone, 80),
     themeDetail: cleanRequestText(data.themeDetail, 180),
     lessonDetail: cleanRequestText(data.lessonDetail, 180),
@@ -82,6 +88,32 @@ const STORY_RESPONSE_SCHEMA = {
     title: { type: "string" },
     text: { type: "string" },
     imagePrompt: { type: "string" },
+  },
+} as const;
+
+const EMERGENCY_RESPONSE_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["missionTitle", "missionNote", "radar", "riddle", "drawing", "patience", "story_starters", "true_or_false"],
+  properties: {
+    missionTitle: { type: "string" },
+    missionNote: { type: "string" },
+    radar: { type: "array", minItems: 4, maxItems: 4, items: { type: "string" } },
+    riddle: { type: "string" },
+    drawing: { type: "string" },
+    patience: { type: "string" },
+    story_starters: { type: "array", minItems: 3, maxItems: 3, items: { type: "string" } },
+    true_or_false: {
+      type: "array",
+      minItems: 3,
+      maxItems: 3,
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["q", "a"],
+        properties: { q: { type: "string" }, a: { type: "string" } },
+      },
+    },
   },
 } as const;
 
@@ -503,8 +535,16 @@ function sanitizeMonsterKit(value: unknown) {
   };
 }
 
+function limitEmergencyText(value: unknown, maxLength: number) {
+  const clean = normalizeRomanianText(stripHtml(value));
+  if (clean.length <= maxLength) return clean;
+  return `${clean.slice(0, maxLength - 3).trim()}...`;
+}
+
 function sanitizeEmergencyKit(value: unknown) {
   const kit = value as {
+    missionTitle?: unknown;
+    missionNote?: unknown;
     radar?: unknown[];
     riddle?: unknown;
     drawing?: unknown;
@@ -514,19 +554,21 @@ function sanitizeEmergencyKit(value: unknown) {
   };
 
   return {
+    missionTitle: limitEmergencyText(kit.missionTitle, 48),
+    missionNote: limitEmergencyText(kit.missionNote, 130),
     radar: Array.isArray(kit.radar)
-      ? kit.radar.slice(0, 4).map((item) => normalizeRomanianText(stripHtml(item)))
+      ? kit.radar.slice(0, 4).map((item) => limitEmergencyText(item, 68))
       : [],
-    riddle: normalizeRomanianText(stripHtml(kit.riddle)),
-    drawing: normalizeRomanianText(stripHtml(kit.drawing)),
-    patience: normalizeRomanianText(stripHtml(kit.patience)),
+    riddle: limitEmergencyText(kit.riddle, 210),
+    drawing: limitEmergencyText(kit.drawing, 210),
+    patience: limitEmergencyText(kit.patience, 270),
     story_starters: Array.isArray(kit.story_starters)
-      ? kit.story_starters.slice(0, 3).map((item) => normalizeRomanianText(stripHtml(item)))
+      ? kit.story_starters.slice(0, 3).map((item) => limitEmergencyText(item, 150))
       : [],
     true_or_false: Array.isArray(kit.true_or_false)
       ? kit.true_or_false.slice(0, 3).map((item) => ({
-          q: normalizeRomanianText(stripHtml(item.q)),
-          a: normalizeRomanianText(stripHtml(item.a)),
+          q: limitEmergencyText(item.q, 155),
+          a: limitEmergencyText(item.a, 200),
         }))
       : [],
   };
@@ -947,36 +989,37 @@ export async function POST(req: Request) {
     }
 
     if (data.type === "emergency") {
-      const prompt = `Ești un educator creativ și asistent pentru părinți.
-      Sarcina ta: Generează un "Kit de Urgență" pentru copilul ${data.name} (vârsta: ${data.age} ani) care se află în situația: "${data.context}".
-      Trebuie să oferi 6 secțiuni adaptate STRICT la restricțiile locației și la vârsta copilului.
-      Returnează răspunsul în format JSON STRICT. Nu adăuga block-uri markdown de tip \`\`\`json.
-      Format JSON necesar:
-      {
-        "radar": [
-          "1. ceva specific locației de găsit cu privirea (ex: o mașină roșie / un om cu ochelari)",
-          "2. altceva de căutat vizual",
-          "3. altceva de căutat vizual",
-          "4. altceva de căutat vizual"
-        ],
-        "riddle": "O ghicitoare scurtă și amuzantă, în rime (2-4 versuri), legată de locația respectivă.",
-        "drawing": "O provocare creativă și amuzantă de desen legată de situație.",
-        "patience": "Un mini-joc de răbdare/respirație potrivit pentru acel loc.",
-        "story_starters": [
-          "Odată, un dragon a intrat în... (continuă tu!)",
-          "Alt început de poveste amuzant #2...",
-          "Alt început de poveste amuzant #3..."
-        ],
-        "true_or_false": [
-          { "q": "O întrebare amuzantă adevărat/fals despre lume, natură sau animale, potrivită pentru vârsta copilului.", "a": "Adevărat/Fals + explicație scurtă pentru pagina de răspunsuri" },
-          { "q": "O altă întrebare amuzantă.", "a": "Adevărat sau Fals + explicație scurtă" },
-          { "q": "O altă întrebare amuzantă.", "a": "Adevărat sau Fals + explicație scurtă" }
-        ]
-      }`;
+      const prompt = `Ești un educator creativ român. Creezi o Trusă Magică de Urgență care va fi tipărită pe A4 și folosită imediat de un părinte cu copilul.
+
+Datele copilului:
+- Nume: ${data.name}
+- Vârstă: ${data.age || "nespecificată"} ani
+- Locul/situația: ${data.context || "o perioadă de așteptare"}
+- Interes preferat: ${data.interest || "imaginația și joaca"}
+- Timp disponibil: ${data.duration || "10-20 minute"}
+- Stil preferat: ${data.activityMode || "mix"}
+
+Scrie numai în română naturală, caldă și clară. Toate activitățile trebuie să fie sigure, liniștite, fără materiale obligatorii și posibile chiar în locul indicat. Respectă cu strictețe locul: nu propune alergat la restaurant, în aeroport, la doctor sau la coadă. Leagă interesul copilului firesc de cel puțin două activități. Evită limbajul medical, fricile, pedepsele și promisiunile de tipul „vei sta cuminte”.
+
+Conținutul intră într-un template cu spațiu fix. Respectă exact limitele:
+- missionTitle: 2-6 cuvinte, maximum 48 de caractere.
+- missionNote: o singură propoziție, maximum 130 de caractere.
+- radar: exact 4 indicii observabile, fără numere, fiecare maximum 68 de caractere.
+- riddle: 2 versuri scurte, maximum 210 caractere în total.
+- drawing: o singură propoziție, maximum 210 caractere.
+- patience: 2-3 propoziții scurte, maximum 270 de caractere; un joc calm, adaptat timpului disponibil.
+- story_starters: exact 3 începuturi de poveste, fiecare maximum 150 de caractere.
+- true_or_false: exact 3 întrebări. q are maximum 155 caractere. a începe obligatoriu cu „Adevărat.” sau „Fals.” și are maximum 200 de caractere.
+
+Returnează exclusiv un obiect JSON valid, conform schemei cerute. Fără Markdown, fără explicații în afara JSON-ului.`;
 
       const generated = await generateAiText({
         prompt,
         responseMimeType: "application/json",
+        responseJsonSchema: EMERGENCY_RESPONSE_SCHEMA,
+        maxOutputTokens: 1500,
+        thinkingBudget: 0,
+        temperature: 0.8,
       });
       if ("error" in generated) {
         logTelemetry("pmm_generation_failed", {

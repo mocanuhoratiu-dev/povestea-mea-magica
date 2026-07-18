@@ -37,81 +37,100 @@ const EMERGENCY_STYLES = `
   position: absolute; inset: 20px;
   border: 4px dashed #ff9f43; border-radius: 20px;
   background-color: white;
+  box-sizing: border-box;
+  padding: 34px 42px;
 }
 .ek-header {
-  text-align: center; margin-top: 40px;
+  text-align: center; margin: 0 0 30px;
 }
 .ek-activity-kicker {
   color: #ff9f43; font-size: 14px; font-weight: 900;
-  letter-spacing: 3px; text-transform: uppercase; margin-bottom: 10px;
+  letter-spacing: 3px; text-transform: uppercase; margin-bottom: 8px;
 }
 .ek-title {
-  font-family: 'Nunito', sans-serif; font-size: 42px; font-weight: 900;
+  font-family: 'Nunito', sans-serif; font-size: 38px; font-weight: 900;
   color: #ff9f43; text-transform: uppercase; letter-spacing: 2px;
   overflow-wrap: anywhere;
 }
 .ek-subtitle {
-  font-family: 'Caveat', cursive; font-size: 32px; color: #2d3436; margin-top: 10px;
+  font-family: 'Caveat', cursive; font-size: 29px; color: #2d3436; margin-top: 8px;
 }
 .ek-section {
-  margin: 40px 60px;
+  margin: 0;
 }
 .ek-section-title {
   font-size: 24px; font-weight: 900; color: #ff9f43;
-  border-bottom: 2px solid #ff9f43; padding-bottom: 10px; margin-bottom: 20px;
+  border-bottom: 2px solid #ff9f43; padding-bottom: 9px; margin-bottom: 18px;
   display: flex; align-items: center; gap: 10px;
 }
 .ek-activity-instruction {
-  margin: 0 0 24px; color: #636e72; font-size: 18px;
+  margin: 0 0 20px; color: #636e72; font-size: 17px;
   font-weight: 700; line-height: 1.45; text-align: center;
 }
 .ek-radar-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
 }
 .ek-radar-item {
   display: flex; align-items: center; gap: 15px;
-  background: #fff9f0; padding: 15px; border-radius: 12px; border: 2px solid #ffeaa7;
-  font-size: 18px; font-weight: 700; color: #2d3436;
+  min-height: 78px; box-sizing: border-box;
+  background: #fff9f0; padding: 13px; border-radius: 12px; border: 2px solid #ffeaa7;
+  font-size: 17px; font-weight: 700; color: #2d3436;
   overflow-wrap: anywhere;
 }
 .ek-checkbox {
-  width: 30px; height: 30px; border: 3px solid #ff9f43; border-radius: 8px; background: white;
+  flex: 0 0 28px; width: 28px; height: 28px; border: 3px solid #ff9f43; border-radius: 8px; background: white;
 }
 .ek-riddle-box {
-  background: #ff9f4315; padding: 25px; border-radius: 15px; border-left: 6px solid #ff9f43;
-  font-size: 22px; font-weight: 700; color: #2d3436; font-style: italic; text-align: center;
+  background: #ff9f4315; padding: 22px; border-radius: 15px; border-left: 6px solid #ff9f43;
+  font-size: 20px; font-weight: 700; line-height: 1.45; color: #2d3436; font-style: italic; text-align: center;
+  overflow-wrap: anywhere;
+}
+.ek-riddle-section { margin-top: 34px; }
+.ek-drawing-copy {
+  margin: 0; font-size: 18px; line-height: 1.45; color: #2d3436; font-weight: 700;
   overflow-wrap: anywhere;
 }
 .ek-drawing-box {
-  border: 3px dashed #ff9f43; height: 400px; border-radius: 20px;
+  border: 3px dashed #ff9f43; height: 490px; border-radius: 20px;
   margin-top: 20px; background: #fafafa;
 }
+.ek-patience-page {
+  height: 100%; display: flex; flex-direction: column;
+}
+.ek-patience-card {
+  margin: 0 30px; padding: 32px 34px; border-radius: 24px;
+  background: #fff9f0; border: 3px solid #ffe0af; text-align: center;
+}
 .ek-patience-box {
-  text-align: center; font-size: 20px; font-weight: 700; color: #2d3436;
-  background: #fff9f0; padding: 20px; border-radius: 15px;
+  text-align: center; font-size: 21px; line-height: 1.5; font-weight: 700; color: #2d3436;
   overflow-wrap: anywhere;
 }
+.ek-patience-prompt {
+  margin: 18px 0 0; color: #636e72; font-size: 17px; font-weight: 700; line-height: 1.45;
+}
+.ek-patience-lines { margin: 20px 54px 0; flex: 1; }
+.ek-patience-line { height: 52px; border-bottom: 2px dashed #f4be7d; }
 .ek-story-starter {
   background: #f0f9ff; border-left: 6px solid #74b9ff; border-radius: 12px;
-  padding: 18px 22px; margin-bottom: 16px;
-  font-size: 19px; font-weight: 700; color: #2d3436;
+  padding: 14px 18px; margin-bottom: 13px;
+  font-size: 17px; line-height: 1.38; font-weight: 700; color: #2d3436;
   overflow-wrap: anywhere;
 }
 .ek-story-line {
-  margin-top: 10px; border-bottom: 2px dashed #b2bec3; height: 32px;
+  margin-top: 8px; border-bottom: 2px dashed #b2bec3; height: 23px;
 }
 .ek-tf-item {
-  background: #fdf0ff; border-radius: 12px; padding: 18px 22px; margin-bottom: 14px;
+  background: #fdf0ff; border-radius: 12px; padding: 15px 18px; margin-bottom: 12px;
   border-left: 6px solid #a29bfe;
 }
-.ek-tf-q { font-size: 18px; font-weight: 700; color: #2d3436; overflow-wrap: anywhere; }
-.ek-tf-btns { display: flex; gap: 12px; margin-top: 12px; }
+.ek-tf-q { font-size: 17px; line-height: 1.38; font-weight: 700; color: #2d3436; overflow-wrap: anywhere; }
+.ek-tf-btns { display: flex; gap: 12px; margin-top: 10px; }
 .ek-tf-btn {
-  flex: 1; padding: 10px; border-radius: 10px; border: 3px solid #a29bfe;
-  font-size: 16px; font-weight: 900; color: #a29bfe; text-align: center;
+  flex: 1; padding: 8px; border-radius: 10px; border: 3px solid #a29bfe;
+  font-size: 15px; font-weight: 900; color: #a29bfe; text-align: center;
 }
 .ek-answer-item {
-  background: #fdf0ff; border-radius: 16px; padding: 22px 26px; margin-bottom: 18px;
+  background: #fdf0ff; border-radius: 16px; padding: 17px 20px; margin-bottom: 14px;
   border-left: 8px solid #a29bfe;
 }
 .ek-answer-label {
@@ -119,7 +138,7 @@ const EMERGENCY_STYLES = `
   padding: 6px 14px; font-size: 14px; font-weight: 900; margin-bottom: 10px;
 }
 .ek-answer-text {
-  font-size: 18px; font-weight: 700; color: #2d3436; line-height: 1.45;
+  font-size: 17px; font-weight: 700; color: #2d3436; line-height: 1.42;
   overflow-wrap: anywhere;
 }
 .ek-diploma {
@@ -423,20 +442,48 @@ function buildEmergencyKit({
 
   return {
     ...base,
-    drawing: `${base.drawing} Agentul ${heroName} poate include în desen și ${favorite}.`,
-    patience: `${base.patience} ${modeGuidance} ${ageGuidance} Dacă mai este timp, transformă ${favorite} într-un cod secret de liniștire.`,
+    drawing: cleanText(`${base.drawing} Agentul ${heroName} poate include în desen și ${favorite}.`, base.drawing || "Desenează o misiune magică.", 210),
+    patience: cleanText(`${base.patience} ${modeGuidance} ${ageGuidance}`, base.patience || "Alege o activitate liniștită și fă-o pas cu pas.", 270),
     story_starters: (base.story_starters || []).map((starter, index) => (
       index === 0
-        ? `${starter} În poveste apare și ${favorite}.`
-        : starter
+        ? cleanText(`${starter} În poveste apare și ${favorite}.`, starter, 150)
+        : cleanText(starter, "Începe o poveste magică...", 150)
     )),
     true_or_false: [
       ...(base.true_or_false || []).slice(0, 2),
       {
-        q: `Într-o misiune de ${selectedDuration}, un agent bun poate alterna observația cu imaginația.`,
+        q: cleanText(`Într-o misiune de ${selectedDuration}, un agent bun poate alterna observația cu imaginația.`, "Un agent bun poate alterna observația cu imaginația.", 150),
         a: "Adevărat. Când schimbăm activitatea, așteptarea pare mai scurtă și creierul rămâne ocupat.",
       },
     ],
+  };
+}
+
+function mergeEmergencyKit(generated: Partial<EmergencyKitData>, fallback: EmergencyKitData): EmergencyKitData {
+  const fallbackRadar = fallback.radar || [];
+  const generatedRadar = Array.isArray(generated.radar) ? generated.radar : [];
+  const fallbackStories = fallback.story_starters || [];
+  const generatedStories = Array.isArray(generated.story_starters) ? generated.story_starters : [];
+  const fallbackAnswers = fallback.true_or_false || [];
+  const generatedAnswers = Array.isArray(generated.true_or_false) ? generated.true_or_false : [];
+
+  return {
+    missionTitle: cleanText(generated.missionTitle || "", fallback.missionTitle || "Misiunea Agentului Calm", 48),
+    missionNote: cleanText(generated.missionNote || "", fallback.missionNote || "O misiune creată pentru momentul vostru.", 130),
+    radar: Array.from({ length: 4 }, (_, index) => cleanText(generatedRadar[index] || "", fallbackRadar[index] || "Un indiciu secret din jurul tău", 68)),
+    riddle: cleanText(generated.riddle || "", fallback.riddle || "Găsește indiciul magic din jurul tău.", 210),
+    drawing: cleanText(generated.drawing || "", fallback.drawing || "Desenează o aventură magică.", 210),
+    patience: cleanText(generated.patience || "", fallback.patience || "Alege un pas liniștit și fă-l pe rând.", 270),
+    story_starters: Array.from({ length: 3 }, (_, index) => cleanText(generatedStories[index] || "", fallbackStories[index] || "Începe aici o poveste magică...", 150)),
+    true_or_false: Array.from({ length: 3 }, (_, index) => {
+      const generatedItem = generatedAnswers[index];
+      const fallbackItem = fallbackAnswers[index] || { q: "O întrebare de agent.", a: "Adevărat. Fiecare observație poate deveni o descoperire." };
+
+      return {
+        q: cleanText(generatedItem?.q || "", fallbackItem.q, 155),
+        a: cleanText(generatedItem?.a || "", fallbackItem.a, 200),
+      };
+    }),
   };
 }
 
@@ -455,9 +502,40 @@ export default function EmergencyKit() {
     e.preventDefault();
     if (!name.trim()) return;
     trackEvent("product_started", { product: "emergency" });
-    trackEvent("generation_completed", { product: "emergency", generationMode: "template", pageCount: 6 });
-    setEkData(buildEmergencyKit({ name, age, selectedContext, interest, duration, activityMode }));
-    setShowResult(true);
+    setIsLoading(true);
+
+    const fallback = buildEmergencyKit({ name, age, selectedContext, interest, duration, activityMode });
+
+    try {
+      const response = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "emergency",
+          name,
+          age,
+          context: selectedContext,
+          interest,
+          duration,
+          activityMode,
+        }),
+      });
+      const payload = await response.json() as { success?: boolean; data?: Partial<EmergencyKitData> };
+      if (response.ok && payload.success && payload.data) {
+        setEkData(mergeEmergencyKit(payload.data, fallback));
+        trackEvent("generation_completed", { product: "emergency", generationMode: "ai", pageCount: 7 });
+      } else {
+        setEkData(fallback);
+        trackEvent("generation_completed", { product: "emergency", generationMode: "template", pageCount: 7 });
+      }
+    } catch (error) {
+      console.error("Nu am putut genera trusa cu AI:", error);
+      setEkData(fallback);
+      trackEvent("generation_completed", { product: "emergency", generationMode: "template", pageCount: 7 });
+    } finally {
+      setIsLoading(false);
+      setShowResult(true);
+    }
   };
 
   const handleDownload = async () => {
@@ -636,13 +714,13 @@ export default function EmergencyKit() {
         <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', top: 0, pointerEvents: 'none' }}>
           <style>{EMERGENCY_STYLES}</style>
           
-          {/* Page 1: Radar & Riddle */}
+          {/* Page 1: Radar & riddle */}
           <div id="ek-page-0" className="ek-page">
             <div className="ek-border">
               <div className="ek-header">
-                <div className="ek-activity-kicker">Activitatea 1</div>
+                <div className="ek-activity-kicker">Misiunea lui {cleanText(name, "agentul special", 28)}</div>
                 <div className="ek-title">Radarul Magic</div>
-                <div className="ek-subtitle">Observă, găsește, bifează</div>
+                <div className="ek-subtitle">{ekData.missionTitle}</div>
               </div>
 
               <div className="ek-section">
@@ -657,7 +735,7 @@ export default function EmergencyKit() {
                 </div>
               </div>
 
-              <div className="ek-section" style={{marginTop: 60}}>
+              <div className="ek-section ek-riddle-section">
                 <div className="ek-section-title">✨ Ghicitoarea Locului</div>
                 <div className="ek-riddle-box">
                   {ekData.riddle}
@@ -666,46 +744,61 @@ export default function EmergencyKit() {
             </div>
           </div>
 
-          {/* Page 2: Drawing & Patience */}
+          {/* Page 2: Drawing */}
           <div id="ek-page-1" className="ek-page">
             <div className="ek-border">
               <div className="ek-header">
                 <div className="ek-activity-kicker">Activitatea 2</div>
                 <div className="ek-title">Creionul Agentului</div>
-                <div className="ek-subtitle">Desenează și ai răbdare</div>
+                <div className="ek-subtitle">Desenează o idee care apare doar la voi</div>
               </div>
 
               <div className="ek-section">
                 <div className="ek-section-title">🎨 Provocarea Desenatorului</div>
-                <p style={{fontSize: 18, color: '#2d3436', fontWeight: 700}}>{ekData.drawing}</p>
+                <p className="ek-drawing-copy">{ekData.drawing}</p>
                 <div className="ek-drawing-box"></div>
-              </div>
-
-              <div className="ek-section" style={{marginTop: 60}}>
-                <div className="ek-section-title">🧘 Misiune de Răbdare</div>
-                <div className="ek-patience-box">
-                  {ekData.patience}
-                </div>
               </div>
             </div>
           </div>
 
-          {/* Page 3: Story Starters only */}
+          {/* Page 3: Patience mission */}
           <div id="ek-page-2" className="ek-page">
+            <div className="ek-border ek-patience-page">
+              <div className="ek-header">
+                <div className="ek-activity-kicker">Activitatea 3 · {ekData.missionTitle}</div>
+                <div className="ek-title">Misiunea de Răbdare</div>
+                <div className="ek-subtitle">Fă un pas mic, apoi încă unul</div>
+              </div>
+
+              <div className="ek-patience-card">
+                <div className="ek-patience-box">{ekData.patience}</div>
+                <p className="ek-patience-prompt">După fiecare pas, bifează-l în minte ca un agent care își termină misiunea.</p>
+              </div>
+              <div className="ek-patience-lines" aria-hidden="true">
+                <div className="ek-patience-line"></div>
+                <div className="ek-patience-line"></div>
+                <div className="ek-patience-line"></div>
+                <div className="ek-patience-line"></div>
+                <div className="ek-patience-line"></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Page 4: Story starters */}
+          <div id="ek-page-3" className="ek-page">
             <div className="ek-border">
               <div className="ek-header">
-                <div className="ek-activity-kicker">Activitatea 3</div>
+                <div className="ek-activity-kicker">Activitatea 4</div>
                 <div className="ek-title">Povestea Continuă</div>
                 <div className="ek-subtitle">Alege un început și inventează mai departe</div>
               </div>
 
               <div className="ek-section">
                 <div className="ek-section-title">📖 Continuă Povestea!</div>
-                <p style={{fontSize: 16, color: '#999', marginBottom: 28}}>Alege un început magic și inventează ce se întâmplă mai departe!</p>
+                <p style={{fontSize: 16, color: '#777', fontWeight: 700, margin: '0 0 18px'}}>Alege un început magic și spune ce se întâmplă mai departe.</p>
                 {ekData.story_starters?.map((s: string, idx: number) => (
                   <div key={idx} className="ek-story-starter">
                     {s}
-                    <div className="ek-story-line" />
                     <div className="ek-story-line" />
                     <div className="ek-story-line" />
                   </div>
@@ -714,18 +807,18 @@ export default function EmergencyKit() {
             </div>
           </div>
 
-          {/* Page 4: True/False questions */}
-          <div id="ek-page-3" className="ek-page">
+          {/* Page 5: True/false questions */}
+          <div id="ek-page-4" className="ek-page">
             <div className="ek-border">
               <div className="ek-header">
-                <div className="ek-activity-kicker">Activitatea 4</div>
+                <div className="ek-activity-kicker">Activitatea 5</div>
                 <div className="ek-title">Adevărat sau Fals</div>
                 <div className="ek-subtitle">Gândește, alege și încercuiește</div>
               </div>
 
               <div className="ek-section">
                 <div className="ek-section-title">🧠 Adevărat sau Fals?</div>
-                <p style={{fontSize: 16, color: '#999', marginBottom: 20}}>Încercuiește răspunsul tău. Răspunsurile sunt pe pagina următoare, pentru părinte.</p>
+                <p style={{fontSize: 16, color: '#777', fontWeight: 700, margin: '0 0 18px'}}>Încercuiește răspunsul tău. Răspunsurile sunt pe pagina următoare, pentru părinte.</p>
                 {ekData.true_or_false?.map((item, idx) => (
                   <div key={idx} className="ek-tf-item">
                     <div className="ek-tf-q">{idx + 1}. {item.q}</div>
@@ -739,17 +832,18 @@ export default function EmergencyKit() {
             </div>
           </div>
 
-          {/* Page 5: Parent answer key */}
-          <div id="ek-page-4" className="ek-page">
+          {/* Page 6: Parent answer key */}
+          <div id="ek-page-5" className="ek-page">
             <div className="ek-border">
               <div className="ek-header">
+                <div className="ek-activity-kicker">Pentru părinte</div>
                 <div className="ek-title">Răspunsuri</div>
-                <div className="ek-subtitle">Pagina părintelui</div>
+                <div className="ek-subtitle">Cheia provocării</div>
               </div>
 
               <div className="ek-section">
                 <div className="ek-section-title">✅ Cheia provocării</div>
-                <p style={{fontSize: 16, color: '#999', marginBottom: 26}}>Folosește pagina aceasta doar după ce copilul a încercuit răspunsurile.</p>
+                <p style={{fontSize: 16, color: '#777', fontWeight: 700, margin: '0 0 20px'}}>Folosește pagina aceasta doar după ce copilul a încercuit răspunsurile.</p>
                 {ekData.true_or_false?.map((item, idx) => {
                   const answer = parseTrueFalseAnswer(item.a);
                   return (
@@ -763,15 +857,15 @@ export default function EmergencyKit() {
             </div>
           </div>
 
-          {/* Page 6: Diploma */}
-          <div id="ek-page-5" className="ek-page">
+          {/* Page 7: Diploma */}
+          <div id="ek-page-6" className="ek-page">
             <div className="ek-border" style={{display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
-              <div style={{textAlign: 'center', padding: '60px 80px'}}>
-                <div style={{fontSize: 80, marginBottom: 30}}>🏅</div>
+              <div style={{textAlign: 'center', padding: '40px 30px', width: '100%', boxSizing: 'border-box'}}>
+                <div style={{fontSize: 72, marginBottom: 24}}>🏅</div>
                 <div style={{fontSize: 16, color: '#ff9f43', fontWeight: 900, letterSpacing: 4, textTransform: 'uppercase', marginBottom: 20}}>Ministerul Misiunilor Magice</div>
-                <div style={{fontSize: 48, fontWeight: 900, color: '#ff9f43', fontFamily: 'Nunito, sans-serif', borderBottom: '3px solid #ff9f43', paddingBottom: 16, marginBottom: 16}}>DIPLOMĂ DE ONOARE</div>
+                <div style={{fontSize: 44, fontWeight: 900, color: '#ff9f43', fontFamily: 'Nunito, sans-serif', borderBottom: '3px solid #ff9f43', paddingBottom: 16, marginBottom: 16}}>DIPLOMĂ DE ONOARE</div>
                 <div style={{fontSize: 22, color: '#636e72', fontWeight: 600, marginBottom: 20}}>Se acordă agentului special</div>
-                <div style={{fontFamily: 'Caveat, cursive', fontSize: 72, fontWeight: 900, color: '#2d3436', marginBottom: 20}}>{name}</div>
+                <div style={{fontFamily: 'Caveat, cursive', fontSize: 64, fontWeight: 900, color: '#2d3436', marginBottom: 20, overflowWrap: 'anywhere'}}>{cleanText(name, "Agentul Special", 28)}</div>
                 <div style={{fontSize: 20, color: '#636e72', fontWeight: 600, marginBottom: 40, lineHeight: 1.6}}>
                   pentru finalizarea cu brio a tuturor misiunilor secrete<br/>și demonstrarea unui curaj excepțional!
                 </div>
@@ -811,7 +905,7 @@ export default function EmergencyKit() {
                 <div className="text-7xl mb-6 block">🚨</div>
                 <h3 className="font-nunito font-black text-3xl text-brand-navy mb-3">Misiunea a fost creată!</h3>
                 <p className="text-gray-600 font-medium mb-8">
-                  Agentul <span className="text-orange-500 font-black">{name}</span> are activități noi pentru <strong>{contexts.find(c => c.id === selectedContext)?.label}</strong>. Trusa are <strong>6 pagini A4</strong>: radar magic, desen creativ, completare de povești, adevărat/fals, răspunsuri pentru părinte și o diplomă de agent magic.
+                  Agentul <span className="text-orange-500 font-black">{name}</span> are activități create pentru <strong>{contexts.find(c => c.id === selectedContext)?.label}</strong>. Trusa are <strong>7 pagini A4</strong>: radar, desen, misiune de răbdare, poveste, adevărat/fals, răspunsuri pentru părinte și diplomă.
                 </p>
                 <motion.button
                   onClick={handleDownload}

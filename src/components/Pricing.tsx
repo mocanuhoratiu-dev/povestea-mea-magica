@@ -35,7 +35,7 @@ const products = [
     cta: "Creează trusa",
     accent: "border-orange-400",
     badge: "Practic",
-    features: ["6 pagini PDF", "Misiuni de răbdare", "Diplomă inclusă"],
+    features: ["7 pagini PDF", "Misiuni de răbdare", "Diplomă inclusă"],
   },
 ];
 
