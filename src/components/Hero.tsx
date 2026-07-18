@@ -9,7 +9,7 @@ import { siteCopy } from "@/lib/siteMode";
 
 export default function Hero() {
   return (
-    <section className="relative isolate min-h-[620px] overflow-hidden bg-brand-navy px-6 pb-12 pt-28 text-brand-cream lg:min-h-[640px]">
+    <section id="home-hero" className="relative isolate min-h-[620px] overflow-hidden bg-brand-navy px-6 pb-12 pt-28 text-brand-cream lg:min-h-[640px]">
       <Image
         src="/hero-storybook.png"
         alt="Un copil cu o lanternă alături de un dragon blând, într-o pădure de noapte"

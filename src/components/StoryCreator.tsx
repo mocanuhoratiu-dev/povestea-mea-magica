@@ -98,6 +98,9 @@ const STORY_PDF_STYLES = `
 .story-text-body--compact {
   font-size: 17.6px; line-height: 1.34;
 }
+.story-text-body--final {
+  padding-bottom: 76px;
+}
 .story-paragraph {
   margin: 0 0 9px;
 }
@@ -108,9 +111,15 @@ const STORY_PDF_STYLES = `
   margin-bottom: 0;
 }
 .story-text-page-num {
-  position: absolute; bottom: 31px; left: 0; right: 0;
+  position: absolute; bottom: 50px; left: 0; right: 0;
   text-align: center; font-family: 'Cinzel', serif; font-size: 10px;
   color: #e5b84f; opacity: 0.8;
+}
+.story-endmark {
+  position: absolute; bottom: 81px; left: 0; right: 0;
+  text-align: center; font-family: 'Cinzel', serif; font-size: 25px;
+  line-height: 1; letter-spacing: 0.08em;
+  color: #8052a0;
 }
 .story-corner {
   position: absolute; width: 40px; height: 40px; opacity: 0.4;
@@ -667,11 +676,12 @@ export default function StoryCreator() {
             <div className="story-pdf-border" />
             {(['tl','tr','bl','br'] as const).map(pos => <CornerSVG key={pos} pos={pos} />)}
             <div className="story-pdf-content">
-              <div className={storyTextDensityClass(chunk)}>
+              <div className={`${storyTextDensityClass(chunk)}${idx === storyChunks.length - 1 ? " story-text-body--final" : ""}`}>
                 {chunk.split(/\n{2,}/).map((paragraph, paragraphIndex) => (
                   <p key={paragraphIndex} className="story-paragraph">{paragraph}</p>
                 ))}
               </div>
+              {idx === storyChunks.length - 1 && <p className="story-endmark">Sfârșit</p>}
               <div className="story-text-page-num">Povestea Mea Magică · Pagina {idx + 1}</div>
             </div>
           </div>

@@ -7,6 +7,7 @@ import EmergencyKit from "@/components/EmergencyKit";
 import Reviews from "@/components/Reviews";
 import FAQ from "@/components/FAQ";
 import Footer from "@/components/Footer";
+import LumiGuide from "@/components/LumiGuide";
 
 export default function Home() {
   return (
@@ -20,6 +21,7 @@ export default function Home() {
       <Reviews />
       <FAQ />
       <Footer />
+      <LumiGuide />
     </main>
   );
 }
