@@ -837,7 +837,7 @@ function Page2Recipe({ content }: { content: MonsterKitContent }) {
             <p className="mk-recipe-section-title">Mod de Preparare</p>
             {content.steps.map((s) => (
               <div key={s.roman} className="mk-step">
-                <div className="mk-step-num">{s.roman}</div>
+                <div className="mk-step-num"><span>{s.roman}</span></div>
                 <div>
                   <div className="mk-step-l1">{s.l1}</div>
                   <div className="mk-step-l2">{s.l2}</div>
@@ -1182,14 +1182,19 @@ const CERT_STYLES = `
 .mk-ing-name   { font-size: 13.5px; font-weight: 500; color: #f4e4a0; line-height: 1.3; overflow-wrap: anywhere; }
 .mk-ing-detail { font-size: 11px; color: #9a8bc0; font-style: italic; margin-top: 3px; overflow-wrap: anywhere; }
 
-.mk-step { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 18px; }
+.mk-step {
+  display: grid; grid-template-columns: 28px minmax(0, 1fr); column-gap: 12px;
+  align-items: start; margin-bottom: 18px;
+}
 .mk-step-num {
-  flex: 0 0 24px; width: 24px; height: 24px; box-sizing: border-box; border-radius: 50%;
-  border: 1px solid rgba(201,168,76,0.4);
+  width: 28px; height: 28px; box-sizing: border-box; border-radius: 50%;
+  border: 1.2px solid rgba(201,168,76,0.5);
   background: rgba(201,168,76,0.08);
-  font-family: 'Cinzel', serif; font-size: 8.5px; color: #c9a84c;
-  display: flex; align-items: center; justify-content: center;
-  text-align: center; line-height: 1; padding: 0; margin-top: 1px;
+  color: #d7b759; display: grid; place-items: center; margin: 0;
+}
+.mk-step-num span {
+  display: block; font-family: 'Cinzel', serif; font-size: 9px; font-weight: 700;
+  line-height: 1; text-align: center; transform: translateY(-1.5px);
 }
 .mk-step-l1 { font-size: 13px; color: #d4c5e8; line-height: 1.45; overflow-wrap: anywhere; }
 .mk-step-l2 { font-size: 12px; color: #bfb3d4; font-style: italic; margin-top: 3px; overflow-wrap: anywhere; }
