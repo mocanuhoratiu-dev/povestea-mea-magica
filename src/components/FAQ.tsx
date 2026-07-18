@@ -31,7 +31,7 @@ const faqs = [
   },
   {
     question: "Care sunt prețurile?",
-    answer: "Povestea PDF are prețul de lansare de 29 lei, iar Scutul Magic și Trusa Magică de Urgență costă câte 19 lei. Pachetul cu toate cele trei materiale este 49 lei. În perioada actuală de lansare poți continua direct către generare.",
+    answer: "La lansarea comercială, povestea va costa 29 lei, iar Scutul Magic și Trusa Magică de Urgență câte 19 lei. Pachetul cu toate cele trei materiale va fi 49 lei. Acum ai acces de lansare gratuit și poți continua direct către generare.",
   },
   {
     question: "Ce fac dacă generarea nu se finalizează?",

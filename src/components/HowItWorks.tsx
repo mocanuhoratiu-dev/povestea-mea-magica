@@ -1,28 +1,28 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { UserCircle, Wand, Rocket } from "lucide-react";
+import { ListChecks, Wand, Download } from "lucide-react";
 import { siteCopy } from "@/lib/siteMode";
 
 const steps = [
   {
-    icon: <UserCircle className="w-10 h-10 text-white" />,
-    title: "Cine e Eroul?",
-    description: "Spune-ne numele micuțului și alege-i vârsta ca să știm ce aventură i se potrivește!",
+    icon: <ListChecks className="w-9 h-9 text-white" />,
+    title: "Alege momentul",
+    description: "Alegi o poveste pentru seară, un ritual pentru nopțile cu emoții sau o activitate pentru timpul de așteptare.",
     color: "bg-brand-pink",
     shadow: "shadow-brand-pink/30",
   },
   {
     icon: <Wand className="w-10 h-10 text-white" />,
-    title: "Alege Magia",
-    description: "Vrei o aventură în spațiu, într-un castel sau în pădure? Tu alegi tema și morala!",
+    title: "Adaugă detaliile",
+    description: "Numele, vârsta și câteva preferințe transformă materialul într-unul făcut pentru copilul tău.",
     color: "bg-brand-purple",
     shadow: "shadow-brand-purple/30",
   },
   {
-    icon: <Rocket className="w-10 h-10 text-white" />,
+    icon: <Download className="w-9 h-9 text-white" />,
     title: "Generează și descarcă",
-    description: "Generezi conținutul, îl verifici în browser și descarci PDF-ul pregătit pentru print sau citit seara.",
+    description: "Verifici rezultatul și descarci PDF-ul pregătit pentru citit, print sau folosit imediat.",
     color: "bg-brand-blue",
     shadow: "shadow-brand-blue/30",
   },
@@ -30,11 +30,7 @@ const steps = [
 
 export default function HowItWorks() {
   return (
-    <section id="cum-functioneaza" className="py-24 bg-white relative overflow-hidden">
-      {/* Decorative background shapes */}
-      <div className="absolute top-0 left-0 w-32 h-32 bg-brand-gold/10 rounded-full -translate-x-16 -translate-y-16" />
-      <div className="absolute bottom-0 right-0 w-48 h-48 bg-brand-pink/5 rounded-full translate-x-24 translate-y-24" />
-
+    <section id="cum-functioneaza" className="py-24 bg-brand-cream">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-20">
           <motion.div
@@ -63,9 +59,9 @@ export default function HowItWorks() {
               viewport={{ once: true }}
               transition={{ delay: index * 0.2 }}
               whileHover={{ y: -15 }}
-              className={`bg-brand-cream p-12 rounded-[3rem] border-4 border-white shadow-xl ${step.shadow} transition-all group relative`}
+              className={`bg-white p-8 md:p-10 rounded-lg border border-brand-navy/10 shadow-lg ${step.shadow} transition-all group relative`}
             >
-              <div className={`${step.color} w-20 h-20 rounded-[2rem] flex items-center justify-center mb-8 rotate-3 group-hover:rotate-12 transition-transform shadow-lg`}>
+              <div className={`${step.color} w-16 h-16 rounded-lg flex items-center justify-center mb-7 transition-transform shadow-lg`}>
                 {step.icon}
               </div>
               <h3 className="font-nunito font-extrabold text-2xl text-brand-navy mb-4">

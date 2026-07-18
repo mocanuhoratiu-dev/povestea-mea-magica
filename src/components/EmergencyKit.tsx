@@ -601,7 +601,7 @@ export default function EmergencyKit() {
             Așteptarea e grea? Copilul și-a pierdut răbdarea? Generează un PDF cu misiuni secrete adaptate locului în care sunteți.
           </p>
           <p className="mt-3 text-sm font-bold text-orange-600">
-            Preț de lansare: 19 lei. Generează direct, fără plată online în această etapă.
+            Acces de lansare gratuit. Preț la lansarea comercială: 19 lei.
           </p>
         </div>
 

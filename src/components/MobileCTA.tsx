@@ -27,8 +27,8 @@ export default function MobileCTA() {
           className="fixed bottom-6 left-6 right-6 z-[9990] md:hidden"
         >
           <Link
-            href="/#creator"
-            className="block w-full bg-brand-purple text-brand-cream py-4 rounded-2xl font-black text-center shadow-[0_10px_30px_rgba(155,89,182,0.4)] border-b-4 border-brand-purple-light"
+            href="/#alege-materialul"
+            className="block w-full bg-brand-purple text-brand-cream py-4 rounded-lg font-black text-center shadow-[0_10px_30px_rgba(155,89,182,0.4)]"
           >
             {siteCopy.mobileCta}
           </Link>

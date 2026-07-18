@@ -201,7 +201,7 @@ const packages = [
   {
     id: "pdf",
     name: "Poveste PDF personalizată",
-    desc: "Copertă, dedicație și patru pagini de poveste pregătite pentru print.",
+    desc: "Copertă, dedicație și aproximativ patru pagini de poveste pregătite pentru print.",
     price: "29 lei",
   }
 ];
@@ -421,7 +421,7 @@ export default function StoryCreator() {
   const [age, setAge] = useState("1");
   const [selectedTheme, setSelectedTheme] = useState("space");
   const [lesson, setLesson] = useState(lessons[0]);
-  const [packageType, setPackageType] = useState("full");
+  const [packageType] = useState("pdf");
   const [isLoading, setIsLoading] = useState(false);
   const [storyTitle, setStoryTitle] = useState("");
   const [storyText, setStoryText] = useState("");
@@ -820,7 +820,7 @@ export default function StoryCreator() {
         <div className="text-center mb-12 md:mb-16 px-4">
           <motion.div initial={{ scale: 0.9 }} whileInView={{ scale: 1 }} className="inline-block">
             <h2 className="font-nunito font-extrabold text-4xl md:text-6xl text-brand-cream drop-shadow-lg leading-tight">
-              Atelierul de Povești 🎨
+              Povestea începe aici
             </h2>
           </motion.div>
           <p className="mt-4 text-brand-cream/90 text-lg md:text-xl font-medium">
@@ -838,7 +838,7 @@ export default function StoryCreator() {
             <div className="space-y-6 md:space-y-8">
               <div>
                 <label className="block text-sm md:text-base font-black text-brand-navy mb-2 md:mb-3 uppercase tracking-wider">
-                  Numele Micuțului 👦
+                  Numele copilului
                 </label>
                 <input
                   type="text"
@@ -847,12 +847,15 @@ export default function StoryCreator() {
                   onChange={(e) => setName(e.target.value)}
                   className="w-full px-6 py-4 md:py-5 rounded-2xl bg-brand-cream/30 border-4 border-transparent focus:border-brand-purple outline-none transition-all text-brand-navy font-bold text-lg md:text-xl shadow-inner"
                 />
+                <p className="mt-3 text-sm font-bold leading-relaxed text-brand-navy/55">
+                  Nu cerem fotografii. Folosim aceste detalii doar pentru materialul pe care îl generezi. <a href="/politica-de-confidentialitate" className="text-brand-purple underline underline-offset-2">Citește politica de confidențialitate</a>.
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm md:text-base font-black text-brand-navy mb-2 md:mb-3 uppercase tracking-wider">
-                    Vârstă 🎂
+                    Vârstă
                   </label>
                   <select
                     value={age}
@@ -864,7 +867,7 @@ export default function StoryCreator() {
                 </div>
                 <div>
                   <label className="block text-sm md:text-base font-black text-brand-navy mb-2 md:mb-3 uppercase tracking-wider">
-                    Lumea 🌟
+                    Lumea
                   </label>
                   <select
                     value={selectedTheme}
@@ -878,23 +881,7 @@ export default function StoryCreator() {
 
               <div>
                 <label className="block text-sm md:text-base font-black text-brand-navy mb-2 md:mb-3 uppercase tracking-wider">
-                  Detalii despre lume
-                </label>
-                <p className="mb-3 text-sm font-bold leading-relaxed text-brand-navy/45">
-                  Scrie 1-2 imagini concrete. Exemplu: o pădure cu licurici albaștri, o rachetă roz sau un castel din nori.
-                </p>
-                <input
-                  type="text"
-                  placeholder="Ex: o rachetă roz, o pădure cu licurici, un castel din nori..."
-                  value={themeDetail}
-                  onChange={(e) => setThemeDetail(e.target.value)}
-                  className="w-full px-6 py-4 rounded-2xl bg-brand-cream/30 border-4 border-transparent focus:border-brand-purple outline-none transition-all text-brand-navy font-bold text-base md:text-lg shadow-inner"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm md:text-base font-black text-brand-navy mb-2 md:mb-3 uppercase tracking-wider">
-                  Ce învățăm astăzi? 💡
+                  Ce învățăm astăzi?
                 </label>
                 <select
                   value={lesson}
@@ -903,22 +890,6 @@ export default function StoryCreator() {
                 >
                   {lessons.map((l) => <option key={l} value={l}>{l}</option>)}
                 </select>
-              </div>
-
-              <div>
-                <label className="block text-sm md:text-base font-black text-brand-navy mb-2 md:mb-3 uppercase tracking-wider">
-                  Cum să apară lecția
-                </label>
-                <p className="mb-3 text-sm font-bold leading-relaxed text-brand-navy/45">
-                  Spune ce vrei să exerseze copilul prin acțiune, nu ca morală. Exemplu: să ceară ajutor sau să spună ce simte.
-                </p>
-                <input
-                  type="text"
-                  placeholder="Ex: să prindă curaj fără să fie împinsă, să împartă când simte că e pregătită..."
-                  value={lessonDetail}
-                  onChange={(e) => setLessonDetail(e.target.value)}
-                  className="w-full px-6 py-4 rounded-2xl bg-brand-cream/30 border-4 border-transparent focus:border-brand-purple outline-none transition-all text-brand-navy font-bold text-base md:text-lg shadow-inner"
-                />
               </div>
 
               <div>
@@ -943,49 +914,36 @@ export default function StoryCreator() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm md:text-base font-black text-brand-navy mb-2 md:mb-3 uppercase tracking-wider">
-                  Detalii despre copil
-                </label>
-                <p className="mb-3 text-sm font-bold leading-relaxed text-brand-navy/45">
-                  Cele mai bune povești ies din detalii mici: jucăria preferată, culoarea favorită, animalul iubit, ceva ce îl/o liniștește.
-                </p>
-                <textarea
-                  placeholder="Opțional: iubește trenurile, are o pisică pe nume Mimi, e curioasă, adoarme greu seara..."
-                  value={storyDetails}
-                  onChange={(e) => setStoryDetails(e.target.value)}
-                  rows={4}
-                  className="w-full px-6 py-4 rounded-2xl bg-brand-cream/30 border-4 border-transparent focus:border-brand-purple outline-none transition-all text-brand-navy font-bold text-base md:text-lg shadow-inner resize-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm md:text-base font-black text-brand-navy mb-2 md:mb-3 uppercase tracking-wider">
-                  Mesaj de dedicație
-                </label>
-                <textarea
-                  placeholder="Ex: Pentru Eva, să ai mereu curajul să explorezi lumea în felul tău."
-                  value={dedication}
-                  onChange={(e) => setDedication(e.target.value)}
-                  rows={3}
-                  maxLength={280}
-                  className="w-full px-6 py-4 rounded-2xl bg-brand-cream/30 border-4 border-transparent focus:border-brand-purple outline-none transition-all text-brand-navy font-bold text-base md:text-lg shadow-inner resize-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm md:text-base font-black text-brand-navy mb-2 md:mb-3 uppercase tracking-wider">
-                  Semnat de
-                </label>
-                <input
-                  type="text"
-                  placeholder="Ex: Mama și Tata, Bunica Ana..."
-                  value={dedicationFrom}
-                  onChange={(e) => setDedicationFrom(e.target.value)}
-                  maxLength={80}
-                  className="w-full px-6 py-4 rounded-2xl bg-brand-cream/30 border-4 border-transparent focus:border-brand-purple outline-none transition-all text-brand-navy font-bold text-base md:text-lg shadow-inner"
-                />
-              </div>
+              <details className="rounded-2xl border-2 border-brand-purple/15 bg-brand-cream/30 p-5">
+                <summary className="cursor-pointer list-none font-black text-brand-navy">
+                  Mai adaugă detalii pentru o poveste și mai personală <span className="text-sm text-brand-navy/55">(opțional)</span>
+                </summary>
+                <div className="mt-6 space-y-6 border-t border-brand-purple/15 pt-6">
+                  <div>
+                    <label className="block text-sm md:text-base font-black text-brand-navy mb-2 md:mb-3 uppercase tracking-wider">Detalii despre lume</label>
+                    <p className="mb-3 text-sm font-bold leading-relaxed text-brand-navy/45">Scrie una sau două imagini concrete: o rachetă roz, licurici albaștri sau un castel din nori.</p>
+                    <input type="text" placeholder="Ex: o rachetă roz, o pădure cu licurici..." value={themeDetail} onChange={(e) => setThemeDetail(e.target.value)} className="w-full px-6 py-4 rounded-2xl bg-white border-2 border-transparent focus:border-brand-purple outline-none transition-all text-brand-navy font-bold text-base md:text-lg shadow-inner" />
+                  </div>
+                  <div>
+                    <label className="block text-sm md:text-base font-black text-brand-navy mb-2 md:mb-3 uppercase tracking-wider">Cum să apară lecția</label>
+                    <p className="mb-3 text-sm font-bold leading-relaxed text-brand-navy/45">Spune ce vrei să exerseze copilul prin acțiune, nu ca morală.</p>
+                    <input type="text" placeholder="Ex: să ceară ajutor sau să spună ce simte..." value={lessonDetail} onChange={(e) => setLessonDetail(e.target.value)} className="w-full px-6 py-4 rounded-2xl bg-white border-2 border-transparent focus:border-brand-purple outline-none transition-all text-brand-navy font-bold text-base md:text-lg shadow-inner" />
+                  </div>
+                  <div>
+                    <label className="block text-sm md:text-base font-black text-brand-navy mb-2 md:mb-3 uppercase tracking-wider">Detalii despre copil</label>
+                    <p className="mb-3 text-sm font-bold leading-relaxed text-brand-navy/45">O jucărie preferată, o culoare, un animal iubit sau ceva ce îl/o liniștește pot face aventura mai apropiată.</p>
+                    <textarea placeholder="Opțional: iubește trenurile, are o pisică pe nume Mimi..." value={storyDetails} onChange={(e) => setStoryDetails(e.target.value)} rows={4} className="w-full px-6 py-4 rounded-2xl bg-white border-2 border-transparent focus:border-brand-purple outline-none transition-all text-brand-navy font-bold text-base md:text-lg shadow-inner resize-none" />
+                  </div>
+                  <div>
+                    <label className="block text-sm md:text-base font-black text-brand-navy mb-2 md:mb-3 uppercase tracking-wider">Mesaj de dedicație</label>
+                    <textarea placeholder="Ex: Pentru Eva, să ai mereu curajul să explorezi lumea în felul tău." value={dedication} onChange={(e) => setDedication(e.target.value)} rows={3} maxLength={280} className="w-full px-6 py-4 rounded-2xl bg-white border-2 border-transparent focus:border-brand-purple outline-none transition-all text-brand-navy font-bold text-base md:text-lg shadow-inner resize-none" />
+                  </div>
+                  <div>
+                    <label className="block text-sm md:text-base font-black text-brand-navy mb-2 md:mb-3 uppercase tracking-wider">Semnat de</label>
+                    <input type="text" placeholder="Ex: Mama și Tata, Bunica Ana..." value={dedicationFrom} onChange={(e) => setDedicationFrom(e.target.value)} maxLength={80} className="w-full px-6 py-4 rounded-2xl bg-white border-2 border-transparent focus:border-brand-purple outline-none transition-all text-brand-navy font-bold text-base md:text-lg shadow-inner" />
+                  </div>
+                </div>
+              </details>
             </div>
 
             <div className="flex flex-col justify-between space-y-8">
@@ -993,27 +951,15 @@ export default function StoryCreator() {
                 <h4 className="font-black text-brand-navy text-lg mb-6 flex items-center gap-2">
                   <ShieldCheck className="text-brand-purple" /> {siteCopy.storyPackageTitle}
                 </h4>
-                <div className="space-y-4">
-                  {packages.map((pkg) => (
-                    <button
-                      key={pkg.id}
-                      onClick={() => setPackageType(pkg.id)}
-                      className={`w-full p-4 md:p-5 rounded-2xl border-4 transition-all text-left ${
-                        packageType === pkg.id
-                          ? "border-brand-purple bg-white shadow-lg scale-[1.02]"
-                          : "border-transparent bg-white/50 opacity-70"
-                      }`}
-                    >
-                      <div className="flex justify-between items-center">
-                        <span className="font-bold text-brand-navy text-sm md:text-base">{pkg.name}</span>
-                        <span className="font-black text-brand-purple">{pkg.price}</span>
-                      </div>
-                      <p className="mt-2 text-sm text-brand-navy/50 font-bold">{pkg.desc}</p>
-                    </button>
-                  ))}
+                <div className="rounded-2xl border-2 border-brand-purple bg-white p-4 md:p-5">
+                  <div className="flex justify-between items-center gap-4">
+                    <span className="font-bold text-brand-navy text-sm md:text-base">{packages[0].name}</span>
+                    <span className="font-black text-brand-purple">{packages[0].price}</span>
+                  </div>
+                  <p className="mt-2 text-sm text-brand-navy/50 font-bold">{packages[0].desc}</p>
                 </div>
                 <p className="mt-4 rounded-2xl bg-brand-gold/15 px-4 py-3 text-sm font-bold leading-relaxed text-brand-navy/70">
-                  În beta publică poți genera direct și gratuit. Prețul de lansare este afișat pentru produsul ales, înainte de activarea plăților online.
+                  {siteCopy.launchAccess}
                 </p>
               </div>
 

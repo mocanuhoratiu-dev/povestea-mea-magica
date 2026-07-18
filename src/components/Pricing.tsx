@@ -7,7 +7,6 @@ const products = [
   {
     name: "Poveste PDF",
     price: "29 lei",
-    oldPrice: "34,90 lei",
     description: "Poveste personalizată cu nume, vârstă, lume, lecție și detalii despre copil.",
     href: "#creator",
     cta: "Creează povestea",
@@ -18,7 +17,6 @@ const products = [
   {
     name: "Scut Magic",
     price: "19 lei",
-    oldPrice: "24,90 lei",
     description: "Kit printabil pentru frici de noapte, cu certificat, ritual și etichete de spray magic.",
     href: "#monster-away",
     cta: "Creează scutul",
@@ -29,7 +27,6 @@ const products = [
   {
     name: "Trusa Urgență",
     price: "19 lei",
-    oldPrice: "24,90 lei",
     description: "Activități rapide pentru restaurant, drum, doctor, casă, aeroport sau stat la coadă.",
     href: "#emergency-kit",
     cta: "Creează trusa",
@@ -51,7 +48,7 @@ export default function Pricing() {
             Alege materialul potrivit pentru copilul tău
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg font-medium leading-relaxed text-brand-navy/65">
-            În beta publică, poți genera și descărca gratuit materialele. Prețurile de mai jos sunt cele planificate pentru lansarea comercială, când plata online va fi activată.
+            Accesul de lansare este gratuit. Prețurile de mai jos se vor aplica odată cu activarea plăților online.
           </p>
         </div>
 
@@ -77,7 +74,7 @@ export default function Pricing() {
 
               <div className="mt-6 flex items-end gap-3">
                 <span className="font-nunito text-5xl font-black text-brand-purple">{product.price}</span>
-                <span className="pb-2 text-sm font-black text-brand-navy/35 line-through">{product.oldPrice}</span>
+                <span className="pb-2 text-sm font-black text-brand-navy/45">la lansarea comercială</span>
               </div>
 
               <ul className="mt-7 space-y-3">
@@ -106,7 +103,7 @@ export default function Pricing() {
             Pachet recomandat: toate cele 3 materiale la <span className="text-brand-purple">49 lei</span>
           </p>
           <p className="mt-2 text-sm font-bold text-brand-navy/55">
-            În beta publică poți testa gratuit fiecare material înainte de activarea plăților online.
+            Accesul de lansare este gratuit până la activarea plăților online.
           </p>
         </div>
       </div>

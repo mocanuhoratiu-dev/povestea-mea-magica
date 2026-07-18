@@ -647,7 +647,7 @@ export default function MonsterKit() {
             Generează un kit printabil cu certificat, rețeta spray-ului magic și etichete pentru flacon.
           </p>
           <p className="mt-3 text-sm font-bold text-brand-gold">
-            Preț de lansare: 19 lei. Generează direct, fără plată online în această etapă.
+            Acces de lansare gratuit. Preț la lansarea comercială: 19 lei.
           </p>
         </div>
 

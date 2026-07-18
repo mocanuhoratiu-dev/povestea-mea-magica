@@ -27,9 +27,9 @@ export default function Navbar() {
         {/* Central Clean Menu */}
         <div className="hidden lg:flex items-center gap-10">
           {[
-            { label: "📖 Povești", href: "/#creator" },
-            { label: "🛡️ Monster Kit", href: "/#monster-away" },
-            { label: "🚨 Urgențe", href: "/#emergency-kit" },
+            { label: "Povești", href: "/#creator" },
+            { label: "Scut de noapte", href: "/#monster-away" },
+            { label: "Trusa de urgență", href: "/#emergency-kit" },
             { label: "Modele", href: "/modele" },
           ].map((item) => (
             <Link 
@@ -45,7 +45,7 @@ export default function Navbar() {
 
         {/* Call to Action */}
         <Link
-          href="/#creator"
+          href="/#alege-materialul"
           className="bg-brand-navy text-white px-5 md:px-8 py-2.5 md:py-3 rounded-full font-black text-sm md:text-base hover:bg-brand-purple transition-all shadow-lg active:scale-95"
         >
           {siteCopy.navCta}
