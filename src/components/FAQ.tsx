@@ -6,28 +6,36 @@ import { ChevronDown } from "lucide-react";
 
 const faqs = [
   {
-    question: "Este gratuit în această etapă?",
-    answer: "Da. Site-ul este în beta publică: poți genera, verifica și descărca materialele gratuit. Prețurile afișate sunt cele planificate pentru lansarea comercială, când plata online va fi activată.",
+    question: "Cum creez un material personalizat?",
+    answer: "Alegi produsul, completezi câteva detalii despre copil și apeși pe Generare. Verifici rezultatul, îl poți ajusta din alegerile tale, apoi descarci PDF-ul pregătit pentru citit sau print.",
   },
   {
-    question: "Cât durează până primesc povestea?",
-    answer: "Povestea se generează direct în browser în aproximativ câteva secunde, în funcție de disponibilitatea serviciilor AI.",
+    question: "Ce primesc pentru fiecare produs?",
+    answer: "Povestea include copertă ilustrată, dedicație și pagini de poveste. Scutul Magic are certificat, ritual și etichete, iar Trusa Magică de Urgență include activități de printat pentru momentele de așteptare.",
   },
   {
-    question: "În ce format primesc fișierele?",
-    answer: "Poți descărca un PDF generat local în browser. Fragmentul audio este disponibil separat pentru verificarea vocii.",
+    question: "Cât durează generarea?",
+    answer: "De obicei, materialul este gata în mai puțin de un minut. O poveste completă și coperta ei pot avea nevoie de puțin mai mult timp, pentru ca rezultatul să fie creat special din alegerile tale.",
   },
   {
-    question: "Pot schimba datele după generare?",
-    answer: "Da. Modifici numele, vârsta, tema sau contextul și generezi din nou înainte să descarci PDF-ul final.",
+    question: "Povestea chiar ține cont de alegerile mele?",
+    answer: "Da. Numele, vârsta, lumea aleasă, lecția, tonul și detaliile adăugate de tine ghidează aventura, personajul principal și coperta. Fiecare generație pornește de la aceste alegeri.",
   },
   {
-    question: "Pot folosi textele pentru copii mici?",
-    answer: "Da, prompturile sunt gândite pentru un ton blând, potrivit pentru copii. Totuși, recomandăm ca un adult să citească rezultatul înainte de folosire.",
+    question: "Pot schimba ceva înainte să descarc PDF-ul?",
+    answer: "Da. Poți modifica opțiunile din formular și genera o variantă nouă. Pentru poveste, poți cere și o copertă nouă fără să schimbi textul.",
   },
   {
-    question: "Ce se întâmplă dacă AI-ul este indisponibil?",
-    answer: "Avem un fallback stabil pentru poveste, astfel încât experiența să nu se blocheze. Pentru producție comercială, recomandăm folosirea unei chei AI cu quota stabilă.",
+    question: "Pot printa materialele?",
+    answer: "Da. PDF-urile sunt gândite pentru format A4 și se pot citi pe telefon, tabletă sau calculator, dar arată cel mai bine atunci când sunt printate acasă ori la un centru de print.",
+  },
+  {
+    question: "Care sunt prețurile?",
+    answer: "Povestea PDF are prețul de lansare de 29 lei, iar Scutul Magic și Trusa Magică de Urgență costă câte 19 lei. Pachetul cu toate cele trei materiale este 49 lei. În perioada actuală de lansare poți continua direct către generare.",
+  },
+  {
+    question: "Ce fac dacă generarea nu se finalizează?",
+    answer: "Mai încearcă o dată după câteva momente. Dacă problema persistă, păstrează alegerile din formular și scrie-ne la contact@povesteamagica.ro cu o scurtă descriere a situației.",
   },
   {
     question: "Sunt kiturile anti-frică un sfat medical?",

@@ -245,21 +245,31 @@ type StoryApiData = {
   title?: string;
   text?: string;
   imagePrompt?: string;
+  coverImage?: string;
+  coverModel?: string;
+  coverWarning?: string;
   fallback?: boolean;
   note?: string;
   model?: string;
 };
 
-function buildStoryImageUrl(prompt: string, seedParts: string[]) {
+function buildPollinationsFallbackUrl(theme: string, lesson: string) {
+  const themeLabel = themes.find((item) => item.id === theme)?.label || "lume magică";
+  const cleanLesson = lesson
+    .replace(/[\uFE0E\uFE0F]/g, "")
+    .replace(/\p{Extended_Pictographic}/gu, "")
+    .replace(/\s+/g, " ")
+    .trim();
   const finalPrompt = [
-    prompt,
-    "single square cover illustration",
+    "single square children's book cover illustration",
+    `an unnamed child protagonist in a gentle ${themeLabel} adventure`,
+    cleanLesson ? `a visual theme of ${cleanLesson}` : "a warm bedtime lesson",
     "premium watercolor and gouache children's book art",
     "soft bedtime lighting",
     "expressive child protagonist",
     "no text, no letters, no watermark",
   ].join(", ");
-  const seed = encodeURIComponent(seedParts.join("-").replace(/\s+/g, "-").slice(0, 80));
+  const seed = encodeURIComponent(`${theme}-${cleanLesson}`.replace(/\s+/g, "-").slice(0, 80));
 
   return `https://image.pollinations.ai/prompt/${encodeURIComponent(finalPrompt)}?nologo=true&width=1024&height=1024&seed=${seed}-cover-${Date.now()}`;
 }
@@ -435,8 +445,8 @@ export default function StoryCreator() {
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
-  const refreshImage = (coverPrompt: string, title: string) => {
-    setImageUrl(buildStoryImageUrl(coverPrompt, [name, selectedTheme, title]));
+  const setPollinationsFallbackImage = () => {
+    setImageUrl(buildPollinationsFallbackUrl(selectedTheme, lesson));
   };
 
   const buildStoryRequest = () => ({
@@ -474,12 +484,12 @@ export default function StoryCreator() {
         setStoryTitle(title);
         setStoryText(text);
         setImagePrompt(coverPrompt);
-        setGenerationNote(
-          data.fallback
-            ? data.note || "Am folosit varianta stabilă. Poți edita povestea înainte de PDF."
-            : data.model ? `Generată cu AI (${data.model}).` : ""
-        );
-        refreshImage(coverPrompt, title);
+        const notes = [
+          data.fallback ? data.note || "Am pregătit o poveste completă pe baza alegerilor tale." : "",
+          data.coverWarning ? "Am pregătit o copertă temporară. O poți regenera oricând." : "",
+        ].filter(Boolean);
+        setGenerationNote(notes.join(" "));
+        setImageUrl(data.coverImage || buildPollinationsFallbackUrl(selectedTheme, lesson));
         setShowResult(true);
       } else {
         throw new Error(result.error || "Eroare API");
@@ -492,10 +502,32 @@ export default function StoryCreator() {
     }
   };
 
-  const handleRegenerateImages = () => {
+  const handleRegenerateImages = async () => {
     if (!storyText || !storyTitle) return;
-    const fallbackPrompt = imagePrompt || `${storyTitle}. ${storyText.slice(0, 700)}`;
-    refreshImage(fallbackPrompt, storyTitle);
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/generate-cover", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imagePrompt: imagePrompt || `${storyTitle}. ${storyText.slice(0, 700)}` }),
+      });
+      const result = await response.json();
+      const coverImage = result.data?.imageDataUrl;
+
+      if (!response.ok || !result.success || !coverImage) {
+        setPollinationsFallbackImage();
+        setGenerationNote("Am pregătit o copertă temporară. Poți încerca din nou peste câteva momente.");
+        return;
+      }
+
+      setImageUrl(coverImage);
+      setGenerationNote("");
+    } catch {
+      setPollinationsFallbackImage();
+      setGenerationNote("Am pregătit o copertă temporară. Poți încerca din nou peste câteva momente.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
     const [isSpeaking, setIsSpeaking] = useState(false);
@@ -712,7 +744,7 @@ export default function StoryCreator() {
                   </button>
                   <button
                     onClick={handleRegenerateImages}
-                    disabled={!storyText}
+                    disabled={!storyText || isLoading}
                     className="flex items-center justify-center gap-2 bg-white text-brand-purple border-2 border-brand-purple/20 py-3 rounded-xl font-black text-sm shadow-sm hover:bg-brand-cream transition-all disabled:opacity-50"
                   >
                     <ImageIcon className="w-4 h-4" /> Regenerează coperta

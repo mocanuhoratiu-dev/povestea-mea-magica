@@ -22,6 +22,7 @@ VERTEX_AI_PROJECT_ID=project-e0c2efff-d456-48f9-9fe
 VERTEX_AI_LOCATION=global
 VERTEX_AI_MODEL=gemini-2.5-flash
 VERTEX_AI_FALLBACK_MODELS=gemini-2.5-flash-lite
+VERTEX_AI_IMAGE_MODEL=gemini-2.5-flash-image
 ```
 
 The public interface currently runs as a free public beta: materials generate directly without an active payment step, while launch prices remain visible for the future commercial phase.
@@ -47,7 +48,7 @@ gcloud run deploy povestea-mea-magica \
   --source . \
   --region europe-west3 \
   --service-account povestea-mea-magica-ai@project-e0c2efff-d456-48f9-9fe.iam.gserviceaccount.com \
-  --set-env-vars AI_PROVIDER=vertex,VERTEX_AI_PROJECT_ID=project-e0c2efff-d456-48f9-9fe,VERTEX_AI_LOCATION=global,VERTEX_AI_MODEL=gemini-2.5-flash
+  --set-env-vars AI_PROVIDER=vertex,VERTEX_AI_PROJECT_ID=project-e0c2efff-d456-48f9-9fe,VERTEX_AI_LOCATION=global,VERTEX_AI_MODEL=gemini-2.5-flash,VERTEX_AI_IMAGE_MODEL=gemini-2.5-flash-image
 ```
 
 The health endpoint reports `ready: true` only when the active provider has both the required project/key configuration. It never exposes secret values.
@@ -102,7 +103,8 @@ If `ready` is `false`, production is missing a required Vertex AI configuration 
 ## AI Provider Notes
 
 - Vertex AI consumes Google Cloud billing and supports budgets and alerts in Cloud Billing.
-- Keep `VERTEX_AI_MODEL` configurable so the model can be changed without a code deploy.
+- Story text uses `VERTEX_AI_MODEL`; covers use `VERTEX_AI_IMAGE_MODEL`. Keep both configurable so a model can be changed without a code deploy.
+- The cover is returned only as a temporary browser data URL and is not stored in Cloud Storage. If Vertex is temporarily unavailable, the browser uses Pollinations only for a generic cover prompt without the child's name, age, or free-form details.
 - `AI_PROVIDER=gemini` remains available for local fallback with `GEMINI_API_KEY`, but it uses AI Studio billing rather than Vertex AI.
 - The app currently tries model fallbacks and then uses a local stable story fallback if all AI calls fail.
 

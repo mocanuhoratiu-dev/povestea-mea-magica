@@ -36,7 +36,7 @@ export default function PrivacyPage() {
             <section>
               <h2 className="text-2xl font-black text-brand-navy mb-4">Cum Folosim Datele?</h2>
               <p>
-                Datele introduse sunt trimise către serviciile AI configurate pentru a genera conținutul solicitat. Fișierele sunt create și descărcate din browser; în versiunea curentă nu există cont de client sau bibliotecă de comenzi. Statisticile agregate ne ajută să vedem ce produse sunt folosite și dacă o generare sau descărcare are probleme, fără a construi profiluri despre copil sau familie.
+                Datele introduse sunt trimise către serviciile AI configurate pentru a genera conținutul solicitat. Pentru coperta poveștii folosim Vertex AI; coperta este trimisă browserului doar pentru previzualizare și PDF, fără a fi păstrată într-o bibliotecă de imagini. Dacă serviciul principal este temporar indisponibil, putem folosi o ilustrație de rezervă bazată numai pe un prompt generic, fără numele copilului, vârsta sau detaliile introduse de tine. Fișierele sunt create și descărcate din browser; în versiunea curentă nu există cont de client sau bibliotecă de comenzi. Statisticile agregate ne ajută să vedem ce produse sunt folosite și dacă o generare sau descărcare are probleme, fără a construi profiluri despre copil sau familie.
               </p>
             </section>
 

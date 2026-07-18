@@ -3,6 +3,7 @@ import { GoogleGenAI } from "@google/genai";
 import https from "node:https";
 import { checkRateLimit, requestExceedsBodyLimit } from "@/lib/requestProtection";
 import { logTelemetry, type TelemetryProduct } from "@/lib/telemetry";
+import { generateVertexStoryCover } from "@/lib/vertexImage";
 
 type GenerateRequest = {
   type?: "monster" | "story" | "emergency";
@@ -327,6 +328,24 @@ function buildStableStoryPayload(data: GenerateRequest, themeLabel: string) {
     imagePrompt: `English prompt: square children's book cover of ${name}, age ${age}, holding a tiny warm light on a path through ${themeLabel}, include ${childDetails || worldDetail}, gentle bedtime adventure about ${lesson}, premium watercolor and gouache, soft bedtime light, no text`,
     fallback: true,
     note: `Am folosit varianta stabilă pentru că serviciul AI este temporar aglomerat. Textul poate fi editat înainte de PDF.`,
+  };
+}
+
+async function attachVertexCover<T extends { imagePrompt: string }>(story: T) {
+  const cover = await generateVertexStoryCover(story.imagePrompt);
+  if ("error" in cover) {
+    // The browser uses a generic, non-personal Pollinations image only if Vertex is unavailable.
+    console.warn("Vertex cover generation failed");
+    return {
+      ...story,
+      coverWarning: "Coperta AI nu este disponibilă momentan.",
+    };
+  }
+
+  return {
+    ...story,
+    coverImage: cover.imageDataUrl,
+    coverModel: cover.model,
   };
 }
 
@@ -754,6 +773,7 @@ export async function POST(req: Request) {
       if (data.type === "story") {
         const themeLabel = data.theme === 'space' ? 'Spațiu' : data.theme === 'forest' ? 'Pădure Fermecată' : 'Castel Magic';
         const fallback = buildStableStoryPayload(data, themeLabel);
+        const storyWithCover = await attachVertexCover(fallback);
         logTelemetry("pmm_generation_completed", {
           product,
           result: "success",
@@ -762,7 +782,7 @@ export async function POST(req: Request) {
           wordCount: getWordCount(fallback.text),
           aiProvider: getAiProvider(),
         });
-        return NextResponse.json({ success: true, data: fallback });
+        return NextResponse.json({ success: true, data: storyWithCover });
       }
 
       logTelemetry("pmm_generation_failed", {
@@ -841,6 +861,7 @@ export async function POST(req: Request) {
       });
       if ("error" in generated) {
         const fallback = buildStableStoryPayload(data, themeLabel);
+        const storyWithCover = await attachVertexCover(fallback);
         logTelemetry("pmm_generation_completed", {
           product,
           result: "success",
@@ -851,7 +872,7 @@ export async function POST(req: Request) {
         });
         return NextResponse.json({
           success: true,
-          data: fallback,
+          data: storyWithCover,
           warning: generated.error,
         });
       }
@@ -860,6 +881,7 @@ export async function POST(req: Request) {
         result = sanitizeStoryPayload(parseStoryJson(generated.text), data.name || "Eroul", themeLabel);
       } catch {
         const fallback = buildStableStoryPayload(data, themeLabel);
+        const storyWithCover = await attachVertexCover(fallback);
         logTelemetry("pmm_generation_completed", {
           product,
           result: "success",
@@ -870,7 +892,7 @@ export async function POST(req: Request) {
         });
         return NextResponse.json({
           success: true,
-          data: fallback,
+          data: storyWithCover,
           warning: "Răspunsul AI nu a putut fi citit ca JSON.",
         });
       }
@@ -916,9 +938,10 @@ export async function POST(req: Request) {
         aiProvider: getAiProvider(),
         model: generated.model,
       });
+      const storyWithCover = await attachVertexCover(result);
       return NextResponse.json({
         success: true,
-        data: { ...result, model: generated.model },
+        data: { ...storyWithCover, model: generated.model },
         ...(wordCount < minWords ? { warning: "Povestea este mai scurtă decât ținta din cauza unui răspuns AI incomplet." } : {}),
       });
     }

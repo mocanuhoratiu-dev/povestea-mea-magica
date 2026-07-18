@@ -10,6 +10,7 @@ export function GET() {
   const checks = {
     geminiApiKey: configured(process.env.GEMINI_API_KEY),
     vertexAiProject: configured(process.env.VERTEX_AI_PROJECT_ID),
+    vertexAiImageModel: configured(process.env.VERTEX_AI_IMAGE_MODEL),
     vertexAiCredentials:
       configured(process.env.VERTEX_AI_SERVICE_ACCOUNT_JSON_BASE64) ||
       configured(process.env.GOOGLE_APPLICATION_CREDENTIALS) ||
@@ -32,6 +33,8 @@ export function GET() {
       checks,
       features: {
         storyAi: storyAiReady,
+        storyCoverAi: aiProvider === "vertex" && storyAiReady,
+        storyCoverFallback: true,
         storyFallback: true,
         voicePreview: checks.elevenlabsApiKey,
         stripeCheckout: false,
