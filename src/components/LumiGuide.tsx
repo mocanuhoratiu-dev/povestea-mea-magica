@@ -138,7 +138,7 @@ export default function LumiGuide() {
             <div className="relative min-h-[120px] pr-24">
               <LumiVisual className="absolute -right-7 -top-9 h-40 w-32" />
               <p className="text-[11px] font-black uppercase tracking-[0.15em] text-brand-purple">Lanterna Magică</p>
-              <h2 className="mt-2 max-w-[205px] font-serif text-2xl leading-tight text-brand-navy">Lumi, păzitoarea Lanternii</h2>
+              <h2 className="mt-2 max-w-[205px] font-serif text-2xl leading-tight text-brand-navy">Lumi, păzitoarea Lanternei</h2>
               <p className="mt-2 max-w-[210px] text-sm font-semibold leading-relaxed text-brand-navy/70">Ce moment v-ar prinde bine acum?</p>
             </div>
 
