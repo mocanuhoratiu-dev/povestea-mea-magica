@@ -84,16 +84,16 @@ const STORY_PDF_STYLES = `
 
 /* Text Page */
 .story-text-body {
-  font-size: 17.5px; line-height: 1.38; color: #2d3436;
+  font-size: 18.5px; line-height: 1.38; color: #2d3436;
   text-align: left;
   flex: 0 0 auto;
   margin: auto 0;
 }
 .story-text-body--roomy {
-  font-size: 19px; line-height: 1.5;
+  font-size: 20px; line-height: 1.5;
 }
 .story-text-body--compact {
-  font-size: 16.6px; line-height: 1.34;
+  font-size: 17.6px; line-height: 1.34;
 }
 .story-paragraph {
   margin: 0 0 9px;
@@ -333,7 +333,7 @@ function rebalanceShortFinalPage(pages: string[][], targetChars: number, maxChar
 
 function paginateStory(text: string, minimumPageCount = 4): string[] {
   const maxUnitChars = 620;
-  const maxPageChars = 2700;
+  const maxPageChars = 2550;
   let units = text
     .replace(/\r\n/g, "\n")
     .split(/\n{2,}/)
