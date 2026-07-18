@@ -86,6 +86,8 @@ const STORY_PDF_STYLES = `
 .story-text-body {
   font-size: 17.5px; line-height: 1.38; color: #2d3436;
   text-align: left;
+  flex: 0 0 auto;
+  margin: auto 0;
 }
 .story-text-body--roomy {
   font-size: 19px; line-height: 1.5;
