@@ -7,7 +7,7 @@ Produs digital Next.js în limba română: povești personalizate pentru copii, 
 - Modul curent: acces de lansare. Materialele se generează direct, iar prețurile sunt informative până când checkout-ul este activ.
 - Plăți Stripe: intenționat amânate pentru o etapă ulterioară.
 - Livrare email/comenzi: neactivată încă.
-- Generare AI: Vertex AI (Gemini) pentru text, ElevenLabs pentru previzualizare audio.
+- Generare AI: Vertex AI (Gemini) pentru text și Google Cloud Text-to-Speech pentru previzualizarea audio în română.
 - Observabilitate: evenimente agregate fără conținut personalizat pentru vizite, generări, fallback-uri, erori și descărcări PDF. Vezi [`docs/analytics.md`](docs/analytics.md).
 
 ## Getting Started
@@ -31,7 +31,7 @@ Completează:
 - `AI_PROVIDER=vertex` pentru Vertex AI, care consumă facturarea/creditele Google Cloud.
 - `VERTEX_AI_PROJECT_ID` și `VERTEX_AI_LOCATION` pentru Vertex AI. În Cloud Run, aplicația folosește automat identitatea service account-ului; pentru dezvoltare locală, vezi `docs/production.md`.
 - `GEMINI_API_KEY` rămâne disponibil doar ca fallback pentru Gemini Developer API / AI Studio.
-- `ELEVENLABS_API_KEY` for the optional voice preview API.
+- Cloud Run folosește identitatea sa Google Cloud și pentru previzualizarea audio: Zephyr pentru poveste, Aoede pentru Lumi. Nu este necesară o cheie audio separată.
 
 Deschide [http://localhost:3010](http://localhost:3010).
 

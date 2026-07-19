@@ -23,6 +23,8 @@ VERTEX_AI_LOCATION=global
 VERTEX_AI_MODEL=gemini-2.5-flash
 VERTEX_AI_FALLBACK_MODELS=gemini-2.5-flash-lite
 VERTEX_AI_IMAGE_MODEL=gemini-2.5-flash-image
+GOOGLE_TTS_STORY_VOICE=ro-RO-Chirp3-HD-Zephyr
+GOOGLE_TTS_LUMI_VOICE=ro-RO-Chirp3-HD-Aoede
 ```
 
 The public interface currently runs with launch access: materials generate directly without an active payment step, while commercial prices remain visible for the future paid phase.
@@ -48,7 +50,7 @@ gcloud run deploy povestea-mea-magica \
   --source . \
   --region europe-west3 \
   --service-account povestea-mea-magica-ai@project-e0c2efff-d456-48f9-9fe.iam.gserviceaccount.com \
-  --set-env-vars AI_PROVIDER=vertex,VERTEX_AI_PROJECT_ID=project-e0c2efff-d456-48f9-9fe,VERTEX_AI_LOCATION=global,VERTEX_AI_MODEL=gemini-2.5-flash,VERTEX_AI_IMAGE_MODEL=gemini-2.5-flash-image
+  --set-env-vars AI_PROVIDER=vertex,VERTEX_AI_PROJECT_ID=project-e0c2efff-d456-48f9-9fe,VERTEX_AI_LOCATION=global,VERTEX_AI_MODEL=gemini-2.5-flash,VERTEX_AI_IMAGE_MODEL=gemini-2.5-flash-image,GOOGLE_TTS_STORY_VOICE=ro-RO-Chirp3-HD-Zephyr,GOOGLE_TTS_LUMI_VOICE=ro-RO-Chirp3-HD-Aoede
 ```
 
 The health endpoint reports `ready: true` only when the active provider has both the required project/key configuration. It never exposes secret values.
@@ -56,14 +58,15 @@ The health endpoint reports `ready: true` only when the active provider has both
 ## Optional Environment Variables
 
 ```bash
-ELEVENLABS_API_KEY=
+GOOGLE_TTS_STORY_VOICE=ro-RO-Chirp3-HD-Zephyr
+GOOGLE_TTS_LUMI_VOICE=ro-RO-Chirp3-HD-Aoede
 GENERATE_RATE_LIMIT_WINDOW_MS=3600000
 GENERATE_RATE_LIMIT_MAX=5
 TELEMETRY_RATE_LIMIT_WINDOW_MS=86400000
 TELEMETRY_RATE_LIMIT_MAX=120
 ```
 
-This enables the voice preview API. Without it, story text and PDFs still work.
+Cloud Text-to-Speech folosește service account-ul Cloud Run. Vocile de mai sus sunt valorile implicite și pot fi schimbate fără modificarea codului.
 
 The rate limit is a best-effort, per-instance Cloud Run safeguard for public beta. Before paid traffic or a multi-instance rollout, add a shared edge rate limit and configure Cloud Billing budget alerts.
 

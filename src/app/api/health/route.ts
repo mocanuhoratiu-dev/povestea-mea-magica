@@ -15,7 +15,10 @@ export function GET() {
       configured(process.env.VERTEX_AI_SERVICE_ACCOUNT_JSON_BASE64) ||
       configured(process.env.GOOGLE_APPLICATION_CREDENTIALS) ||
       configured(process.env.K_SERVICE),
-    elevenlabsApiKey: configured(process.env.ELEVENLABS_API_KEY),
+    googleTextToSpeech: configured(process.env.VERTEX_AI_PROJECT_ID) &&
+      (configured(process.env.VERTEX_AI_SERVICE_ACCOUNT_JSON_BASE64) ||
+        configured(process.env.GOOGLE_APPLICATION_CREDENTIALS) ||
+        configured(process.env.K_SERVICE)),
   };
 
   // Cloud Run exposes application default credentials through its runtime identity.
@@ -36,7 +39,7 @@ export function GET() {
         storyCoverAi: aiProvider === "vertex" && storyAiReady,
         storyCoverFallback: true,
         storyFallback: true,
-        voicePreview: checks.elevenlabsApiKey,
+        voicePreview: checks.googleTextToSpeech,
         stripeCheckout: commerce.acceptsPayments,
       },
       timestamp: new Date().toISOString(),

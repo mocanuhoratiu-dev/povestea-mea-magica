@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Castle, Cloud, FileText, Footprints, Image as ImageIcon, RefreshCw, Rocket, ShieldCheck, Sparkles, Star, Trees, Waves } from "lucide-react";
 import LanternSignature from "@/components/LanternSignature";
@@ -587,19 +587,33 @@ export default function StoryCreator() {
   };
 
     const [isSpeaking, setIsSpeaking] = useState(false);
+    const [isNarrationLoading, setIsNarrationLoading] = useState(false);
+    const narrationAudio = useRef<HTMLAudioElement | null>(null);
 
-    const toggleSpeech = () => {
+    const toggleSpeech = async () => {
       if (isSpeaking) {
-        window.speechSynthesis.cancel();
+        narrationAudio.current?.pause();
+        narrationAudio.current = null;
         setIsSpeaking(false);
         return;
       }
 
-      const utterance = new SpeechSynthesisUtterance(storyText);
-      utterance.lang = "ro-RO";
-      utterance.onend = () => setIsSpeaking(false);
-      window.speechSynthesis.speak(utterance);
-      setIsSpeaking(true);
+      setIsNarrationLoading(true);
+      try {
+        const response = await fetch("/api/narrate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: storyText, kind: "story" }) });
+        if (!response.ok) throw new Error("Nararea nu a putut fi pregătită.");
+        const url = URL.createObjectURL(await response.blob());
+        const audio = new Audio(url);
+        narrationAudio.current = audio;
+        audio.onended = () => { URL.revokeObjectURL(url); narrationAudio.current = null; setIsSpeaking(false); };
+        audio.onerror = () => { URL.revokeObjectURL(url); narrationAudio.current = null; setIsSpeaking(false); setGenerationNote("Nararea audio nu a putut fi redată. Încearcă din nou în câteva clipe."); };
+        await audio.play();
+        setIsSpeaking(true);
+      } catch {
+        setGenerationNote("Nararea audio nu este disponibilă chiar acum. Încearcă din nou în câteva clipe.");
+      } finally {
+        setIsNarrationLoading(false);
+      }
     };
 
     const downloadPDF = async () => {
@@ -736,7 +750,8 @@ export default function StoryCreator() {
               <button 
                 onClick={() => {
                     setShowResult(false);
-                    window.speechSynthesis.cancel();
+                    narrationAudio.current?.pause();
+                    narrationAudio.current = null;
                     setIsSpeaking(false);
                 }}
                 className="absolute top-4 right-4 text-brand-navy/40 hover:text-brand-purple font-black text-xl z-20 bg-white/80 w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-sm shadow-lg transition-all"
@@ -822,6 +837,7 @@ export default function StoryCreator() {
               <div className="p-6 md:p-8 bg-white/50 border-t border-brand-navy/5 backdrop-blur-sm grid grid-cols-2 gap-4">
                 <button 
                   onClick={toggleSpeech}
+                  disabled={!storyText || isNarrationLoading}
                   className={`flex items-center justify-center gap-2 py-4 rounded-xl font-black text-sm md:text-base shadow-lg transition-all overflow-hidden relative ${
                     isSpeaking ? "bg-brand-navy text-white" : "bg-brand-purple text-white"
                   }`}
@@ -835,7 +851,7 @@ export default function StoryCreator() {
                       </div>
                       Oprește Vocea
                     </span>
-                  ) : "Ascultă Povestea 🎧"}
+                  ) : isNarrationLoading ? "Pregătim vocea..." : "Ascultă Povestea 🎧"}
                   
                   {/* Subtle background glow when playing */}
                   {isSpeaking && (
