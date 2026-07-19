@@ -63,7 +63,7 @@ export default function AboutPage() {
       <section className="px-6 py-20">
         <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-7 border-y border-brand-navy/15 py-12 md:flex-row md:items-center">
           <div><p className="text-xs font-black uppercase tracking-[0.16em] text-brand-purple">Vrem să învățăm din folosire reală</p><h2 className="mt-4 font-serif text-4xl leading-tight text-brand-navy">Ai o idee după ce ați folosit un material?</h2></div>
-          <a href="mailto:contact@povesteamagica.ro?subject=Feedback%20Povestea%20Mea%20Magic%C4%83" className="inline-flex items-center gap-2 bg-brand-navy px-6 py-4 text-sm font-black text-brand-cream transition-colors hover:bg-brand-purple">Spune-ne cum a fost <ArrowRight size={17} /></a>
+          <a href="mailto:horatiu@zenithcustomersuccess.com?subject=Recenzie%20beta%20-%20Povestea%20Mea%20Magic%C4%83&body=Am%20folosit%20Povestea%20Mea%20Magic%C4%83%20%C3%AEn%20beta%20%C8%99i%20vreau%20s%C4%83%20las%20o%20recenzie.%0A%0ACe%20ne-a%20pl%C4%83cut%3A%0A%0ACe%20am%20%C3%AEmbun%C4%83t%C4%83%C8%9Bi%3A%0A%0ASunte%C8%9Bi%20de%20acord%20s%C4%83%20public%C4%83m%20un%20scurt%20fragment%20anonim%3F%20Da%20%2F%20Nu%3A" className="inline-flex items-center gap-2 bg-brand-navy px-6 py-4 text-sm font-black text-brand-cream transition-colors hover:bg-brand-purple">Lasă o recenzie de beta <ArrowRight size={17} /></a>
         </div>
       </section>
     </main>
