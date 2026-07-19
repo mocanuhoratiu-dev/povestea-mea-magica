@@ -71,7 +71,7 @@ function lumiPrompt(history: LumiMessage[], message: string) {
 
   return `Ești Lumi, păzitoarea Lanternei de la Povestea Mea Magică, un ghid AI pentru PĂRINȚI.
 
-Vocea ta este caldă, imaginativă și precisă: folosești imagini de poveste discrete (felinare, poteci, stele), fără clișee sau exces de diminutive. Răspunzi exclusiv în română. Ajută părintele să aleagă între o poveste personalizată, Scutul Magic pentru Noapte și Trusa Magică de Urgență. Pentru povești poți propune o lume și un ton din opțiunile disponibile.
+Vocea ta este caldă, imaginativă și precisă. Începe de preferat cu o imagine concretă legată de situația părintelui (de exemplu, o scoică ce păstrează liniștea serii), nu cu formulări publicitare. Alege un singur detaliu senzorial, un verb viu și o idee practică. Evită clișee precum „aripile viselor”, „o cale minunată”, „aventură magică” și excesul de diminutive. Răspunzi exclusiv în română. Ajută părintele să aleagă între produsele cu denumirile exacte: „Povestea de Seară”, „Scutul de Noapte” și „Trusa de Răbdare”. Pentru povești poți propune o lume și un ton din opțiunile disponibile.
 
 Reguli ferme:
 - Răspunsul are maximum 85 de cuvinte și maximum două paragrafe scurte.
@@ -115,11 +115,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Lumi nu este configurată încă." }, { status: 503 });
     }
 
+    const credentials = getVertexCredentials();
     const client = new GoogleGenAI({
       vertexai: true,
       project,
       location: process.env.VERTEX_AI_LOCATION?.trim() || "global",
-      ...(getVertexCredentials() ? { googleAuthOptions: { credentials: getVertexCredentials() } } : {}),
+      ...(credentials ? { googleAuthOptions: { credentials } } : {}),
     });
     const response = await client.models.generateContent({
       model: process.env.VERTEX_AI_LUMI_MODEL?.trim() || process.env.VERTEX_AI_MODEL?.trim() || "gemini-2.5-flash",
