@@ -198,7 +198,11 @@ export default function LumiGuide() {
               <button type="button" onClick={resetGuide} className="absolute right-3 top-3 z-10 grid h-8 w-8 place-items-center text-brand-navy/55 transition-colors hover:bg-brand-navy hover:text-brand-cream" aria-label="Închide ghidul Lumi"><X size={17} /></button>
             </header>
 
-            <div className="max-h-[360px] space-y-3 overflow-y-auto px-4 py-4" aria-live="polite">
+            <div
+              className="max-h-[min(360px,calc(100dvh-320px))] space-y-3 overflow-y-auto overscroll-contain px-4 py-4 touch-pan-y [-webkit-overflow-scrolling:touch]"
+              data-lenis-prevent
+              aria-live="polite"
+            >
               {messages.map((message, index) => {
                 const recommendation = message.recommendation;
                 return (
