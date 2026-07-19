@@ -48,9 +48,9 @@ const examples = [
 
 export default function ProductExamples() {
   return (
-    <section id="alege-materialul" className="scroll-mt-20 bg-brand-cream px-6 py-24">
+    <section id="alege-materialul" className="scroll-mt-20 bg-brand-cream px-5 py-16 sm:px-6 md:py-24">
       <div className="mx-auto max-w-7xl">
-        <div className="grid gap-8 border-b border-brand-navy/15 pb-12 lg:grid-cols-[1fr_auto] lg:items-end">
+        <div className="grid gap-6 border-b border-brand-navy/15 pb-9 text-center lg:grid-cols-[1fr_auto] lg:items-end lg:gap-8 lg:pb-12 lg:text-left">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.16em] text-brand-purple">Alege un moment</p>
             <h2 className="mt-4 max-w-3xl font-nunito text-4xl font-black leading-tight text-brand-navy md:text-5xl">Ce v-ar ajuta chiar acum?</h2>
@@ -58,12 +58,12 @@ export default function ProductExamples() {
               Fiecare material pornește de la o situație reală de familie și devine ceva ce puteți citi, folosi sau păstra.
             </p>
           </div>
-          <a href="/modele" className="inline-flex w-fit items-center gap-2 border-b border-brand-purple pb-1 text-sm font-black text-brand-purple transition-colors hover:border-brand-navy hover:text-brand-navy">
+          <a href="/modele" className="mx-auto inline-flex w-fit items-center gap-2 border-b border-brand-purple pb-1 text-sm font-black text-brand-purple transition-colors hover:border-brand-navy hover:text-brand-navy lg:mx-0">
             Vezi toate modelele <ArrowRight size={16} />
           </a>
         </div>
 
-        <div className="mt-12 grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="mt-8 grid grid-cols-1 gap-5 sm:mt-10 sm:gap-6 lg:mt-12 lg:grid-cols-3">
           {examples.map((example, index) => (
             <motion.article
               key={example.title}
@@ -83,7 +83,7 @@ export default function ProductExamples() {
                   className="object-cover"
                 />
               </div>
-              <div className="flex h-full flex-col p-7">
+              <div className="flex h-full flex-col p-5 sm:p-7">
                 <div className={`flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] ${example.accentText}`}>
                   <example.icon size={17} /> {example.moment}
                 </div>
@@ -95,7 +95,7 @@ export default function ProductExamples() {
                 <a href="/modele" className="mt-5 inline-flex w-fit items-center gap-2 border-b border-brand-navy/20 pb-1 text-sm font-black text-brand-navy/70 transition-colors hover:border-brand-purple hover:text-brand-purple">
                   Răsfoiește pagini din model <ArrowRight size={15} />
                 </a>
-                <div className="mt-7 flex items-end justify-between gap-4">
+                <div className="mt-7 flex flex-col items-start gap-4 sm:flex-row sm:items-end sm:justify-between">
                   <div>
                     <p className="font-nunito text-3xl font-black text-brand-navy">{example.price}</p>
                     <p className="text-xs font-bold text-brand-navy/50">preț de lansare comercială</p>
