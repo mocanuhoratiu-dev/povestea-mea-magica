@@ -7,6 +7,7 @@ import { siteCopy } from "@/lib/siteMode";
 
 export default function MobileCTA() {
   const [isVisible, setIsVisible] = useState(false);
+  const [isLumiOpen, setIsLumiOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -17,9 +18,17 @@ export default function MobileCTA() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    const handleLumiState = (event: Event) => {
+      setIsLumiOpen((event as CustomEvent<{ isOpen: boolean }>).detail.isOpen);
+    };
+    window.addEventListener("pmm:lumi-open-change", handleLumiState);
+    return () => window.removeEventListener("pmm:lumi-open-change", handleLumiState);
+  }, []);
+
   return (
     <AnimatePresence>
-      {isVisible && (
+      {isVisible && !isLumiOpen && (
         <motion.div
           initial={{ y: 100 }}
           animate={{ y: 0 }}

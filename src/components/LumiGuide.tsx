@@ -113,6 +113,10 @@ export default function LumiGuide() {
     if (isOpen) window.setTimeout(() => inputRef.current?.focus(), 220);
   }, [isOpen]);
 
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("pmm:lumi-open-change", { detail: { isOpen } }));
+  }, [isOpen]);
+
   const resetGuide = () => {
     setIsOpen(false);
     setMessages([welcomeMessage]);
@@ -181,7 +185,7 @@ export default function LumiGuide() {
   const latestMessage = messages[messages.length - 1];
 
   return (
-    <aside className={`fixed bottom-4 right-4 z-[9990] w-[calc(100vw-2rem)] max-w-[370px] transition-opacity duration-300 max-md:bottom-[92px] sm:right-6 md:bottom-6 ${heroIsVisible ? "max-md:pointer-events-none max-md:opacity-0" : ""}`} aria-label="Ghidul Lumi">
+    <aside className={`fixed bottom-4 right-4 z-[9990] w-[calc(100vw-2.5rem)] max-w-[350px] transition-opacity duration-300 sm:right-6 md:bottom-6 md:w-[calc(100vw-2rem)] ${!isOpen ? "max-md:bottom-[92px]" : ""} ${heroIsVisible ? "max-md:pointer-events-none max-md:opacity-0" : ""}`} aria-label="Ghidul Lumi">
       <AnimatePresence mode="wait">
         {isOpen ? (
           <motion.section
@@ -199,7 +203,7 @@ export default function LumiGuide() {
             </header>
 
             <div
-              className="max-h-[min(360px,calc(100dvh-320px))] space-y-3 overflow-y-auto overscroll-contain px-4 py-4 touch-pan-y [-webkit-overflow-scrolling:touch]"
+              className="max-h-[min(300px,calc(100dvh-400px))] space-y-3 overflow-y-auto overscroll-contain px-4 py-4 touch-pan-y max-md:max-h-[min(220px,calc(100dvh-400px))] [-webkit-overflow-scrolling:touch]"
               data-lenis-prevent
               aria-live="polite"
             >
