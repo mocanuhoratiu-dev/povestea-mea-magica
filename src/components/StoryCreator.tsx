@@ -10,6 +10,8 @@ import QuickRating from "./QuickRating";
 import { siteCopy } from "@/lib/siteMode";
 import { trackEvent } from "@/lib/clientTelemetry";
 import { playNarration, stopNarration, subscribeToNarration } from "@/lib/narrationPlayback";
+import { useMobileProductVisibility } from "@/lib/mobileProductFlow";
+import MobileFlowSteps from "./MobileFlowSteps";
 
 const STORY_NARRATION_OWNER = "story-preview";
 
@@ -443,6 +445,7 @@ function addSearchableTextLayer(pdf: PdfInstance, text: string, pageWidth: numbe
 }
 
 export default function StoryCreator() {
+  const isMobileStorySelected = useMobileProductVisibility("story");
   const [name, setName] = useState("");
   const [age, setAge] = useState("1");
   const [selectedTheme, setSelectedTheme] = useState("space");
@@ -678,7 +681,7 @@ export default function StoryCreator() {
     const dedicationText = dedication.trim() || `Pentru ${name || "micul erou"}, cu toată magia unei seri liniștite.`;
 
     return (
-      <section id="creator" className="py-20 md:py-32 magic-gradient relative overflow-hidden px-4">
+      <section id="creator" className={`scroll-mt-16 py-14 md:scroll-mt-24 md:py-32 magic-gradient relative overflow-hidden px-4 ${isMobileStorySelected ? "" : "max-md:hidden"}`}>
         <MagicalLoader isVisible={isLoading} />
   
         {/* ════ HIDDEN PDF TEMPLATES ════ */}
@@ -894,11 +897,11 @@ export default function StoryCreator() {
       </div>
 
       <div className="max-w-5xl mx-auto relative z-10">
-        <div className="text-center mb-12 md:mb-16 px-4">
+        <div className="mb-8 px-4 text-center md:mb-16">
           <motion.div initial={{ scale: 0.9 }} whileInView={{ scale: 1 }} className="inline-flex flex-col items-center">
             <LanternSignature className="mb-5" size="sm" tone="paper" label="Lanterna Magică" />
             <p className="text-xs font-black uppercase tracking-[0.16em] text-brand-gold">Pentru seară</p>
-            <h2 className="mt-3 font-nunito text-4xl font-extrabold leading-tight text-brand-cream md:text-6xl">Povestea de Seară</h2>
+            <h2 className="mt-3 font-nunito text-3xl font-extrabold leading-tight text-brand-cream md:text-6xl">Povestea de Seară</h2>
           </motion.div>
           <p className="mt-4 text-brand-cream/90 text-lg md:text-xl font-medium">
             {siteCopy.storyIntro}
@@ -909,10 +912,11 @@ export default function StoryCreator() {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="overflow-hidden border border-brand-purple/20 bg-white p-6 shadow-2xl md:p-16"
+          className="overflow-hidden border border-brand-purple/20 bg-white p-4 shadow-2xl md:p-16"
         >
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-16">
-            <div className="space-y-6 md:space-y-8">
+          <MobileFlowSteps items={["Copilul", "Povestea", "PDF-ul"]} accentClass="bg-brand-purple" />
+          <div className="grid grid-cols-1 gap-8 md:gap-12 lg:grid-cols-2 lg:gap-16">
+            <div className="space-y-5 md:space-y-8">
               <div>
                 <label className="block text-sm md:text-base font-black text-brand-navy mb-2 md:mb-3 uppercase tracking-wider">
                   Numele copilului

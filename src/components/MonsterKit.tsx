@@ -8,6 +8,8 @@ import MagicalLoader from './MagicalLoader';
 import FeedbackInvite from './FeedbackInvite';
 import QuickRating from './QuickRating';
 import { trackEvent } from "@/lib/clientTelemetry";
+import { useMobileProductVisibility } from "@/lib/mobileProductFlow";
+import MobileFlowSteps from "./MobileFlowSteps";
 
 /* ─── Types ─────────────────────────────────────── */
 interface Monster { id: string; label: string; icon: string; }
@@ -517,6 +519,7 @@ function addSearchableTextLayer(pdf: PdfInstance, text: string, pageWidth: numbe
    MAIN COMPONENT
 ══════════════════════════════════════════════════ */
 export default function MonsterKit() {
+  const isMobileMonsterSelected = useMobileProductVisibility("monster");
   const [name,        setName]        = useState('');
   const [monsterType, setMonsterType] = useState(monsters[0].id);
   const [showResult,  setShowResult]  = useState(false);
@@ -629,7 +632,7 @@ export default function MonsterKit() {
   const kitContent = generatedContent || fallbackContent;
 
   return (
-    <section id="monster-away" className="py-20 md:py-32 bg-brand-navy relative overflow-hidden px-4">
+    <section id="monster-away" className={`scroll-mt-16 py-14 md:scroll-mt-24 md:py-32 bg-brand-navy relative overflow-hidden px-4 ${isMobileMonsterSelected ? "" : "max-md:hidden"}`}>
       <MagicalLoader isVisible={isGenerating || isDownloading} />
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-20">
@@ -642,11 +645,11 @@ export default function MonsterKit() {
       <div className="max-w-4xl mx-auto relative z-10">
 
         {/* Header */}
-        <div className="text-center mb-14">
+        <div className="mb-8 text-center md:mb-14">
           <div className="inline-flex items-center gap-2 border border-brand-gold/30 bg-brand-gold/10 px-5 py-2 text-sm font-bold uppercase tracking-widest text-brand-gold mb-6">
             <BrandMark className="h-5 w-5" tone="paper" /> Ritual de noapte
           </div>
-          <h2 className="font-nunito font-extrabold text-4xl md:text-6xl text-brand-cream leading-tight">
+          <h2 className="font-nunito text-3xl font-extrabold leading-tight text-brand-cream md:text-6xl">
             Scutul <span className="text-brand-gold">de Noapte</span>
           </h2>
           <p className="mt-4 text-brand-cream/70 text-lg max-w-xl mx-auto">
@@ -659,9 +662,10 @@ export default function MonsterKit() {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="border border-brand-gold/25 bg-brand-cream p-8 shadow-2xl md:p-14"
+          className="border border-brand-gold/25 bg-brand-cream p-5 shadow-2xl md:p-14"
         >
-          <form onSubmit={handleGenerate} className="space-y-10">
+          <form onSubmit={handleGenerate} className="space-y-7 md:space-y-10">
+            <MobileFlowSteps items={["Copilul", "Ritualul", "PDF-ul"]} accentClass="bg-brand-navy" />
 
             <div>
               <label className="block font-nunito font-black text-brand-navy text-lg mb-3 uppercase tracking-wider">
@@ -678,23 +682,25 @@ export default function MonsterKit() {
               <label className="block font-nunito font-black text-brand-navy text-lg mb-4 uppercase tracking-wider">
                 Ce monstru trebuie să plece? 👻
               </label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
                 {monsters.map(m => (
                   <button key={m.id} type="button" onClick={() => setMonsterType(m.id)}
-                    className={`flex flex-col items-center gap-3 p-5 rounded-2xl border-4 transition-all duration-200 ${
+                    className={`flex flex-col items-center gap-2 rounded-2xl border-4 p-3 transition-all duration-200 md:gap-3 md:p-5 ${
                       monsterType === m.id
                         ? 'border-brand-purple bg-brand-purple/10 scale-105 shadow-lg shadow-brand-purple/20'
                         : 'border-brand-navy/10 bg-white/60 hover:border-brand-purple/40'
                     }`}
                   >
-                    <span className="text-4xl">{m.icon}</span>
+                    <span className="text-3xl md:text-4xl">{m.icon}</span>
                     <span className="text-xs font-black text-brand-navy uppercase tracking-wide text-center leading-tight">{m.label}</span>
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <details className="border-y border-brand-navy/10 py-4 md:border-0 md:py-0" open>
+              <summary className="cursor-pointer text-sm font-black text-brand-navy md:hidden">Adaugă detalii pentru ritual</summary>
+              <div className="mt-5 grid grid-cols-1 gap-4 md:mt-0 md:grid-cols-3">
               <div>
                 <label className="block font-nunito font-black text-brand-navy text-sm mb-2 uppercase tracking-wider">
                   Unde apare frica?
@@ -731,21 +737,22 @@ export default function MonsterKit() {
                   className="w-full bg-white border-4 border-brand-navy/10 focus:border-brand-purple rounded-2xl px-5 py-4 text-brand-navy font-bold text-base outline-none transition-all shadow-inner"
                 />
               </div>
-            </div>
+              </div>
+            </details>
 
             {/* PDF contents */}
-            <div className="bg-brand-navy/5 rounded-2xl p-6 border-2 border-dashed border-brand-navy/10">
+            <div className="border-2 border-dashed border-brand-navy/10 bg-brand-navy/5 p-4 md:rounded-2xl md:p-6">
               <p className="font-bold text-brand-navy/60 text-sm uppercase tracking-wider mb-4 flex items-center gap-2">
                 <Sparkles size={14} /> Ce primești în PDF
               </p>
-              <div className="grid grid-cols-3 gap-4 text-center">
+              <div className="grid grid-cols-1 gap-3 text-left md:grid-cols-3 md:gap-4 md:text-center">
                 {[
                   { icon: '📜', label: 'Certificat Oficial', desc: 'Clauze adaptate fricii alese' },
                   { icon: '🧪', label: 'Rețeta Spray',       desc: 'Pași adaptați camerei copilului' },
                   { icon: '🏷️', label: 'Etichete Flacon',   desc: 'Instrucțiuni pentru ritualul ales' },
                 ].map(item => (
-                  <div key={item.label} className="flex flex-col items-center gap-2">
-                    <span className="text-3xl">{item.icon}</span>
+                  <div key={item.label} className="flex items-center gap-3 md:flex-col md:gap-2">
+                    <span className="text-2xl md:text-3xl">{item.icon}</span>
                     <span className="font-black text-brand-navy text-sm">{item.label}</span>
                     <span className="text-brand-navy/50 text-xs">{item.desc}</span>
                   </div>

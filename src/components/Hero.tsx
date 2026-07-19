@@ -9,7 +9,7 @@ import { siteCopy } from "@/lib/siteMode";
 
 export default function Hero() {
   return (
-    <section id="home-hero" className="relative isolate min-h-[600px] overflow-hidden bg-brand-navy px-5 pb-10 pt-24 text-brand-cream sm:px-6 lg:min-h-[640px] lg:pb-12 lg:pt-28">
+    <section id="home-hero" className="relative isolate min-h-[620px] overflow-hidden bg-brand-navy px-5 pb-12 pt-24 text-brand-cream sm:px-6 md:min-h-[600px] md:pb-10 lg:min-h-[640px] lg:pb-12 lg:pt-28">
       <Image
         src="/hero-storybook.png"
         alt="Un copil cu o lanternă alături de un dragon blând, într-o pădure de noapte"
@@ -19,7 +19,7 @@ export default function Hero() {
         className="object-cover object-[58%_50%] opacity-65 sm:object-[64%_50%]"
       />
       <div className="absolute inset-0 bg-brand-navy/65" />
-      <div className="relative mx-auto grid min-h-[500px] max-w-7xl items-center gap-8 py-5 lg:min-h-[540px] lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,.74fr)] lg:gap-16 lg:py-8">
+      <div className="relative mx-auto grid min-h-[500px] max-w-7xl items-center gap-8 py-5 md:min-h-[460px] lg:min-h-[540px] lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,.74fr)] lg:gap-16 lg:py-8">
         <motion.div
           initial={{ y: 28, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -39,7 +39,7 @@ export default function Hero() {
           <p className="mx-auto mt-5 max-w-xl text-base font-medium leading-relaxed text-brand-cream/90 sm:mt-6 sm:text-lg md:text-xl lg:mx-0">
             Povești de seară, ritualuri pentru nopțile cu emoții și misiuni pentru timpul de așteptare. Făcute pentru momentul vostru.
           </p>
-          <p className="mx-auto mt-5 max-w-xl border-y border-brand-gold/70 bg-brand-navy/30 px-4 py-3 text-sm font-bold leading-relaxed text-brand-cream/85 lg:mx-0 lg:border-y-0 lg:border-l-2">{siteCopy.launchAccess}</p>
+          <p className="mx-auto mt-5 hidden max-w-xl border-y border-brand-gold/70 bg-brand-navy/30 px-4 py-3 text-sm font-bold leading-relaxed text-brand-cream/85 md:block lg:mx-0 lg:border-y-0 lg:border-l-2">{siteCopy.launchAccess}</p>
           <div className="mt-7 flex flex-col gap-3 sm:mt-9 sm:flex-row lg:justify-start">
             <motion.a
               href="#alege-materialul"
@@ -51,13 +51,13 @@ export default function Hero() {
             </motion.a>
             <a
               href="/modele"
-              className="inline-flex w-full items-center justify-center gap-3 border border-brand-cream/50 px-7 py-4 text-base font-black text-brand-cream transition-colors hover:border-brand-gold hover:text-brand-gold sm:w-auto"
+              className="hidden w-full items-center justify-center gap-3 border border-brand-cream/50 px-7 py-4 text-base font-black text-brand-cream transition-colors hover:border-brand-gold hover:text-brand-gold sm:w-auto md:inline-flex"
             >
               <Eye size={19} /> Vezi modelele
             </a>
           </div>
         </motion.div>
-        <motion.div initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.12, ease: "easeOut" }} className="mx-auto w-full max-w-[320px] justify-self-center sm:max-w-md lg:mr-0 lg:max-w-md lg:justify-self-end">
+        <motion.div initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.12, ease: "easeOut" }} className="mx-auto hidden w-full max-w-[320px] justify-self-center sm:max-w-md lg:mr-0 lg:block lg:max-w-md lg:justify-self-end">
           <InstantStoryPreview />
         </motion.div>
         <a href="#alege-materialul" className="absolute bottom-0 hidden items-center gap-2 text-sm font-bold text-brand-cream/75 transition-colors hover:text-brand-gold md:inline-flex">

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Quicksand, Nunito } from "next/font/google";
 import "./globals.css";
 import SmoothScroll from "@/components/SmoothScroll";
-import MobileCTA from "@/components/MobileCTA";
 import Navbar from "@/components/Navbar";
 import UsageTelemetry from "@/components/UsageTelemetry";
 import { siteUrl } from "@/lib/siteMode";
@@ -59,7 +58,6 @@ export default function RootLayout({
         <UsageTelemetry />
         <Navbar />
         <SmoothScroll>{children}</SmoothScroll>
-        <MobileCTA />
       </body>
     </html>
   );

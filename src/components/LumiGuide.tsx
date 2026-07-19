@@ -7,6 +7,7 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { trackEvent } from "@/lib/clientTelemetry";
 import { playNarration, stopNarration as stopSharedNarration, subscribeToNarration } from "@/lib/narrationPlayback";
+import { openMobileProduct } from "@/lib/mobileProductFlow";
 
 const LUMI_NARRATION_OWNER = "lumi-guide";
 
@@ -98,6 +99,7 @@ function recommendationTarget(product: ProductId) {
 export default function LumiGuide() {
   const [isOpen, setIsOpen] = useState(false);
   const [heroIsVisible, setHeroIsVisible] = useState(true);
+  const [productFlowIsVisible, setProductFlowIsVisible] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([welcomeMessage]);
   const [input, setInput] = useState("");
   const [isThinking, setIsThinking] = useState(false);
@@ -110,6 +112,24 @@ export default function LumiGuide() {
     if (!hero) return;
     const observer = new IntersectionObserver(([entry]) => setHeroIsVisible(entry.isIntersecting), { threshold: 0.15 });
     observer.observe(hero);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const productSections = ["creator", "monster-away", "emergency-kit"]
+      .map((id) => document.getElementById(id))
+      .filter((section): section is HTMLElement => Boolean(section));
+    const visibleSections = new Set<HTMLElement>();
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        const section = entry.target as HTMLElement;
+        if (entry.isIntersecting) visibleSections.add(section);
+        else visibleSections.delete(section);
+      });
+      setProductFlowIsVisible(visibleSections.size > 0);
+    }, { threshold: 0.18 });
+
+    productSections.forEach((section) => observer.observe(section));
     return () => observer.disconnect();
   }, []);
 
@@ -175,7 +195,11 @@ export default function LumiGuide() {
         },
       }));
     }
-    document.getElementById(target)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (recommendation.product !== "none") {
+      openMobileProduct(recommendation.product);
+    } else {
+      document.getElementById(target)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
     setIsOpen(false);
   };
 
@@ -222,16 +246,16 @@ export default function LumiGuide() {
   const latestMessage = messages[messages.length - 1];
 
   return (
-    <aside className={`fixed bottom-4 right-4 z-[9990] w-[calc(100vw-2.5rem)] max-w-[350px] transition-opacity duration-300 sm:right-6 md:bottom-6 md:w-[calc(100vw-2rem)] ${!isOpen ? "max-md:bottom-[92px]" : ""} ${heroIsVisible ? "max-md:pointer-events-none max-md:opacity-0" : ""}`} aria-label="Ghidul Lumi">
+    <aside className={`fixed bottom-4 right-4 z-[9990] w-[calc(100vw-2.5rem)] max-w-[350px] transition-[opacity,width,inset] duration-300 sm:right-6 md:bottom-6 md:w-[calc(100vw-2rem)] ${isOpen ? "max-md:inset-x-0 max-md:bottom-0 max-md:w-auto max-md:max-w-none" : ""} ${!isOpen && (heroIsVisible || productFlowIsVisible) ? "max-md:pointer-events-none max-md:opacity-0" : ""}`} aria-label="Ghidul Lumi">
       <AnimatePresence mode="wait">
         {isOpen ? (
           <motion.section
             key="guide"
             initial={{ opacity: 0, y: 18, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 12, scale: 0.96 }} transition={{ duration: 0.28, ease: "easeOut" }}
-            className="relative overflow-hidden border border-brand-gold/50 bg-brand-cream shadow-[0_20px_55px_rgba(36,50,79,0.3)]"
+            className="relative overflow-hidden border border-brand-gold/50 bg-brand-cream shadow-[0_20px_55px_rgba(36,50,79,0.3)] max-md:max-h-[72dvh] max-md:rounded-t-lg max-md:border-x-0 max-md:border-b-0"
           >
             <div className="absolute inset-y-0 right-0 w-1 bg-brand-gold" />
-            <header className="relative min-h-[98px] border-b border-brand-navy/12 px-5 pb-4 pt-5 pr-24">
+            <header className="relative min-h-[98px] border-b border-brand-navy/12 px-5 pb-4 pt-5 pr-24 max-md:min-h-[84px] max-md:px-4 max-md:pb-3 max-md:pt-4">
               <LumiVisual className="absolute -right-5 -top-8 h-36 w-28" />
               <p className="text-[11px] font-black uppercase tracking-[0.15em] text-brand-purple">Lanterna Magică</p>
               <h2 className="mt-1 max-w-[220px] font-serif text-xl leading-tight text-brand-navy">Lumi, păzitoarea Lanternei</h2>
@@ -240,7 +264,7 @@ export default function LumiGuide() {
             </header>
 
             <div
-              className="max-h-[min(300px,calc(100dvh-400px))] space-y-3 overflow-y-auto overscroll-contain px-4 py-4 touch-pan-y max-md:max-h-[min(220px,calc(100dvh-400px))] [-webkit-overflow-scrolling:touch]"
+              className="max-h-[min(300px,calc(100dvh-400px))] space-y-3 overflow-y-auto overscroll-contain px-4 py-4 touch-pan-y max-md:max-h-[min(290px,calc(100dvh-312px))] [-webkit-overflow-scrolling:touch]"
               data-lenis-prevent
               aria-live="polite"
             >
@@ -299,10 +323,10 @@ export default function LumiGuide() {
         ) : (
           <motion.button
             key="trigger" type="button" initial={{ opacity: 0, scale: 0.75 }} animate={{ opacity: 1, scale: 1 }} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
-            onClick={() => { trackEvent("lumi_opened"); setIsOpen(true); }} className="group relative ml-auto grid h-[86px] w-[86px] place-items-center overflow-visible rounded-full border border-brand-gold/70 bg-brand-navy shadow-[0_14px_35px_rgba(36,50,79,0.32)] sm:h-[78px] sm:w-[78px]" aria-label="Vorbește cu Lumi"
+            onClick={() => { trackEvent("lumi_opened"); setIsOpen(true); }} className="group relative ml-auto grid h-14 w-14 place-items-center overflow-visible rounded-full border border-brand-gold/70 bg-brand-navy shadow-[0_14px_35px_rgba(36,50,79,0.32)] sm:h-[78px] sm:w-[78px]" aria-label="Vorbește cu Lumi"
           >
-            <LumiVisual className="absolute left-1/2 top-1/2 h-[108px] w-[92px] -translate-x-1/2 -translate-y-1/2 transition-transform duration-300 group-hover:-translate-y-[54%] sm:h-[92px] sm:w-[78px]" />
-            <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap bg-brand-cream px-2 py-1 text-[10px] font-black uppercase tracking-[0.1em] text-brand-navy shadow-sm">Întreab-o pe Lumi</span>
+            <LumiVisual className="absolute left-1/2 top-1/2 h-[72px] w-[64px] -translate-x-1/2 -translate-y-1/2 transition-transform duration-300 group-hover:-translate-y-[54%] sm:h-[92px] sm:w-[78px]" />
+            <span className="absolute -bottom-2 left-1/2 hidden -translate-x-1/2 whitespace-nowrap bg-brand-cream px-2 py-1 text-[10px] font-black uppercase tracking-[0.1em] text-brand-navy shadow-sm sm:block">Întreab-o pe Lumi</span>
           </motion.button>
         )}
       </AnimatePresence>

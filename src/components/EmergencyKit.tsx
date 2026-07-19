@@ -8,6 +8,8 @@ import MagicalLoader from "./MagicalLoader";
 import FeedbackInvite from "./FeedbackInvite";
 import QuickRating from "./QuickRating";
 import { trackEvent } from "@/lib/clientTelemetry";
+import { useMobileProductVisibility } from "@/lib/mobileProductFlow";
+import MobileFlowSteps from "./MobileFlowSteps";
 
 type TrueFalseItem = {
   q: string;
@@ -497,6 +499,7 @@ function mergeEmergencyKit(generated: Partial<EmergencyKitData>, fallback: Emerg
 }
 
 export default function EmergencyKit() {
+  const isMobileEmergencySelected = useMobileProductVisibility("emergency");
   const [name, setName] = useState("");
   const [age, setAge] = useState("1");
   const [selectedContext, setSelectedContext] = useState(contexts[0].id);
@@ -598,15 +601,15 @@ export default function EmergencyKit() {
   };
 
   return (
-    <section id="emergency-kit" className="relative overflow-hidden bg-brand-cream px-4 py-20 md:py-32">
+    <section id="emergency-kit" className={`relative scroll-mt-16 overflow-hidden bg-brand-cream px-4 py-14 md:scroll-mt-24 md:py-32 ${isMobileEmergencySelected ? "" : "max-md:hidden"}`}>
       <MagicalLoader isVisible={isLoading} />
 
       <div className="max-w-4xl mx-auto relative z-10">
-        <div className="text-center mb-14">
+        <div className="mb-8 text-center md:mb-14">
           <div className="mb-6 inline-flex items-center gap-2 border border-brand-orange/30 bg-brand-orange/10 px-5 py-2 text-sm font-bold uppercase tracking-widest text-brand-orange">
             <BrandMark className="h-5 w-5" /> Pentru timpul de așteptare
           </div>
-          <h2 className="font-nunito font-extrabold text-4xl md:text-6xl text-brand-navy leading-tight">
+          <h2 className="font-nunito text-3xl font-extrabold leading-tight text-brand-navy md:text-6xl">
             Trusa de <span className="text-brand-orange">Răbdare</span>
           </h2>
           <p className="mt-4 text-brand-navy/60 text-lg max-w-xl mx-auto">
@@ -618,10 +621,11 @@ export default function EmergencyKit() {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="border border-brand-orange/25 bg-white p-8 shadow-2xl md:p-14"
+          className="border border-brand-orange/25 bg-white p-5 shadow-2xl md:p-14"
         >
-          <form onSubmit={handleGenerate} className="space-y-10">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <form onSubmit={handleGenerate} className="space-y-7 md:space-y-10">
+            <MobileFlowSteps items={["Copilul", "Momentul", "PDF-ul"]} accentClass="bg-brand-orange" />
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-8">
               <div>
                 <label className="block font-nunito font-black text-brand-navy text-lg mb-3">
                   Cum îl cheamă copilul?
@@ -646,10 +650,10 @@ export default function EmergencyKit() {
               <label className="block font-nunito font-black text-brand-navy text-lg mb-4 text-center">
                 Unde vă aflați acum?
               </label>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-6">
                 {contexts.map(c => (
                   <button key={c.id} type="button" onClick={() => setSelectedContext(c.id)}
-                    className={`flex flex-col items-center gap-3 p-5 rounded-2xl border-4 transition-all duration-200 ${
+                    className={`flex flex-col items-center gap-2 rounded-2xl border-4 p-3 transition-all duration-200 md:gap-3 md:p-5 ${
                       selectedContext === c.id
                         ? 'border-brand-orange bg-brand-orange/10 scale-105 shadow-lg'
                         : 'border-gray-100 bg-white hover:border-brand-orange/30'
@@ -664,7 +668,9 @@ export default function EmergencyKit() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <details className="border-y border-brand-navy/10 py-4 md:border-0 md:py-0" open>
+              <summary className="cursor-pointer text-sm font-black text-brand-navy md:hidden">Personalizează misiunile</summary>
+              <div className="mt-5 grid grid-cols-1 gap-4 md:mt-0 md:grid-cols-3">
               <div>
                 <label className="block font-nunito font-black text-brand-navy text-sm mb-2 uppercase tracking-wider">
                   Ce îl/o captivează?
@@ -705,7 +711,8 @@ export default function EmergencyKit() {
                   ))}
                 </select>
               </div>
-            </div>
+              </div>
+            </details>
 
             <motion.button
               type="submit" disabled={!name.trim()}
