@@ -2,17 +2,30 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import BrandMark from "@/components/BrandMark";
 import { siteCopy } from "@/lib/siteMode";
 
 export default function Navbar() {
+  const [isLumiOpen, setIsLumiOpen] = useState(false);
+
+  useEffect(() => {
+    const handleLumiState = (event: Event) => {
+      setIsLumiOpen((event as CustomEvent<{ isOpen: boolean }>).detail.isOpen);
+    };
+    window.addEventListener("pmm:lumi-open-change", handleLumiState);
+    return () => window.removeEventListener("pmm:lumi-open-change", handleLumiState);
+  }, []);
+
   return (
     <motion.nav
       initial={{ y: -100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       className="fixed top-4 left-1/2 z-[10000] w-[calc(100%-2rem)] max-w-7xl -translate-x-1/2"
     >
-      <div className="flex items-center justify-between border border-brand-navy/10 bg-brand-cream/95 px-4 py-3 shadow-[0_12px_35px_rgba(36,50,79,0.14)] backdrop-blur-xl md:px-6">
+      <div className={`flex items-center justify-between border border-brand-navy/10 px-4 py-3 backdrop-blur-xl transition-[background-color,box-shadow] duration-300 md:px-6 ${
+        isLumiOpen ? "bg-brand-cream/50 shadow-[0_12px_35px_rgba(36,50,79,0.07)]" : "bg-brand-cream/95 shadow-[0_12px_35px_rgba(36,50,79,0.14)]"
+      }`}>
         <Link href="/" className="flex items-center gap-3 group">
           <BrandMark className="h-9 w-9 transition-transform duration-300 group-hover:-rotate-6" title="Povestea Mea Magică" />
           <span className="font-serif text-base leading-none text-brand-navy md:text-lg">
