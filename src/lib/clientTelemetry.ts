@@ -14,6 +14,7 @@ type ClientEvent =
   | "lumi_opened"
   | "lumi_message_sent"
   | "lumi_recommendation_applied"
+  | "lumi_voice_played"
   | "lumi_response_failed";
 
 type ClientTelemetryFields = {

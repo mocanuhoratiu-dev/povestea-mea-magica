@@ -2,7 +2,7 @@
 
 import { Canvas, useFrame, useLoader } from "@react-three/fiber";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, BookOpen, LoaderCircle, MoonStar, Send, Sparkles, TimerReset, X } from "lucide-react";
+import { ArrowRight, BookOpen, LoaderCircle, MoonStar, Send, Sparkles, Square, TimerReset, Volume2, X } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { trackEvent } from "@/lib/clientTelemetry";
@@ -99,7 +99,9 @@ export default function LumiGuide() {
   const [input, setInput] = useState("");
   const [isThinking, setIsThinking] = useState(false);
   const [error, setError] = useState("");
+  const [speakingMessage, setSpeakingMessage] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const narrationAudio = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     const hero = document.getElementById("home-hero");
@@ -117,7 +119,55 @@ export default function LumiGuide() {
     window.dispatchEvent(new CustomEvent("pmm:lumi-open-change", { detail: { isOpen } }));
   }, [isOpen]);
 
+  useEffect(() => () => {
+    narrationAudio.current?.pause();
+  }, []);
+
+  const stopNarration = () => {
+    narrationAudio.current?.pause();
+    narrationAudio.current = null;
+    setSpeakingMessage(null);
+  };
+
+  const toggleLumiVoice = async (text: string, index: number) => {
+    if (speakingMessage === index) {
+      stopNarration();
+      return;
+    }
+
+    stopNarration();
+    try {
+      const response = await fetch("/api/narrate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, kind: "lumi" }),
+      });
+      if (!response.ok) throw new Error("Vocea lui Lumi nu poate fi pregătită acum.");
+
+      const url = URL.createObjectURL(await response.blob());
+      const audio = new Audio(url);
+      narrationAudio.current = audio;
+      audio.onended = () => {
+        URL.revokeObjectURL(url);
+        narrationAudio.current = null;
+        setSpeakingMessage(null);
+      };
+      audio.onerror = () => {
+        URL.revokeObjectURL(url);
+        narrationAudio.current = null;
+        setSpeakingMessage(null);
+        setError("Vocea lui Lumi nu poate fi redată chiar acum.");
+      };
+      await audio.play();
+      setSpeakingMessage(index);
+      trackEvent("lumi_voice_played");
+    } catch {
+      setError("Vocea lui Lumi nu poate fi pregătită chiar acum.");
+    }
+  };
+
   const resetGuide = () => {
+    stopNarration();
     setIsOpen(false);
     setMessages([welcomeMessage]);
     setInput("");
@@ -211,7 +261,20 @@ export default function LumiGuide() {
                 const recommendation = message.recommendation;
                 return (
                 <div key={`${message.role}-${index}`} className={message.role === "user" ? "ml-9 bg-brand-navy px-3 py-2.5 text-brand-cream" : "mr-5 border border-brand-purple/14 bg-white/65 px-3 py-3 text-brand-navy"}>
-                  {message.role === "model" && <p className="mb-1 text-[10px] font-black uppercase tracking-[0.12em] text-brand-purple">Lumi</p>}
+                  {message.role === "model" && (
+                    <div className="mb-1 flex items-center justify-between gap-2">
+                      <p className="text-[10px] font-black uppercase tracking-[0.12em] text-brand-purple">Lumi</p>
+                      <button
+                        type="button"
+                        onClick={() => void toggleLumiVoice(message.text, index)}
+                        className="grid h-7 w-7 shrink-0 place-items-center border border-brand-purple/20 text-brand-purple transition-colors hover:bg-brand-purple hover:text-white"
+                        aria-label={speakingMessage === index ? "Oprește vocea lui Lumi" : "Ascultă vocea lui Lumi"}
+                        title={speakingMessage === index ? "Oprește vocea" : "Ascultă răspunsul"}
+                      >
+                        {speakingMessage === index ? <Square size={12} fill="currentColor" /> : <Volume2 size={14} />}
+                      </button>
+                    </div>
+                  )}
                   <p className="text-sm font-semibold leading-relaxed">{message.text}</p>
                   {recommendation && recommendation.product !== "none" && recommendationTarget(recommendation.product) && (
                     <button type="button" onClick={() => applyRecommendation(recommendation)} className="mt-3 flex w-full items-center justify-center gap-2 bg-brand-purple px-3 py-2 text-xs font-black text-white transition-colors hover:bg-brand-navy">
