@@ -19,6 +19,7 @@ export default function AiSafetyPage() {
             <section>
               <h2 className="text-2xl font-black text-brand-navy mb-4">Cum folosim AI-ul</h2>
               <p>Povestea Mea Magică folosește servicii AI pentru a genera texte personalizate pornind de la nume, vârstă, temă, lecție și detalii introduse de adult.</p>
+              <p>Lumi, păzitoarea Lanternei, este un ghid conversațional pentru părinți: recomandă un material și poate propune alegeri pentru formular, dar nu completează sau generează nimic fără acțiunea părintelui.</p>
               <p>AI-ul poate produce ocazional formulări imperfecte, de aceea materialele trebuie verificate de un adult înainte să fie citite sau folosite cu un copil.</p>
             </section>
 
@@ -28,6 +29,7 @@ export default function AiSafetyPage() {
                 <li>conținut violent, rușinos sau nepotrivit pentru copii;</li>
                 <li>sfaturi medicale, psihologice sau terapeutice prezentate ca tratament;</li>
                 <li>detalii personale sensibile care nu sunt necesare pentru poveste;</li>
+                <li>conversații care se prezintă drept consiliere medicală, psihologică sau terapeutică;</li>
                 <li>promisiuni că un kit simbolic rezolvă singur frici sau anxietăți puternice.</li>
               </ul>
             </section>
@@ -39,7 +41,7 @@ export default function AiSafetyPage() {
           </div>
 
           <div className="mt-16 pt-10 border-t border-brand-navy/5 text-center">
-            <p className="text-brand-navy/40 text-sm italic">Ultima actualizare: 17 Iulie 2026</p>
+            <p className="text-brand-navy/40 text-sm italic">Ultima actualizare: 19 Iulie 2026</p>
           </div>
         </div>
       </div>
