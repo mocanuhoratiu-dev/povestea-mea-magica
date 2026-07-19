@@ -890,12 +890,16 @@ function getGeminiModelCandidates() {
   );
 }
 
-async function generateStoryWithModelFallback({
+async function generateWithModelFallback({
   prompt,
+  responseJsonSchema,
   maxOutputTokens,
+  temperature = 0.75,
 }: {
   prompt: string;
+  responseJsonSchema: Record<string, unknown>;
   maxOutputTokens: number;
+  temperature?: number;
 }): Promise<GeminiTextResult> {
   const errors: string[] = [];
 
@@ -904,10 +908,10 @@ async function generateStoryWithModelFallback({
       prompt,
       model,
       responseMimeType: "application/json",
-      responseJsonSchema: STORY_RESPONSE_SCHEMA,
+      responseJsonSchema,
       maxOutputTokens,
       thinkingBudget: 0,
-      temperature: 0.75,
+      temperature,
     });
 
     if (!("error" in generated)) {
@@ -918,6 +922,14 @@ async function generateStoryWithModelFallback({
   }
 
   return { error: errors.join(" | ") || "Gemini nu a răspuns cu niciun model disponibil." };
+}
+
+async function generateStoryWithModelFallback({ prompt, maxOutputTokens }: { prompt: string; maxOutputTokens: number }) {
+  return generateWithModelFallback({
+    prompt,
+    responseJsonSchema: STORY_RESPONSE_SCHEMA,
+    maxOutputTokens,
+  });
 }
 
 export async function POST(req: Request) {
@@ -1007,12 +1019,10 @@ Conținutul intră într-un template cu spațiu fix. Respectă exact:
 
 Returnează doar JSON valid conform schemei, fără Markdown.`;
 
-      const generated = await generateAiText({
+      const generated = await generateWithModelFallback({
         prompt,
-        responseMimeType: "application/json",
         responseJsonSchema: MONSTER_RESPONSE_SCHEMA,
         maxOutputTokens: 1000,
-        thinkingBudget: 0,
         temperature: 0.8,
       });
       if ("error" in generated) {
@@ -1159,12 +1169,10 @@ Conținutul intră într-un template cu spațiu fix. Respectă exact limitele:
 
 Returnează exclusiv un obiect JSON valid, conform schemei cerute. Fără Markdown, fără explicații în afara JSON-ului.`;
 
-      const generated = await generateAiText({
+      const generated = await generateWithModelFallback({
         prompt,
-        responseMimeType: "application/json",
         responseJsonSchema: EMERGENCY_RESPONSE_SCHEMA,
         maxOutputTokens: 1500,
-        thinkingBudget: 0,
         temperature: 0.8,
       });
       if ("error" in generated) {
