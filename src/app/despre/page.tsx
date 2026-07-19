@@ -21,9 +21,23 @@ export default function AboutPage() {
           <div>
             <BrandMark className="h-14 w-14" title="Lanterna Magică" />
             <p className="mt-7 text-xs font-black uppercase tracking-[0.16em] text-brand-purple">Despre Povestea Mea Magică</p>
-            <h1 className="mt-4 font-nunito text-4xl font-black leading-tight text-brand-navy md:text-6xl">Un pic de structură pentru momentele care apar pe nepregătite.</h1>
+            <h1 className="mt-4 font-nunito text-4xl font-black leading-tight text-brand-navy md:text-6xl">Poveștile în care copilul se recunoaște rămân cel mai aproape de inimă.</h1>
           </div>
-          <p className="max-w-2xl text-lg font-medium leading-relaxed text-brand-navy/70">Povestea Mea Magică creează materiale digitale personalizate pentru familii. Le gândim ca pe niște pretexte blânde pentru apropiere: o poveste de citit seara, un ritual pentru emoțiile de noapte sau o misiune pentru timpul de așteptare.</p>
+          <p className="max-w-2xl text-lg font-medium leading-relaxed text-brand-navy/70">Povestea Mea Magică este un loc pentru familiile care vor să transforme o seară, un drum lung sau o emoție dificilă într-un moment de apropiere.</p>
+        </div>
+      </section>
+
+      <section className="px-6 py-20">
+        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[.75fr_1.25fr] lg:gap-20">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-brand-purple">De unde a pornit</p>
+            <p className="mt-5 font-serif text-3xl leading-tight text-brand-navy md:text-4xl">„Despre ce povestim astăzi?”</p>
+          </div>
+          <div className="space-y-6 text-lg font-medium leading-relaxed text-brand-navy/70">
+            <p>Sunt Horațiu și cred că, oricât de multe cărți am avea în bibliotecă, cele care rămân cel mai aproape de inimă sunt cele în care copilul se recunoaște.</p>
+            <p>Acasă, obișnuiesc să le întreb pe fetele mele despre ce povestim astăzi. Uneori aleg o lume nouă, alteori un personaj curajos, o seară liniștită sau o mică aventură care să facă așteptarea mai ușoară. Din răspunsurile lor, din întrebările lor și din bucuria de a inventa împreună s-a născut Povestea Mea Magică.</p>
+            <p>Am creat acest loc pentru părinții care vor mai mult decât un PDF frumos: cuvinte potrivite, imaginație și un mic spațiu în care familia lor să fie personajul principal.</p>
+          </div>
         </div>
       </section>
 
