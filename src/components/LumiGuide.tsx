@@ -78,7 +78,7 @@ function LumiSpirit() {
 function LumiVisual({ className }: { className: string }) {
   return (
     <div aria-hidden="true" className={`pointer-events-none relative ${className}`}>
-      <Canvas camera={{ position: [0, 0, 4], fov: 30 }} dpr={[1, 1.5]} gl={{ alpha: true, antialias: true }}>
+      <Canvas className="!h-full !w-full" style={{ width: "100%", height: "100%" }} camera={{ position: [0, 0, 4], fov: 30 }} dpr={[1, 1.5]} gl={{ alpha: true, antialias: true }}>
         <LumiSpirit />
       </Canvas>
     </div>
@@ -245,10 +245,10 @@ export default function LumiGuide() {
         ) : (
           <motion.button
             key="trigger" type="button" initial={{ opacity: 0, scale: 0.75 }} animate={{ opacity: 1, scale: 1 }} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
-            onClick={() => { trackEvent("lumi_opened"); setIsOpen(true); }} className="group relative ml-auto grid h-[78px] w-[78px] place-items-center rounded-full border border-brand-gold/70 bg-brand-navy shadow-[0_14px_35px_rgba(36,50,79,0.32)]" aria-label="Vorbește cu Lumi"
+            onClick={() => { trackEvent("lumi_opened"); setIsOpen(true); }} className="group relative ml-auto grid h-[86px] w-[86px] place-items-center overflow-visible rounded-full border border-brand-gold/70 bg-brand-navy shadow-[0_14px_35px_rgba(36,50,79,0.32)] sm:h-[78px] sm:w-[78px]" aria-label="Vorbește cu Lumi"
           >
-            <LumiVisual className="absolute -top-4 left-0 h-[92px] w-[78px] transition-transform duration-300 group-hover:-translate-y-1" />
-            <span className="absolute -bottom-2 whitespace-nowrap bg-brand-cream px-2 py-1 text-[10px] font-black uppercase tracking-[0.1em] text-brand-navy shadow-sm">Întreab-o pe Lumi</span>
+            <LumiVisual className="absolute left-1/2 top-1/2 h-[108px] w-[92px] -translate-x-1/2 -translate-y-1/2 transition-transform duration-300 group-hover:-translate-y-[54%] sm:h-[92px] sm:w-[78px]" />
+            <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap bg-brand-cream px-2 py-1 text-[10px] font-black uppercase tracking-[0.1em] text-brand-navy shadow-sm">Întreab-o pe Lumi</span>
           </motion.button>
         )}
       </AnimatePresence>
