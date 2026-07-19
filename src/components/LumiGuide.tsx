@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, BookOpen, LoaderCircle, MoonStar, Send, Sparkles, TimerReset, X } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
+import { trackEvent } from "@/lib/clientTelemetry";
 
 type ProductId = "story" | "monster" | "emergency" | "none";
 type Recommendation = {
@@ -122,6 +123,9 @@ export default function LumiGuide() {
   const applyRecommendation = (recommendation: Recommendation) => {
     const target = recommendationTarget(recommendation.product);
     if (!target) return;
+    if (recommendation.product === "story" || recommendation.product === "monster" || recommendation.product === "emergency") {
+      trackEvent("lumi_recommendation_applied", { product: recommendation.product });
+    }
     if (recommendation.product === "story") {
       window.dispatchEvent(new CustomEvent("pmm:lumi-story-choice", {
         detail: {
@@ -138,6 +142,7 @@ export default function LumiGuide() {
     const message = rawMessage.replace(/\s+/g, " ").trim().slice(0, 500);
     if (!message || isThinking) return;
 
+    trackEvent("lumi_message_sent");
     const history = messages.slice(-6).map(({ role, text }) => ({ role, text }));
     const userMessage: ChatMessage = { role: "user", text: message };
     setMessages((current) => [...current, userMessage]);
@@ -161,6 +166,7 @@ export default function LumiGuide() {
       };
       setMessages((current) => [...current, modelMessage]);
     } catch (caught) {
+      trackEvent("lumi_response_failed");
       setError(caught instanceof Error ? caught.message : "Lumi nu poate răspunde chiar acum.");
     } finally {
       setIsThinking(false);
@@ -235,7 +241,7 @@ export default function LumiGuide() {
         ) : (
           <motion.button
             key="trigger" type="button" initial={{ opacity: 0, scale: 0.75 }} animate={{ opacity: 1, scale: 1 }} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
-            onClick={() => setIsOpen(true)} className="group relative ml-auto grid h-[78px] w-[78px] place-items-center rounded-full border border-brand-gold/70 bg-brand-navy shadow-[0_14px_35px_rgba(36,50,79,0.32)]" aria-label="Vorbește cu Lumi"
+            onClick={() => { trackEvent("lumi_opened"); setIsOpen(true); }} className="group relative ml-auto grid h-[78px] w-[78px] place-items-center rounded-full border border-brand-gold/70 bg-brand-navy shadow-[0_14px_35px_rgba(36,50,79,0.32)]" aria-label="Vorbește cu Lumi"
           >
             <LumiVisual className="absolute -top-4 left-0 h-[92px] w-[78px] transition-transform duration-300 group-hover:-translate-y-1" />
             <span className="absolute -bottom-2 whitespace-nowrap bg-brand-cream px-2 py-1 text-[10px] font-black uppercase tracking-[0.1em] text-brand-navy shadow-sm">Întreab-o pe Lumi</span>

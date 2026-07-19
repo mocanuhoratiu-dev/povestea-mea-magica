@@ -6,6 +6,7 @@ import { Utensils, Car, Stethoscope, CloudRain, Sparkles, Download, Plane, Clock
 import BrandMark from "./BrandMark";
 import MagicalLoader from "./MagicalLoader";
 import FeedbackInvite from "./FeedbackInvite";
+import QuickRating from "./QuickRating";
 import { trackEvent } from "@/lib/clientTelemetry";
 
 type TrueFalseItem = {
@@ -501,6 +502,7 @@ export default function EmergencyKit() {
   const [selectedContext, setSelectedContext] = useState(contexts[0].id);
   const [isLoading, setIsLoading] = useState(false);
   const [showResult, setShowResult] = useState(false);
+  const [showQuickRating, setShowQuickRating] = useState(false);
   const [ekData, setEkData] = useState<EmergencyKitData | null>(null);
   const [interest, setInterest] = useState("");
   const [duration, setDuration] = useState(durationOptions[1].id);
@@ -510,6 +512,7 @@ export default function EmergencyKit() {
     e.preventDefault();
     if (!name.trim()) return;
     trackEvent("product_started", { product: "emergency" });
+    setShowQuickRating(false);
     setIsLoading(true);
 
     const fallback = buildEmergencyKit({ name, age, selectedContext, interest, duration, activityMode });
@@ -585,6 +588,7 @@ export default function EmergencyKit() {
 
       pdf.save(`Trusa_Urgenta_${name.trim()}.pdf`);
       trackEvent("pdf_downloaded", { product: "emergency", pageCount: pages.length });
+      setShowQuickRating(true);
     } catch (error) {
       console.error(error);
       alert(error instanceof Error ? error.message : "Nu am putut genera PDF-ul.");
@@ -919,6 +923,7 @@ export default function EmergencyKit() {
                 >
                   <Download size={22} /> Descarcă Trusa PDF
                 </motion.button>
+                {showQuickRating && <QuickRating product="emergency" />}
                 <FeedbackInvite product="emergency" compact />
               </div>
             </motion.div>

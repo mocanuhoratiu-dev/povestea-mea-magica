@@ -23,7 +23,14 @@ type TelemetryEvent =
   | "pmm_generation_completed"
   | "pmm_generation_failed"
   | "pmm_pdf_downloaded"
-  | "pmm_feedback_requested";
+  | "pmm_feedback_requested"
+  | "pmm_pdf_feedback_helpful"
+  | "pmm_pdf_feedback_not_helpful"
+  | "pmm_lumi_opened"
+  | "pmm_lumi_message_sent"
+  | "pmm_lumi_recommendation_applied"
+  | "pmm_lumi_response"
+  | "pmm_lumi_response_failed";
 
 /**
  * Emits aggregate product events to Cloud Run logs. Never add child names,

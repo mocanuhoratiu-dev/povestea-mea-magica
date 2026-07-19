@@ -1,6 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
 import { checkRateLimit, requestExceedsBodyLimit } from "@/lib/requestProtection";
+import { logTelemetry } from "@/lib/telemetry";
 
 type LumiRole = "user" | "model";
 type LumiMessage = { role: LumiRole; text: string };
@@ -87,6 +88,7 @@ ${transcript}`;
 }
 
 export async function POST(request: Request) {
+  const startedAt = Date.now();
   try {
     if (requestExceedsBodyLimit(request, 8_000)) {
       return NextResponse.json({ error: "Mesajul pentru Lumi este prea lung." }, { status: 413 });
@@ -122,8 +124,9 @@ export async function POST(request: Request) {
       location: process.env.VERTEX_AI_LOCATION?.trim() || "global",
       ...(credentials ? { googleAuthOptions: { credentials } } : {}),
     });
+    const model = process.env.VERTEX_AI_LUMI_MODEL?.trim() || process.env.VERTEX_AI_MODEL?.trim() || "gemini-2.5-flash";
     const response = await client.models.generateContent({
-      model: process.env.VERTEX_AI_LUMI_MODEL?.trim() || process.env.VERTEX_AI_MODEL?.trim() || "gemini-2.5-flash",
+      model,
       contents: lumiPrompt(history, message),
       config: {
         responseMimeType: "application/json",
@@ -147,6 +150,8 @@ export async function POST(request: Request) {
     const theme = STORY_THEMES.includes(recommendation.theme as (typeof STORY_THEMES)[number]) ? recommendation.theme : "none";
     const tone = STORY_TONES.includes(recommendation.tone as (typeof STORY_TONES)[number]) ? recommendation.tone : "none";
 
+    logTelemetry("pmm_lumi_response", { result: "success", durationMs: Date.now() - startedAt, aiProvider: "vertex", model });
+
     return NextResponse.json({
       reply: cleanText(parsed.reply, 700) || "Lanterna mea caută încă firul potrivit. Mai spune-mi puțin despre momentul vostru.",
       suggestions: Array.isArray(parsed.suggestions) ? parsed.suggestions.map((item) => cleanText(item, 90)).filter(Boolean).slice(0, 3) : [],
@@ -159,6 +164,7 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error("Lumi Vertex AI error:", error);
+    logTelemetry("pmm_lumi_response_failed", { result: "error", durationMs: Date.now() - startedAt, errorCode: "ai_error", aiProvider: "vertex" });
     return NextResponse.json({ error: "Lumi nu poate aprinde Lanterna chiar acum. Încearcă din nou în câteva clipe." }, { status: 503 });
   }
 }

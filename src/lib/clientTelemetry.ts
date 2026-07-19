@@ -2,7 +2,19 @@
 
 import type { GenerationMode, TelemetryProduct } from "@/lib/telemetry";
 
-type ClientEvent = "site_visited" | "story_preview_started" | "product_started" | "generation_completed" | "pdf_downloaded" | "feedback_requested";
+type ClientEvent =
+  | "site_visited"
+  | "story_preview_started"
+  | "product_started"
+  | "generation_completed"
+  | "pdf_downloaded"
+  | "feedback_requested"
+  | "pdf_feedback_helpful"
+  | "pdf_feedback_not_helpful"
+  | "lumi_opened"
+  | "lumi_message_sent"
+  | "lumi_recommendation_applied"
+  | "lumi_response_failed";
 
 type ClientTelemetryFields = {
   product?: TelemetryProduct;

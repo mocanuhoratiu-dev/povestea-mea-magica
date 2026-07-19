@@ -6,6 +6,7 @@ import { ShieldCheck, Download, Sparkles, Star } from 'lucide-react';
 import BrandMark from './BrandMark';
 import MagicalLoader from './MagicalLoader';
 import FeedbackInvite from './FeedbackInvite';
+import QuickRating from './QuickRating';
 import { trackEvent } from "@/lib/clientTelemetry";
 
 /* ─── Types ─────────────────────────────────────── */
@@ -519,6 +520,7 @@ export default function MonsterKit() {
   const [name,        setName]        = useState('');
   const [monsterType, setMonsterType] = useState(monsters[0].id);
   const [showResult,  setShowResult]  = useState(false);
+  const [showQuickRating, setShowQuickRating] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [fearLocation, setFearLocation] = useState('');
@@ -530,6 +532,7 @@ export default function MonsterKit() {
     e.preventDefault();
     if (!name.trim()) return;
     trackEvent('product_started', { product: 'monster' });
+    setShowQuickRating(false);
     setIsGenerating(true);
 
     const fallback = buildPersonalizedKitContent({
@@ -603,6 +606,7 @@ export default function MonsterKit() {
       }
       pdf.save(`Kit_Magic_${name.trim()}.pdf`);
       trackEvent('pdf_downloaded', { product: 'monster', pageCount: 3 });
+      setShowQuickRating(true);
     } catch (error) {
       console.error(error);
       alert(error instanceof Error ? error.message : 'Nu am putut genera PDF-ul.');
@@ -811,6 +815,7 @@ export default function MonsterKit() {
                 >
                   <Download size={22} /> Descarcă PDF-ul Complet
                 </motion.button>
+                {showQuickRating && <QuickRating product="monster" />}
                 <FeedbackInvite product="monster" compact />
               </div>
             </motion.div>

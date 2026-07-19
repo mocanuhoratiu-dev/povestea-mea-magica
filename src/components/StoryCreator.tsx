@@ -6,6 +6,7 @@ import { Castle, Cloud, FileText, Footprints, Image as ImageIcon, RefreshCw, Roc
 import LanternSignature from "@/components/LanternSignature";
 import MagicalLoader from "./MagicalLoader";
 import FeedbackInvite from "./FeedbackInvite";
+import QuickRating from "./QuickRating";
 import { siteCopy } from "@/lib/siteMode";
 import { trackEvent } from "@/lib/clientTelemetry";
 
@@ -457,6 +458,7 @@ export default function StoryCreator() {
   const [generationNote, setGenerationNote] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [showResult, setShowResult] = useState(false);
+  const [showQuickRating, setShowQuickRating] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
@@ -543,6 +545,7 @@ export default function StoryCreator() {
         ].filter(Boolean);
         setGenerationNote(notes.join(" "));
         setImageUrl(data.coverImage || buildPollinationsFallbackUrl(selectedTheme, lesson));
+        setShowQuickRating(false);
         setShowResult(true);
       } else {
         throw new Error(result.error || "Eroare API");
@@ -643,6 +646,7 @@ export default function StoryCreator() {
           pageCount: pages.length,
           wordCount: getWordCount(storyText),
         });
+        setShowQuickRating(true);
       } catch (error) {
         console.error(error);
         alert(error instanceof Error ? error.message : "Nu am putut genera PDF-ul.");
@@ -850,6 +854,7 @@ export default function StoryCreator() {
                 </button>
               </div>
               <div className="bg-white/50 px-6 pb-6 md:px-8 md:pb-8">
+                {showQuickRating && <QuickRating product="story" />}
                 <FeedbackInvite product="story" compact />
               </div>
             </motion.div>
