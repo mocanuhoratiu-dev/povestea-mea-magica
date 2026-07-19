@@ -6,6 +6,9 @@ import { ArrowRight, BookOpen, LoaderCircle, MoonStar, Send, Sparkles, Square, T
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { trackEvent } from "@/lib/clientTelemetry";
+import { playNarration, stopNarration as stopSharedNarration, subscribeToNarration } from "@/lib/narrationPlayback";
+
+const LUMI_NARRATION_OWNER = "lumi-guide";
 
 type ProductId = "story" | "monster" | "emergency" | "none";
 type Recommendation = {
@@ -101,7 +104,6 @@ export default function LumiGuide() {
   const [error, setError] = useState("");
   const [speakingMessage, setSpeakingMessage] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const narrationAudio = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     const hero = document.getElementById("home-hero");
@@ -119,55 +121,40 @@ export default function LumiGuide() {
     window.dispatchEvent(new CustomEvent("pmm:lumi-open-change", { detail: { isOpen } }));
   }, [isOpen]);
 
-  useEffect(() => () => {
-    narrationAudio.current?.pause();
+  useEffect(() => {
+    const unsubscribe = subscribeToNarration(({ owner, phase }) => {
+      if (owner !== LUMI_NARRATION_OWNER || phase === "idle") setSpeakingMessage(null);
+    });
+    return () => {
+      unsubscribe();
+      stopSharedNarration(LUMI_NARRATION_OWNER);
+    };
   }, []);
 
-  const stopNarration = () => {
-    narrationAudio.current?.pause();
-    narrationAudio.current = null;
+  const stopLumiNarration = () => {
+    stopSharedNarration(LUMI_NARRATION_OWNER);
     setSpeakingMessage(null);
   };
 
   const toggleLumiVoice = async (text: string, index: number) => {
     if (speakingMessage === index) {
-      stopNarration();
+      stopLumiNarration();
       return;
     }
 
-    stopNarration();
+    stopLumiNarration();
+    setSpeakingMessage(index);
     try {
-      const response = await fetch("/api/narrate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, kind: "lumi" }),
-      });
-      if (!response.ok) throw new Error("Vocea lui Lumi nu poate fi pregătită acum.");
-
-      const url = URL.createObjectURL(await response.blob());
-      const audio = new Audio(url);
-      narrationAudio.current = audio;
-      audio.onended = () => {
-        URL.revokeObjectURL(url);
-        narrationAudio.current = null;
-        setSpeakingMessage(null);
-      };
-      audio.onerror = () => {
-        URL.revokeObjectURL(url);
-        narrationAudio.current = null;
-        setSpeakingMessage(null);
-        setError("Vocea lui Lumi nu poate fi redată chiar acum.");
-      };
-      await audio.play();
-      setSpeakingMessage(index);
-      trackEvent("lumi_voice_played");
+      const started = await playNarration(LUMI_NARRATION_OWNER, text, "lumi");
+      if (started) trackEvent("lumi_voice_played");
     } catch {
+      setSpeakingMessage(null);
       setError("Vocea lui Lumi nu poate fi pregătită chiar acum.");
     }
   };
 
   const resetGuide = () => {
-    stopNarration();
+    stopLumiNarration();
     setIsOpen(false);
     setMessages([welcomeMessage]);
     setInput("");

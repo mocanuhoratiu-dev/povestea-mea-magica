@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Castle, Cloud, FileText, Footprints, Image as ImageIcon, RefreshCw, Rocket, ShieldCheck, Sparkles, Star, Trees, Waves } from "lucide-react";
 import LanternSignature from "@/components/LanternSignature";
@@ -9,6 +9,9 @@ import FeedbackInvite from "./FeedbackInvite";
 import QuickRating from "./QuickRating";
 import { siteCopy } from "@/lib/siteMode";
 import { trackEvent } from "@/lib/clientTelemetry";
+import { playNarration, stopNarration, subscribeToNarration } from "@/lib/narrationPlayback";
+
+const STORY_NARRATION_OWNER = "story-preview";
 
 const STORY_PDF_STYLES = `
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap');
@@ -588,31 +591,29 @@ export default function StoryCreator() {
 
     const [isSpeaking, setIsSpeaking] = useState(false);
     const [isNarrationLoading, setIsNarrationLoading] = useState(false);
-    const narrationAudio = useRef<HTMLAudioElement | null>(null);
+
+    useEffect(() => {
+      const unsubscribe = subscribeToNarration(({ owner, phase }) => {
+        const ownsNarration = owner === STORY_NARRATION_OWNER;
+        setIsSpeaking(ownsNarration && phase === "playing");
+        setIsNarrationLoading(ownsNarration && phase === "loading");
+      });
+      return () => {
+        unsubscribe();
+        stopNarration(STORY_NARRATION_OWNER);
+      };
+    }, []);
 
     const toggleSpeech = async () => {
-      if (isSpeaking) {
-        narrationAudio.current?.pause();
-        narrationAudio.current = null;
-        setIsSpeaking(false);
+      if (isSpeaking || isNarrationLoading) {
+        stopNarration(STORY_NARRATION_OWNER);
         return;
       }
 
-      setIsNarrationLoading(true);
       try {
-        const response = await fetch("/api/narrate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: storyText, kind: "story" }) });
-        if (!response.ok) throw new Error("Nararea nu a putut fi pregătită.");
-        const url = URL.createObjectURL(await response.blob());
-        const audio = new Audio(url);
-        narrationAudio.current = audio;
-        audio.onended = () => { URL.revokeObjectURL(url); narrationAudio.current = null; setIsSpeaking(false); };
-        audio.onerror = () => { URL.revokeObjectURL(url); narrationAudio.current = null; setIsSpeaking(false); setGenerationNote("Nararea audio nu a putut fi redată. Încearcă din nou în câteva clipe."); };
-        await audio.play();
-        setIsSpeaking(true);
+        await playNarration(STORY_NARRATION_OWNER, storyText, "story");
       } catch {
         setGenerationNote("Nararea audio nu este disponibilă chiar acum. Încearcă din nou în câteva clipe.");
-      } finally {
-        setIsNarrationLoading(false);
       }
     };
 
@@ -750,9 +751,7 @@ export default function StoryCreator() {
               <button 
                 onClick={() => {
                     setShowResult(false);
-                    narrationAudio.current?.pause();
-                    narrationAudio.current = null;
-                    setIsSpeaking(false);
+                    stopNarration(STORY_NARRATION_OWNER);
                 }}
                 className="absolute top-4 right-4 text-brand-navy/40 hover:text-brand-purple font-black text-xl z-20 bg-white/80 w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-sm shadow-lg transition-all"
               >
