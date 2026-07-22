@@ -7,6 +7,7 @@ import { generateVertexStoryCover } from "@/lib/vertexImage";
 
 type GenerateRequest = {
   type?: "monster" | "story" | "emergency";
+  storyLength?: StoryLength;
   name?: string;
   age?: string;
   theme?: string;
@@ -20,6 +21,8 @@ type GenerateRequest = {
   themeDetail?: string;
   lessonDetail?: string;
 };
+
+type StoryLength = "short" | "long";
 
 type GeminiResponse = {
   candidates?: Array<{
@@ -40,6 +43,7 @@ type StoryPromptConfig = {
   wordTarget: string;
   minWords: number;
   maxOutputTokens: number;
+  continuationParagraphTarget: string;
 };
 
 type AiProvider = "gemini" | "vertex";
@@ -128,6 +132,7 @@ function normalizeGenerateRequest(value: unknown): GenerateRequest | null {
 
   const normalized: GenerateRequest = {
     type: data.type as GenerateRequest["type"],
+    storyLength: data.storyLength === "long" ? "long" : "short",
     name: cleanRequestText(data.name, 80),
     age: cleanRequestText(data.age, 2),
     theme: cleanRequestText(data.theme, 24),
@@ -448,8 +453,9 @@ function buildStableStoryPayload(data: GenerateRequest, theme: (typeof STORY_THE
     ? `${name} și-a amintit ce avea de încercat: ${cleanLessonDetail}.`
     : `${name} a înțeles că ${lesson.toLocaleLowerCase("ro-RO")} începe cu un pas mic și sincer.`;
   const title = `${name} și Lumina din ${themeLabel}`;
+  const isShortStory = data.storyLength === "short";
 
-  const text = [
+  const paragraphs = [
     `În seara aceea, ${name}, care avea ${age} ani, a găsit pe pernă o luminiță cât un nasture. Nu pâlpâia ca o lampă și nici nu stătea locului ca o stea. Se mișca încet, ca și cum ar fi vrut să arate drumul către ${worldDetail}. Când ${name} a atins-o cu vârful degetului, camera s-a umplut de o lumină caldă, iar podeaua s-a transformat într-o potecă nouă.`,
     `${name} a pășit cu grijă. Lumea de dincolo mirosea a seară bună și a aventură blândă. ${personalToken} În depărtare, o lumină mare, rotundă, tremura prinsă într-un felinar închis. Fără ea, visele bune nu mai știau drumul spre copii.`,
     `Lângă felinar stătea un paznic mic, cu o cheie prea grea pentru buzunarul lui. „Felinarul se deschide doar când cineva învață ${lesson.toLocaleLowerCase("ro-RO")} printr-o faptă adevărată”, a spus el. ${name} s-a uitat la cheie. Nu părea o misiune de forță, ci una în care trebuia să asculți ce simți și să alegi cu grijă.`,
@@ -463,7 +469,12 @@ function buildStableStoryPayload(data: GenerateRequest, theme: (typeof STORY_THE
     `Lumina a ajuns și la grădina de oglinzi. Emoțiile din ele nu au dispărut, dar au început să lumineze pe rând, ca niște felinare mici. ${name} a înțeles că nu trebuie să alunge fiecare emoție ca să poată merge mai departe. Uneori e de ajuns să o observe, să o numească și să aleagă următorul pas cu grijă. Atunci, drumul devine mai ușor de văzut.`,
     `Paznicul i-a dăruit lui ${name} o scânteie rotundă, pe care nu trebuia să o țină în buzunar. „O vei găsi de fiecare dată când respiri, când ceri ajutor sau când alegi să încerci încă o dată”, a spus el. ${name} a pus mâna pe inimă și a simțit că scânteia știa deja drumul spre casă.`,
     `În clipa următoare, ${name} era din nou în pat. Pe pernă nu mai era luminița, dar în piept rămăsese o căldură mică și sigură. Camera era liniștită, noaptea era prietenoasă, iar ${name} știa că, ori de câte ori va avea emoții, poate începe cu un pas mic, o vorbă sinceră și puțin curaj.`,
-  ].join("\n\n");
+  ];
+
+  const text = (isShortStory
+    ? [paragraphs[0], paragraphs[1], paragraphs[2], paragraphs[3], paragraphs[4], paragraphs[7], paragraphs[8], paragraphs[9], paragraphs[12]]
+    : paragraphs
+  ).join("\n\n");
 
   return {
     title,
@@ -496,15 +507,25 @@ function cleanPromptValue(value: unknown, fallback = "") {
   return stripHtml(value).slice(0, 180) || fallback;
 }
 
-function getStoryLengthConfig(age: string | undefined) {
+function getStoryLengthConfig(age: string | undefined, storyLength: StoryLength = "short") {
   const ageNumber = Number.parseInt(age || "", 10) || 4;
+  if (storyLength === "short") {
+    if (ageNumber <= 3) {
+      return { wordTarget: "650-750", minWords: 620, paragraphTarget: "8-9", maxOutputTokens: 2800, continuationParagraphTarget: "4-5" };
+    }
+    if (ageNumber <= 6) {
+      return { wordTarget: "750-850", minWords: 720, paragraphTarget: "9-10", maxOutputTokens: 3200, continuationParagraphTarget: "5-6" };
+    }
+    return { wordTarget: "850-950", minWords: 820, paragraphTarget: "10-11", maxOutputTokens: 3600, continuationParagraphTarget: "5-6" };
+  }
+
   if (ageNumber <= 3) {
-    return { wordTarget: "1.800-2.000", minWords: 1800, paragraphTarget: "20-22", maxOutputTokens: 6200 };
+    return { wordTarget: "1.800-2.000", minWords: 1800, paragraphTarget: "20-22", maxOutputTokens: 6200, continuationParagraphTarget: "10-12" };
   }
   if (ageNumber <= 6) {
-    return { wordTarget: "2.000-2.200", minWords: 2000, paragraphTarget: "22-24", maxOutputTokens: 7000 };
+    return { wordTarget: "2.000-2.200", minWords: 2000, paragraphTarget: "22-24", maxOutputTokens: 7000, continuationParagraphTarget: "10-12" };
   }
-  return { wordTarget: "2.200-2.400", minWords: 2200, paragraphTarget: "24-26", maxOutputTokens: 7800 };
+  return { wordTarget: "2.200-2.400", minWords: 2200, paragraphTarget: "24-26", maxOutputTokens: 7800, continuationParagraphTarget: "10-12" };
 }
 
 function getWordCount(value: string) {
@@ -517,12 +538,14 @@ function buildStoryContinuationPrompt({
   title,
   storySoFar,
   targetWords,
+  paragraphTarget,
 }: {
   data: GenerateRequest;
   themeLabel: string;
   title: string;
   storySoFar: string;
   targetWords: number;
+  paragraphTarget: string;
 }) {
   const name = cleanPromptValue(data.name, "Eroul");
   const age = cleanPromptValue(data.age, "4");
@@ -549,7 +572,7 @@ ${storySoFar}
 SARCINĂ:
 - Scrie EXCLUSIV continuarea, nu rescrie partea de mai sus.
 - Continuarea începe cu o nouă mică întorsătură firească în aceeași aventură, apoi dezvoltă două-trei scene noi și se încheie din nou liniștitor, pregătind somnul.
-- Scrie aproximativ ${targetWords} cuvinte, în 10-12 paragrafe separate prin două newline-uri. Fiecare paragraf are o acțiune, un dialog sau o observație senzorială. Nu comprima finalul.
+- Scrie aproximativ ${targetWords} cuvinte, în ${paragraphTarget} paragrafe separate prin două newline-uri. Fiecare paragraf are o acțiune, un dialog sau o observație senzorială. Nu comprima finalul.
 - ${name} rămâne personaj activ; lumea aleasă și lecția schimbă în mod real ce se întâmplă.
 - Română naturală, potrivită pentru ${age} ani. Fără markdown, emoji, violență sau explicații morale.
 
@@ -570,7 +593,11 @@ function buildStoryPrompt(data: GenerateRequest, themeLabel: string): StoryPromp
   const lessonDetail = cleanPromptValue(data.lessonDetail);
   const childDetails = cleanPromptValue(data.context);
   const worldSignature = getStoryTheme(data.theme).promptDetail;
-  const { wordTarget, minWords, paragraphTarget, maxOutputTokens } = getStoryLengthConfig(age);
+  const storyLength = data.storyLength === "long" ? "long" : "short";
+  const { wordTarget, minWords, paragraphTarget, maxOutputTokens, continuationParagraphTarget } = getStoryLengthConfig(age, storyLength);
+  const structure = storyLength === "short"
+    ? "Textul va fi așezat pe exact două pagini de poveste, după copertă și dedicație. Scrie două capitole echilibrate, fiecare de aproximativ 320-430 de cuvinte: 1) plecarea și mica provocare, 2) alegerea, rezolvarea și întoarcerea liniștită."
+    : "Textul va fi așezat pe exact patru pagini de poveste, după copertă și dedicație. Scrie patru capitole echilibrate, fiecare de aproximativ 450-550 de cuvinte: 1) plecarea, 2) explorarea, 3) alegerea curajoasă, 4) întoarcerea liniștită.";
 
   const requiredDetails = [
     `numele copilului: ${name}`,
@@ -605,9 +632,9 @@ REGULI DE PERSONALIZARE:
 STRUCTURĂ:
 - ${wordTarget} de cuvinte.
 - ${paragraphTarget} paragrafe separate prin două newline-uri.
-- Textul va fi așezat pe exact patru pagini de poveste, după copertă și dedicație. Scrie patru capitole echilibrate, fiecare de aproximativ 450-550 de cuvinte: 1) plecarea, 2) explorarea, 3) alegerea curajoasă, 4) întoarcerea liniștită.
+- ${structure}
 - Nu scrie sub ${minWords} cuvinte. Numără cu atenție înainte de răspuns. Povestea trebuie să aibă substanță pentru citit seara, nu un rezumat.
-- Nu comprima finalul. Fiecare dintre cele patru capitole trebuie să conțină acțiune, dialog sau observații senzoriale și o mică schimbare pentru ${name}.
+- Nu comprima finalul. Fiecare capitol trebuie să conțină acțiune, dialog sau observații senzoriale și o mică schimbare pentru ${name}.
 - Fiecare paragraf trebuie să avanseze acțiunea.
 - Nu inventa detalii personale sensibile. Nu inventa frați, boli, școală sau părinți dacă nu au fost menționați.
 
@@ -618,7 +645,7 @@ Returnează DOAR JSON valid, fără \`\`\`json și fără text înainte/după:
   "imagePrompt": "English prompt for one square children's book cover showing the main scene from this exact story, including the child protagonist, the chosen world, one meaningful personalized detail if provided, premium watercolor and gouache, soft bedtime light, no text"
 }`;
 
-  return { prompt, wordTarget, minWords, maxOutputTokens };
+  return { prompt, wordTarget, minWords, maxOutputTokens, continuationParagraphTarget };
 }
 
 function limitMonsterText(value: unknown, maxLength: number) {
@@ -973,6 +1000,7 @@ export async function POST(req: Request) {
           generationMode: "fallback",
           durationMs: Date.now() - startedAt,
           wordCount: getWordCount(fallback.text),
+          storyLength: data.storyLength,
           aiProvider: getAiProvider(),
         });
         return NextResponse.json({ success: true, data: storyWithCover });
@@ -1051,7 +1079,7 @@ Returnează doar JSON valid conform schemei, fără Markdown.`;
     if (data.type === "story") {
       const theme = getStoryTheme(data.theme);
       const themeLabel = theme.label;
-      const { prompt, maxOutputTokens, minWords } = buildStoryPrompt(data, themeLabel);
+      const { prompt, maxOutputTokens, minWords, continuationParagraphTarget } = buildStoryPrompt(data, themeLabel);
 
       const generated = await generateStoryWithModelFallback({
         prompt,
@@ -1066,6 +1094,7 @@ Returnează doar JSON valid conform schemei, fără Markdown.`;
           generationMode: "fallback",
           durationMs: Date.now() - startedAt,
           wordCount: getWordCount(fallback.text),
+          storyLength: data.storyLength,
           aiProvider: getAiProvider(),
         });
         return NextResponse.json({
@@ -1086,6 +1115,7 @@ Returnează doar JSON valid conform schemei, fără Markdown.`;
           generationMode: "fallback",
           durationMs: Date.now() - startedAt,
           wordCount: getWordCount(fallback.text),
+          storyLength: data.storyLength,
           aiProvider: getAiProvider(),
         });
         return NextResponse.json({
@@ -1099,7 +1129,7 @@ Returnează doar JSON valid conform schemei, fără Markdown.`;
       // second act instead of returning a thin story that leaves most PDF pages blank.
       let wordCount = getWordCount(result.text);
       for (let attempt = 0; wordCount < minWords && attempt < 2; attempt += 1) {
-        const targetWords = Math.max(1200, minWords - wordCount + 400);
+        const targetWords = Math.max(300, minWords - wordCount + 160);
         const continuation = await generateStoryWithModelFallback({
           prompt: buildStoryContinuationPrompt({
             data,
@@ -1107,8 +1137,9 @@ Returnează doar JSON valid conform schemei, fără Markdown.`;
             title: result.title,
             storySoFar: result.text,
             targetWords,
+            paragraphTarget: continuationParagraphTarget,
           }),
-          maxOutputTokens: Math.max(maxOutputTokens, 6200),
+          maxOutputTokens,
         });
 
         if ("error" in continuation) {
@@ -1133,6 +1164,7 @@ Returnează doar JSON valid conform schemei, fără Markdown.`;
         generationMode: "ai",
         durationMs: Date.now() - startedAt,
         wordCount,
+        storyLength: data.storyLength,
         aiProvider: getAiProvider(),
         model: generated.model,
       });

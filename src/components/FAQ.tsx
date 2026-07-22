@@ -11,7 +11,7 @@ const faqs = [
   },
   {
     question: "Ce primesc?",
-    answer: "Primești un PDF personalizat, pregătit pentru citit sau print. Povestea include copertă, dedicație și patru pagini de aventură. Scutul are certificat, ritual și etichete. Trusa are activități adaptate locului ales și diplomă de final.",
+    answer: "Primești un PDF personalizat, pregătit pentru citit sau print. Povestea scurtă include copertă, dedicație și două pagini de aventură, iar cea lungă are patru pagini de poveste. Scutul are certificat, ritual și etichete. Trusa are activități adaptate locului ales și diplomă de final.",
   },
   {
     question: "Este personalizat cu adevărat?",
@@ -31,7 +31,7 @@ const faqs = [
   },
   {
     question: "Care sunt prețurile?",
-    answer: "Povestea de Seară este 29 lei, iar Scutul de Noapte și Trusa de Răbdare sunt câte 19 lei. Pachetul cu toate trei este 49 lei. Vei vedea clar pasul de plată înainte ca aceste prețuri să devină aplicabile.",
+    answer: "Povestea scurtă este 19 lei, iar povestea lungă este 29 lei. Scutul de Noapte și Trusa de Răbdare sunt câte 19 lei. Pachetul cu povestea lungă, Scutul și Trusa este 49 lei. Vei vedea clar pasul de plată înainte ca aceste prețuri să devină aplicabile.",
   },
   {
     question: "Sunt materialele un sfat medical sau terapeutic?",

@@ -7,7 +7,8 @@ export const commerce = {
   status: "launch_access" as const,
   acceptsPayments: false,
   prices: {
-    story: "29 lei",
+    storyShort: "19 lei",
+    storyLong: "29 lei",
     nightShield: "19 lei",
     patienceKit: "19 lei",
     completeSet: "49 lei",

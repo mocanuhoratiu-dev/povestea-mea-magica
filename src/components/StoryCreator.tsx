@@ -7,7 +7,7 @@ import LanternSignature from "@/components/LanternSignature";
 import MagicalLoader from "./MagicalLoader";
 import FeedbackInvite from "./FeedbackInvite";
 import QuickRating from "./QuickRating";
-import { siteCopy } from "@/lib/siteMode";
+import { commerce, siteCopy } from "@/lib/siteMode";
 import { trackEvent } from "@/lib/clientTelemetry";
 import { playNarration, stopNarration, subscribeToNarration } from "@/lib/narrationPlayback";
 import { useMobileProductVisibility } from "@/lib/mobileProductFlow";
@@ -225,13 +225,32 @@ const lessonHints: Record<string, string> = {
   "Descoperirea naturii 🌱": "să observe un lucru mic din natură și să îl protejeze",
 };
 
-const packages = [
+type StoryLength = "short" | "long";
+
+const storyLengths: Array<{
+  id: StoryLength;
+  name: string;
+  readingTime: string;
+  storyPageCount: number;
+  price: string;
+  description: string;
+}> = [
   {
-    id: "pdf",
-    name: "Povestea de Seară",
-    desc: "Copertă, dedicație și aproximativ patru pagini de poveste pregătite pentru print.",
-    price: "29 lei",
-  }
+    id: "short",
+    name: "Poveste scurtă",
+    readingTime: "5-7 minute",
+    storyPageCount: 2,
+    price: commerce.prices.storyShort,
+    description: "Copertă, dedicație și două pagini de aventură pentru serile în care vreți o poveste întreagă, dar mai rapidă.",
+  },
+  {
+    id: "long",
+    name: "Poveste lungă",
+    readingTime: "12-15 minute",
+    storyPageCount: 4,
+    price: commerce.prices.storyLong,
+    description: "Copertă, dedicație și patru pagini de aventură pentru ritualul de seară pe îndelete.",
+  },
 ];
 
 const backgroundStars = Array.from({ length: 20 }, (_, i) => ({
@@ -450,7 +469,7 @@ export default function StoryCreator() {
   const [age, setAge] = useState("1");
   const [selectedTheme, setSelectedTheme] = useState("space");
   const [lesson, setLesson] = useState(lessons[0]);
-  const [packageType] = useState("pdf");
+  const [storyLength, setStoryLength] = useState<StoryLength>("short");
   const [isLoading, setIsLoading] = useState(false);
   const [storyTitle, setStoryTitle] = useState("");
   const [storyText, setStoryText] = useState("");
@@ -491,6 +510,7 @@ export default function StoryCreator() {
   }, []);
 
   const activeTheme = themes.find((theme) => theme.id === selectedTheme) ?? themes[0];
+  const activeStoryLength = storyLengths.find((option) => option.id === storyLength) ?? storyLengths[0];
   const activeLessonHint = lessonHints[lesson] ?? "să transforme lecția într-o alegere mică și sinceră";
 
   useEffect(() => {
@@ -520,12 +540,12 @@ export default function StoryCreator() {
     tone,
     themeDetail,
     lessonDetail,
-    package: packageType,
+    storyLength,
   });
 
   const handleGenerateStory = async () => {
     if (!name) return;
-    trackEvent("product_started", { product: "story" });
+    trackEvent("product_started", { product: "story", storyLength });
     setIsLoading(true);
     try {
       const response = await fetch("/api/generate", {
@@ -663,6 +683,7 @@ export default function StoryCreator() {
           product: "story",
           pageCount: pages.length,
           wordCount: getWordCount(storyText),
+          storyLength,
         });
         setShowQuickRating(true);
       } catch (error) {
@@ -673,7 +694,7 @@ export default function StoryCreator() {
       }
     };
 
-    const storyChunks = paginateStory(storyText);
+    const storyChunks = paginateStory(storyText, activeStoryLength.storyPageCount);
     const wordCount = getWordCount(storyText);
     const pdfPageCount = storyText
       ? 2 + storyChunks.length
@@ -695,7 +716,7 @@ export default function StoryCreator() {
           <div className="story-pdf-inner-border" />
           {(['tl','tr','bl','br'] as const).map(pos => <CornerSVG key={pos} pos={pos} />)}
           <div className="story-pdf-content" style={{ justifyContent: 'center' }}>
-            <p className="story-cover-subtitle">Povestea de Seară</p>
+            <p className="story-cover-subtitle">{activeStoryLength.name}</p>
             <h1 className="story-cover-title">{(storyTitle || `Povestea lui ${name}`).toUpperCase()}</h1>
             <p className="story-cover-name">Creată pentru {name || "micul erou"}</p>
             <div className="story-cover-img-wrap">
@@ -960,6 +981,34 @@ export default function StoryCreator() {
                 </div>
               </div>
 
+              <div>
+                <label className="mb-2 block text-sm font-black uppercase tracking-wider text-brand-navy md:mb-3 md:text-base">
+                  Cât timp aveți pentru poveste?
+                </label>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {storyLengths.map((option) => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => setStoryLength(option.id)}
+                      aria-pressed={storyLength === option.id}
+                      className={`min-h-[116px] rounded-2xl border-4 p-4 text-left transition-all ${
+                        storyLength === option.id
+                          ? "border-brand-purple bg-white text-brand-purple shadow-md"
+                          : "border-transparent bg-brand-cream/30 text-brand-navy/65"
+                      }`}
+                    >
+                      <span className="block text-base font-black">{option.name}</span>
+                      <span className="mt-2 block text-sm font-bold leading-relaxed">{option.readingTime} · {option.storyPageCount} pagini de poveste</span>
+                      <span className="mt-1 block text-sm font-black">{option.price}</span>
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-3 text-sm font-bold leading-relaxed text-brand-navy/55">
+                  Varianta scurtă păstrează o aventură completă; cea lungă lasă mai mult loc pentru explorare și dialog.
+                </p>
+              </div>
+
               <aside className="border-y border-brand-purple/15 py-4" aria-live="polite">
                 <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-purple">Ideea lui Lumi</p>
                 <p className="mt-2 text-sm font-bold leading-relaxed text-brand-navy/70">În {activeTheme.label}, {activeTheme.lumiHint}. Pentru lecția de azi, {activeLessonHint}.</p>
@@ -1043,10 +1092,11 @@ export default function StoryCreator() {
                 </h4>
                 <div className="border border-brand-purple bg-white p-4 md:p-5">
                   <div className="flex justify-between items-center gap-4">
-                    <span className="font-bold text-brand-navy text-sm md:text-base">{packages[0].name}</span>
-                    <span className="font-black text-brand-purple">{packages[0].price}</span>
+                    <span className="font-bold text-brand-navy text-sm md:text-base">{activeStoryLength.name}</span>
+                    <span className="font-black text-brand-purple">{activeStoryLength.price}</span>
                   </div>
-                  <p className="mt-2 text-sm text-brand-navy/50 font-bold">{packages[0].desc}</p>
+                  <p className="mt-2 text-sm text-brand-navy/50 font-bold">{activeStoryLength.description}</p>
+                  <p className="mt-3 text-xs font-black uppercase tracking-[0.12em] text-brand-purple/75">{activeStoryLength.readingTime} · {activeStoryLength.storyPageCount} pagini de poveste</p>
                 </div>
               </div>
 
@@ -1056,7 +1106,7 @@ export default function StoryCreator() {
                   disabled={!name}
                   className="flex w-full items-center justify-center gap-4 bg-brand-purple py-5 text-xl font-black text-white shadow-2xl transition-colors hover:bg-brand-navy disabled:cursor-not-allowed disabled:opacity-30 md:py-6 md:text-2xl"
                 >
-                  {siteCopy.storyGenerateCta} <Sparkles className="group-hover:rotate-12 transition-transform" />
+                  Creează povestea {storyLength === "short" ? "scurtă" : "lungă"} <Sparkles className="group-hover:rotate-12 transition-transform" />
                 </button>
               </div>
             </div>

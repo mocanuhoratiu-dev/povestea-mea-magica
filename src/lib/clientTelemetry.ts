@@ -1,6 +1,6 @@
 "use client";
 
-import type { GenerationMode, TelemetryProduct } from "@/lib/telemetry";
+import type { GenerationMode, StoryLength, TelemetryProduct } from "@/lib/telemetry";
 
 type ClientEvent =
   | "site_visited"
@@ -22,6 +22,7 @@ type ClientTelemetryFields = {
   generationMode?: GenerationMode;
   pageCount?: number;
   wordCount?: number;
+  storyLength?: StoryLength;
 };
 
 function postTelemetry(payload: Record<string, unknown>) {
@@ -48,6 +49,7 @@ export function trackEvent(event: ClientEvent, fields: ClientTelemetryFields = {
     generationMode: fields.generationMode,
     pageCount: fields.pageCount,
     wordCount: fields.wordCount,
+    storyLength: fields.storyLength,
   });
 }
 

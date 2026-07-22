@@ -3,6 +3,7 @@ export const telemetryProducts = ["story", "monster", "emergency"] as const;
 export type TelemetryProduct = (typeof telemetryProducts)[number];
 
 export type GenerationMode = "ai" | "fallback" | "template";
+export type StoryLength = "short" | "long";
 
 type TelemetryFields = {
   product?: TelemetryProduct;
@@ -11,6 +12,7 @@ type TelemetryFields = {
   durationMs?: number;
   wordCount?: number;
   pageCount?: number;
+  storyLength?: StoryLength;
   errorCode?: "ai_error" | "configuration" | "invalid_request" | "rate_limited" | "unknown";
   aiProvider?: "gemini" | "vertex";
   model?: string;
@@ -47,6 +49,7 @@ export function logTelemetry(event: TelemetryEvent, fields: TelemetryFields = {}
     duration_ms: fields.durationMs,
     word_count: fields.wordCount,
     page_count: fields.pageCount,
+    story_length: fields.storyLength,
     error_code: fields.errorCode,
     ai_provider: fields.aiProvider,
     model: fields.model,

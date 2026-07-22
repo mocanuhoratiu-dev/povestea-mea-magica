@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { checkTelemetryRateLimit, requestExceedsBodyLimit } from "@/lib/requestProtection";
-import { isTelemetryProduct, logTelemetry, type GenerationMode } from "@/lib/telemetry";
+import { isTelemetryProduct, logTelemetry, type GenerationMode, type StoryLength } from "@/lib/telemetry";
 
 const CLIENT_EVENTS = new Set([
   "site_visited", "story_preview_started", "product_started", "generation_completed", "pdf_downloaded", "feedback_requested",
   "pdf_feedback_helpful", "pdf_feedback_not_helpful", "lumi_opened", "lumi_message_sent", "lumi_recommendation_applied", "lumi_voice_played", "lumi_response_failed",
 ]);
 const GENERATION_MODES = new Set<GenerationMode>(["ai", "fallback", "template"]);
+const STORY_LENGTHS = new Set<StoryLength>(["short", "long"]);
 
 function readBoundedInteger(value: unknown, max: number) {
   return typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= max ? value : undefined;
@@ -40,12 +41,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Sursă de generare necunoscută." }, { status: 400 });
     }
 
+    const storyLength = payload.storyLength;
+    if (storyLength !== undefined && (typeof storyLength !== "string" || !STORY_LENGTHS.has(storyLength as StoryLength))) {
+      return NextResponse.json({ error: "Lungime de poveste necunoscută." }, { status: 400 });
+    }
+
     logTelemetry(`pmm_${event}` as "pmm_site_visited" | "pmm_story_preview_started" | "pmm_product_started" | "pmm_generation_completed" | "pmm_pdf_downloaded" | "pmm_feedback_requested" | "pmm_pdf_feedback_helpful" | "pmm_pdf_feedback_not_helpful" | "pmm_lumi_opened" | "pmm_lumi_message_sent" | "pmm_lumi_recommendation_applied" | "pmm_lumi_voice_played" | "pmm_lumi_response_failed", {
       ...(isTelemetryProduct(product) ? { product } : {}),
       result: "success",
       ...(generationMode ? { generationMode: generationMode as GenerationMode } : {}),
       pageCount: readBoundedInteger(payload.pageCount, 50),
       wordCount: readBoundedInteger(payload.wordCount, 20_000),
+      ...(storyLength ? { storyLength: storyLength as StoryLength } : {}),
     });
 
     return new NextResponse(null, { status: 204, headers: { "Cache-Control": "no-store" } });

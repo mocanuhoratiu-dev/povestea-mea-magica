@@ -6,13 +6,13 @@ import { motion } from "framer-motion";
 const products = [
   {
     name: "Poveste PDF",
-    price: "29 lei",
-    description: "Poveste personalizată cu nume, vârstă, lume, lecție și detalii despre copil.",
+    price: "de la 19 lei",
+    description: "Alege o aventură scurtă de 5-7 minute sau una lungă de 12-15 minute, personalizată cu nume, lume, lecție și detalii despre copil.",
     href: "#creator",
     cta: "Creează povestea",
     accent: "border-brand-purple",
     badge: "Cel mai iubit",
-    features: ["Copertă ilustrată", "Text editabil înainte de PDF", "Descărcare locală"],
+    features: ["Scurtă: 2 pagini · Lungă: 4", "Copertă, dedicație și text editabil", "Descărcare locală"],
   },
   {
     name: "Scut Magic",
@@ -100,7 +100,7 @@ export default function Pricing() {
 
         <div className="mt-8 rounded-[2rem] border-2 border-brand-purple/15 bg-brand-purple/5 p-6 text-center">
           <p className="font-nunito text-2xl font-black text-brand-navy">
-            Pachet recomandat: toate cele 3 materiale la <span className="text-brand-purple">49 lei</span>
+            Pachet recomandat: povestea lungă, Scutul și Trusa la <span className="text-brand-purple">49 lei</span>
           </p>
           <p className="mt-2 text-sm font-bold text-brand-navy/55">
             Accesul de lansare este gratuit până la activarea plăților online.
