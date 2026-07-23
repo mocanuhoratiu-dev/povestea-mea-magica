@@ -10,8 +10,8 @@ Acesta este ghidul de operare fără Codex. Totul se face în **Google Cloud Con
 | Serviciu Cloud Run | `povestea-mea-magica` |
 | Regiune | `europe-west3` |
 | Service account | `povestea-mea-magica-ai@project-e0c2efff-d456-48f9-9fe.iam.gserviceaccount.com` |
-| Site live | `https://povestea-mea-magica-634103832719.europe-west3.run.app` |
-| Health check | `https://povestea-mea-magica-634103832719.europe-west3.run.app/api/health` |
+| Site live | `https://www.povestea-mea-magica.ro` |
+| Health check | `https://www.povestea-mea-magica.ro/api/health` |
 
 ## A. Prima intrare în Cloud Shell
 
@@ -75,14 +75,14 @@ Din același folder:
 bash scripts/deploy-cloud-run.sh
 ```
 
-Scriptul construiește aplicația, creează o revizie nouă, trimite tot traficul către ea și verifică `/api/health`. La final trebuie să vezi `ready: true` și `aiProvider: vertex`. `emailDelivery` devine `true` numai după activarea Resend de mai jos.
+Scriptul construiește aplicația, creează o revizie nouă, trimite tot traficul către ea și verifică `/api/health`. La final trebuie să vezi `ready: true`. Scriptul păstrează serviciul la maximum trei instanțe și patru cereri simultane pe instanță, pentru a ține costurile AI sub control.
 
 ## F. Testul live obligatoriu
 
 După fiecare deploy, verifică endpointul:
 
 ```bash
-curl -fsS https://povestea-mea-magica-634103832719.europe-west3.run.app/api/health
+curl -fsS https://www.povestea-mea-magica.ro/api/health
 ```
 
 Apoi deschide site-ul într-o fereastră incognito și testează:
@@ -94,6 +94,7 @@ Apoi deschide site-ul într-o fereastră incognito și testează:
 5. Scutul de Noapte și Trusa de Răbdare.
 6. Descărcarea PDF-urilor.
 7. Emailul, după activare.
+8. Domeniul fără `www`: trebuie să redirecționeze permanent către `https://www.povestea-mea-magica.ro`.
 
 ## G. Activează livrarea de PDF-uri prin email
 
@@ -162,3 +163,4 @@ Verifică `/api/health` și generează un PDF. Apoi repară în GitHub și redep
 - Cheile intră doar în Secret Manager sau variabile Cloud Run.
 - Fiecare deploy este urmat de health check și un test real.
 - Dacă un deploy nu e bun, rollback înainte de alte schimbări.
+- Nu trimite traficul public spre URL-ul Cloud Run: acesta redirecționează către domeniul principal.

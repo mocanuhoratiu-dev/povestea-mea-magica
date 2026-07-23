@@ -1,0 +1,9 @@
+.gcloudignore
+.git
+.gitignore
+.github
+.next
+node_modules
+outputs
+.env*
+*.pem

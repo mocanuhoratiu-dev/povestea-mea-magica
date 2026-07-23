@@ -130,11 +130,11 @@ Recomand ca semnul distinctiv al brandului să fie **Lanterna Magică**: o lante
 - un punct de siguranță pentru noapte;
 - o direcție mică și jucăușă în momentele de așteptare.
 
-Semnul trebuie desenat special pentru brand, ca vector original. Iconița standard cu scântei nu va fi logo-ul final. Poate rămâne temporar în interfață doar până la înlocuire.
+Logo-ul oficial este cartea-lanternă aurie pe fundal de cerneală. El rămâne recognoscibil la dimensiuni mici și devine semnul comun pentru site, favicon, emailuri, PDF-uri și profilele sociale.
 
 ### Sistemul de logo propus
 
-1. **Logo principal:** simbolul Lanternă Magică + „Povestea Mea Magică”.
+1. **Logo principal:** cartea-lanternă aurie + „Povestea Mea Magică”.
 2. **Logo compact:** simbolul + inițialele PMM pentru spații mici.
 3. **Semn singular:** lanterna pentru favicon, sigiliu PDF și avatar social.
 4. **Versiuni cromatice:** cerneală pe hârtie, hârtie pe cerneală, o singură culoare pentru print economic.
@@ -280,7 +280,7 @@ Fiecare material trebuie să poată fi identificat instant ca aparținând acelu
 
 ### Faza 1: fundația vizuală
 
-1. Construim logo-ul Lanternă Magică și favicon-ul.
+1. Logo-ul, favicon-ul și avatarul social sunt implementate cu semnul oficial carte-lanternă.
 2. Aplicăm paleta, tipografia și componentele comune în site.
 3. Uniformizăm navigarea, butoanele și limbajul de produs.
 

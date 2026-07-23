@@ -43,7 +43,7 @@ const quickPrompts = [
 
 const welcomeMessage: ChatMessage = {
   role: "model",
-  text: "Ce moment vreți să facem mai ușor: o poveste, seara sau o așteptare?",
+  text: "Spune-mi ce se întâmplă acum: vrei o poveste pentru seara asta, un ritual pentru culcare sau o activitate pentru un timp de așteptare?",
 };
 
 function LumiSpirit() {
@@ -233,7 +233,7 @@ export default function LumiGuide() {
   const latestMessage = messages[messages.length - 1];
 
   return (
-    <aside className={`fixed bottom-3 right-3 z-[9990] w-[calc(100vw-1.5rem)] max-w-[304px] transition-[opacity,width] duration-300 sm:bottom-5 sm:right-5 ${isOpen ? "max-md:w-[calc(100vw-1.5rem)] max-md:max-w-[380px]" : ""} ${!isOpen && heroIsVisible ? "max-md:pointer-events-none max-md:opacity-0" : ""}`} aria-label="Ghidul Lumi">
+    <aside className={`fixed bottom-3 right-5 z-[9990] w-[calc(100vw-2.5rem)] max-w-[304px] transition-[opacity,width] duration-300 sm:bottom-5 sm:right-7 ${isOpen ? "max-md:w-[calc(100vw-2.5rem)] max-md:max-w-[380px]" : ""} ${!isOpen && heroIsVisible ? "max-md:pointer-events-none max-md:opacity-0" : ""}`} aria-label="Ghidul Lumi">
       <AnimatePresence mode="wait">
         {isOpen ? (
           <motion.section
@@ -243,14 +243,14 @@ export default function LumiGuide() {
           >
             <div className="absolute inset-y-0 right-0 w-1 bg-brand-gold" />
             <header className="relative min-h-[66px] border-b border-brand-navy/12 px-3 pb-2.5 pt-3 pr-16 max-md:min-h-[62px]">
-              <LumiVisual className="absolute -right-3 -top-7 h-24 w-20" />
+              <LumiVisual className="absolute right-1 -top-7 h-24 w-20" />
               <p className="text-[10px] font-black uppercase tracking-[0.13em] text-brand-purple">Lanterna Magică</p>
               <h2 className="mt-0.5 max-w-[175px] font-serif text-base leading-tight text-brand-navy">Lumi, păzitoarea Lanternei</h2>
               <button type="button" onClick={resetGuide} className="absolute right-3 top-3 z-10 grid h-8 w-8 place-items-center text-brand-navy/55 transition-colors hover:bg-brand-navy hover:text-brand-cream" aria-label="Închide ghidul Lumi"><X size={17} /></button>
             </header>
 
             <div
-              className="max-h-[176px] space-y-2 overflow-y-auto overscroll-contain px-3 py-2.5 touch-pan-y max-md:max-h-[148px] [-webkit-overflow-scrolling:touch]"
+              className="max-h-[212px] space-y-2 overflow-y-auto overscroll-contain px-3 py-2.5 touch-pan-y max-md:max-h-[172px] [-webkit-overflow-scrolling:touch]"
               data-lenis-prevent
               aria-live="polite"
             >
@@ -272,7 +272,7 @@ export default function LumiGuide() {
                       </button>
                     </div>
                   )}
-                  <p className="text-xs font-semibold leading-relaxed">{message.text}</p>
+                  <p className="text-[13px] font-semibold leading-relaxed">{message.text}</p>
                   {recommendation && recommendation.product !== "none" && recommendationTarget(recommendation.product) && (
                     <button type="button" onClick={() => applyRecommendation(recommendation)} className="mt-2 flex w-full items-center justify-center gap-2 bg-brand-purple px-3 py-2 text-[11px] font-black text-white transition-colors hover:bg-brand-navy">
                       <Sparkles size={14} /> {recommendation.label || "Aplică recomandarea"} <ArrowRight size={14} />
@@ -311,8 +311,8 @@ export default function LumiGuide() {
             key="trigger" type="button" initial={{ opacity: 0, scale: 0.75 }} animate={{ opacity: 1, scale: 1 }} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
             onClick={() => { trackEvent("lumi_opened"); setIsOpen(true); }} className="group relative ml-auto grid h-14 w-14 place-items-center overflow-visible rounded-full border border-brand-gold/70 bg-brand-navy shadow-[0_14px_35px_rgba(36,50,79,0.32)] sm:h-16 sm:w-16" aria-label="Vorbește cu Lumi"
           >
-            <LumiVisual className="absolute left-1/2 top-1/2 h-[72px] w-[64px] -translate-x-1/2 -translate-y-1/2 transition-transform duration-300 group-hover:-translate-y-[54%] sm:h-[78px] sm:w-[68px]" />
-            <span className="absolute -bottom-2 left-1/2 hidden -translate-x-1/2 whitespace-nowrap bg-brand-cream px-2 py-1 text-[10px] font-black uppercase tracking-[0.1em] text-brand-navy shadow-sm sm:block">Întreab-o pe Lumi</span>
+            <LumiVisual className="absolute left-[45%] top-1/2 h-[72px] w-[64px] -translate-x-1/2 -translate-y-1/2 transition-transform duration-300 group-hover:-translate-y-[54%] sm:h-[78px] sm:w-[68px]" />
+            <span className="absolute -bottom-2 right-0 hidden whitespace-nowrap bg-brand-cream px-2 py-1 text-[10px] font-black uppercase tracking-[0.1em] text-brand-navy shadow-sm sm:block">Întreab-o pe Lumi</span>
           </motion.button>
         )}
       </AnimatePresence>

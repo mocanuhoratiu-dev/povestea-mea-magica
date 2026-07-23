@@ -3,6 +3,7 @@ import { GoogleGenAI } from "@google/genai";
 import https from "node:https";
 import { checkRateLimit, requestExceedsBodyLimit } from "@/lib/requestProtection";
 import { logTelemetry, type TelemetryProduct } from "@/lib/telemetry";
+import { readBoundedDuration, withTimeout } from "@/lib/aiTimeout";
 
 type GenerateRequest = {
   type?: "monster" | "story" | "emergency";
@@ -746,6 +747,7 @@ async function generateGeminiText({
   maxOutputTokens,
   thinkingBudget,
   temperature = 0.8,
+  timeoutMs = 30_000,
 }: {
   apiKey: string;
   prompt: string;
@@ -755,6 +757,7 @@ async function generateGeminiText({
   maxOutputTokens?: number;
   thinkingBudget?: number;
   temperature?: number;
+  timeoutMs?: number;
 }): Promise<GeminiTextResult> {
   const generationConfig = {
     ...(responseMimeType ? { responseMimeType } : {}),
@@ -800,7 +803,7 @@ async function generateGeminiText({
       request.on("error", (error) => {
         resolve({ statusCode: 500, responseBody: "", requestError: error.message });
       });
-      request.setTimeout(30000, () => {
+      request.setTimeout(timeoutMs, () => {
         request.destroy(new Error(`Modelul ${model} a depășit timpul de răspuns.`));
       });
       request.write(body);
@@ -839,6 +842,7 @@ async function generateVertexText({
   maxOutputTokens,
   thinkingBudget,
   temperature = 0.8,
+  timeoutMs = 30_000,
 }: Omit<Parameters<typeof generateGeminiText>[0], "apiKey">): Promise<GeminiTextResult> {
   const project = process.env.VERTEX_AI_PROJECT_ID?.trim();
   if (!project) {
@@ -853,17 +857,21 @@ async function generateVertexText({
       location: process.env.VERTEX_AI_LOCATION?.trim() || "global",
       ...(credentials ? { googleAuthOptions: { credentials } } : {}),
     });
-    const response = await client.models.generateContent({
-      model,
-      contents: prompt,
-      config: {
-        ...(responseMimeType ? { responseMimeType } : {}),
-        ...(responseJsonSchema ? { responseJsonSchema } : {}),
-        ...(maxOutputTokens ? { maxOutputTokens } : {}),
-        ...(thinkingBudget === undefined ? {} : { thinkingConfig: { thinkingBudget } }),
-        temperature,
-      },
-    });
+    const response = await withTimeout(
+      client.models.generateContent({
+        model,
+        contents: prompt,
+        config: {
+          ...(responseMimeType ? { responseMimeType } : {}),
+          ...(responseJsonSchema ? { responseJsonSchema } : {}),
+          ...(maxOutputTokens ? { maxOutputTokens } : {}),
+          ...(thinkingBudget === undefined ? {} : { thinkingConfig: { thinkingBudget } }),
+          temperature,
+        },
+      }),
+      timeoutMs,
+      `Modelul ${model} a depășit timpul de răspuns.`
+    );
     const text = response.text?.trim();
     if (!text) {
       return { error: `Vertex AI nu a returnat conținut pentru această cerere (${model}).` };
@@ -883,9 +891,10 @@ async function generateAiText({
   maxOutputTokens,
   thinkingBudget,
   temperature,
+  timeoutMs,
 }: Omit<Parameters<typeof generateGeminiText>[0], "apiKey">): Promise<GeminiTextResult> {
   if (getAiProvider() === "vertex") {
-    return generateVertexText({ prompt, model, responseMimeType, responseJsonSchema, maxOutputTokens, thinkingBudget, temperature });
+    return generateVertexText({ prompt, model, responseMimeType, responseJsonSchema, maxOutputTokens, thinkingBudget, temperature, timeoutMs });
   }
 
   const apiKey = process.env.GEMINI_API_KEY?.trim();
@@ -893,7 +902,7 @@ async function generateAiText({
     return { error: "GEMINI_API_KEY lipsește din configurare." };
   }
 
-  return generateGeminiText({ apiKey, prompt, model, responseMimeType, responseJsonSchema, maxOutputTokens, thinkingBudget, temperature });
+  return generateGeminiText({ apiKey, prompt, model, responseMimeType, responseJsonSchema, maxOutputTokens, thinkingBudget, temperature, timeoutMs });
 }
 
 function getGeminiModelCandidates() {
@@ -905,13 +914,16 @@ function getGeminiModelCandidates() {
     "gemini-2.5-flash-lite",
   ];
 
-  return Array.from(
+  const candidates = Array.from(
     new Set(
       configuredModels
         .map((model) => model?.trim())
         .filter((model): model is string => Boolean(model))
     )
   );
+
+  const maximumModels = readBoundedDuration(process.env.AI_FALLBACK_MAX_MODELS, 2, 1, 3);
+  return candidates.slice(0, maximumModels);
 }
 
 async function generateWithModelFallback({
@@ -926,8 +938,14 @@ async function generateWithModelFallback({
   temperature?: number;
 }): Promise<GeminiTextResult> {
   const errors: string[] = [];
+  const startedAt = Date.now();
+  const totalTimeoutMs = readBoundedDuration(process.env.AI_GENERATION_BUDGET_MS, 55_000, 10_000, 90_000);
+  const perModelTimeoutMs = readBoundedDuration(process.env.AI_MODEL_TIMEOUT_MS, 35_000, 5_000, 60_000);
 
   for (const model of getGeminiModelCandidates()) {
+    const remainingMs = totalTimeoutMs - (Date.now() - startedAt);
+    if (remainingMs < 4_000) break;
+
     const generated = await generateAiText({
       prompt,
       model,
@@ -936,6 +954,7 @@ async function generateWithModelFallback({
       maxOutputTokens,
       thinkingBudget: 0,
       temperature,
+      timeoutMs: Math.min(perModelTimeoutMs, remainingMs),
     });
 
     if (!("error" in generated)) {
@@ -1171,7 +1190,7 @@ Returnează doar JSON valid conform schemei, fără Markdown.`;
         return NextResponse.json({ success: true, data: { ...fallback, model: generated.model } });
       }
 
-      const continuationLimit = isLongStory ? 3 : 2;
+      const continuationLimit = 1;
       for (let attempt = 0; wordCount < minWords && attempt < continuationLimit; attempt += 1) {
         const targetWords = isLongStory
           ? Math.min(600, Math.max(420, minWords - wordCount + 80))

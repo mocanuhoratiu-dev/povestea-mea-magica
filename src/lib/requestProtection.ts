@@ -23,7 +23,10 @@ function readPositiveInteger(value: string | undefined, fallback: number) {
 
 function clientKey(request: Request) {
   const forwardedFor = request.headers.get("x-forwarded-for");
-  const ip = forwardedFor?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "unknown";
+  // Proxies append the client address to this list. The final value is harder to
+  // influence through a forged leading header than the first value.
+  const forwardedAddresses = forwardedFor?.split(",").map((address) => address.trim()).filter(Boolean);
+  const ip = forwardedAddresses?.[forwardedAddresses.length - 1] || request.headers.get("x-real-ip") || "unknown";
   return ip.slice(0, 128);
 }
 

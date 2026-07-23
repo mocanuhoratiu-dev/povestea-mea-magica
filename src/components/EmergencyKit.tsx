@@ -162,46 +162,6 @@ const EMERGENCY_STYLES = `
 .ek-diploma-stars { font-size: 36px; letter-spacing: 8px; }
 `;
 
-function loadScript(src: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const existing = document.querySelector<HTMLScriptElement>(`script[src="${src}"]`);
-
-    if (existing?.dataset.loaded === "true") {
-      resolve();
-      return;
-    }
-
-    if (existing?.dataset.loading === "true") {
-      existing.addEventListener("load", () => resolve(), { once: true });
-      existing.addEventListener("error", () => reject(new Error(`Nu am putut încărca ${src}.`)), { once: true });
-      return;
-    }
-
-    existing?.remove();
-
-    const script = document.createElement("script");
-    const timeout = window.setTimeout(() => {
-      script.remove();
-      reject(new Error(`Încărcarea a durat prea mult: ${src}.`));
-    }, 15000);
-
-    script.src = src;
-    script.dataset.loading = "true";
-    script.onload = () => {
-      window.clearTimeout(timeout);
-      script.dataset.loading = "false";
-      script.dataset.loaded = "true";
-      resolve();
-    };
-    script.onerror = () => {
-      window.clearTimeout(timeout);
-      script.remove();
-      reject(new Error(`Nu am putut încărca ${src}.`));
-    };
-    document.head.appendChild(script);
-  });
-}
-
 type PdfInstance = {
   internal: { pageSize: { getWidth: () => number; getHeight: () => number } };
   addImage: (imageData: string, format: string, x: number, y: number, width: number, height: number) => void;
@@ -213,22 +173,6 @@ type PdfInstance = {
   setTextColor: (r: number, g?: number, b?: number) => void;
   splitTextToSize: (text: string, maxWidth: number) => string[];
   text: (text: string | string[], x: number, y: number, options?: { lineHeightFactor?: number }) => void;
-};
-
-type PdfConstructor = new (orientation: "p", unit: "mm", format: "a4") => PdfInstance;
-type Html2Canvas = (
-  element: HTMLElement,
-  options: {
-    scale: number;
-    useCORS?: boolean;
-    logging?: boolean;
-    windowWidth?: number;
-    windowHeight?: number;
-  }
-) => Promise<HTMLCanvasElement>;
-type WindowWithPdfLibraries = Window & typeof globalThis & {
-  jspdf: { jsPDF: PdfConstructor };
-  html2canvas: Html2Canvas;
 };
 
 const contexts = [
@@ -574,13 +518,11 @@ export default function EmergencyKit() {
   };
 
   const renderEmergencyPdf = async (quality: "download" | "email" = "download") => {
-      await Promise.all([
-        loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'),
-        loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'),
+      const [{ jsPDF }, html2canvasModule] = await Promise.all([
+        import("jspdf"),
+        import("html2canvas"),
       ]);
-
-      const { jsPDF } = (window as WindowWithPdfLibraries).jspdf;
-      const html2canvas = (window as WindowWithPdfLibraries).html2canvas;
+      const html2canvas = html2canvasModule.default;
       const pdf = new jsPDF('p', 'mm', 'a4');
       const W = pdf.internal.pageSize.getWidth();
       const H = pdf.internal.pageSize.getHeight();

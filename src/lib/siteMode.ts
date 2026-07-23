@@ -15,7 +15,7 @@ export const commerce = {
   },
 };
 
-export const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://povestea-mea-magica-634103832719.europe-west3.run.app")
+export const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.povestea-mea-magica.ro")
   .replace(/\/+$/, "");
 
 export const siteCopy = {

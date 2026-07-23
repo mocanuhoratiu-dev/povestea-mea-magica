@@ -9,6 +9,8 @@ Produs digital Next.js în limba română: povești personalizate pentru copii, 
 - Livrare email: PDF-ul poate fi trimis ca atașament prin Resend după configurarea domeniului expeditor și a secretului Cloud Run. Comenzile sunt încă neactivate.
 - Generare AI: Vertex AI (Gemini) pentru text și Google Cloud Text-to-Speech pentru previzualizarea audio în română.
 - Observabilitate: evenimente agregate fără conținut personalizat pentru vizite, generări, fallback-uri, erori și descărcări PDF. Vezi [`docs/analytics.md`](docs/analytics.md).
+- Domeniu principal: `https://www.povestea-mea-magica.ro`; domeniul fără `www` și URL-ul Cloud Run se redirecționează aici în producție.
+- PDF: exportul folosește biblioteci incluse în aplicație, fără scripturi externe încărcate în momentul descărcării.
 
 ## Getting Started
 

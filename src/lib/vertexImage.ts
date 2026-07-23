@@ -1,4 +1,5 @@
 import { GoogleGenAI, Modality } from "@google/genai";
+import { readBoundedDuration, withTimeout } from "@/lib/aiTimeout";
 
 export type CoverGenerationResult =
   | { imageDataUrl: string; model: string; error?: never }
@@ -22,13 +23,15 @@ function getImageModels() {
     "gemini-2.5-flash-image",
   ];
 
-  return Array.from(
+  const models = Array.from(
     new Set(
       configuredModels
         .map((model) => model?.trim())
         .filter((model): model is string => Boolean(model))
     )
   );
+
+  return models.slice(0, readBoundedDuration(process.env.VERTEX_AI_IMAGE_MAX_MODELS, 2, 1, 3));
 }
 
 function cleanCoverPrompt(value: string) {
@@ -51,6 +54,7 @@ export async function generateVertexStoryCover(prompt: string): Promise<CoverGen
   if (!cleanPrompt) return { error: "Promptul pentru copertă este gol." };
 
   const errors: string[] = [];
+  const timeoutMs = readBoundedDuration(process.env.VERTEX_AI_COVER_TIMEOUT_MS, 35_000, 8_000, 60_000);
   let client: GoogleGenAI;
   try {
     const credentials = getVertexCredentials();
@@ -72,14 +76,18 @@ export async function generateVertexStoryCover(prompt: string): Promise<CoverGen
 
   for (const model of getImageModels()) {
     try {
-      const response = await client.models.generateContent({
-        model,
-        contents: coverPrompt,
-        config: {
-          responseModalities: [Modality.IMAGE],
-          imageConfig: { aspectRatio: "1:1", imageSize: "1K" },
-        },
-      });
+      const response = await withTimeout(
+        client.models.generateContent({
+          model,
+          contents: coverPrompt,
+          config: {
+            responseModalities: [Modality.IMAGE],
+            imageConfig: { aspectRatio: "1:1", imageSize: "1K" },
+          },
+        }),
+        timeoutMs,
+        `Coperta generată cu ${model} a depășit timpul de răspuns.`
+      );
       const imagePart = response.candidates
         ?.flatMap((candidate) => candidate.content?.parts || [])
         .find((part) => part.inlineData?.data && part.inlineData.mimeType?.startsWith("image/"));

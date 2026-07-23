@@ -162,7 +162,7 @@ export async function POST(request: Request) {
     const filename = readFilename(body.filename, `${product}-povestea-mea-magica.pdf`);
     const childName = readChildName(body.childName);
     const replyTo = process.env.EMAIL_REPLY_TO?.trim();
-    const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://povestea-mea-magica-634103832719.europe-west3.run.app").replace(/\/+$/, "");
+    const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.povestea-mea-magica.ro").replace(/\/+$/, "");
     const idempotencyKey = typeof body.deliveryId === "string" && /^[a-zA-Z0-9_-]{12,100}$/.test(body.deliveryId)
       ? body.deliveryId
       : undefined;

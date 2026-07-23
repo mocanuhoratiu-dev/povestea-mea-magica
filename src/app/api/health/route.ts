@@ -5,7 +5,12 @@ function configured(value: string | undefined) {
   return Boolean(value && value.trim().length > 0);
 }
 
-export function GET() {
+function canReadDiagnostics(request: Request) {
+  const token = process.env.HEALTHCHECK_TOKEN?.trim();
+  return Boolean(token && request.headers.get("x-healthcheck-token") === token);
+}
+
+export function GET(request: Request) {
   const aiProvider = process.env.AI_PROVIDER?.trim().toLowerCase() === "vertex" ? "vertex" : "gemini";
   const checks = {
     geminiApiKey: configured(process.env.GEMINI_API_KEY),
@@ -28,8 +33,9 @@ export function GET() {
     : checks.geminiApiKey;
   const ready = storyAiReady;
 
-  return NextResponse.json(
-    {
+  const diagnostics = canReadDiagnostics(request);
+  const payload = diagnostics
+    ? {
       ready,
       siteMode,
       aiProvider,
@@ -45,7 +51,15 @@ export function GET() {
         stripeCheckout: commerce.acceptsPayments,
       },
       timestamp: new Date().toISOString(),
-    },
-    { status: ready ? 200 : 503 }
-  );
+    }
+    : {
+      ready,
+      siteMode,
+      timestamp: new Date().toISOString(),
+    };
+
+  return NextResponse.json(payload, {
+    status: ready ? 200 : 503,
+    headers: { "Cache-Control": "no-store" },
+  });
 }

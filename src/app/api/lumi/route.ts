@@ -2,6 +2,7 @@ import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
 import { checkRateLimit, requestExceedsBodyLimit } from "@/lib/requestProtection";
 import { logTelemetry } from "@/lib/telemetry";
+import { readBoundedDuration, withTimeout } from "@/lib/aiTimeout";
 
 type LumiRole = "user" | "model";
 type LumiMessage = { role: LumiRole; text: string };
@@ -90,8 +91,9 @@ function lumiPrompt(history: LumiMessage[], message: string) {
 Vocea ta este caldă, imaginativă și precisă. Începe de preferat cu o imagine concretă legată de situația părintelui (de exemplu, o scoică ce păstrează liniștea serii), nu cu formulări publicitare. Alege un singur detaliu senzorial, un verb viu și o idee practică. Evită clișee precum „aripile viselor”, „o cale minunată”, „aventură magică” și excesul de diminutive. Răspunzi exclusiv în română. Ajută părintele să aleagă între produsele cu denumirile exacte: „Povestea de Seară”, „Scutul de Noapte” și „Trusa de Răbdare”. Pentru povești poți propune o lume și un ton din opțiunile disponibile.
 
 Reguli ferme:
-- Răspunsul are maximum 52 de cuvinte, într-un singur paragraf scurt.
-- Pune o singură întrebare de clarificare doar când chiar schimbă recomandarea.
+- Răspunsul are de regulă 70-110 cuvinte, în unul sau două paragrafe scurte. Nu sacrifica sensul, gramatica sau explicația doar ca să fie scurt.
+- Dacă ai suficiente detalii, răspunsul urmează firul: recunoști pe scurt momentul familiei, propui o idee aplicabilă chiar acum și explici în 1-2 fraze de ce materialul ales se potrivește. Încheie cu un pas firesc, nu cu o formulă publicitară.
+- Pune o singură întrebare de clarificare doar când chiar schimbă recomandarea. Dacă nu e necesară, nu adăuga o întrebare de umplutură.
 - Nu pretinde că ești terapeut, medic sau educator acreditat. Pentru emoții puternice sau probleme de sănătate, îndrumă blând părintele către un specialist.
 - Nu cere nume complet, adresă, fotografie, date de contact sau alte date sensibile despre copil.
 - Nu inventa prețuri, garanții sau funcții care nu există.
@@ -141,17 +143,21 @@ export async function POST(request: Request) {
       ...(credentials ? { googleAuthOptions: { credentials } } : {}),
     });
     const model = process.env.VERTEX_AI_LUMI_MODEL?.trim() || process.env.VERTEX_AI_MODEL?.trim() || "gemini-2.5-flash";
-    const response = await client.models.generateContent({
-      model,
-      contents: lumiPrompt(history, message),
-      config: {
-        responseMimeType: "application/json",
-        responseJsonSchema: LUMI_RESPONSE_SCHEMA,
-        maxOutputTokens: 260,
-        thinkingConfig: { thinkingBudget: 0 },
-        temperature: 0.95,
-      },
-    });
+    const response = await withTimeout(
+      client.models.generateContent({
+        model,
+        contents: lumiPrompt(history, message),
+        config: {
+          responseMimeType: "application/json",
+          responseJsonSchema: LUMI_RESPONSE_SCHEMA,
+          maxOutputTokens: 360,
+          thinkingConfig: { thinkingBudget: 0 },
+          temperature: 0.95,
+        },
+      }),
+      readBoundedDuration(process.env.VERTEX_AI_LUMI_TIMEOUT_MS, 18_000, 5_000, 45_000),
+      "Lumi a depășit timpul de răspuns."
+    );
 
     const rawResponse = response.text?.trim();
     if (!rawResponse) throw new Error("Lumi nu a găsit încă un răspuns.");
@@ -174,7 +180,7 @@ export async function POST(request: Request) {
     logTelemetry("pmm_lumi_response", { result: "success", durationMs: Date.now() - startedAt, aiProvider: "vertex", model });
 
     return NextResponse.json({
-      reply: cleanText(parsed.reply, 420) || "Lanterna mea caută încă firul potrivit. Mai spune-mi puțin despre momentul vostru.",
+      reply: cleanText(parsed.reply, 680) || "Ca să alegem un material care chiar vă ajută, spune-mi unde sunteți acum și ce ar face următoarele câteva minute mai ușoare.",
       suggestions: Array.isArray(parsed.suggestions) ? parsed.suggestions.map((item) => cleanText(item, 90)).filter(Boolean).slice(0, 3) : [],
       recommendation: {
         product,
