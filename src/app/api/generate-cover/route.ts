@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { checkRateLimit, requestExceedsBodyLimit } from "@/lib/requestProtection";
+import { logTelemetry } from "@/lib/telemetry";
 import { generateVertexStoryCover } from "@/lib/vertexImage";
 
 function readPrompt(value: unknown) {
@@ -8,6 +9,7 @@ function readPrompt(value: unknown) {
 }
 
 export async function POST(req: Request) {
+  const startedAt = Date.now();
   if (requestExceedsBodyLimit(req)) {
     return NextResponse.json(
       { success: false, error: "Cererea pentru copertă este prea mare." },
@@ -34,11 +36,26 @@ export async function POST(req: Request) {
     if ("error" in generated) {
       // The browser will use the non-personal Pollinations fallback. Do not log the prompt.
       console.warn("Vertex cover generation failed");
+      logTelemetry("pmm_story_cover_failed", {
+        product: "story",
+        result: "error",
+        errorCode: "ai_error",
+        durationMs: Date.now() - startedAt,
+        aiProvider: "vertex",
+      });
       return NextResponse.json(
         { success: false, error: "Coperta Vertex nu este disponibilă momentan." },
         { status: 503 }
       );
     }
+
+    logTelemetry("pmm_story_cover_completed", {
+      product: "story",
+      result: "success",
+      durationMs: Date.now() - startedAt,
+      aiProvider: "vertex",
+      model: generated.model,
+    });
 
     return NextResponse.json({
       success: true,
@@ -46,6 +63,13 @@ export async function POST(req: Request) {
     });
   } catch (error) {
     console.error("Cover generation request failed", error);
+    logTelemetry("pmm_story_cover_failed", {
+      product: "story",
+      result: "error",
+      errorCode: "unknown",
+      durationMs: Date.now() - startedAt,
+      aiProvider: "vertex",
+    });
     return NextResponse.json(
       { success: false, error: "Nu am putut regenera coperta acum." },
       { status: 500 }

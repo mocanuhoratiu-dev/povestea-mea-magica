@@ -3,7 +3,6 @@ import { GoogleGenAI } from "@google/genai";
 import https from "node:https";
 import { checkRateLimit, requestExceedsBodyLimit } from "@/lib/requestProtection";
 import { logTelemetry, type TelemetryProduct } from "@/lib/telemetry";
-import { generateVertexStoryCover } from "@/lib/vertexImage";
 
 type GenerateRequest = {
   type?: "monster" | "story" | "emergency";
@@ -471,9 +470,31 @@ function buildStableStoryPayload(data: GenerateRequest, theme: (typeof STORY_THE
     `În clipa următoare, ${name} era din nou în pat. Pe pernă nu mai era luminița, dar în piept rămăsese o căldură mică și sigură. Camera era liniștită, noaptea era prietenoasă, iar ${name} știa că, ori de câte ori va avea emoții, poate începe cu un pas mic, o vorbă sinceră și puțin curaj.`,
   ];
 
+  // The long edition is also the final safety net when a model cannot finish its answer.
+  // It needs to feel like a full evening story, not a shortened template with a longer label.
+  const longJourney = [
+    `După ce a făcut primul pas, ${name} a observat că poteca avea pe margini niște semne rotunde, ca niște ferestre minuscule. În fiecare se vedea o parte din ${worldDetail}: o lumină, o culoare sau un obiect care părea că așteaptă să fie ales. Paznicul i-a explicat că nu există un singur drum bun. Fiecare călător își face drumul mai clar atunci când observă cu atenție ce are deja în jurul lui. ${name} a privit încet, fără să se grăbească, și a ales semnul care îi amintea cel mai mult de acasă.`,
+    `Semnul s-a deschis ca o hartă mică, desenată pe o frunză luminoasă. Nu avea săgeți mari sau porți care să sperie, ci patru cercuri aurii. Primul cerc arăta locul unde urma să învețe să asculte. Al doilea, locul unde trebuia să aleagă. Al treilea, locul unde putea cere ajutor. Ultimul avea desenat felinarul. „Nu trebuie să faci totul dintr-odată”, i-a spus paznicul. „Harta se citește pas cu pas.” ${name} a împăturit frunza cu grijă și a mers mai departe.`,
+    `În curând au ajuns la o încăpere rotundă, plină de ${theme.scenery}. Acolo, fiecare lucru făcea un sunet mic: o clipire, un foșnet, o bătaie ușoară ca a unei inimi liniștite. Sunetele se amestecau, iar ${name} nu știa la început care contează. A închis ochii pentru o clipă și a ascultat din nou. A auzit un clinchet subțire, diferit de toate celelalte. Când l-a urmat, o ușă mică s-a deschis într-un perete pe care nimeni nu îl observase până atunci.`,
+    `Din spatele ușii a apărut ${theme.friend}, care ținea între lăbuțe o cutie de chibrituri goală. Nu era trist(ă), dar părea foarte preocupat(ă). În cutie se afla o scânteie mică, iar ${theme.friend} se temea că ar putea să o piardă. ${name} nu i-a luat cutia și nu i-a spus repede ce să facă. S-a așezat lângă el/ea, a privit scânteia împreună cu el/ea și a întrebat ce ar ajuta. Atunci prietenul cel mic a respirat mai ușor și i-a arătat drumul spre următorul cerc de pe hartă.`,
+    `Drumul nou trecea printr-o galerie de oglinzi line. În ele, ${name} nu vedea doar chipul său, ci și momente mici: un pas făcut cu curaj, o întrebare spusă cu voce tare, o clipă în care a așteptat fără să renunțe. Într-o oglindă apărea chiar nodul mic din burtică de mai devreme. ${name} a vrut să treacă repede mai departe, dar paznicul i-a amintit că și emoțiile au nevoie să fie observate. Când ${name} a spus: „Sunt puțin emoționat(ă), dar sunt aici”, oglinda s-a luminat ca o fereastră la apus.`,
+    `În capătul galeriei, harta a arătat al doilea cerc: o masă joasă, pe care se aflau trei chei. Una era aurie și strălucea foarte tare. Una era albastră și părea că promite o scurtătură. A treia era simplă, din lemn neted, și avea gravat un semn asemănător cu cel ales de ${name} la începutul drumului. Cheile nu vorbeau, dar fiecare invita la o alegere. ${name} s-a gândit la ce observase, la ce simțea și la drumul care se construia încet. A ales cheia simplă, fiindcă i se părea cea mai sinceră.`,
+    `Cheia a deschis o poartă spre o grădină cu lumini joase. Acolo, fiecare fir de iarbă purta câte o întrebare: „Ce te ajută când ceva e nou?”, „Cine poate merge lângă tine?”, „Care este pasul cel mai mic pe care îl poți face?” ${name} nu a trebuit să găsească răspunsuri perfecte. A ales câte un răspuns care i se potrivea în seara aceea. Uneori a spus că are nevoie de timp, alteori că ar vrea să întrebe pe cineva. Cu fiecare răspuns, o floare mică se deschidea și lăsa pe potecă o lumină caldă.`,
+    `În mijlocul grădinii era un pod îngust, alcătuit din plăcuțe rotunde. Pe fiecare plăcuță trebuia pus un cuvânt. Paznicul a scris primul: „respir”. ${theme.friend} a pus al doilea: „întreb”. Apoi toți s-au uitat la ${name}. După ce s-a gândit puțin, ${name} a ales cuvântul „încerc”. Când cele trei cuvinte au fost așezate unul lângă altul, plăcuțele s-au legat ca niște pietre sigure. Podul nu devenise mai puțin înalt, dar acum avea un ritm pe care îl puteai urma fără grabă.`,
+    `Dincolo de pod se vedea o fântână limpede. În apa ei se reflectau ${theme.scenery}, dar și felinarul care încă aștepta în depărtare. Pe marginea fântânii se afla o cană mică, cu un bilet: „Umple-o doar cu ce vrei să păstrezi.” ${name} a luat cana și a adunat, în imaginație, lucrurile bune de pe drum: harta de frunză, sunetul ascultat cu ochii închiși, ajutorul cerut cu blândețe și cuvântul pus pe pod. Apa din cană a început să lumineze încet, fără să stropească și fără să facă zgomot.`,
+    `Când au revenit la felinar, roata lui mare se mișca foarte puțin. Nu era stricată, ci avea nevoie ca mai multe gesturi mici să lucreze împreună. ${name} a turnat înăuntru lumina din cană, paznicul a așezat cheia, iar ${theme.friend} a adus cutia cu scânteia. Nimeni nu a făcut totul singur. Apoi ${name} a observat un loc gol și a înțeles ce mai lipsea: să spună clar ce a învățat. A rostit, pe înțelesul lui/ei, că poate merge mai departe chiar și atunci când are emoții.`,
+    `Felinarul s-a aprins o dată, apoi încă o dată, ca și cum ar fi verificat dacă toată lumea este pregătită. În loc să izbucnească într-o lumină mare, a trimis întâi patru raze mici, câte una spre fiecare cerc de pe hartă. Razele au atins încăperea sunetelor, galeria oglinzilor, grădina întrebărilor și podul cu cele trei cuvinte. Apoi au revenit la ${name}, adunându-se într-o lumină rotundă, suficient de blândă încât să poată fi ținută o clipă în palmă.`,
+    `Paznicul i-a spus că lumina nu avea să rămână prinsă într-un obiect. Ea se întorcea de fiecare dată când ${name} își amintea să observe, să respire și să aleagă un pas potrivit. ${name} a vrut să știe dacă drumul va fi mereu la fel. Paznicul a zâmbit și a răspuns că nu, pentru că fiecare seară poate avea alte emoții și alte întrebări. Dar harta putea fi refăcută de fiecare dată, iar primele trei cuvinte rămâneau aceleași: respir, întreb, încerc.`,
+  ];
+
   const text = (isShortStory
     ? [paragraphs[0], paragraphs[1], paragraphs[2], paragraphs[3], paragraphs[4], paragraphs[7], paragraphs[8], paragraphs[9], paragraphs[12]]
-    : paragraphs
+    : [
+        paragraphs[0], longJourney[0], paragraphs[1], longJourney[1], paragraphs[2], longJourney[2], longJourney[3],
+        paragraphs[3], longJourney[4], paragraphs[4], longJourney[5], paragraphs[5], longJourney[6], paragraphs[6],
+        longJourney[7], paragraphs[7], longJourney[8], paragraphs[8], longJourney[9], paragraphs[9], longJourney[10],
+        paragraphs[10], longJourney[11], paragraphs[11], paragraphs[12],
+      ]
   ).join("\n\n");
 
   return {
@@ -481,25 +502,7 @@ function buildStableStoryPayload(data: GenerateRequest, theme: (typeof STORY_THE
     text: normalizeRomanianText(text),
     imagePrompt: `English prompt: square children's book cover of ${name}, age ${age}, holding a tiny warm light on a path through ${themeLabel}, include ${theme.promptDetail}, ${childDetails || worldDetail}, gentle bedtime adventure about ${lesson}, premium watercolor and gouache, soft bedtime light, no text`,
     fallback: true,
-    note: `Am folosit varianta stabilă pentru că serviciul AI este temporar aglomerat. Textul poate fi editat înainte de PDF.`,
-  };
-}
-
-async function attachVertexCover<T extends { imagePrompt: string }>(story: T) {
-  const cover = await generateVertexStoryCover(story.imagePrompt);
-  if ("error" in cover) {
-    // The browser uses a generic, non-personal Pollinations image only if Vertex is unavailable.
-    console.warn("Vertex cover generation failed");
-    return {
-      ...story,
-      coverWarning: "Coperta AI nu este disponibilă momentan.",
-    };
-  }
-
-  return {
-    ...story,
-    coverImage: cover.imageDataUrl,
-    coverModel: cover.model,
+    note: `Am pregătit varianta completă a poveștii pentru formatul ales. Textul poate fi editat înainte de PDF.`,
   };
 }
 
@@ -519,13 +522,7 @@ function getStoryLengthConfig(age: string | undefined, storyLength: StoryLength 
     return { wordTarget: "850-950", minWords: 820, paragraphTarget: "10-11", maxOutputTokens: 3600, continuationParagraphTarget: "5-6" };
   }
 
-  if (ageNumber <= 3) {
-    return { wordTarget: "1.800-2.000", minWords: 1800, paragraphTarget: "20-22", maxOutputTokens: 6200, continuationParagraphTarget: "10-12" };
-  }
-  if (ageNumber <= 6) {
-    return { wordTarget: "2.000-2.200", minWords: 2000, paragraphTarget: "22-24", maxOutputTokens: 7000, continuationParagraphTarget: "10-12" };
-  }
-  return { wordTarget: "2.200-2.400", minWords: 2200, paragraphTarget: "24-26", maxOutputTokens: 7800, continuationParagraphTarget: "10-12" };
+  return { wordTarget: "1.800-2.000", minWords: 1800, paragraphTarget: "20-22", maxOutputTokens: 6200, continuationParagraphTarget: "5-6" };
 }
 
 function getWordCount(value: string) {
@@ -993,7 +990,6 @@ export async function POST(req: Request) {
       if (data.type === "story") {
         const theme = getStoryTheme(data.theme);
         const fallback = buildStableStoryPayload(data, theme);
-        const storyWithCover = await attachVertexCover(fallback);
         logTelemetry("pmm_generation_completed", {
           product,
           result: "success",
@@ -1003,7 +999,7 @@ export async function POST(req: Request) {
           storyLength: data.storyLength,
           aiProvider: getAiProvider(),
         });
-        return NextResponse.json({ success: true, data: storyWithCover });
+        return NextResponse.json({ success: true, data: fallback });
       }
 
       logTelemetry("pmm_generation_failed", {
@@ -1087,7 +1083,6 @@ Returnează doar JSON valid conform schemei, fără Markdown.`;
       });
       if ("error" in generated) {
         const fallback = buildStableStoryPayload(data, theme);
-        const storyWithCover = await attachVertexCover(fallback);
         logTelemetry("pmm_generation_completed", {
           product,
           result: "success",
@@ -1099,7 +1094,7 @@ Returnează doar JSON valid conform schemei, fără Markdown.`;
         });
         return NextResponse.json({
           success: true,
-          data: storyWithCover,
+          data: fallback,
           warning: generated.error,
         });
       }
@@ -1108,7 +1103,6 @@ Returnează doar JSON valid conform schemei, fără Markdown.`;
         result = sanitizeStoryPayload(parseStoryJson(generated.text), data.name || "Eroul", themeLabel);
       } catch {
         const fallback = buildStableStoryPayload(data, theme);
-        const storyWithCover = await attachVertexCover(fallback);
         logTelemetry("pmm_generation_completed", {
           product,
           result: "success",
@@ -1120,7 +1114,7 @@ Returnează doar JSON valid conform schemei, fără Markdown.`;
         });
         return NextResponse.json({
           success: true,
-          data: storyWithCover,
+          data: fallback,
           warning: "Răspunsul AI nu a putut fi citit ca JSON.",
         });
       }
@@ -1128,8 +1122,32 @@ Returnează doar JSON valid conform schemei, fără Markdown.`;
       // Gemini can occasionally stop early even with a generous output limit. Add a coherent
       // second act instead of returning a thin story that leaves most PDF pages blank.
       let wordCount = getWordCount(result.text);
-      for (let attempt = 0; wordCount < minWords && attempt < 2; attempt += 1) {
-        const targetWords = Math.max(300, minWords - wordCount + 160);
+      let continuationCount = 0;
+      const isLongStory = data.storyLength === "long";
+
+      // A long story that stops around 800 words is not a usable four-page edition. In that
+      // case the complete in-app fallback is both faster and more reliable than stacking long
+      // retry requests behind an already incomplete answer.
+      if (isLongStory && wordCount < 1_100) {
+        const fallback = buildStableStoryPayload(data, theme);
+        logTelemetry("pmm_generation_completed", {
+          product,
+          result: "success",
+          generationMode: "fallback",
+          durationMs: Date.now() - startedAt,
+          wordCount: getWordCount(fallback.text),
+          storyLength: data.storyLength,
+          aiProvider: getAiProvider(),
+          model: generated.model,
+        });
+        return NextResponse.json({ success: true, data: { ...fallback, model: generated.model } });
+      }
+
+      const continuationLimit = isLongStory ? 3 : 2;
+      for (let attempt = 0; wordCount < minWords && attempt < continuationLimit; attempt += 1) {
+        const targetWords = isLongStory
+          ? Math.min(600, Math.max(420, minWords - wordCount + 80))
+          : Math.max(300, minWords - wordCount + 160);
         const continuation = await generateStoryWithModelFallback({
           prompt: buildStoryContinuationPrompt({
             data,
@@ -1148,14 +1166,31 @@ Returnează doar JSON valid conform schemei, fără Markdown.`;
 
         try {
           const addition = sanitizeStoryPayload(parseStoryJson(continuation.text), data.name || "Eroul", themeLabel).text;
-          if (getWordCount(addition) < 400) {
+          if (getWordCount(addition) < (isLongStory ? 240 : 400)) {
             break;
           }
           result = { ...result, text: `${result.text}\n\n${addition}` };
           wordCount = getWordCount(result.text);
+          continuationCount += 1;
         } catch {
           break;
         }
+      }
+
+      if (isLongStory && wordCount < minWords) {
+        const fallback = buildStableStoryPayload(data, theme);
+        logTelemetry("pmm_generation_completed", {
+          product,
+          result: "success",
+          generationMode: "fallback",
+          durationMs: Date.now() - startedAt,
+          wordCount: getWordCount(fallback.text),
+          storyLength: data.storyLength,
+          aiProvider: getAiProvider(),
+          model: generated.model,
+          continuationCount,
+        });
+        return NextResponse.json({ success: true, data: { ...fallback, model: generated.model } });
       }
 
       logTelemetry("pmm_generation_completed", {
@@ -1167,11 +1202,11 @@ Returnează doar JSON valid conform schemei, fără Markdown.`;
         storyLength: data.storyLength,
         aiProvider: getAiProvider(),
         model: generated.model,
+        continuationCount,
       });
-      const storyWithCover = await attachVertexCover(result);
       return NextResponse.json({
         success: true,
-        data: { ...storyWithCover, model: generated.model },
+        data: { ...result, model: generated.model },
         ...(wordCount < minWords ? { warning: "Povestea este mai scurtă decât ținta din cauza unui răspuns AI incomplet." } : {}),
       });
     }

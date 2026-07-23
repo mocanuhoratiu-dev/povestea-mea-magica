@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Castle, Cloud, FileText, Footprints, Image as ImageIcon, RefreshCw, Rocket, ShieldCheck, Sparkles, Star, Trees, Waves } from "lucide-react";
 import LanternSignature from "@/components/LanternSignature";
@@ -482,9 +482,11 @@ export default function StoryCreator() {
   const [imagePrompt, setImagePrompt] = useState("");
   const [generationNote, setGenerationNote] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [isCoverLoading, setIsCoverLoading] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [showQuickRating, setShowQuickRating] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const coverRequestId = useRef(0);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -526,10 +528,6 @@ export default function StoryCreator() {
     return () => window.cancelAnimationFrame(frame);
   }, []);
 
-  const setPollinationsFallbackImage = () => {
-    setImageUrl(buildPollinationsFallbackUrl(selectedTheme, lesson));
-  };
-
   const buildStoryRequest = () => ({
     type: "story",
     name,
@@ -543,8 +541,45 @@ export default function StoryCreator() {
     storyLength,
   });
 
+  const generateCoverInBackground = async (coverPrompt: string) => {
+    const requestId = ++coverRequestId.current;
+    setIsCoverLoading(true);
+
+    try {
+      const response = await fetch("/api/generate-cover", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imagePrompt: coverPrompt }),
+      });
+      const result = await response.json();
+      const coverImage = result.data?.imageDataUrl;
+
+      if (!response.ok || !result.success || !coverImage) {
+        if (requestId === coverRequestId.current) {
+          setGenerationNote("Povestea este gata. Coperta personalizată poate fi încercată din nou puțin mai târziu.");
+        }
+        return;
+      }
+
+      if (requestId === coverRequestId.current) {
+        setImageUrl(coverImage);
+        setGenerationNote("");
+      }
+    } catch {
+      if (requestId === coverRequestId.current) {
+        setGenerationNote("Povestea este gata. Coperta personalizată poate fi încercată din nou puțin mai târziu.");
+      }
+    } finally {
+      if (requestId === coverRequestId.current) {
+        setIsCoverLoading(false);
+      }
+    }
+  };
+
   const handleGenerateStory = async () => {
     if (!name) return;
+    coverRequestId.current += 1;
+    setIsCoverLoading(false);
     trackEvent("product_started", { product: "story", storyLength });
     setIsLoading(true);
     try {
@@ -567,12 +602,13 @@ export default function StoryCreator() {
         setImagePrompt(coverPrompt);
         const notes = [
           data.fallback ? data.note || "Am pregătit o poveste completă pe baza alegerilor tale." : "",
-          data.coverWarning ? "Am pregătit o copertă temporară. O poți regenera oricând." : "",
+          "Povestea este gata. Coperta personalizată se pregătește în fundal.",
         ].filter(Boolean);
         setGenerationNote(notes.join(" "));
-        setImageUrl(data.coverImage || buildPollinationsFallbackUrl(selectedTheme, lesson));
+        setImageUrl(buildPollinationsFallbackUrl(selectedTheme, lesson));
         setShowQuickRating(false);
         setShowResult(true);
+        void generateCoverInBackground(coverPrompt);
       } else {
         throw new Error(result.error || "Eroare API");
       }
@@ -586,30 +622,8 @@ export default function StoryCreator() {
 
   const handleRegenerateImages = async () => {
     if (!storyText || !storyTitle) return;
-    setIsLoading(true);
-    try {
-      const response = await fetch("/api/generate-cover", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imagePrompt: imagePrompt || `${storyTitle}. ${storyText.slice(0, 700)}` }),
-      });
-      const result = await response.json();
-      const coverImage = result.data?.imageDataUrl;
-
-      if (!response.ok || !result.success || !coverImage) {
-        setPollinationsFallbackImage();
-        setGenerationNote("Am pregătit o copertă temporară. Poți încerca din nou peste câteva momente.");
-        return;
-      }
-
-      setImageUrl(coverImage);
-      setGenerationNote("");
-    } catch {
-      setPollinationsFallbackImage();
-      setGenerationNote("Am pregătit o copertă temporară. Poți încerca din nou peste câteva momente.");
-    } finally {
-      setIsLoading(false);
-    }
+    setGenerationNote("Pregătim o copertă personalizată nouă.");
+    await generateCoverInBackground(imagePrompt || `${storyTitle}. ${storyText.slice(0, 700)}`);
   };
 
     const [isSpeaking, setIsSpeaking] = useState(false);
@@ -840,10 +854,10 @@ export default function StoryCreator() {
                   </button>
                   <button
                     onClick={handleRegenerateImages}
-                    disabled={!storyText || isLoading}
+                    disabled={!storyText || isLoading || isCoverLoading}
                     className="flex items-center justify-center gap-2 bg-white text-brand-purple border-2 border-brand-purple/20 py-3 rounded-xl font-black text-sm shadow-sm hover:bg-brand-cream transition-all disabled:opacity-50"
                   >
-                    <ImageIcon className="w-4 h-4" /> Regenerează coperta
+                    <ImageIcon className="w-4 h-4" /> {isCoverLoading ? "Pregătim coperta..." : "Regenerează coperta"}
                   </button>
                 </div>
   
@@ -887,9 +901,10 @@ export default function StoryCreator() {
                 </button>
                 <button 
                   onClick={downloadPDF}
-                  className="bg-brand-pink text-white py-4 rounded-xl font-black text-sm md:text-base shadow-lg hover:scale-[1.02] active:scale-95 transition-all"
+                  disabled={isLoading || isCoverLoading}
+                  className="bg-brand-pink text-white py-4 rounded-xl font-black text-sm md:text-base shadow-lg hover:scale-[1.02] active:scale-95 transition-all disabled:cursor-wait disabled:opacity-60"
                 >
-                  Descarcă PDF 📥
+                  {isCoverLoading ? "Pregătim coperta..." : "Descarcă PDF 📥"}
                 </button>
               </div>
               <div className="bg-white/50 px-6 pb-6 md:px-8 md:pb-8">
