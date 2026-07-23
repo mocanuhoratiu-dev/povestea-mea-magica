@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck, Download, Sparkles, Star } from 'lucide-react';
 import BrandMark from './BrandMark';
 import MagicalLoader from './MagicalLoader';
 import FeedbackInvite from './FeedbackInvite';
 import QuickRating from './QuickRating';
+import EmailDelivery from './EmailDelivery';
 import { trackEvent } from "@/lib/clientTelemetry";
 import { useMobileProductVisibility } from "@/lib/mobileProductFlow";
 import MobileFlowSteps from "./MobileFlowSteps";
@@ -280,6 +281,7 @@ type PdfInstance = {
   addImage: (imageData: string, format: string, x: number, y: number, width: number, height: number) => void;
   addPage: () => void;
   save: (filename: string) => void;
+  output: (type: "blob") => Blob;
   setFont: (fontName: string, fontStyle?: string) => void;
   setFontSize: (size: number) => void;
   setTextColor: (r: number, g?: number, b?: number) => void;
@@ -531,6 +533,25 @@ export default function MonsterKit() {
   const [bedtimeRitual, setBedtimeRitual] = useState('');
   const [generatedContent, setGeneratedContent] = useState<MonsterKitContent | null>(null);
 
+  useEffect(() => {
+    const applyLumiChoice = (event: Event) => {
+      const detail = (event as CustomEvent<{
+        product?: string;
+        monsterType?: string;
+        fearLocation?: string;
+        calmingHelper?: string;
+        bedtimeRitual?: string;
+      }>).detail;
+      if (detail?.product !== 'monster') return;
+      if (detail.monsterType && monsters.some((monster) => monster.id === detail.monsterType)) setMonsterType(detail.monsterType);
+      if (detail.fearLocation) setFearLocation(detail.fearLocation);
+      if (detail.calmingHelper) setCalmingHelper(detail.calmingHelper);
+      if (detail.bedtimeRitual) setBedtimeRitual(detail.bedtimeRitual);
+    };
+    window.addEventListener('pmm:lumi-material-choice', applyLumiChoice);
+    return () => window.removeEventListener('pmm:lumi-material-choice', applyLumiChoice);
+  }, []);
+
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
@@ -577,9 +598,7 @@ export default function MonsterKit() {
       setShowResult(true);
     }
   };
-  const handleDownload = async () => {
-    setIsDownloading(true);
-    try {
+  const renderMonsterPdf = async (quality: 'download' | 'email' = 'download') => {
       await Promise.all([
         loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'),
         loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'),
@@ -597,20 +616,33 @@ export default function MonsterKit() {
         el.style.display = 'block';
         try {
           const canvas = await html2canvas(el, {
-            scale: 2.5, useCORS: true, logging: false,
+            scale: quality === 'email' ? 1.7 : 2.5, useCORS: true, logging: false,
             windowWidth: 794, windowHeight: 1123,
           });
           addSearchableTextLayer(pdf, el.innerText, W);
-          pdf.addImage(canvas.toDataURL('image/jpeg', 0.97), 'JPEG', 0, 0, W, H);
+          pdf.addImage(canvas.toDataURL('image/jpeg', quality === 'email' ? 0.86 : 0.97), 'JPEG', 0, 0, W, H);
         } finally {
           el.style.display = 'none';
         }
         if (i < 3) pdf.addPage();
       }
+      return pdf;
+  };
+
+  const createMonsterPdfBlob = async () => (await renderMonsterPdf('email')).output('blob');
+
+  const handleDownload = async () => {
+    setIsDownloading(true);
+    const renderStartedAt = Date.now();
+    trackEvent('pdf_render_started', { product: 'monster' });
+    try {
+      const pdf = await renderMonsterPdf();
       pdf.save(`Kit_Magic_${name.trim()}.pdf`);
+      trackEvent('pdf_render_completed', { product: 'monster', durationMs: Date.now() - renderStartedAt });
       trackEvent('pdf_downloaded', { product: 'monster', pageCount: 3 });
       setShowQuickRating(true);
     } catch (error) {
+      trackEvent('pdf_render_failed', { product: 'monster', durationMs: Date.now() - renderStartedAt });
       console.error(error);
       alert(error instanceof Error ? error.message : 'Nu am putut genera PDF-ul.');
     } finally {
@@ -822,6 +854,7 @@ export default function MonsterKit() {
                 >
                   <Download size={22} /> Descarcă PDF-ul Complet
                 </motion.button>
+                <EmailDelivery product="monster" filename={`Kit_Magic_${name.trim() || 'Erou'}.pdf`} createPdf={createMonsterPdfBlob} />
                 {showQuickRating && <QuickRating product="monster" />}
                 <FeedbackInvite product="monster" compact />
               </div>

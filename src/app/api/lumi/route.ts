@@ -9,6 +9,11 @@ type LumiMessage = { role: LumiRole; text: string };
 const PRODUCT_IDS = ["story", "monster", "emergency"] as const;
 const STORY_THEMES = ["space", "forest", "castle", "ocean", "dinosaurs", "clouds"] as const;
 const STORY_TONES = ["Liniștită de somn", "Aventură blândă", "Amuzantă", "Emoțională și caldă"] as const;
+const STORY_LESSONS = ["Curaj și încredere 💪", "Împărțitul jucăriilor 🧸", "Rutina de somn 🌙", "Importanța prieteniei 🤝", "Descoperirea naturii 🌱"] as const;
+const MONSTER_TYPES = ["umbrele noptii", "monstrul de sub pat", "zgomotele ciudate", "dulapul scartaitor", "frica de intuneric", "vise urate"] as const;
+const EMERGENCY_CONTEXTS = ["la restaurant, asteptand mancarea", "la un drum lung cu masina", "in sala de asteptare la doctor", "in casa, ploua afara", "in aeroport sau avion", "la coada sau institutii"] as const;
+const EMERGENCY_DURATIONS = ["5-10 minute", "10-20 minute", "20+ minute"] as const;
+const EMERGENCY_ACTIVITY_MODES = ["liniștite", "cu mișcare mică", "mix"] as const;
 
 const LUMI_RESPONSE_SCHEMA = {
   type: "object",
@@ -25,11 +30,21 @@ const LUMI_RESPONSE_SCHEMA = {
     recommendation: {
       type: "object",
       additionalProperties: false,
-      required: ["product", "theme", "tone", "label"],
+      required: ["product", "theme", "tone", "lesson", "storyDetail", "monsterType", "fearLocation", "calmingHelper", "bedtimeRitual", "emergencyContext", "interest", "duration", "activityMode", "label"],
       properties: {
         product: { type: "string", enum: [...PRODUCT_IDS, "none"] },
         theme: { type: "string", enum: [...STORY_THEMES, "none"] },
         tone: { type: "string", enum: [...STORY_TONES, "none"] },
+        lesson: { type: "string", enum: [...STORY_LESSONS, "none"] },
+        storyDetail: { type: "string" },
+        monsterType: { type: "string", enum: [...MONSTER_TYPES, "none"] },
+        fearLocation: { type: "string" },
+        calmingHelper: { type: "string" },
+        bedtimeRitual: { type: "string" },
+        emergencyContext: { type: "string", enum: [...EMERGENCY_CONTEXTS, "none"] },
+        interest: { type: "string" },
+        duration: { type: "string", enum: [...EMERGENCY_DURATIONS, "none"] },
+        activityMode: { type: "string", enum: [...EMERGENCY_ACTIVITY_MODES, "none"] },
         label: { type: "string" },
       },
     },
@@ -75,12 +90,13 @@ function lumiPrompt(history: LumiMessage[], message: string) {
 Vocea ta este caldă, imaginativă și precisă. Începe de preferat cu o imagine concretă legată de situația părintelui (de exemplu, o scoică ce păstrează liniștea serii), nu cu formulări publicitare. Alege un singur detaliu senzorial, un verb viu și o idee practică. Evită clișee precum „aripile viselor”, „o cale minunată”, „aventură magică” și excesul de diminutive. Răspunzi exclusiv în română. Ajută părintele să aleagă între produsele cu denumirile exacte: „Povestea de Seară”, „Scutul de Noapte” și „Trusa de Răbdare”. Pentru povești poți propune o lume și un ton din opțiunile disponibile.
 
 Reguli ferme:
-- Răspunsul are maximum 85 de cuvinte și maximum două paragrafe scurte.
+- Răspunsul are maximum 52 de cuvinte, într-un singur paragraf scurt.
 - Pune o singură întrebare de clarificare doar când chiar schimbă recomandarea.
 - Nu pretinde că ești terapeut, medic sau educator acreditat. Pentru emoții puternice sau probleme de sănătate, îndrumă blând părintele către un specialist.
 - Nu cere nume complet, adresă, fotografie, date de contact sau alte date sensibile despre copil.
 - Nu inventa prețuri, garanții sau funcții care nu există.
-- Recomandarea este opțională. Setează product/theme/tone la "none" când nu există o alegere sigură; label devine șir gol.
+- Recomandarea este opțională. Setează toate câmpurile nefolosite la "none" sau șir gol. Nu inventa detalii despre familie: completezi câmpurile de material doar când sunt susținute direct de conversație. Nu folosi un nume din conversație în câmpurile de material.
+- Când recomanzi "Povestea de Seară", poți seta theme, tone, lesson și storyDetail. Când recomanzi "Scutul de Noapte", poți seta monsterType, fearLocation, calmingHelper și bedtimeRitual. Când recomanzi "Trusa de Răbdare", poți seta emergencyContext, interest, duration și activityMode. Label-ul spune concis ce va fi aplicat în formular.
 - Sugestiile sunt maximum 3 întrebări scurte ori direcții de continuare, nu propoziții lungi.
 
 Conversația de până acum:
@@ -131,7 +147,7 @@ export async function POST(request: Request) {
       config: {
         responseMimeType: "application/json",
         responseJsonSchema: LUMI_RESPONSE_SCHEMA,
-        maxOutputTokens: 320,
+        maxOutputTokens: 260,
         thinkingConfig: { thinkingBudget: 0 },
         temperature: 0.95,
       },
@@ -149,16 +165,31 @@ export async function POST(request: Request) {
     const product = PRODUCT_IDS.includes(recommendation.product as (typeof PRODUCT_IDS)[number]) ? recommendation.product : "none";
     const theme = STORY_THEMES.includes(recommendation.theme as (typeof STORY_THEMES)[number]) ? recommendation.theme : "none";
     const tone = STORY_TONES.includes(recommendation.tone as (typeof STORY_TONES)[number]) ? recommendation.tone : "none";
+    const lesson = STORY_LESSONS.includes(recommendation.lesson as (typeof STORY_LESSONS)[number]) ? recommendation.lesson : "none";
+    const monsterType = MONSTER_TYPES.includes(recommendation.monsterType as (typeof MONSTER_TYPES)[number]) ? recommendation.monsterType : "none";
+    const emergencyContext = EMERGENCY_CONTEXTS.includes(recommendation.emergencyContext as (typeof EMERGENCY_CONTEXTS)[number]) ? recommendation.emergencyContext : "none";
+    const duration = EMERGENCY_DURATIONS.includes(recommendation.duration as (typeof EMERGENCY_DURATIONS)[number]) ? recommendation.duration : "none";
+    const activityMode = EMERGENCY_ACTIVITY_MODES.includes(recommendation.activityMode as (typeof EMERGENCY_ACTIVITY_MODES)[number]) ? recommendation.activityMode : "none";
 
     logTelemetry("pmm_lumi_response", { result: "success", durationMs: Date.now() - startedAt, aiProvider: "vertex", model });
 
     return NextResponse.json({
-      reply: cleanText(parsed.reply, 700) || "Lanterna mea caută încă firul potrivit. Mai spune-mi puțin despre momentul vostru.",
+      reply: cleanText(parsed.reply, 420) || "Lanterna mea caută încă firul potrivit. Mai spune-mi puțin despre momentul vostru.",
       suggestions: Array.isArray(parsed.suggestions) ? parsed.suggestions.map((item) => cleanText(item, 90)).filter(Boolean).slice(0, 3) : [],
       recommendation: {
         product,
         theme,
         tone,
+        lesson,
+        storyDetail: cleanText(recommendation.storyDetail, 100),
+        monsterType,
+        fearLocation: cleanText(recommendation.fearLocation, 80),
+        calmingHelper: cleanText(recommendation.calmingHelper, 80),
+        bedtimeRitual: cleanText(recommendation.bedtimeRitual, 80),
+        emergencyContext,
+        interest: cleanText(recommendation.interest, 80),
+        duration,
+        activityMode,
         label: product === "none" ? "" : cleanText(recommendation.label, 80),
       },
     });

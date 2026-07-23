@@ -32,6 +32,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: "Nu am primit detaliile pentru copertă." }, { status: 400 });
     }
 
+    logTelemetry("pmm_story_cover_started", {
+      product: "story",
+      result: "success",
+      aiProvider: "vertex",
+    });
+
     const generated = await generateVertexStoryCover(prompt);
     if ("error" in generated) {
       // The browser will use the non-personal Pollinations fallback. Do not log the prompt.

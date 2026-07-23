@@ -16,6 +16,16 @@ type Recommendation = {
   product: ProductId;
   theme: string;
   tone: string;
+  lesson: string;
+  storyDetail: string;
+  monsterType: string;
+  fearLocation: string;
+  calmingHelper: string;
+  bedtimeRitual: string;
+  emergencyContext: string;
+  interest: string;
+  duration: string;
+  activityMode: string;
   label: string;
 };
 type ChatMessage = {
@@ -26,14 +36,14 @@ type ChatMessage = {
 };
 
 const quickPrompts = [
-  { label: "Avem nevoie de o poveste", prompt: "Vreau o idee de poveste personalizată pentru copilul meu.", icon: BookOpen },
-  { label: "Seară mai liniștită", prompt: "Copilul meu are nevoie de un ritual mai liniștit înainte de culcare.", icon: MoonStar },
-  { label: "Un drum mai ușor", prompt: "Avem un drum sau o perioadă de așteptare și vreau o activitate potrivită.", icon: TimerReset },
+  { label: "O poveste", prompt: "Vreau o idee de poveste personalizată pentru copilul meu.", icon: BookOpen },
+  { label: "O seară", prompt: "Copilul meu are nevoie de un ritual mai liniștit înainte de culcare.", icon: MoonStar },
+  { label: "O așteptare", prompt: "Avem un drum sau o perioadă de așteptare și vreau o activitate potrivită.", icon: TimerReset },
 ];
 
 const welcomeMessage: ChatMessage = {
   role: "model",
-  text: "Lanterna mea a zărit trei drumuri luminoase: o aventură de citit împreună, un ritual pentru seară sau o misiune care face așteptarea mai blândă. Ce fel de moment vreți să îmblânzim azi?",
+  text: "Ce moment vreți să facem mai ușor: o poveste, seara sau o așteptare?",
 };
 
 function LumiSpirit() {
@@ -99,7 +109,6 @@ function recommendationTarget(product: ProductId) {
 export default function LumiGuide() {
   const [isOpen, setIsOpen] = useState(false);
   const [heroIsVisible, setHeroIsVisible] = useState(true);
-  const [productFlowIsVisible, setProductFlowIsVisible] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([welcomeMessage]);
   const [input, setInput] = useState("");
   const [isThinking, setIsThinking] = useState(false);
@@ -112,24 +121,6 @@ export default function LumiGuide() {
     if (!hero) return;
     const observer = new IntersectionObserver(([entry]) => setHeroIsVisible(entry.isIntersecting), { threshold: 0.15 });
     observer.observe(hero);
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
-    const productSections = ["creator", "monster-away", "emergency-kit"]
-      .map((id) => document.getElementById(id))
-      .filter((section): section is HTMLElement => Boolean(section));
-    const visibleSections = new Set<HTMLElement>();
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        const section = entry.target as HTMLElement;
-        if (entry.isIntersecting) visibleSections.add(section);
-        else visibleSections.delete(section);
-      });
-      setProductFlowIsVisible(visibleSections.size > 0);
-    }, { threshold: 0.18 });
-
-    productSections.forEach((section) => observer.observe(section));
     return () => observer.disconnect();
   }, []);
 
@@ -188,13 +179,9 @@ export default function LumiGuide() {
       trackEvent("lumi_recommendation_applied", { product: recommendation.product });
     }
     if (recommendation.product === "story") {
-      window.dispatchEvent(new CustomEvent("pmm:lumi-story-choice", {
-        detail: {
-          ...(recommendation.theme !== "none" ? { theme: recommendation.theme } : {}),
-          ...(recommendation.tone !== "none" ? { tone: recommendation.tone } : {}),
-        },
-      }));
+      window.dispatchEvent(new CustomEvent("pmm:lumi-story-choice", { detail: recommendation }));
     }
+    window.dispatchEvent(new CustomEvent("pmm:lumi-material-choice", { detail: recommendation }));
     if (recommendation.product !== "none") {
       openMobileProduct(recommendation.product);
     } else {
@@ -246,32 +233,31 @@ export default function LumiGuide() {
   const latestMessage = messages[messages.length - 1];
 
   return (
-    <aside className={`fixed bottom-4 right-4 z-[9990] w-[calc(100vw-2.5rem)] max-w-[350px] transition-[opacity,width,inset] duration-300 sm:right-6 md:bottom-6 md:w-[calc(100vw-2rem)] ${isOpen ? "max-md:inset-x-0 max-md:bottom-0 max-md:w-auto max-md:max-w-none" : ""} ${!isOpen && (heroIsVisible || productFlowIsVisible) ? "max-md:pointer-events-none max-md:opacity-0" : ""}`} aria-label="Ghidul Lumi">
+    <aside className={`fixed bottom-3 right-3 z-[9990] w-[calc(100vw-1.5rem)] max-w-[304px] transition-[opacity,width] duration-300 sm:bottom-5 sm:right-5 ${isOpen ? "max-md:w-[calc(100vw-1.5rem)] max-md:max-w-[380px]" : ""} ${!isOpen && heroIsVisible ? "max-md:pointer-events-none max-md:opacity-0" : ""}`} aria-label="Ghidul Lumi">
       <AnimatePresence mode="wait">
         {isOpen ? (
           <motion.section
             key="guide"
             initial={{ opacity: 0, y: 18, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 12, scale: 0.96 }} transition={{ duration: 0.28, ease: "easeOut" }}
-            className="relative overflow-hidden border border-brand-gold/50 bg-brand-cream shadow-[0_20px_55px_rgba(36,50,79,0.3)] max-md:max-h-[72dvh] max-md:rounded-t-lg max-md:border-x-0 max-md:border-b-0"
+            className="relative max-h-[min(470px,calc(100dvh-1.5rem))] overflow-hidden border border-brand-gold/50 bg-brand-cream shadow-[0_20px_55px_rgba(36,50,79,0.3)] max-md:max-h-[min(430px,calc(100dvh-1.5rem))]"
           >
             <div className="absolute inset-y-0 right-0 w-1 bg-brand-gold" />
-            <header className="relative min-h-[98px] border-b border-brand-navy/12 px-5 pb-4 pt-5 pr-24 max-md:min-h-[84px] max-md:px-4 max-md:pb-3 max-md:pt-4">
-              <LumiVisual className="absolute -right-5 -top-8 h-36 w-28" />
-              <p className="text-[11px] font-black uppercase tracking-[0.15em] text-brand-purple">Lanterna Magică</p>
-              <h2 className="mt-1 max-w-[220px] font-serif text-xl leading-tight text-brand-navy">Lumi, păzitoarea Lanternei</h2>
-              <p className="mt-1 text-xs font-bold text-brand-navy/55">Ghid creativ pentru părinți</p>
+            <header className="relative min-h-[66px] border-b border-brand-navy/12 px-3 pb-2.5 pt-3 pr-16 max-md:min-h-[62px]">
+              <LumiVisual className="absolute -right-3 -top-7 h-24 w-20" />
+              <p className="text-[10px] font-black uppercase tracking-[0.13em] text-brand-purple">Lanterna Magică</p>
+              <h2 className="mt-0.5 max-w-[175px] font-serif text-base leading-tight text-brand-navy">Lumi, păzitoarea Lanternei</h2>
               <button type="button" onClick={resetGuide} className="absolute right-3 top-3 z-10 grid h-8 w-8 place-items-center text-brand-navy/55 transition-colors hover:bg-brand-navy hover:text-brand-cream" aria-label="Închide ghidul Lumi"><X size={17} /></button>
             </header>
 
             <div
-              className="max-h-[min(300px,calc(100dvh-400px))] space-y-3 overflow-y-auto overscroll-contain px-4 py-4 touch-pan-y max-md:max-h-[min(290px,calc(100dvh-312px))] [-webkit-overflow-scrolling:touch]"
+              className="max-h-[176px] space-y-2 overflow-y-auto overscroll-contain px-3 py-2.5 touch-pan-y max-md:max-h-[148px] [-webkit-overflow-scrolling:touch]"
               data-lenis-prevent
               aria-live="polite"
             >
               {messages.map((message, index) => {
                 const recommendation = message.recommendation;
                 return (
-                <div key={`${message.role}-${index}`} className={message.role === "user" ? "ml-9 bg-brand-navy px-3 py-2.5 text-brand-cream" : "mr-5 border border-brand-purple/14 bg-white/65 px-3 py-3 text-brand-navy"}>
+                <div key={`${message.role}-${index}`} className={message.role === "user" ? "ml-7 bg-brand-navy px-3 py-2 text-brand-cream" : "mr-3 border border-brand-purple/14 bg-white/65 px-3 py-2 text-brand-navy"}>
                   {message.role === "model" && (
                     <div className="mb-1 flex items-center justify-between gap-2">
                       <p className="text-[10px] font-black uppercase tracking-[0.12em] text-brand-purple">Lumi</p>
@@ -286,46 +272,46 @@ export default function LumiGuide() {
                       </button>
                     </div>
                   )}
-                  <p className="text-sm font-semibold leading-relaxed">{message.text}</p>
+                  <p className="text-xs font-semibold leading-relaxed">{message.text}</p>
                   {recommendation && recommendation.product !== "none" && recommendationTarget(recommendation.product) && (
-                    <button type="button" onClick={() => applyRecommendation(recommendation)} className="mt-3 flex w-full items-center justify-center gap-2 bg-brand-purple px-3 py-2 text-xs font-black text-white transition-colors hover:bg-brand-navy">
+                    <button type="button" onClick={() => applyRecommendation(recommendation)} className="mt-2 flex w-full items-center justify-center gap-2 bg-brand-purple px-3 py-2 text-[11px] font-black text-white transition-colors hover:bg-brand-navy">
                       <Sparkles size={14} /> {recommendation.label || "Aplică recomandarea"} <ArrowRight size={14} />
                     </button>
                   )}
                 </div>
                 );
               })}
-              {isThinking && <div className="mr-5 flex items-center gap-2 border border-brand-purple/14 bg-white/65 px-3 py-3 text-sm font-bold text-brand-navy/65"><LoaderCircle size={16} className="animate-spin text-brand-purple" /> Lumi aprinde o idee...</div>}
+              {isThinking && <div className="mr-3 flex items-center gap-2 border border-brand-purple/14 bg-white/65 px-3 py-2 text-xs font-bold text-brand-navy/65"><LoaderCircle size={14} className="animate-spin text-brand-purple" /> Lumi se gândește...</div>}
             </div>
 
             {!isThinking && messages.length === 1 && (
-              <div className="flex flex-wrap gap-2 border-t border-brand-navy/10 px-4 py-3">
-                {quickPrompts.map(({ label, prompt, icon: Icon }) => <button key={label} type="button" onClick={() => void sendMessage(prompt)} className="flex items-center gap-1.5 border border-brand-purple/20 px-2.5 py-2 text-left text-[11px] font-black text-brand-purple transition-colors hover:bg-brand-purple hover:text-white"><Icon size={13} /> {label}</button>)}
+              <div className="flex flex-wrap gap-1.5 border-t border-brand-navy/10 px-3 py-2.5">
+                {quickPrompts.map(({ label, prompt, icon: Icon }) => <button key={label} type="button" onClick={() => void sendMessage(prompt)} className="flex items-center gap-1.5 border border-brand-purple/20 px-2 py-1.5 text-left text-[10px] font-black text-brand-purple transition-colors hover:bg-brand-purple hover:text-white"><Icon size={12} /> {label}</button>)}
               </div>
             )}
 
             {!isThinking && latestMessage?.role === "model" && latestMessage.suggestions && latestMessage.suggestions.length > 0 && (
-              <div className="flex flex-wrap gap-2 border-t border-brand-navy/10 px-4 py-3">
-                {latestMessage.suggestions.map((suggestion) => <button key={suggestion} type="button" onClick={() => void sendMessage(suggestion)} className="border border-brand-purple/20 px-2.5 py-2 text-left text-[11px] font-black text-brand-purple transition-colors hover:bg-brand-purple hover:text-white">{suggestion}</button>)}
+              <div className="flex flex-wrap gap-1.5 border-t border-brand-navy/10 px-3 py-2.5">
+                {latestMessage.suggestions.map((suggestion) => <button key={suggestion} type="button" onClick={() => void sendMessage(suggestion)} className="border border-brand-purple/20 px-2 py-1.5 text-left text-[10px] font-black text-brand-purple transition-colors hover:bg-brand-purple hover:text-white">{suggestion}</button>)}
               </div>
             )}
 
-            <form onSubmit={onSubmit} className="border-t border-brand-navy/12 p-3">
+            <form onSubmit={onSubmit} className="border-t border-brand-navy/12 p-2.5">
               <label className="sr-only" htmlFor="lumi-message">Mesaj pentru Lumi</label>
               <div className="flex gap-2">
-                <input ref={inputRef} id="lumi-message" value={input} onChange={(event) => setInput(event.target.value)} maxLength={500} placeholder="Spune-i lui Lumi ce aveți nevoie..." className="min-w-0 flex-1 border border-brand-navy/18 bg-white px-3 py-2.5 text-sm font-semibold text-brand-navy outline-none placeholder:text-brand-navy/40 focus:border-brand-purple" />
-                <button type="submit" disabled={!input.trim() || isThinking} className="grid h-10 w-10 shrink-0 place-items-center bg-brand-navy text-brand-cream transition-colors hover:bg-brand-purple disabled:cursor-not-allowed disabled:opacity-40" aria-label="Trimite mesajul"><Send size={16} /></button>
+                <input ref={inputRef} id="lumi-message" value={input} onChange={(event) => setInput(event.target.value)} maxLength={500} placeholder="Spune-i lui Lumi..." className="min-w-0 flex-1 border border-brand-navy/18 bg-white px-3 py-2 text-[13px] font-semibold text-brand-navy outline-none placeholder:text-brand-navy/40 focus:border-brand-purple" />
+                <button type="submit" disabled={!input.trim() || isThinking} className="grid h-9 w-9 shrink-0 place-items-center bg-brand-navy text-brand-cream transition-colors hover:bg-brand-purple disabled:cursor-not-allowed disabled:opacity-40" aria-label="Trimite mesajul"><Send size={15} /></button>
               </div>
               {error && <p className="mt-2 text-xs font-bold leading-relaxed text-red-700">{error}</p>}
-              <p className="mt-2 text-[10px] font-semibold leading-relaxed text-brand-navy/48">Lumi este un ghid pentru părinți. Nu introduce date personale sau sensibile despre copil.</p>
+              <p className="mt-1.5 text-[9px] font-semibold leading-relaxed text-brand-navy/48">Nu introduce date personale sau sensibile.</p>
             </form>
           </motion.section>
         ) : (
           <motion.button
             key="trigger" type="button" initial={{ opacity: 0, scale: 0.75 }} animate={{ opacity: 1, scale: 1 }} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
-            onClick={() => { trackEvent("lumi_opened"); setIsOpen(true); }} className="group relative ml-auto grid h-14 w-14 place-items-center overflow-visible rounded-full border border-brand-gold/70 bg-brand-navy shadow-[0_14px_35px_rgba(36,50,79,0.32)] sm:h-[78px] sm:w-[78px]" aria-label="Vorbește cu Lumi"
+            onClick={() => { trackEvent("lumi_opened"); setIsOpen(true); }} className="group relative ml-auto grid h-14 w-14 place-items-center overflow-visible rounded-full border border-brand-gold/70 bg-brand-navy shadow-[0_14px_35px_rgba(36,50,79,0.32)] sm:h-16 sm:w-16" aria-label="Vorbește cu Lumi"
           >
-            <LumiVisual className="absolute left-1/2 top-1/2 h-[72px] w-[64px] -translate-x-1/2 -translate-y-1/2 transition-transform duration-300 group-hover:-translate-y-[54%] sm:h-[92px] sm:w-[78px]" />
+            <LumiVisual className="absolute left-1/2 top-1/2 h-[72px] w-[64px] -translate-x-1/2 -translate-y-1/2 transition-transform duration-300 group-hover:-translate-y-[54%] sm:h-[78px] sm:w-[68px]" />
             <span className="absolute -bottom-2 left-1/2 hidden -translate-x-1/2 whitespace-nowrap bg-brand-cream px-2 py-1 text-[10px] font-black uppercase tracking-[0.1em] text-brand-navy shadow-sm sm:block">Întreab-o pe Lumi</span>
           </motion.button>
         )}

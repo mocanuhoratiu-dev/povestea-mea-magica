@@ -33,7 +33,7 @@ export default function TermsPage() {
             <section>
               <h2 className="text-2xl font-black text-brand-navy mb-4">3. Plăți și Livrare</h2>
               <p>
-                În versiunea curentă, plățile online și livrarea automată pe email nu sunt încă active. Fișierele generate pot fi descărcate local din browser, iar fluxul comercial complet va fi activat separat.
+                În versiunea curentă, plățile online nu sunt active. Fișierele generate pot fi descărcate local sau, când alegi această opțiune, trimise ca atașament la adresa de email introdusă. Fluxul comercial complet va fi activat separat.
               </p>
             </section>
 
@@ -51,7 +51,7 @@ export default function TermsPage() {
           </div>
 
           <div className="mt-16 pt-10 border-t border-brand-navy/5 text-center">
-            <p className="text-brand-navy/40 text-sm italic">Ultima actualizare: 24 Iunie 2026</p>
+            <p className="text-brand-navy/40 text-sm italic">Ultima actualizare: 23 Iulie 2026</p>
           </div>
         </div>
       </div>

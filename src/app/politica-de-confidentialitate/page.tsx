@@ -28,6 +28,7 @@ export default function PrivacyPage() {
               <ul className="list-disc pl-6 space-y-2">
                 <li><strong>Datele de personalizare:</strong> Numele, vârsta, tema, frica sau contextul introduse în formulare.</li>
                 <li><strong>Conversațiile cu Lumi:</strong> Mesajele pe care alegi să le trimiți ghidului digital pentru a primi recomandări. Nu cerem date sensibile și nu păstrăm conversațiile într-un cont sau istoric de client.</li>
+                <li><strong>Adresa de email, dacă alegi livrarea:</strong> Este folosită strict pentru a trimite PDF-ul cerut. Nu o adăugăm automat la newsletter și nu o asociem unui cont.</li>
                 <li><strong>Date tehnice:</strong> Informații standard necesare pentru funcționarea sigură și fiabilă a serviciului.</li>
                 <li><strong>Statistici agregate de utilizare:</strong> Număr de vizite, produs început/generat, rezultat AI sau fallback, număr de pagini/cuvinte și descărcări PDF. Nu trimitem în aceste statistici numele copilului, textul poveștii, dedicația, prompturile sau un identificator de client.</li>
                 <li><strong>Date de plată:</strong> Nu colectăm date de plată în versiunea curentă.</li>
@@ -41,6 +42,9 @@ export default function PrivacyPage() {
               </p>
               <p>
                 Aplicăm măsuri tehnice și organizatorice pentru siguranță, securitate și funcționare responsabilă. Datele de personalizare nu sunt folosite pentru publicitate și nu construim profiluri despre copil sau familie. Ilustrațiile și fișierele sunt pregătite pentru previzualizare și descărcare, fără o bibliotecă de imagini sau comenzi asociată unui cont. Dacă o componentă de generare este temporar indisponibilă, putem folosi o alternativă care respectă aceleași principii de minimizare a datelor. Statisticile agregate ne ajută să îmbunătățim produsul și să depistăm probleme de funcționare, fără a include numele copilului, textul poveștii, dedicația sau mesajele voastre.
+              </p>
+              <p>
+                Dacă alegi livrarea pe email, PDF-ul este atașat unui mesaj tranzacțional trimis de furnizorul nostru de livrare email. Adresa și atașamentul sunt procesate numai pentru această trimitere; nu includem adresa de email, PDF-ul sau conținutul personalizat în telemetria noastră operațională.
               </p>
             </section>
 
@@ -56,7 +60,7 @@ export default function PrivacyPage() {
           </div>
 
           <div className="mt-16 pt-10 border-t border-brand-navy/5 text-center">
-            <p className="text-brand-navy/40 text-sm italic">Ultima actualizare: 19 Iulie 2026</p>
+            <p className="text-brand-navy/40 text-sm italic">Ultima actualizare: 23 Iulie 2026</p>
           </div>
         </div>
       </div>

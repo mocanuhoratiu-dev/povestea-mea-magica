@@ -4,7 +4,7 @@ import { isTelemetryProduct, logTelemetry, type GenerationMode, type StoryLength
 
 const CLIENT_EVENTS = new Set([
   "site_visited", "story_preview_started", "product_started", "generation_completed", "pdf_downloaded", "feedback_requested",
-  "pdf_feedback_helpful", "pdf_feedback_not_helpful", "lumi_opened", "lumi_message_sent", "lumi_recommendation_applied", "lumi_voice_played", "lumi_response_failed",
+  "pdf_render_started", "pdf_render_completed", "pdf_render_failed", "pdf_feedback_helpful", "pdf_feedback_not_helpful", "lumi_opened", "lumi_message_sent", "lumi_recommendation_applied", "lumi_voice_played", "lumi_response_failed",
 ]);
 const GENERATION_MODES = new Set<GenerationMode>(["ai", "fallback", "template"]);
 const STORY_LENGTHS = new Set<StoryLength>(["short", "long"]);
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     }
 
     const product = payload.product;
-    const productEvents = new Set(["story_preview_started", "product_started", "generation_completed", "pdf_downloaded", "feedback_requested", "pdf_feedback_helpful", "pdf_feedback_not_helpful", "lumi_recommendation_applied"]);
+    const productEvents = new Set(["story_preview_started", "product_started", "generation_completed", "pdf_render_started", "pdf_render_completed", "pdf_render_failed", "pdf_downloaded", "feedback_requested", "pdf_feedback_helpful", "pdf_feedback_not_helpful", "lumi_recommendation_applied"]);
     if (productEvents.has(event) && !isTelemetryProduct(product)) {
       return NextResponse.json({ error: "Produs necunoscut." }, { status: 400 });
     }
@@ -46,12 +46,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Lungime de poveste necunoscută." }, { status: 400 });
     }
 
-    logTelemetry(`pmm_${event}` as "pmm_site_visited" | "pmm_story_preview_started" | "pmm_product_started" | "pmm_generation_completed" | "pmm_pdf_downloaded" | "pmm_feedback_requested" | "pmm_pdf_feedback_helpful" | "pmm_pdf_feedback_not_helpful" | "pmm_lumi_opened" | "pmm_lumi_message_sent" | "pmm_lumi_recommendation_applied" | "pmm_lumi_voice_played" | "pmm_lumi_response_failed", {
+    logTelemetry(`pmm_${event}` as "pmm_site_visited" | "pmm_story_preview_started" | "pmm_product_started" | "pmm_generation_completed" | "pmm_pdf_render_started" | "pmm_pdf_render_completed" | "pmm_pdf_render_failed" | "pmm_pdf_downloaded" | "pmm_feedback_requested" | "pmm_pdf_feedback_helpful" | "pmm_pdf_feedback_not_helpful" | "pmm_lumi_opened" | "pmm_lumi_message_sent" | "pmm_lumi_recommendation_applied" | "pmm_lumi_voice_played" | "pmm_lumi_response_failed", {
       ...(isTelemetryProduct(product) ? { product } : {}),
       result: "success",
       ...(generationMode ? { generationMode: generationMode as GenerationMode } : {}),
       pageCount: readBoundedInteger(payload.pageCount, 50),
       wordCount: readBoundedInteger(payload.wordCount, 20_000),
+      durationMs: readBoundedInteger(payload.durationMs, 120_000),
       ...(storyLength ? { storyLength: storyLength as StoryLength } : {}),
     });
 

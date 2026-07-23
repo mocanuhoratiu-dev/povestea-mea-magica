@@ -7,6 +7,7 @@ import LanternSignature from "@/components/LanternSignature";
 import MagicalLoader from "./MagicalLoader";
 import FeedbackInvite from "./FeedbackInvite";
 import QuickRating from "./QuickRating";
+import EmailDelivery from "./EmailDelivery";
 import { commerce, siteCopy } from "@/lib/siteMode";
 import { trackEvent } from "@/lib/clientTelemetry";
 import { playNarration, stopNarration, subscribeToNarration } from "@/lib/narrationPlayback";
@@ -265,6 +266,7 @@ type PdfInstance = {
   addImage: (imageData: string, format: string, x: number, y: number, width: number, height: number) => void;
   addPage: () => void;
   save: (filename: string) => void;
+  output: (type: "blob") => Blob;
   setFont: (fontName: string, fontStyle?: string) => void;
   setFontSize: (size: number) => void;
   setTextColor: (r: number, g?: number, b?: number) => void;
@@ -498,12 +500,18 @@ export default function StoryCreator() {
 
   useEffect(() => {
     const applyLumiStoryChoice = (event: Event) => {
-      const detail = (event as CustomEvent<{ theme?: string; tone?: string }>).detail;
+      const detail = (event as CustomEvent<{ theme?: string; tone?: string; lesson?: string; storyDetail?: string }>).detail;
       if (detail?.theme && themes.some((theme) => theme.id === detail.theme)) {
         setSelectedTheme(detail.theme);
       }
       if (detail?.tone && toneOptions.includes(detail.tone)) {
         setTone(detail.tone);
+      }
+      if (detail?.lesson && lessons.includes(detail.lesson)) {
+        setLesson(detail.lesson);
+      }
+      if (detail?.storyDetail) {
+        setThemeDetail(detail.storyDetail);
       }
     };
 
@@ -654,9 +662,7 @@ export default function StoryCreator() {
       }
     };
 
-    const downloadPDF = async () => {
-      setIsLoading(true);
-      try {
+    const renderStoryPdf = async (quality: "download" | "email" = "download") => {
         await Promise.all([
           loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'),
           loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'),
@@ -676,7 +682,7 @@ export default function StoryCreator() {
           
           try {
             const canvas = await html2canvas(el, {
-              scale: 2.5,
+              scale: quality === "email" ? 1.7 : 2.5,
               useCORS: true,
               logging: false,
               windowWidth: 794,
@@ -684,7 +690,7 @@ export default function StoryCreator() {
             });
             
             addSearchableTextLayer(pdf, el.innerText, W);
-            pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, W, H);
+            pdf.addImage(canvas.toDataURL('image/jpeg', quality === "email" ? 0.86 : 0.95), 'JPEG', 0, 0, W, H);
           } finally {
             el.style.display = 'none';
           }
@@ -692,15 +698,28 @@ export default function StoryCreator() {
           if (i < pages.length - 1) pdf.addPage();
         }
 
+        return pdf;
+    };
+
+    const createStoryPdfBlob = async () => (await renderStoryPdf("email")).output("blob");
+
+    const downloadPDF = async () => {
+      setIsLoading(true);
+      const renderStartedAt = Date.now();
+      trackEvent("pdf_render_started", { product: "story" });
+      try {
+        const pdf = await renderStoryPdf();
         pdf.save(`Povestea_lui_${name.trim() || "Erou"}.pdf`);
+        trackEvent("pdf_render_completed", { product: "story", durationMs: Date.now() - renderStartedAt });
         trackEvent("pdf_downloaded", {
           product: "story",
-          pageCount: pages.length,
+          pageCount: document.querySelectorAll('[id^="story-page-"]').length,
           wordCount: getWordCount(storyText),
           storyLength,
         });
         setShowQuickRating(true);
       } catch (error) {
+        trackEvent("pdf_render_failed", { product: "story", durationMs: Date.now() - renderStartedAt });
         console.error(error);
         alert(error instanceof Error ? error.message : "Nu am putut genera PDF-ul.");
       } finally {
@@ -908,6 +927,7 @@ export default function StoryCreator() {
                 </button>
               </div>
               <div className="bg-white/50 px-6 pb-6 md:px-8 md:pb-8">
+                <EmailDelivery product="story" filename={`Povestea_lui_${name.trim() || "Erou"}.pdf`} createPdf={createStoryPdfBlob} />
                 {showQuickRating && <QuickRating product="story" />}
                 <FeedbackInvite product="story" compact />
               </div>

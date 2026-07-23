@@ -1082,6 +1082,14 @@ Returnează doar JSON valid conform schemei, fără Markdown.`;
         maxOutputTokens,
       });
       if ("error" in generated) {
+        logTelemetry("pmm_story_text_failed", {
+          product,
+          result: "error",
+          errorCode: "ai_error",
+          durationMs: Date.now() - startedAt,
+          storyLength: data.storyLength,
+          aiProvider: getAiProvider(),
+        });
         const fallback = buildStableStoryPayload(data, theme);
         logTelemetry("pmm_generation_completed", {
           product,
@@ -1102,6 +1110,15 @@ Returnează doar JSON valid conform schemei, fără Markdown.`;
       try {
         result = sanitizeStoryPayload(parseStoryJson(generated.text), data.name || "Eroul", themeLabel);
       } catch {
+        logTelemetry("pmm_story_text_failed", {
+          product,
+          result: "error",
+          errorCode: "invalid_request",
+          durationMs: Date.now() - startedAt,
+          storyLength: data.storyLength,
+          aiProvider: getAiProvider(),
+          model: generated.model,
+        });
         const fallback = buildStableStoryPayload(data, theme);
         logTelemetry("pmm_generation_completed", {
           product,
@@ -1124,6 +1141,17 @@ Returnează doar JSON valid conform schemei, fără Markdown.`;
       let wordCount = getWordCount(result.text);
       let continuationCount = 0;
       const isLongStory = data.storyLength === "long";
+
+      logTelemetry("pmm_story_text_completed", {
+        product,
+        result: "success",
+        generationMode: "ai",
+        durationMs: Date.now() - startedAt,
+        wordCount,
+        storyLength: data.storyLength,
+        aiProvider: getAiProvider(),
+        model: generated.model,
+      });
 
       // A long story that stops around 800 words is not a usable four-page edition. In that
       // case the complete in-app fallback is both faster and more reliable than stacking long
@@ -1161,18 +1189,58 @@ Returnează doar JSON valid conform schemei, fără Markdown.`;
         });
 
         if ("error" in continuation) {
+          logTelemetry("pmm_story_continuation_failed", {
+            product,
+            result: "error",
+            errorCode: "ai_error",
+            durationMs: Date.now() - startedAt,
+            storyLength: data.storyLength,
+            aiProvider: getAiProvider(),
+            attempt: attempt + 1,
+          });
           break;
         }
 
         try {
           const addition = sanitizeStoryPayload(parseStoryJson(continuation.text), data.name || "Eroul", themeLabel).text;
           if (getWordCount(addition) < (isLongStory ? 240 : 400)) {
+            logTelemetry("pmm_story_continuation_failed", {
+              product,
+              result: "rejected",
+              errorCode: "invalid_request",
+              durationMs: Date.now() - startedAt,
+              storyLength: data.storyLength,
+              aiProvider: getAiProvider(),
+              model: continuation.model,
+              attempt: attempt + 1,
+            });
             break;
           }
           result = { ...result, text: `${result.text}\n\n${addition}` };
           wordCount = getWordCount(result.text);
           continuationCount += 1;
+          logTelemetry("pmm_story_continuation_completed", {
+            product,
+            result: "success",
+            generationMode: "ai",
+            durationMs: Date.now() - startedAt,
+            wordCount: getWordCount(addition),
+            storyLength: data.storyLength,
+            aiProvider: getAiProvider(),
+            model: continuation.model,
+            attempt: attempt + 1,
+          });
         } catch {
+          logTelemetry("pmm_story_continuation_failed", {
+            product,
+            result: "error",
+            errorCode: "invalid_request",
+            durationMs: Date.now() - startedAt,
+            storyLength: data.storyLength,
+            aiProvider: getAiProvider(),
+            model: continuation.model,
+            attempt: attempt + 1,
+          });
           break;
         }
       }

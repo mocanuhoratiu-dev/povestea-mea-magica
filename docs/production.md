@@ -74,6 +74,10 @@ The rate limit is a best-effort, per-instance Cloud Run safeguard for public bet
 
 The app emits privacy-conscious, structured Cloud Run logs for visits, starts, completed generations, errors and successful PDF downloads. It never sends a child's name, story text, dedication, prompt or a customer identifier in those events. Follow [`docs/analytics.md`](analytics.md) once after deployment to create the persistent Cloud Monitoring counters.
 
+## One-off PDF Email Delivery
+
+The browser renders the PDF, then the server sends it through Resend as a single transactional attachment. The app does not persist the PDF or address and deliberately excludes both from telemetry. Verify an expeditor domain in Resend, store `RESEND_API_KEY` in Cloud Secret Manager and configure `EMAIL_FROM` on Cloud Run. The exact no-guesswork steps are in [`docs/cloud-run-operations.md`](cloud-run-operations.md).
+
 ## Parked For Stripe/Order Phase
 
 These can stay empty until checkout and fulfillment are implemented:
@@ -82,7 +86,6 @@ These can stay empty until checkout and fulfillment are implemented:
 STRIPE_SECRET_KEY=
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
 STRIPE_WEBHOOK_SECRET=
-RESEND_API_KEY=
 N8N_WEBHOOK_URL=
 ```
 
@@ -96,7 +99,8 @@ Expected production health response:
   "checks": {
     "vertexAiProject": true,
     "vertexAiCredentials": true,
-    "elevenlabsApiKey": true
+    "googleTextToSpeech": true,
+    "emailDelivery": true
   }
 }
 ```
@@ -121,6 +125,6 @@ If `ready` is `false`, production is missing a required Vertex AI configuration 
 - Add legal business identity and a support response commitment to the public legal/contact surfaces.
 - Implement an authenticated Stripe Checkout Session endpoint. Never expose a secret key to the browser.
 - Persist a minimal server-side order record before fulfillment, then verify every Stripe webhook signature before granting access or sending a receipt.
-- Add the delivery email flow and retry/error handling before switching `commerce.acceptsPayments` to `true`.
+- Confirm the Resend domain, delivery flow and retry/error handling before switching `commerce.acceptsPayments` to `true`.
 - Test Stripe test mode from payment through receipt, PDF access, cancellation and support handling.
 - Keep Stripe variables unset until the complete checkout and fulfillment flow is implemented.

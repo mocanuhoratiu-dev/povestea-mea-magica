@@ -11,6 +11,7 @@ type TelemetryFields = {
   generationMode?: GenerationMode;
   durationMs?: number;
   continuationCount?: number;
+  attempt?: number;
   wordCount?: number;
   pageCount?: number;
   storyLength?: StoryLength;
@@ -25,8 +26,19 @@ type TelemetryEvent =
   | "pmm_product_started"
   | "pmm_generation_completed"
   | "pmm_generation_failed"
+  | "pmm_story_text_completed"
+  | "pmm_story_text_failed"
+  | "pmm_story_continuation_completed"
+  | "pmm_story_continuation_failed"
+  | "pmm_story_cover_started"
   | "pmm_story_cover_completed"
   | "pmm_story_cover_failed"
+  | "pmm_pdf_render_started"
+  | "pmm_pdf_render_completed"
+  | "pmm_pdf_render_failed"
+  | "pmm_email_delivery_started"
+  | "pmm_email_delivery_completed"
+  | "pmm_email_delivery_failed"
   | "pmm_pdf_downloaded"
   | "pmm_feedback_requested"
   | "pmm_pdf_feedback_helpful"
@@ -51,6 +63,7 @@ export function logTelemetry(event: TelemetryEvent, fields: TelemetryFields = {}
     generation_mode: fields.generationMode,
     duration_ms: fields.durationMs,
     continuation_count: fields.continuationCount,
+    attempt: fields.attempt,
     word_count: fields.wordCount,
     page_count: fields.pageCount,
     story_length: fields.storyLength,

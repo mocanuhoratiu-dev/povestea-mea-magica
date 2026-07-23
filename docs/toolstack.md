@@ -60,7 +60,7 @@ Ordinea pentru generarea produselor este: **model Vertex principal -> model Vert
 | Tehnologie | Rol |
 | --- | --- |
 | Stripe | Pregatita pentru etapa de comanda si plata, dar checkout-ul nu este activ in beta. |
-| Resend | Pregatit pentru emailuri tranzactionale dupa activarea comenzilor. |
+| Resend | Livrare tranzactionala a PDF-urilor ca atasament email. Se activeaza printr-o cheie stocata in Secret Manager si un domeniu expeditor verificat. |
 | n8n | Pregatit pentru automatizari operationale ulterioare. |
 
 ## Calitate si dezvoltare

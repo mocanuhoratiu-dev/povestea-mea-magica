@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Utensils, Car, Stethoscope, CloudRain, Sparkles, Download, Plane, Clock3 } from "lucide-react";
 import BrandMark from "./BrandMark";
 import MagicalLoader from "./MagicalLoader";
 import FeedbackInvite from "./FeedbackInvite";
 import QuickRating from "./QuickRating";
+import EmailDelivery from "./EmailDelivery";
 import { trackEvent } from "@/lib/clientTelemetry";
 import { useMobileProductVisibility } from "@/lib/mobileProductFlow";
 import MobileFlowSteps from "./MobileFlowSteps";
@@ -206,6 +207,7 @@ type PdfInstance = {
   addImage: (imageData: string, format: string, x: number, y: number, width: number, height: number) => void;
   addPage: () => void;
   save: (filename: string) => void;
+  output: (type: "blob") => Blob;
   setFont: (fontName: string, fontStyle?: string) => void;
   setFontSize: (size: number) => void;
   setTextColor: (r: number, g?: number, b?: number) => void;
@@ -511,6 +513,25 @@ export default function EmergencyKit() {
   const [duration, setDuration] = useState(durationOptions[1].id);
   const [activityMode, setActivityMode] = useState(activityModes[2].id);
 
+  useEffect(() => {
+    const applyLumiChoice = (event: Event) => {
+      const detail = (event as CustomEvent<{
+        product?: string;
+        emergencyContext?: string;
+        interest?: string;
+        duration?: string;
+        activityMode?: string;
+      }>).detail;
+      if (detail?.product !== "emergency") return;
+      if (detail.emergencyContext && contexts.some((context) => context.id === detail.emergencyContext)) setSelectedContext(detail.emergencyContext);
+      if (detail.interest) setInterest(detail.interest);
+      if (detail.duration && durationOptions.some((option) => option.id === detail.duration)) setDuration(detail.duration);
+      if (detail.activityMode && activityModes.some((mode) => mode.id === detail.activityMode)) setActivityMode(detail.activityMode);
+    };
+    window.addEventListener("pmm:lumi-material-choice", applyLumiChoice);
+    return () => window.removeEventListener("pmm:lumi-material-choice", applyLumiChoice);
+  }, []);
+
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
@@ -552,9 +573,7 @@ export default function EmergencyKit() {
     }
   };
 
-  const handleDownload = async () => {
-    setIsLoading(true);
-    try {
+  const renderEmergencyPdf = async (quality: "download" | "email" = "download") => {
       await Promise.all([
         loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'),
         loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'),
@@ -574,14 +593,14 @@ export default function EmergencyKit() {
         
         try {
           const canvas = await html2canvas(el, {
-            scale: 2.5,
+            scale: quality === "email" ? 1.7 : 2.5,
             useCORS: true,
             logging: false,
             windowWidth: 794,
             windowHeight: 1123,
           });
           addSearchableTextLayer(pdf, el.innerText, W);
-          pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, W, H);
+          pdf.addImage(canvas.toDataURL('image/jpeg', quality === "email" ? 0.86 : 0.95), 'JPEG', 0, 0, W, H);
         } finally {
           el.style.display = 'none';
         }
@@ -589,10 +608,23 @@ export default function EmergencyKit() {
         if (i < pages.length - 1) pdf.addPage();
       }
 
+      return pdf;
+  };
+
+  const createEmergencyPdfBlob = async () => (await renderEmergencyPdf("email")).output("blob");
+
+  const handleDownload = async () => {
+    setIsLoading(true);
+    const renderStartedAt = Date.now();
+    trackEvent("pdf_render_started", { product: "emergency" });
+    try {
+      const pdf = await renderEmergencyPdf();
       pdf.save(`Trusa_Urgenta_${name.trim()}.pdf`);
-      trackEvent("pdf_downloaded", { product: "emergency", pageCount: pages.length });
+      trackEvent("pdf_render_completed", { product: "emergency", durationMs: Date.now() - renderStartedAt });
+      trackEvent("pdf_downloaded", { product: "emergency", pageCount: document.querySelectorAll('[id^="ek-page-"]').length });
       setShowQuickRating(true);
     } catch (error) {
+      trackEvent("pdf_render_failed", { product: "emergency", durationMs: Date.now() - renderStartedAt });
       console.error(error);
       alert(error instanceof Error ? error.message : "Nu am putut genera PDF-ul.");
     } finally {
@@ -930,6 +962,7 @@ export default function EmergencyKit() {
                 >
                   <Download size={22} /> Descarcă Trusa PDF
                 </motion.button>
+                <EmailDelivery product="emergency" filename={`Trusa_Urgenta_${name.trim() || "Erou"}.pdf`} createPdf={createEmergencyPdfBlob} />
                 {showQuickRating && <QuickRating product="emergency" />}
                 <FeedbackInvite product="emergency" compact />
               </div>

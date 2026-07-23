@@ -19,6 +19,7 @@ export function GET() {
       (configured(process.env.VERTEX_AI_SERVICE_ACCOUNT_JSON_BASE64) ||
         configured(process.env.GOOGLE_APPLICATION_CREDENTIALS) ||
         configured(process.env.K_SERVICE)),
+    emailDelivery: configured(process.env.RESEND_API_KEY) && configured(process.env.EMAIL_FROM),
   };
 
   // Cloud Run exposes application default credentials through its runtime identity.
@@ -40,6 +41,7 @@ export function GET() {
         storyCoverFallback: true,
         storyFallback: true,
         voicePreview: checks.googleTextToSpeech,
+        emailDelivery: checks.emailDelivery,
         stripeCheckout: commerce.acceptsPayments,
       },
       timestamp: new Date().toISOString(),

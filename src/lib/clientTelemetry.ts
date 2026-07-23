@@ -7,6 +7,9 @@ type ClientEvent =
   | "story_preview_started"
   | "product_started"
   | "generation_completed"
+  | "pdf_render_started"
+  | "pdf_render_completed"
+  | "pdf_render_failed"
   | "pdf_downloaded"
   | "feedback_requested"
   | "pdf_feedback_helpful"
@@ -23,6 +26,7 @@ type ClientTelemetryFields = {
   pageCount?: number;
   wordCount?: number;
   storyLength?: StoryLength;
+  durationMs?: number;
 };
 
 function postTelemetry(payload: Record<string, unknown>) {
@@ -50,6 +54,7 @@ export function trackEvent(event: ClientEvent, fields: ClientTelemetryFields = {
     pageCount: fields.pageCount,
     wordCount: fields.wordCount,
     storyLength: fields.storyLength,
+    durationMs: fields.durationMs,
   });
 }
 

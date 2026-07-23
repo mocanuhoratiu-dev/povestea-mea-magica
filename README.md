@@ -6,7 +6,7 @@ Produs digital Next.js în limba română: povești personalizate pentru copii, 
 
 - Modul curent: acces de lansare. Materialele se generează direct, iar prețurile sunt informative până când checkout-ul este activ.
 - Plăți Stripe: intenționat amânate pentru o etapă ulterioară.
-- Livrare email/comenzi: neactivată încă.
+- Livrare email: PDF-ul poate fi trimis ca atașament prin Resend după configurarea domeniului expeditor și a secretului Cloud Run. Comenzile sunt încă neactivate.
 - Generare AI: Vertex AI (Gemini) pentru text și Google Cloud Text-to-Speech pentru previzualizarea audio în română.
 - Observabilitate: evenimente agregate fără conținut personalizat pentru vizite, generări, fallback-uri, erori și descărcări PDF. Vezi [`docs/analytics.md`](docs/analytics.md).
 
@@ -32,6 +32,7 @@ Completează:
 - `VERTEX_AI_PROJECT_ID` și `VERTEX_AI_LOCATION` pentru Vertex AI. În Cloud Run, aplicația folosește automat identitatea service account-ului; pentru dezvoltare locală, vezi `docs/production.md`.
 - `GEMINI_API_KEY` rămâne disponibil doar ca fallback pentru Gemini Developer API / AI Studio.
 - Cloud Run folosește identitatea sa Google Cloud și pentru previzualizarea audio: Zephyr pentru poveste, Aoede pentru Lumi. Nu este necesară o cheie audio separată.
+- Pentru livrare email locală, completează `RESEND_API_KEY` și `EMAIL_FROM`; în producție, folosește Secret Manager, conform ghidului de operare.
 
 Deschide [http://localhost:3010](http://localhost:3010).
 
@@ -49,7 +50,7 @@ npm run build
 - Use a Gemini key with production quota/billing enabled.
 - Verify `/api/health` returns `ready: true` after deploy.
 - Generate real samples on the deployed domain and download all PDFs.
-- Add server-side order persistence and email delivery.
+- Confirm the Resend domain, one-off email delivery and retry/error handling before enabling paid checkout.
 - Add authenticated Stripe checkout, verified webhook fulfillment, server-side order persistence and email delivery together.
 - Add rate limiting and stricter validation around AI endpoints.
 - Add monitoring/error tracking.
@@ -57,4 +58,4 @@ npm run build
 
 ## Deploy
 
-The app is deployable on Vercel or any platform that supports Next.js App Router. See [`docs/production.md`](docs/production.md) for the production environment setup.
+The production service runs on Cloud Run. See [`docs/production.md`](docs/production.md) for configuration and [`docs/cloud-run-operations.md`](docs/cloud-run-operations.md) for a step-by-step deploy, monitoring, email setup and rollback guide. From Cloud Shell, deploy with `bash scripts/deploy-cloud-run.sh`.
