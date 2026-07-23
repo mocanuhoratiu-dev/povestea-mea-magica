@@ -854,7 +854,7 @@ export default function MonsterKit() {
                 >
                   <Download size={22} /> Descarcă PDF-ul Complet
                 </motion.button>
-                <EmailDelivery product="monster" filename={`Kit_Magic_${name.trim() || 'Erou'}.pdf`} createPdf={createMonsterPdfBlob} />
+                <EmailDelivery product="monster" filename={`Kit_Magic_${name.trim() || 'Erou'}.pdf`} childName={name} createPdf={createMonsterPdfBlob} />
                 {showQuickRating && <QuickRating product="monster" />}
                 <FeedbackInvite product="monster" compact />
               </div>

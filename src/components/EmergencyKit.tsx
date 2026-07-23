@@ -962,7 +962,7 @@ export default function EmergencyKit() {
                 >
                   <Download size={22} /> Descarcă Trusa PDF
                 </motion.button>
-                <EmailDelivery product="emergency" filename={`Trusa_Urgenta_${name.trim() || "Erou"}.pdf`} createPdf={createEmergencyPdfBlob} />
+                <EmailDelivery product="emergency" filename={`Trusa_Urgenta_${name.trim() || "Erou"}.pdf`} childName={name} createPdf={createEmergencyPdfBlob} />
                 {showQuickRating && <QuickRating product="emergency" />}
                 <FeedbackInvite product="emergency" compact />
               </div>

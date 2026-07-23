@@ -927,7 +927,7 @@ export default function StoryCreator() {
                 </button>
               </div>
               <div className="bg-white/50 px-6 pb-6 md:px-8 md:pb-8">
-                <EmailDelivery product="story" filename={`Povestea_lui_${name.trim() || "Erou"}.pdf`} createPdf={createStoryPdfBlob} />
+                <EmailDelivery product="story" filename={`Povestea_lui_${name.trim() || "Erou"}.pdf`} childName={name} createPdf={createStoryPdfBlob} />
                 {showQuickRating && <QuickRating product="story" />}
                 <FeedbackInvite product="story" compact />
               </div>

@@ -8,6 +8,7 @@ import type { TelemetryProduct } from "@/lib/telemetry";
 type EmailDeliveryProps = {
   product: TelemetryProduct;
   filename: string;
+  childName: string;
   createPdf: () => Promise<Blob>;
 };
 
@@ -20,7 +21,7 @@ function bytesToBase64(bytes: Uint8Array) {
   return window.btoa(binary);
 }
 
-export default function EmailDelivery({ product, filename, createPdf }: EmailDeliveryProps) {
+export default function EmailDelivery({ product, filename, childName, createPdf }: EmailDeliveryProps) {
   const [email, setEmail] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [notice, setNotice] = useState("");
@@ -47,6 +48,7 @@ export default function EmailDelivery({ product, filename, createPdf }: EmailDel
           product,
           email: email.trim(),
           filename,
+          childName: childName.trim(),
           pdfBase64: bytesToBase64(bytes),
           deliveryId: crypto.randomUUID().replace(/-/g, ""),
         }),
