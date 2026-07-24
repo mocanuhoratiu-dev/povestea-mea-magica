@@ -7,8 +7,8 @@ Acesta este ghidul de operare fără Codex. Totul se face în **Google Cloud Con
 | Câmp | Valoare |
 | --- | --- |
 | Proiect Google Cloud | `project-e0c2efff-d456-48f9-9fe` |
-| Serviciu Cloud Run | `povestea-mea-magica` |
-| Regiune | `europe-west3` |
+| Serviciu Cloud Run API/direct | `povestea-mea-magica` (`europe-west3`) |
+| Serviciu Cloud Run al domeniului public | `povestea-mea-magica-domain` (`europe-west1`) |
 | Service account | `povestea-mea-magica-ai@project-e0c2efff-d456-48f9-9fe.iam.gserviceaccount.com` |
 | Site live | `https://www.povestea-mea-magica.ro` |
 | Health check | `https://www.povestea-mea-magica.ro/api/health` |
@@ -75,7 +75,7 @@ Din același folder:
 bash scripts/deploy-cloud-run.sh
 ```
 
-Scriptul construiește aplicația, creează o revizie nouă, trimite tot traficul către ea și verifică `/api/health`. La final trebuie să vezi `ready: true`. Scriptul păstrează serviciul la maximum trei instanțe și patru cereri simultane pe instanță, pentru a ține costurile AI sub control.
+Scriptul construiește aplicația, actualizează atât serviciul direct, cât și serviciul conectat la domeniul public, trimite tot traficul către noile revizii și verifică `/api/health`. La final trebuie să vezi `ready: true`. Scriptul păstrează fiecare serviciu la maximum trei instanțe și patru cereri simultane pe instanță, pentru a ține costurile AI sub control.
 
 ## F. Testul live obligatoriu
 
@@ -108,8 +108,8 @@ Aplicația folosește Resend și nu trimite email până nu faci pașii de mai j
 
 ```bash
 PROJECT_ID=project-e0c2efff-d456-48f9-9fe
-SERVICE=povestea-mea-magica
-REGION=europe-west3
+SERVICE=povestea-mea-magica-domain
+REGION=europe-west1
 SERVICE_ACCOUNT=povestea-mea-magica-ai@project-e0c2efff-d456-48f9-9fe.iam.gserviceaccount.com
 
 printf %s 're_inlocuieste_cu_cheia_ta' | gcloud secrets create pmm-resend-api-key --project="$PROJECT_ID" --data-file=-
@@ -123,7 +123,7 @@ gcloud run services update "$SERVICE" --project="$PROJECT_ID" --region="$REGION"
 
 ```bash
 printf %s 're_cheia_noua' | gcloud secrets versions add pmm-resend-api-key --project=project-e0c2efff-d456-48f9-9fe --data-file=-
-gcloud run services update povestea-mea-magica --project=project-e0c2efff-d456-48f9-9fe --region=europe-west3 --update-secrets RESEND_API_KEY=pmm-resend-api-key:latest
+gcloud run services update povestea-mea-magica-domain --project=project-e0c2efff-d456-48f9-9fe --region=europe-west1 --update-secrets RESEND_API_KEY=pmm-resend-api-key:latest
 ```
 
 Trimite apoi un PDF spre adresa ta și confirmă că ajunge cu atașamentul. Aplicația limitează fișierul la 9 MB, sub limita de 40 MB pentru un email cu atașamente la Resend.
@@ -132,7 +132,7 @@ Trimite apoi un PDF spre adresa ta și confirmă că ajunge cu atașamentul. Apl
 
 În Google Cloud Console:
 
-1. **Cloud Run -> povestea-mea-magica -> Logs** pentru erori și etapele de generare.
+1. **Cloud Run -> povestea-mea-magica-domain -> Logs** pentru erori și etapele de generare de pe site-ul public.
 2. **Monitoring -> Dashboards** pentru Vertex și metricile din [`analytics.md`](analytics.md).
 3. **Billing -> Budgets & alerts** pentru o alertă sub creditul disponibil.
 
@@ -151,8 +151,8 @@ jsonPayload.event="pmm_story_cover_failed"
 Înainte de o schimbare mare, notează revizia sănătoasă. Dacă o versiune nouă are probleme:
 
 ```bash
-gcloud run revisions list --service=povestea-mea-magica --project=project-e0c2efff-d456-48f9-9fe --region=europe-west3
-gcloud run services update-traffic povestea-mea-magica --project=project-e0c2efff-d456-48f9-9fe --region=europe-west3 --to-revisions=NUME_REVIZIE=100
+gcloud run revisions list --service=povestea-mea-magica-domain --project=project-e0c2efff-d456-48f9-9fe --region=europe-west1
+gcloud run services update-traffic povestea-mea-magica-domain --project=project-e0c2efff-d456-48f9-9fe --region=europe-west1 --to-revisions=NUME_REVIZIE=100
 ```
 
 Verifică `/api/health` și generează un PDF. Apoi repară în GitHub și redeployează normal; nu rezolva permanent probleme doar din revizia Cloud Run.

@@ -48,17 +48,10 @@ Deploy the app to Cloud Run and attach the dedicated service account to the serv
 
 ### Cloud Run deploy flow
 
-From Cloud Shell, after the repository is available there:
+From Cloud Shell, after the repository is available there, use the deployment script. It deploys both the direct Cloud Run service in `europe-west3` and `povestea-mea-magica-domain` in `europe-west1`, which receives the Google-hosted custom domain:
 
 ```bash
-gcloud run deploy povestea-mea-magica \
-  --source . \
-  --region europe-west3 \
-  --service-account povestea-mea-magica-ai@project-e0c2efff-d456-48f9-9fe.iam.gserviceaccount.com \
-  --concurrency 4 \
-  --max-instances 3 \
-  --timeout 120 \
-  --set-env-vars NEXT_PUBLIC_SITE_URL=https://www.povestea-mea-magica.ro,AI_PROVIDER=vertex,VERTEX_AI_PROJECT_ID=project-e0c2efff-d456-48f9-9fe,VERTEX_AI_LOCATION=global,VERTEX_AI_MODEL=gemini-2.5-flash,VERTEX_AI_IMAGE_MODEL=gemini-2.5-flash-image,GOOGLE_TTS_STORY_VOICE=ro-RO-Chirp3-HD-Zephyr,GOOGLE_TTS_LUMI_VOICE=ro-RO-Chirp3-HD-Aoede
+bash scripts/deploy-cloud-run.sh
 ```
 
 The health endpoint reports `ready: true` only when the active provider has both the required project/key configuration. It never exposes secret values.
