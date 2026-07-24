@@ -471,6 +471,7 @@ export default function MonsterKit() {
   const [showResult,  setShowResult]  = useState(false);
   const [showQuickRating, setShowQuickRating] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [resultNote, setResultNote] = useState("");
   const [isDownloading, setIsDownloading] = useState(false);
   const [fearLocation, setFearLocation] = useState('');
   const [calmingHelper, setCalmingHelper] = useState('');
@@ -501,6 +502,7 @@ export default function MonsterKit() {
     if (!name.trim()) return;
     trackEvent('product_started', { product: 'monster' });
     setShowQuickRating(false);
+    setResultNote("");
     setIsGenerating(true);
 
     const fallback = buildPersonalizedKitContent({
@@ -531,11 +533,13 @@ export default function MonsterKit() {
         trackEvent('generation_completed', { product: 'monster', generationMode: 'ai', pageCount: 3 });
       } else {
         setGeneratedContent(fallback);
+        setResultNote("Am pregătit o variantă personalizată de rezervă, ca să nu vă ținem pe loc. Poți genera din nou pentru o altă formulare.");
         trackEvent('generation_completed', { product: 'monster', generationMode: 'template', pageCount: 3 });
       }
     } catch (error) {
       console.error('Nu am putut genera kitul cu AI:', error);
       setGeneratedContent(fallback);
+      setResultNote("Am pregătit o variantă personalizată de rezervă, ca să nu vă ținem pe loc. Poți genera din nou pentru o altă formulare.");
       trackEvent('generation_completed', { product: 'monster', generationMode: 'template', pageCount: 3 });
     } finally {
       setIsGenerating(false);
@@ -783,6 +787,7 @@ export default function MonsterKit() {
                   Certificatul lui <span className="text-brand-purple font-black">{name}</span> e gata de printat.
                 </p>
                 <p className="text-brand-navy/40 text-sm mb-8">3 pagini A4 · Adaptat pentru {monsterLabel.toLocaleLowerCase('ro-RO')} · Gata de înrămat</p>
+                {resultNote && <p className="mb-6 border border-brand-gold/45 bg-brand-gold/10 px-4 py-3 text-left text-sm font-semibold leading-relaxed text-brand-navy/70">{resultNote}</p>}
                 <div className="grid grid-cols-3 gap-3 mb-8 text-sm">
                   {['📜 Certificat', '🧪 Rețetă Spray', '🏷️ Etichete'].map(item => (
                     <div key={item} className="bg-brand-navy/5 rounded-2xl py-3 px-2 font-bold text-brand-navy/70">{item}</div>

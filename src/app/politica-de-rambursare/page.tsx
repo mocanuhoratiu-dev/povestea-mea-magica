@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ChevronLeft, ReceiptText } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Politica de Rambursare | Povestea Mea Magică",
+  description: "Politica pentru materialele digitale personalizate Povestea Mea Magică.",
+  alternates: { canonical: "/politica-de-rambursare" },
+};
 
 export default function RefundPolicyPage() {
   return (

@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Sparkles, ChevronLeft } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Termeni și Condiții | Povestea Mea Magică",
+  description: "Termenii de folosire pentru materialele digitale personalizate Povestea Mea Magică.",
+  alternates: { canonical: "/termeni-si-conditii" },
+};
 
 export default function TermsPage() {
   return (

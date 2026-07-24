@@ -13,7 +13,7 @@ export default function BrandMark({ className = "", title }: BrandMarkProps) {
       alt={title || ""}
       className={`block object-contain ${className}`}
       height={810}
-      src="/brand-mark.png"
+      src="/brand-mark.webp"
       width={810}
     />
   );

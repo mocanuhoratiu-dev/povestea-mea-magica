@@ -7,6 +7,12 @@ import ProductReader, { type ReaderPage } from "@/components/ProductReader";
 export const metadata: Metadata = {
   title: "Modele PDF | Povestea Mea Magică",
   description: "Răsfoiește exemple complete din Povestea de Seară, Scutul de Noapte și Trusa de Răbdare.",
+  alternates: { canonical: "/modele" },
+  openGraph: {
+    url: "/modele",
+    title: "Modele PDF | Povestea Mea Magică",
+    description: "Răsfoiește exemple complete din Povestea de Seară, Scutul de Noapte și Trusa de Răbdare.",
+  },
 };
 
 const fullPage = { left: 0, top: 0, width: 100, height: 100 };

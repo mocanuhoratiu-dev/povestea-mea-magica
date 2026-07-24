@@ -20,9 +20,6 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: "Povestea Mea Magică | Magie practică pentru copilărie",
   description: "Povești de seară, ritualuri de noapte și activități personalizate pentru momentele mici ale copilăriei.",
-  alternates: {
-    canonical: "/",
-  },
   openGraph: {
     type: "website",
     locale: "ro_RO",
@@ -32,7 +29,7 @@ export const metadata: Metadata = {
     description: "Povești de seară, ritualuri de noapte și activități personalizate pentru copilul tău.",
     images: [
       {
-        url: "/hero-storybook.png",
+        url: "/hero-storybook.jpg",
         width: 800,
         height: 600,
         alt: "O poveste personalizată de la Povestea Mea Magică",
@@ -43,7 +40,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Povestea Mea Magică | Magie practică pentru copilărie",
     description: "Povești de seară, ritualuri de noapte și activități personalizate pentru copilul tău.",
-    images: ["/hero-storybook.png"],
+    images: ["/hero-storybook.jpg"],
   },
 };
 

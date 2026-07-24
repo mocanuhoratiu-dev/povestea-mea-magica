@@ -49,7 +49,7 @@ const welcomeMessage: ChatMessage = {
 function LumiSpirit() {
   const group = useRef<THREE.Group>(null);
   const orbit = useRef<THREE.Mesh>(null);
-  const texture = useLoader(THREE.TextureLoader, "/lumi-guardian.png");
+  const texture = useLoader(THREE.TextureLoader, "/lumi-guardian.webp");
   const sparkles = useMemo(
     () => new Float32Array([
       -1.15, 0.82, 0, -0.92, -0.42, 0.1, -0.58, 1.12, -0.1,
@@ -311,7 +311,7 @@ export default function LumiGuide() {
             key="trigger" type="button" initial={{ opacity: 0, scale: 0.75 }} animate={{ opacity: 1, scale: 1 }} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
             onClick={() => { trackEvent("lumi_opened"); setIsOpen(true); }} className="group relative ml-auto grid h-14 w-14 place-items-center overflow-visible rounded-full border border-brand-gold/70 bg-brand-navy shadow-[0_14px_35px_rgba(36,50,79,0.32)] sm:h-16 sm:w-16" aria-label="Vorbește cu Lumi"
           >
-            <LumiVisual className="absolute left-[45%] top-1/2 h-[72px] w-[64px] -translate-x-1/2 -translate-y-1/2 transition-transform duration-300 group-hover:-translate-y-[54%] sm:h-[78px] sm:w-[68px]" />
+            {!heroIsVisible && <LumiVisual className="absolute left-[45%] top-1/2 h-[72px] w-[64px] -translate-x-1/2 -translate-y-1/2 transition-transform duration-300 group-hover:-translate-y-[54%] sm:h-[78px] sm:w-[68px]" />}
             <span className="absolute -bottom-2 right-0 hidden whitespace-nowrap bg-brand-cream px-2 py-1 text-[10px] font-black uppercase tracking-[0.1em] text-brand-navy shadow-sm sm:block">Întreab-o pe Lumi</span>
           </motion.button>
         )}

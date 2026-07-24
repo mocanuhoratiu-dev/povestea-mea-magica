@@ -452,6 +452,7 @@ export default function EmergencyKit() {
   const [isLoading, setIsLoading] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [showQuickRating, setShowQuickRating] = useState(false);
+  const [resultNote, setResultNote] = useState("");
   const [ekData, setEkData] = useState<EmergencyKitData | null>(null);
   const [interest, setInterest] = useState("");
   const [duration, setDuration] = useState(durationOptions[1].id);
@@ -481,6 +482,7 @@ export default function EmergencyKit() {
     if (!name.trim()) return;
     trackEvent("product_started", { product: "emergency" });
     setShowQuickRating(false);
+    setResultNote("");
     setIsLoading(true);
 
     const fallback = buildEmergencyKit({ name, age, selectedContext, interest, duration, activityMode });
@@ -505,11 +507,13 @@ export default function EmergencyKit() {
         trackEvent("generation_completed", { product: "emergency", generationMode: "ai", pageCount: 7 });
       } else {
         setEkData(fallback);
+        setResultNote("Am pregătit o variantă personalizată de rezervă, ca să nu vă ținem pe loc. Poți genera din nou pentru o altă variantă de activități.");
         trackEvent("generation_completed", { product: "emergency", generationMode: "template", pageCount: 7 });
       }
     } catch (error) {
       console.error("Nu am putut genera trusa cu AI:", error);
       setEkData(fallback);
+      setResultNote("Am pregătit o variantă personalizată de rezervă, ca să nu vă ținem pe loc. Poți genera din nou pentru o altă variantă de activități.");
       trackEvent("generation_completed", { product: "emergency", generationMode: "template", pageCount: 7 });
     } finally {
       setIsLoading(false);
@@ -897,6 +901,7 @@ export default function EmergencyKit() {
                 <p className="text-gray-600 font-medium mb-8">
                   {name} are activități create pentru <strong>{contexts.find(c => c.id === selectedContext)?.label}</strong>. Trusa are <strong>7 pagini A4</strong>: radar, desen, misiune de răbdare, poveste, adevărat/fals, răspunsuri pentru părinte și diplomă.
                 </p>
+                {resultNote && <p className="mb-6 border border-brand-orange/35 bg-brand-orange/10 px-4 py-3 text-left text-sm font-semibold leading-relaxed text-brand-navy/70">{resultNote}</p>}
                 <motion.button
                   onClick={handleDownload}
                   whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}

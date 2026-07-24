@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ChevronLeft, ShieldCheck } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Siguranța AI | Povestea Mea Magică",
+  description: "Cum folosim conținutul generat responsabil, cu copilul și adultul în centru.",
+  alternates: { canonical: "/siguranta-ai" },
+};
 
 export default function AiSafetyPage() {
   return (

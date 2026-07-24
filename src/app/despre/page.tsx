@@ -5,6 +5,12 @@ import BrandMark from "@/components/BrandMark";
 export const metadata: Metadata = {
   title: "Despre | Povestea Mea Magică",
   description: "De ce există Povestea Mea Magică și cum sunt construite materialele pentru familii.",
+  alternates: { canonical: "/despre" },
+  openGraph: {
+    url: "/despre",
+    title: "Despre | Povestea Mea Magică",
+    description: "De ce există Povestea Mea Magică și cum sunt construite materialele pentru familii.",
+  },
 };
 
 const principles = [

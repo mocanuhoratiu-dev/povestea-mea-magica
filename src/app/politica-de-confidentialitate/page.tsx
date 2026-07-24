@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ChevronLeft, ShieldCheck } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Politica de Confidențialitate | Povestea Mea Magică",
+  description: "Cum protejăm datele de personalizare și conversațiile din Povestea Mea Magică.",
+  alternates: { canonical: "/politica-de-confidentialitate" },
+};
 
 export default function PrivacyPage() {
   return (

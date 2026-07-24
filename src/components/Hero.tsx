@@ -11,7 +11,7 @@ export default function Hero() {
   return (
     <section id="home-hero" className="relative isolate min-h-[620px] overflow-hidden bg-brand-navy px-5 pb-12 pt-24 text-brand-cream sm:px-6 md:min-h-[600px] md:pb-10 lg:min-h-[640px] lg:pb-12 lg:pt-28">
       <Image
-        src="/hero-storybook.png"
+        src="/hero-storybook.jpg"
         alt="Un copil cu o lanternă alături de un dragon blând, într-o pădure de noapte"
         fill
         priority
