@@ -691,7 +691,7 @@ export default function StoryCreator() {
           <div className="story-pdf-inner-border" />
           {(['tl','tr','bl','br'] as const).map(pos => <CornerSVG key={pos} pos={pos} />)}
           <div className="story-pdf-content" style={{ justifyContent: 'center' }}>
-            <p className="story-cover-subtitle">{activeStoryLength.name}</p>
+            <p className="story-cover-subtitle">O aventură creată pentru seara voastră</p>
             <h1 className="story-cover-title">{(storyTitle || `Povestea lui ${name}`).toUpperCase()}</h1>
             <p className="story-cover-name">Creată pentru {name || "micul erou"}</p>
             <div className="story-cover-img-wrap">
