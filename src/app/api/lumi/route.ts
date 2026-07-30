@@ -105,6 +105,19 @@ Conversația de până acum:
 ${transcript}`;
 }
 
+function getLumiModelCandidates() {
+  const configuredModels = [
+    process.env.VERTEX_AI_LUMI_MODEL,
+    process.env.VERTEX_AI_MODEL,
+    ...(process.env.VERTEX_AI_FALLBACK_MODELS || "").split(","),
+    "gemini-3.5-flash",
+    "gemini-3.1-flash-lite",
+  ];
+
+  return Array.from(new Set(configuredModels.map((model) => model?.trim()).filter((model): model is string => Boolean(model))))
+    .slice(0, readBoundedDuration(process.env.LUMI_AI_FALLBACK_MAX_MODELS, 2, 1, 3));
+}
+
 export async function POST(request: Request) {
   const startedAt = Date.now();
   try {
@@ -142,25 +155,39 @@ export async function POST(request: Request) {
       location: process.env.VERTEX_AI_LOCATION?.trim() || "global",
       ...(credentials ? { googleAuthOptions: { credentials } } : {}),
     });
-    const model = process.env.VERTEX_AI_LUMI_MODEL?.trim() || process.env.VERTEX_AI_MODEL?.trim() || "gemini-3.5-flash";
-    const response = await withTimeout(
-      client.models.generateContent({
-        model,
-        contents: lumiPrompt(history, message),
-        config: {
-          responseMimeType: "application/json",
-          responseJsonSchema: LUMI_RESPONSE_SCHEMA,
-          maxOutputTokens: 360,
-          thinkingConfig: { thinkingBudget: 0 },
-          temperature: 0.95,
-        },
-      }),
-      readBoundedDuration(process.env.VERTEX_AI_LUMI_TIMEOUT_MS, 18_000, 5_000, 45_000),
-      "Lumi a depășit timpul de răspuns."
-    );
+    const prompt = lumiPrompt(history, message);
+    let model = "";
+    let rawResponse = "";
+    let lastError: unknown;
 
-    const rawResponse = response.text?.trim();
-    if (!rawResponse) throw new Error("Lumi nu a găsit încă un răspuns.");
+    for (const candidate of getLumiModelCandidates()) {
+      try {
+        const response = await withTimeout(
+          client.models.generateContent({
+            model: candidate,
+            contents: prompt,
+            config: {
+              responseMimeType: "application/json",
+              responseJsonSchema: LUMI_RESPONSE_SCHEMA,
+              maxOutputTokens: 360,
+              thinkingConfig: { thinkingBudget: 0 },
+              temperature: 0.95,
+            },
+          }),
+          readBoundedDuration(process.env.VERTEX_AI_LUMI_TIMEOUT_MS, 18_000, 5_000, 45_000),
+          "Lumi a depășit timpul de răspuns."
+        );
+
+        rawResponse = response.text?.trim() || "";
+        if (!rawResponse) throw new Error("Lumi nu a găsit încă un răspuns.");
+        model = candidate;
+        break;
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    if (!rawResponse) throw lastError instanceof Error ? lastError : new Error("Lumi nu a găsit încă un răspuns.");
 
     const parsed = JSON.parse(rawResponse) as {
       reply?: unknown;
