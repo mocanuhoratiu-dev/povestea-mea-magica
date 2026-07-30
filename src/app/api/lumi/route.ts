@@ -142,7 +142,7 @@ export async function POST(request: Request) {
       location: process.env.VERTEX_AI_LOCATION?.trim() || "global",
       ...(credentials ? { googleAuthOptions: { credentials } } : {}),
     });
-    const model = process.env.VERTEX_AI_LUMI_MODEL?.trim() || process.env.VERTEX_AI_MODEL?.trim() || "gemini-2.5-flash";
+    const model = process.env.VERTEX_AI_LUMI_MODEL?.trim() || process.env.VERTEX_AI_MODEL?.trim() || "gemini-3.5-flash";
     const response = await withTimeout(
       client.models.generateContent({
         model,

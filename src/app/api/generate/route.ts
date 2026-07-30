@@ -741,7 +741,7 @@ function sanitizeEmergencyKit(value: unknown) {
 async function generateGeminiText({
   apiKey,
   prompt,
-  model = process.env.GEMINI_MODEL || "gemini-2.5-flash",
+  model = process.env.GEMINI_MODEL || "gemini-3.5-flash",
   responseMimeType,
   responseJsonSchema,
   maxOutputTokens,
@@ -836,7 +836,7 @@ async function generateGeminiText({
 
 async function generateVertexText({
   prompt,
-  model = process.env.VERTEX_AI_MODEL || "gemini-2.5-flash",
+  model = process.env.VERTEX_AI_MODEL || "gemini-3.5-flash",
   responseMimeType,
   responseJsonSchema,
   maxOutputTokens,
@@ -910,8 +910,8 @@ function getGeminiModelCandidates() {
   const configuredModels = [
     isVertex ? process.env.VERTEX_AI_MODEL : process.env.GEMINI_MODEL,
     ...((isVertex ? process.env.VERTEX_AI_FALLBACK_MODELS : process.env.GEMINI_FALLBACK_MODELS) || "").split(","),
-    "gemini-2.5-flash",
-    "gemini-2.5-flash-lite",
+    "gemini-3.5-flash",
+    "gemini-3.1-flash-lite",
   ];
 
   const candidates = Array.from(
