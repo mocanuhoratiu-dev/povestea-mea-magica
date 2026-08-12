@@ -36,14 +36,14 @@ type ChatMessage = {
 };
 
 const quickPrompts = [
-  { label: "O poveste", prompt: "Vreau o idee de poveste personalizată pentru copilul meu.", icon: BookOpen },
-  { label: "O seară", prompt: "Copilul meu are nevoie de un ritual mai liniștit înainte de culcare.", icon: MoonStar },
-  { label: "O așteptare", prompt: "Avem un drum sau o perioadă de așteptare și vreau o activitate potrivită.", icon: TimerReset },
+  { label: "O poveste pentru azi", prompt: "Vreau o poveste personalizată pentru seara asta.", icon: BookOpen },
+  { label: "O seară mai liniștită", prompt: "Avem nevoie de un ritual blând înainte de culcare.", icon: MoonStar },
+  { label: "Timp de așteptare", prompt: "Avem un drum sau o perioadă de așteptare și vreau o activitate potrivită.", icon: TimerReset },
 ];
 
 const welcomeMessage: ChatMessage = {
   role: "model",
-  text: "Spune-mi ce se întâmplă acum: vrei o poveste pentru seara asta, un ritual pentru culcare sau o activitate pentru un timp de așteptare?",
+  text: "Alege momentul de mai jos. Îți spun de unde să începi și pregătesc formularul potrivit.",
 };
 
 function LumiSpirit() {
@@ -233,24 +233,24 @@ export default function LumiGuide() {
   const latestMessage = messages[messages.length - 1];
 
   return (
-    <aside className={`fixed bottom-3 right-5 z-[9990] w-[calc(100vw-2.5rem)] max-w-[304px] transition-[opacity,width] duration-300 sm:bottom-5 sm:right-7 ${isOpen ? "max-md:w-[calc(100vw-2.5rem)] max-md:max-w-[380px]" : ""} ${!isOpen && heroIsVisible ? "max-md:pointer-events-none max-md:opacity-0" : ""}`} aria-label="Ghidul Lumi">
+  <aside className={`fixed bottom-3 right-3 z-[9990] w-[calc(100vw-1.5rem)] max-w-[352px] transition-[opacity,width] duration-300 sm:bottom-5 sm:right-7 ${!isOpen && heroIsVisible ? "max-md:pointer-events-none max-md:opacity-0" : ""}`} aria-label="Ghidul Lumi">
       <AnimatePresence mode="wait">
         {isOpen ? (
           <motion.section
             key="guide"
             initial={{ opacity: 0, y: 18, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 12, scale: 0.96 }} transition={{ duration: 0.28, ease: "easeOut" }}
-            className="relative max-h-[min(470px,calc(100dvh-1.5rem))] overflow-hidden border border-brand-gold/50 bg-brand-cream shadow-[0_20px_55px_rgba(36,50,79,0.3)] max-md:max-h-[min(430px,calc(100dvh-1.5rem))]"
+            className="relative max-h-[min(490px,calc(100dvh-1.5rem))] overflow-hidden border border-brand-gold/50 bg-brand-cream shadow-[0_20px_55px_rgba(36,50,79,0.3)]"
           >
             <div className="absolute inset-y-0 right-0 w-1 bg-brand-gold" />
-            <header className="relative min-h-[66px] border-b border-brand-navy/12 px-3 pb-2.5 pt-3 pr-16 max-md:min-h-[62px]">
-              <LumiVisual className="absolute right-1 -top-7 h-24 w-20" />
-              <p className="text-[10px] font-black uppercase tracking-[0.13em] text-brand-purple">Lanterna Magică</p>
-              <h2 className="mt-0.5 max-w-[175px] font-serif text-base leading-tight text-brand-navy">Lumi, păzitoarea Lanternei</h2>
+            <header className="relative min-h-[64px] border-b border-brand-navy/12 px-4 py-3 pr-20">
+              <LumiVisual className="absolute right-8 -top-6 h-20 w-[68px]" />
+              <p className="text-[10px] font-black uppercase tracking-[0.13em] text-brand-purple">Cu Lumi</p>
+              <h2 className="mt-0.5 max-w-[215px] font-serif text-lg leading-tight text-brand-navy">Ce pregătim acum?</h2>
               <button type="button" onClick={resetGuide} className="absolute right-3 top-3 z-10 grid h-8 w-8 place-items-center text-brand-navy/55 transition-colors hover:bg-brand-navy hover:text-brand-cream" aria-label="Închide ghidul Lumi"><X size={17} /></button>
             </header>
 
             <div
-              className="max-h-[212px] space-y-2 overflow-y-auto overscroll-contain px-3 py-2.5 touch-pan-y max-md:max-h-[172px] [-webkit-overflow-scrolling:touch]"
+              className="max-h-[190px] space-y-2 overflow-y-auto overscroll-contain px-3 py-2.5 touch-pan-y [-webkit-overflow-scrolling:touch]"
               data-lenis-prevent
               aria-live="polite"
             >
@@ -285,8 +285,8 @@ export default function LumiGuide() {
             </div>
 
             {!isThinking && messages.length === 1 && (
-              <div className="flex flex-wrap gap-1.5 border-t border-brand-navy/10 px-3 py-2.5">
-                {quickPrompts.map(({ label, prompt, icon: Icon }) => <button key={label} type="button" onClick={() => void sendMessage(prompt)} className="flex items-center gap-1.5 border border-brand-purple/20 px-2 py-1.5 text-left text-[10px] font-black text-brand-purple transition-colors hover:bg-brand-purple hover:text-white"><Icon size={12} /> {label}</button>)}
+              <div className="grid grid-cols-3 gap-1.5 border-t border-brand-navy/10 px-3 py-2.5">
+                {quickPrompts.map(({ label, prompt, icon: Icon }) => <button key={label} type="button" onClick={() => void sendMessage(prompt)} className="min-h-14 border border-brand-purple/20 bg-white/70 px-2 py-2 text-left text-[10px] font-black leading-tight text-brand-purple transition-colors hover:bg-brand-purple hover:text-white"><Icon size={14} className="mb-1" /> {label}</button>)}
               </div>
             )}
 
@@ -299,20 +299,20 @@ export default function LumiGuide() {
             <form onSubmit={onSubmit} className="border-t border-brand-navy/12 p-2.5">
               <label className="sr-only" htmlFor="lumi-message">Mesaj pentru Lumi</label>
               <div className="flex gap-2">
-                <input ref={inputRef} id="lumi-message" value={input} onChange={(event) => setInput(event.target.value)} maxLength={500} placeholder="Spune-i lui Lumi..." className="min-w-0 flex-1 border border-brand-navy/18 bg-white px-3 py-2 text-[13px] font-semibold text-brand-navy outline-none placeholder:text-brand-navy/40 focus:border-brand-purple" />
+                <input ref={inputRef} id="lumi-message" value={input} onChange={(event) => setInput(event.target.value)} maxLength={500} placeholder="Sau scrie un detaliu..." className="min-w-0 flex-1 border border-brand-navy/18 bg-white px-3 py-2 text-[13px] font-semibold text-brand-navy outline-none placeholder:text-brand-navy/40 focus:border-brand-purple" />
                 <button type="submit" disabled={!input.trim() || isThinking} className="grid h-9 w-9 shrink-0 place-items-center bg-brand-navy text-brand-cream transition-colors hover:bg-brand-purple disabled:cursor-not-allowed disabled:opacity-40" aria-label="Trimite mesajul"><Send size={15} /></button>
               </div>
               {error && <p className="mt-2 text-xs font-bold leading-relaxed text-red-700">{error}</p>}
-              <p className="mt-1.5 text-[9px] font-semibold leading-relaxed text-brand-navy/48">Nu introduce date personale sau sensibile.</p>
+              <p className="mt-1.5 text-[9px] font-semibold leading-relaxed text-brand-navy/48">Nu include date personale sau sensibile.</p>
             </form>
           </motion.section>
         ) : (
           <motion.button
             key="trigger" type="button" initial={{ opacity: 0, scale: 0.75 }} animate={{ opacity: 1, scale: 1 }} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
-            onClick={() => { trackEvent("lumi_opened"); setIsOpen(true); }} className="group relative ml-auto grid h-14 w-14 place-items-center overflow-visible rounded-full border border-brand-gold/70 bg-brand-navy shadow-[0_14px_35px_rgba(36,50,79,0.32)] sm:h-16 sm:w-16" aria-label="Vorbește cu Lumi"
+            onClick={() => { trackEvent("lumi_opened"); setIsOpen(true); }} className="group relative ml-auto flex h-14 w-[148px] items-center justify-start overflow-visible border border-brand-gold/70 bg-brand-navy pl-3 text-left shadow-[0_14px_35px_rgba(36,50,79,0.32)] sm:h-16 sm:w-[160px]" aria-label="Deschide ghidul Lumi"
           >
-            {!heroIsVisible && <LumiVisual className="absolute left-[45%] top-1/2 h-[72px] w-[64px] -translate-x-1/2 -translate-y-1/2 transition-transform duration-300 group-hover:-translate-y-[54%] sm:h-[78px] sm:w-[68px]" />}
-            <span className="absolute -bottom-2 right-0 hidden whitespace-nowrap bg-brand-cream px-2 py-1 text-[10px] font-black uppercase tracking-[0.1em] text-brand-navy shadow-sm sm:block">Întreab-o pe Lumi</span>
+            <LumiVisual className="absolute right-1 top-1/2 h-[66px] w-[58px] -translate-y-1/2 transition-transform duration-300 group-hover:-translate-y-[54%] sm:h-[74px] sm:w-[64px]" />
+            <span className="text-[11px] font-black uppercase tracking-[0.08em] text-brand-cream">Alege cu<br/><span className="text-brand-gold">Lumi</span></span>
           </motion.button>
         )}
       </AnimatePresence>
