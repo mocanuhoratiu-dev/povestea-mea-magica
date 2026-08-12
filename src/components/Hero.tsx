@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { ArrowDown, ArrowRight, Eye } from "lucide-react";
+import { ArrowDown, ArrowRight, Eye, Sparkles } from "lucide-react";
 import InstantStoryPreview from "@/components/InstantStoryPreview";
 import LanternSignature from "@/components/LanternSignature";
 import { siteCopy } from "@/lib/siteMode";
@@ -56,6 +56,13 @@ export default function Hero() {
               <Eye size={19} /> Vezi modelele
             </a>
           </div>
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent("pmm:lumi-open"))}
+            className="mx-auto mt-5 inline-flex items-center gap-2 border-b border-brand-gold/70 pb-1 text-sm font-black text-brand-cream transition-colors hover:border-brand-cream hover:text-brand-gold md:hidden"
+          >
+            <Sparkles size={15} className="text-brand-gold" /> Nu știi de unde să începi? Întreab-o pe Lumi
+          </button>
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.12, ease: "easeOut" }} className="mx-auto hidden w-full max-w-[320px] justify-self-center sm:max-w-md lg:mr-0 lg:block lg:max-w-md lg:justify-self-end">
           <InstantStoryPreview />

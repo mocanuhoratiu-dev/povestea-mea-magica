@@ -78,20 +78,20 @@ function fallbackFor(message: string) {
   const text = message.toLocaleLowerCase("ro-RO");
   if (/(fric|întuneric|intuneric|coșmar|cosmar|sub pat|zgomot|somn)/.test(text)) {
     return {
-      reply: "Pentru seara de acum, aș începe cu un ritual mic și previzibil: lumină blândă, trei respirații împreună și un gest care îi aparține copilului. Scutul de Noapte vă pune toate acestea într-un material simplu de folosit.",
+      reply: "Începeți cu lumină blândă și trei respirații împreună. Scutul de Noapte transformă acest mic ritual într-un pas simplu, repetabil.",
       suggestions: ["Ce îl liniștește cel mai repede?", "Este vorba de întuneric sau de un coșmar?"],
       recommendation: { ...emptyRecommendation(), product: "monster" as const, monsterType: /coșmar|cosmar|vis/.test(text) ? "vise urate" : "frica de intuneric", fearLocation: "camera copilului", calmingHelper: "o lumină de veghe sau o îmbrățișare", bedtimeRitual: "trei respirații lente înainte de somn", label: "Deschide Scutul de Noapte" },
     };
   }
   if (/(restaurant|drum|mașin|masin|doctor|aeroport|avion|coad|aștept|astept)/.test(text)) {
     return {
-      reply: "Când așteptarea pare lungă, ajută să aveți o activitate care începe imediat și nu cere nimic în plus. Trusa de Răbdare vă dă câteva misiuni calme, adaptate locului în care sunteți.",
+      reply: "Pentru așteptare, ajută o activitate care începe imediat. Trusa de Răbdare pregătește misiuni calme, potrivite locului în care sunteți.",
       suggestions: ["Unde sunteți acum?", "Ce îi place copilului în perioada asta?"],
       recommendation: { ...emptyRecommendation(), product: "emergency" as const, emergencyContext: /restaurant/.test(text) ? "la restaurant, asteptand mancarea" : /doctor/.test(text) ? "in sala de asteptare la doctor" : /aeroport|avion/.test(text) ? "in aeroport sau avion" : /coad/.test(text) ? "la coada sau institutii" : "la un drum lung cu masina", duration: "10-20 minute", activityMode: "mix", label: "Deschide Trusa de Răbdare" },
     };
   }
   return {
-    reply: "O poveste bună începe cu un detaliu mic care îi este deja drag copilului. Alegeți o lume, o emoție sau un personaj preferat, iar noi îl așezăm într-o aventură potrivită pentru seara voastră.",
+    reply: "O poveste bună începe cu un lucru deja drag copilului. Alegeți o lume preferată, iar noi o transformăm într-o aventură pentru seara voastră.",
     suggestions: ["Îi plac mai mult stelele sau dinozaurii?", "Vrei o poveste liniștită sau una amuzantă?"],
     recommendation: { ...emptyRecommendation(), product: "story" as const, theme: /stele|spațiu|spatiu|planet/.test(text) ? "space" : /dino/.test(text) ? "dinosaurs" : /mare|ocean/.test(text) ? "ocean" : "forest", tone: "Liniștită de somn", lesson: "Curaj și încredere 💪", label: "Deschide Povestea de Seară" },
   };
@@ -133,7 +133,11 @@ function sanitizeResponse(value: Record<string, unknown>, fallback: ReturnType<t
 
 function lumiPrompt(history: LumiMessage[], message: string) {
   const transcript = [...history, { role: "user" as const, text: message }].map((item) => `${item.role === "model" ? "Lumi" : "Părinte"}: ${item.text}`).join("\n");
-  return `Ești Lumi, ghidul cald și pragmatic pentru părinții de la Povestea Mea Magică. Răspunzi exclusiv în română, în maximum 70 de cuvinte. Nu ești terapeut și nu ceri date sensibile. Ajută părintele să aleagă un singur material: Povestea de Seară, Scutul de Noapte sau Trusa de Răbdare. Oferă o idee utilă chiar acum, fără limbaj publicitar.
+  const firstParentMessage = !history.some((item) => item.role === "user");
+  const responseLength = firstParentMessage
+    ? "Este primul răspuns: maximum 35 de cuvinte. Spune întâi materialul recomandat și un singur motiv concret. Nu explica rutina în pași decât dacă părintele cere asta."
+    : "Maximum 55 de cuvinte. Răspunde direct la întrebarea părintelui și oferă cel mult o idee practică.";
+  return `Ești Lumi, ghidul cald și pragmatic pentru părinții de la Povestea Mea Magică. Răspunzi exclusiv în română. ${responseLength} Nu ești terapeut și nu ceri date sensibile. Ajută părintele să aleagă un singur material: Povestea de Seară, Scutul de Noapte sau Trusa de Răbdare. Fără limbaj publicitar.
 
 Răspunde numai cu JSON valid, fără Markdown:
 {"reply":"text scurt","suggestions":["maximum două întrebări scurte"],"recommendation":{"product":"story|monster|emergency|none","theme":"space|forest|castle|ocean|dinosaurs|clouds sau gol","tone":"Liniștită de somn|Aventură blândă|Amuzantă|Emoțională și caldă sau gol","lesson":"Curaj și încredere 💪|Împărțitul jucăriilor 🧸|Rutina de somn 🌙|Importanța prieteniei 🤝|Descoperirea naturii 🌱 sau gol","storyDetail":"","monsterType":"umbrele noptii|monstrul de sub pat|zgomotele ciudate|dulapul scartaitor|frica de intuneric|vise urate sau gol","fearLocation":"","calmingHelper":"","bedtimeRitual":"","emergencyContext":"la restaurant, asteptand mancarea|la un drum lung cu masina|in sala de asteptare la doctor|in casa, ploua afara|in aeroport sau avion|la coada sau institutii sau gol","interest":"","duration":"5-10 minute|10-20 minute|20+ minute sau gol","activityMode":"liniștite|cu mișcare mică|mix sau gol","label":"un CTA scurt"}}
@@ -160,7 +164,7 @@ export async function POST(request: Request) {
     const timeoutMs = readBoundedDuration(process.env.VERTEX_AI_LUMI_TIMEOUT_MS, 18_000, 5_000, 45_000);
     for (const model of getModelCandidates()) {
       try {
-        const response = await withTimeout(client.models.generateContent({ model, contents: prompt, config: { responseMimeType: "application/json", maxOutputTokens: 420, thinkingConfig: { thinkingBudget: 0 }, temperature: 0.85 } }), timeoutMs, "Lumi a depășit timpul de răspuns.");
+        const response = await withTimeout(client.models.generateContent({ model, contents: prompt, config: { responseMimeType: "application/json", maxOutputTokens: 260, thinkingConfig: { thinkingBudget: 0 }, temperature: 0.8 } }), timeoutMs, "Lumi a depășit timpul de răspuns.");
         const result = sanitizeResponse(parseJsonObject(response.text || ""), fallback);
         logTelemetry("pmm_lumi_response", { result: "success", durationMs: Date.now() - startedAt, aiProvider: "vertex", model });
         return NextResponse.json(result);

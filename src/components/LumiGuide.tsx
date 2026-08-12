@@ -165,6 +165,15 @@ export default function LumiGuide() {
   }, [isOpen]);
 
   useEffect(() => {
+    const openGuide = () => {
+      trackEvent("lumi_opened");
+      setIsOpen(true);
+    };
+    window.addEventListener("pmm:lumi-open", openGuide);
+    return () => window.removeEventListener("pmm:lumi-open", openGuide);
+  }, []);
+
+  useEffect(() => {
     const updateMomentMemory = () => setLastMoment(readMomentMemory());
     updateMomentMemory();
     window.addEventListener("pmm:lumi-moment-updated", updateMomentMemory);
@@ -276,7 +285,7 @@ export default function LumiGuide() {
   const latestMessage = messages[messages.length - 1];
 
   return (
-  <aside className={`fixed bottom-3 right-3 z-[9990] w-[calc(100vw-1.5rem)] max-w-[352px] transition-[opacity,width] duration-300 sm:bottom-5 sm:right-7 ${!isOpen && heroIsVisible ? "max-md:pointer-events-none max-md:opacity-0" : ""}`} aria-label="Ghidul Lumi">
+  <aside className={`fixed bottom-3 right-3 z-[9990] w-[calc(100vw-1.5rem)] max-w-[352px] transition-[opacity,width] duration-300 sm:bottom-5 sm:right-7 ${!isOpen && heroIsVisible ? "pointer-events-none opacity-0" : ""}`} aria-label="Ghidul Lumi">
       <AnimatePresence mode="wait">
         {isOpen ? (
           <motion.section
