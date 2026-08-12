@@ -133,10 +133,10 @@ export default function ProductReader({ title, source, pages }: ProductReaderPro
               initial={{ scale: 0.96, y: 12 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.96, y: 12 }}
-              className="relative max-h-[92vh] w-auto max-w-[min(94vw,760px)] shadow-2xl"
+              className="relative w-[min(92vw,calc((100dvh-8rem)*0.707))] min-w-[260px] max-w-[760px] shadow-2xl"
               onClick={(event) => event.stopPropagation()}
             >
-              <CropPage source={activePage.source ?? source} crop={activePage.crop} alt={`${title}: ${activePage.title}`} className="max-h-[86vh]" />
+              <CropPage source={activePage.source ?? source} crop={activePage.crop} alt={`${title}: ${activePage.title}`} className="w-full" />
               <button type="button" onClick={() => setExpanded(false)} className="absolute right-3 top-3 bg-brand-cream px-3 py-2 text-xs font-black text-brand-navy shadow-sm">Închide</button>
               <div className="absolute bottom-0 left-0 right-0 bg-brand-navy/85 px-5 py-4 text-brand-cream"><p className="font-serif text-2xl">{activePage.title}</p></div>
             </motion.div>
