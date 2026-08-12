@@ -1,50 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ChevronLeft, ReceiptText } from "lucide-react";
+import CommercialPage from "@/components/CommercialPage";
+import { supportMailto } from "@/lib/publicContact";
 
 export const metadata: Metadata = {
   title: "Politica de Rambursare | Povestea Mea Magică",
-  description: "Politica pentru materialele digitale personalizate Povestea Mea Magică.",
+  description: "Cum tratăm problemele de livrare în beta și cum va funcționa politica de rambursare după activarea plăților.",
   alternates: { canonical: "/politica-de-rambursare" },
 };
 
 export default function RefundPolicyPage() {
-  return (
-    <main className="min-h-screen bg-brand-cream py-20 px-6">
-      <div className="max-w-4xl mx-auto">
-        <Link href="/" className="inline-flex items-center gap-2 text-brand-navy/60 hover:text-brand-purple mb-10 transition-colors font-bold">
-          <ChevronLeft size={20} /> Înapoi la Magie
-        </Link>
-
-        <div className="bg-white rounded-[3rem] shadow-xl p-10 md:p-16 border-8 border-brand-gold/20">
-          <div className="flex items-center gap-3 mb-8">
-            <ReceiptText className="text-brand-gold w-8 h-8" />
-            <h1 className="font-nunito font-black text-4xl text-brand-navy">Politica de Rambursare</h1>
-          </div>
-
-          <div className="prose prose-brand max-w-none text-brand-navy/80 space-y-8 font-medium">
-            <section>
-              <h2 className="text-2xl font-black text-brand-navy mb-4">Versiunea curentă</h2>
-              <p>În acest moment, plățile online nu sunt active. Materialele se generează și se descarcă direct din browser, fără procesare de plată prin site.</p>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-black text-brand-navy mb-4">După activarea plăților</h2>
-              <p>Produsele digitale personalizate sunt create pe baza datelor introduse de utilizator. După generare și livrare, rambursarea poate fi limitată, deoarece materialul este personalizat pentru copilul indicat.</p>
-              <p>Vom analiza manual situațiile în care există o eroare tehnică, PDF-ul nu poate fi descărcat sau conținutul livrat nu corespunde opțiunilor selectate.</p>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-black text-brand-navy mb-4">Contact</h2>
-              <p>Pentru orice problemă cu o comandă viitoare, scrie-ne la <strong>contact@povesteamagica.ro</strong> cu numele comenzii și o descriere scurtă a situației.</p>
-            </section>
-          </div>
-
-          <div className="mt-16 pt-10 border-t border-brand-navy/5 text-center">
-            <p className="text-brand-navy/40 text-sm italic">Ultima actualizare: 17 Iulie 2026</p>
-          </div>
-        </div>
-      </div>
-    </main>
-  );
+  return <CommercialPage eyebrow="Politica de rambursare" title="În beta nu plătești. După checkout, vei ști exact ce ți se aplică." description="Vrem ca regulile comerciale să fie explicate înainte de plată, nu ascunse după descărcare.">
+    <section className="px-6 py-16 md:py-20"><div className="mx-auto max-w-5xl divide-y divide-brand-navy/15 border-y border-brand-navy/15 text-base font-medium leading-relaxed text-brand-navy/70"><section className="grid gap-4 py-8 md:grid-cols-[.55fr_1.45fr]"><h2 className="font-serif text-3xl text-brand-navy">Acum</h2><p>Platforma este în beta gratuită. Nu există plată, comandă cu plată sau rambursare procesată prin site. Dacă un material are o problemă tehnică, ne poți scrie pentru ajutor sau pentru a-l regenera.</p></section><section className="grid gap-4 py-8 md:grid-cols-[.55fr_1.45fr]"><h2 className="font-serif text-3xl text-brand-navy">La lansarea comercială</h2><p>Înainte de plată, vom afișa clar prețul final, identitatea comerciantului, modalitatea de livrare, facturarea și condițiile de retragere sau rambursare. Pentru conținut digital personalizat livrat imediat, regulile privind dreptul de retragere și acordul expres vor fi prezentate în checkout înainte ca plata să fie confirmată.</p></section><section className="grid gap-4 py-8 md:grid-cols-[.55fr_1.45fr]"><h2 className="font-serif text-3xl text-brand-navy">Probleme de livrare</h2><p>Indiferent de etapa produsului, dacă PDF-ul nu se descarcă, emailul nu ajunge sau conținutul nu corespunde alegerilor tale, anunță-ne. Analizăm problema și încercăm mai întâi să o remediem prin refacere sau relivrare.</p></section></div><div className="mx-auto mt-10 flex max-w-5xl gap-5"><a href={supportMailto("Ajutor pentru un material - Povestea Mea Magică")} className="border-b border-brand-purple pb-1 text-sm font-black text-brand-purple">Cere ajutor</a><Link href="/livrare-digitala" className="border-b border-brand-navy/30 pb-1 text-sm font-black text-brand-navy/70">Vezi livrarea digitală</Link></div><p className="mx-auto mt-10 max-w-5xl text-sm font-semibold text-brand-navy/50">Ultima actualizare: 12 august 2026</p></section>
+  </CommercialPage>;
 }

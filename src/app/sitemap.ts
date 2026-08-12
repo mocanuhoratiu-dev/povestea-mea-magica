@@ -5,9 +5,15 @@ const publicPages = [
   "",
   "/despre",
   "/modele",
+  "/preturi",
+  "/cum-functioneaza",
+  "/livrare-digitala",
+  "/contact",
+  "/intrebari-frecvente",
   "/termeni-si-conditii",
   "/politica-de-confidentialitate",
   "/politica-de-rambursare",
+  "/politica-cookie-uri",
   "/siguranta-ai",
 ];
 

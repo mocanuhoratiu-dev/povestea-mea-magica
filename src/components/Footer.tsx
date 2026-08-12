@@ -22,6 +22,8 @@ export default function Footer() {
               <li><Link href="/#monster-away" className="transition-colors hover:text-brand-gold">Scutul de Noapte</Link></li>
               <li><Link href="/#emergency-kit" className="transition-colors hover:text-brand-gold">Trusa de Răbdare</Link></li>
               <li><Link href="/modele" className="transition-colors hover:text-brand-gold">Modele PDF</Link></li>
+              <li><Link href="/preturi" className="transition-colors hover:text-brand-gold">Prețuri</Link></li>
+              <li><Link href="/cum-functioneaza" className="transition-colors hover:text-brand-gold">Cum funcționează</Link></li>
               <li><Link href="/despre" className="transition-colors hover:text-brand-gold">Despre proiect</Link></li>
             </ul>
           </div>
@@ -31,8 +33,11 @@ export default function Footer() {
               <li><Link href="/politica-de-confidentialitate" className="transition-colors hover:text-brand-gold">Confidențialitate</Link></li>
               <li><Link href="/termeni-si-conditii" className="transition-colors hover:text-brand-gold">Termeni și condiții</Link></li>
               <li><Link href="/politica-de-rambursare" className="transition-colors hover:text-brand-gold">Politică de rambursare</Link></li>
+              <li><Link href="/livrare-digitala" className="transition-colors hover:text-brand-gold">Livrare digitală</Link></li>
+              <li><Link href="/politica-cookie-uri" className="transition-colors hover:text-brand-gold">Cookie-uri</Link></li>
+              <li><Link href="/intrebari-frecvente" className="transition-colors hover:text-brand-gold">Întrebări frecvente</Link></li>
               <li><Link href="/siguranta-ai" className="transition-colors hover:text-brand-gold">Siguranța datelor</Link></li>
-              <li><Link href="mailto:contact@povesteamagica.ro" className="transition-colors hover:text-brand-gold">Contact</Link></li>
+              <li><Link href="/contact" className="transition-colors hover:text-brand-gold">Contact</Link></li>
             </ul>
           </div>
         </div>

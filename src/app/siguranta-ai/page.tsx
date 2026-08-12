@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ChevronLeft, ShieldCheck } from "lucide-react";
+import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
   title: "Siguranța AI | Povestea Mea Magică",
@@ -52,6 +53,7 @@ export default function AiSafetyPage() {
           </div>
         </div>
       </div>
+      <Footer />
     </main>
   );
 }

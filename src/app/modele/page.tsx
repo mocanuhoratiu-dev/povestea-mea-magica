@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, BookOpen, ShieldCheck, TimerReset } from "lucide-react";
 import BrandMark from "@/components/BrandMark";
+import Footer from "@/components/Footer";
 import ProductReader, { type ReaderPage } from "@/components/ProductReader";
 
 export const metadata: Metadata = {
@@ -91,7 +92,8 @@ const models = [
 
 export default function ModelsPage() {
   return (
-    <main className="min-h-screen bg-brand-cream pb-24 pt-32">
+    <>
+      <main className="min-h-screen bg-brand-cream pb-24 pt-32">
       <section className="px-6">
         <div className="mx-auto max-w-7xl border-b border-brand-navy/15 pb-14">
           <div className="grid max-w-5xl gap-8 md:grid-cols-[auto_1fr] md:items-start">
@@ -149,6 +151,8 @@ export default function ModelsPage() {
           <Link href="/#alege-materialul" className="inline-flex items-center gap-2 bg-brand-gold px-6 py-4 font-black text-brand-navy transition-colors hover:bg-brand-cream">Alege un moment <ArrowRight size={18} /></Link>
         </div>
       </section>
-    </main>
+      </main>
+      <Footer />
+    </>
   );
 }

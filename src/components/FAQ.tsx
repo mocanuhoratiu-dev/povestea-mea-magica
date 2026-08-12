@@ -31,7 +31,7 @@ const faqs = [
   },
   {
     question: "Care sunt prețurile?",
-    answer: "Povestea scurtă este 19 lei, iar povestea lungă este 29 lei. Scutul de Noapte și Trusa de Răbdare sunt câte 19 lei. Pachetul cu povestea lungă, Scutul și Trusa este 49 lei. Vei vedea clar pasul de plată înainte ca aceste prețuri să devină aplicabile.",
+    answer: "Prețurile planificate sunt 19 lei pentru povestea scurtă, 29 lei pentru cea lungă și 19 lei pentru fiecare kit. Pachetul complet este 49 lei. În beta, accesul este gratuit și nu există pas de plată.",
   },
   {
     question: "Sunt materialele un sfat medical sau terapeutic?",

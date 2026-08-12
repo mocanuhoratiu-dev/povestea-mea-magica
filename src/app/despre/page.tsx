@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ArrowRight, BookOpen, HeartHandshake, ShieldCheck } from "lucide-react";
 import BrandMark from "@/components/BrandMark";
+import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
   title: "Despre | Povestea Mea Magică",
@@ -21,7 +22,7 @@ const principles = [
 
 export default function AboutPage() {
   return (
-    <main className="min-h-screen bg-brand-cream pb-24 pt-32">
+    <main className="min-h-screen bg-brand-cream pt-32">
       <section className="px-6">
         <div className="mx-auto grid max-w-7xl gap-10 border-b border-brand-navy/15 pb-16 lg:grid-cols-[.9fr_1.1fr] lg:items-end">
           <div>
@@ -86,6 +87,7 @@ export default function AboutPage() {
           <a href="mailto:horatiu@zenithcustomersuccess.com?subject=Recenzie%20beta%20-%20Povestea%20Mea%20Magic%C4%83&body=Am%20folosit%20Povestea%20Mea%20Magic%C4%83%20%C3%AEn%20beta%20%C8%99i%20vreau%20s%C4%83%20las%20o%20recenzie.%0A%0ACe%20ne-a%20pl%C4%83cut%3A%0A%0ACe%20am%20%C3%AEmbun%C4%83t%C4%83%C8%9Bi%3A%0A%0ASunte%C8%9Bi%20de%20acord%20s%C4%83%20public%C4%83m%20un%20scurt%20fragment%20anonim%3F%20Da%20%2F%20Nu%3A" className="inline-flex items-center gap-2 bg-brand-navy px-6 py-4 text-sm font-black text-brand-cream transition-colors hover:bg-brand-purple">Lasă o recenzie de beta <ArrowRight size={17} /></a>
         </div>
       </section>
+      <Footer />
     </main>
   );
 }

@@ -1,76 +1,23 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ChevronLeft, ShieldCheck } from "lucide-react";
+import CommercialPage from "@/components/CommercialPage";
+import { publicContact, supportMailto } from "@/lib/publicContact";
 
 export const metadata: Metadata = {
   title: "Politica de Confidențialitate | Povestea Mea Magică",
-  description: "Cum protejăm datele de personalizare și conversațiile din Povestea Mea Magică.",
+  description: "Cum sunt folosite și protejate datele de personalizare în Povestea Mea Magică.",
   alternates: { canonical: "/politica-de-confidentialitate" },
 };
 
 export default function PrivacyPage() {
-  return (
-    <main className="min-h-screen bg-brand-cream py-20 px-6">
-      <div className="max-w-4xl mx-auto">
-        <Link href="/" className="inline-flex items-center gap-2 text-brand-navy/60 hover:text-brand-purple mb-10 transition-colors font-bold">
-          <ChevronLeft size={20} /> Înapoi la Magie
-        </Link>
-
-        <div className="bg-white rounded-[3rem] shadow-xl p-10 md:p-16 border-8 border-brand-blue/10">
-          <div className="flex items-center gap-3 mb-8">
-            <ShieldCheck className="text-brand-blue w-8 h-8" />
-            <h1 className="font-nunito font-black text-4xl text-brand-navy">Politica de Confidențialitate</h1>
-          </div>
-
-          <div className="prose prose-brand max-w-none text-brand-navy/80 space-y-8 font-medium">
-            <section>
-              <h2 className="text-2xl font-black text-brand-navy mb-4">Protejăm Datele Micuților</h2>
-              <p>
-                La Povestea Mea Magică, siguranța și confidențialitatea datelor tale și ale copilului tău sunt prioritare. În versiunea curentă nu există conturi de utilizator, nu colectăm plăți online și nu păstrăm în aplicație poveștile sau PDF-urile create.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-black text-brand-navy mb-4">Ce Date Colectăm?</h2>
-              <ul className="list-disc pl-6 space-y-2">
-                <li><strong>Datele de personalizare:</strong> Numele, vârsta, tema, frica sau contextul introduse în formulare.</li>
-                <li><strong>Conversațiile cu Lumi:</strong> Mesajele pe care alegi să le trimiți ghidului digital pentru a primi recomandări. Nu cerem date sensibile și nu păstrăm conversațiile într-un cont sau istoric de client.</li>
-                <li><strong>Adresa de email, dacă alegi livrarea:</strong> Este folosită strict pentru a trimite PDF-ul cerut. Nu o adăugăm automat la newsletter și nu o asociem unui cont.</li>
-                <li><strong>Date tehnice:</strong> Informații standard necesare pentru funcționarea sigură și fiabilă a serviciului.</li>
-                <li><strong>Statistici agregate de utilizare:</strong> Număr de vizite, produs început/generat, rezultat AI sau fallback, număr de pagini/cuvinte și descărcări PDF. Nu trimitem în aceste statistici numele copilului, textul poveștii, dedicația, prompturile sau un identificator de client.</li>
-                <li><strong>Date de plată:</strong> Nu colectăm date de plată în versiunea curentă.</li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-black text-brand-navy mb-4">Cum Folosim Datele?</h2>
-              <p>
-                Folosim modele lingvistice avansate (LLM-uri) și tehnologie proprie pentru a crea conținutul solicitat, a susține conversația cu Lumi și a genera ilustrațiile necesare materialelor. Sistemul este construit cu principiul minimizării datelor: folosim doar informațiile necesare pentru rezultatul cerut, iar conversațiile sunt procesate pentru sesiunea curentă, fără a fi transformate într-un profil sau istoric de client în aplicație.
-              </p>
-              <p>
-                Aplicăm măsuri tehnice și organizatorice pentru siguranță, securitate și funcționare responsabilă. Datele de personalizare nu sunt folosite pentru publicitate și nu construim profiluri despre copil sau familie. Ilustrațiile și fișierele sunt pregătite pentru previzualizare și descărcare, fără o bibliotecă de imagini sau comenzi asociată unui cont. Dacă o componentă de generare este temporar indisponibilă, putem folosi o alternativă care respectă aceleași principii de minimizare a datelor. Statisticile agregate ne ajută să îmbunătățim produsul și să depistăm probleme de funcționare, fără a include numele copilului, textul poveștii, dedicația sau mesajele voastre.
-              </p>
-              <p>
-                Dacă alegi livrarea pe email, PDF-ul este atașat unui mesaj tranzacțional trimis de furnizorul nostru de livrare email. Adresa și atașamentul sunt procesate numai pentru această trimitere; nu includem adresa de email, PDF-ul sau conținutul personalizat în telemetria noastră operațională.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-black text-brand-navy mb-4">Drepturile Tale (GDPR)</h2>
-              <p>Conform GDPR, ai dreptul să soliciți informații, corectare sau ștergere pentru datele care ar putea fi procesate de noi. Ne poți contacta la privacy@povesteamagica.ro.</p>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-black text-brand-navy mb-4">Cookie-uri</h2>
-              <p>Nu folosim cookie-uri de publicitate sau un identificator persistent pentru statisticile agregate. Browserul păstrează doar un marcaj temporar de sesiune, fără ID de client, pentru a nu număra aceeași vizită de mai multe ori. Dacă vom adăuga cookie-uri opționale, analytics la nivel de persoană, plăți sau conturi, politica și fluxul de consimțământ vor fi actualizate înainte de activare.</p>
-            </section>
-          </div>
-
-          <div className="mt-16 pt-10 border-t border-brand-navy/5 text-center">
-            <p className="text-brand-navy/40 text-sm italic">Ultima actualizare: 23 Iulie 2026</p>
-          </div>
-        </div>
-      </div>
-    </main>
-  );
+  return <CommercialPage eyebrow="Confidențialitate" title="Datele voastre au un singur rol: să ajute la crearea materialului." description="Nu construim profiluri despre familie sau copil și nu cerem informații sensibile pentru a genera un PDF personalizat.">
+    <section className="px-6 py-16 md:py-20"><div className="mx-auto max-w-5xl divide-y divide-brand-navy/15 border-y border-brand-navy/15 text-base font-medium leading-relaxed text-brand-navy/70">
+      <section className="grid gap-4 py-8 md:grid-cols-[.55fr_1.45fr]"><h2 className="font-serif text-3xl text-brand-navy">Ce date folosim</h2><div><p>Poți introduce numele și vârsta copilului, preferințe, tema poveștii, o dedicație, un context de așteptare sau detalii despre o teamă de noapte. Dacă alegi livrarea pe email, folosim adresa introdusă pentru acel mesaj tranzacțional.</p><p className="mt-4">Lumi primește numai mesajele pe care alegi să le trimiți. Nu cere date sensibile și nu păstrează conversația ca profil sau istoric de cont în interfața noastră.</p></div></section>
+      <section className="grid gap-4 py-8 md:grid-cols-[.55fr_1.45fr]"><h2 className="font-serif text-3xl text-brand-navy">De ce le folosim</h2><p>Folosim aceste date pentru generarea textului, a ilustrației, a activităților și, la alegerea ta, pentru livrarea PDF-ului. De asemenea, păstrăm date tehnice și statistici agregate de funcționare pentru securitate, limitarea abuzurilor și îmbunătățirea produsului. Nu trimitem în telemetrie numele copilului, povestea, dedicația sau mesajele voastre.</p></section>
+      <section className="grid gap-4 py-8 md:grid-cols-[.55fr_1.45fr]"><h2 className="font-serif text-3xl text-brand-navy">Furnizori tehnici</h2><p>Pentru funcționare folosim furnizori de infrastructură cloud, generare de conținut și livrare de email. Aceștia procesează informațiile numai în măsura necesară furnizării serviciului, în baza unor condiții contractuale și tehnice adecvate. Nu vindem datele și nu le folosim pentru publicitate comportamentală.</p></section>
+      <section className="grid gap-4 py-8 md:grid-cols-[.55fr_1.45fr]"><h2 className="font-serif text-3xl text-brand-navy">Păstrare și siguranță</h2><p>Nu oferim bibliotecă de conturi și nu păstrăm în aplicație o arhivă personală de povești sau PDF-uri. Datele pot fi procesate temporar pentru generare, livrare, securitate și diagnosticare. Aplicăm măsuri tehnice și organizatorice rezonabile pentru a limita accesul și a proteja serviciul.</p></section>
+      <section className="grid gap-4 py-8 md:grid-cols-[.55fr_1.45fr]"><h2 className="font-serif text-3xl text-brand-navy">Drepturile tale</h2><p>Poți cere informații despre datele procesate, corectare, ștergere, restricționare sau poți formula o obiecție, în limitele prevăzute de legislația aplicabilă. În perioada beta, trimite solicitarea la adresa de suport, cu suficiente detalii pentru identificarea mesajului sau livrării, fără să incluzi date sensibile suplimentare.</p></section>
+      <section className="grid gap-4 py-8 md:grid-cols-[.55fr_1.45fr]"><h2 className="font-serif text-3xl text-brand-navy">Cookie-uri</h2><p>Detaliile despre stocarea locală și cookie-uri sunt disponibile în <Link href="/politica-cookie-uri" className="font-black text-brand-purple underline underline-offset-4">Politica de Cookie-uri</Link>. În prezent nu folosim cookie-uri de publicitate sau analiză identificabilă.</p></section>
+    </div><a href={supportMailto("Solicitare confidențialitate - Povestea Mea Magică")} className="mx-auto mt-10 inline-flex max-w-5xl border-b border-brand-purple pb-1 text-sm font-black text-brand-purple">{publicContact.email}</a><p className="mx-auto mt-10 max-w-5xl text-sm font-semibold text-brand-navy/50">Ultima actualizare: 12 august 2026. Datele complete ale operatorului vor fi afișate înainte de activarea comenzilor cu plată.</p></section>
+  </CommercialPage>;
 }
