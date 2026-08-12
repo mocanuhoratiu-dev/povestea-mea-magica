@@ -38,6 +38,19 @@ function cleanText(value: unknown, maxLength: number) {
     : "";
 }
 
+function looksLikeQuestion(value: string) {
+  return /[?？]/.test(value) || /^(cum|ce|unde|cine|când|cand|care|cât|cat|câți|cati|vrei|este|are|spune-mi)\b/i.test(value.trim());
+}
+
+function sanitizeSuggestions(value: unknown, fallback: string[]) {
+  if (!Array.isArray(value)) return fallback;
+  const suggestions = value
+    .map((item) => cleanText(item, 80))
+    .filter((item) => item && !looksLikeQuestion(item))
+    .slice(0, 2);
+  return suggestions.length > 0 ? suggestions : fallback;
+}
+
 function isOneOf<T extends readonly string[]>(value: unknown, choices: T, fallback = "") {
   return typeof value === "string" && choices.includes(value as T[number]) ? value : fallback;
 }
@@ -79,20 +92,20 @@ function fallbackFor(message: string) {
   if (/(fric|întuneric|intuneric|coșmar|cosmar|sub pat|zgomot|somn)/.test(text)) {
     return {
       reply: "Începeți cu lumină blândă și trei respirații împreună. Scutul de Noapte transformă acest mic ritual într-un pas simplu, repetabil.",
-      suggestions: ["Ce îl liniștește cel mai repede?", "Este vorba de întuneric sau de un coșmar?"],
+      suggestions: ["O lumină mică", "O îmbrățișare"],
       recommendation: { ...emptyRecommendation(), product: "monster" as const, monsterType: /coșmar|cosmar|vis/.test(text) ? "vise urate" : "frica de intuneric", fearLocation: "camera copilului", calmingHelper: "o lumină de veghe sau o îmbrățișare", bedtimeRitual: "trei respirații lente înainte de somn", label: "Deschide Scutul de Noapte" },
     };
   }
   if (/(restaurant|drum|mașin|masin|doctor|aeroport|avion|coad|aștept|astept)/.test(text)) {
     return {
       reply: "Pentru așteptare, ajută o activitate care începe imediat. Trusa de Răbdare pregătește misiuni calme, potrivite locului în care sunteți.",
-      suggestions: ["Unde sunteți acum?", "Ce îi place copilului în perioada asta?"],
+      suggestions: ["Suntem la restaurant", "Suntem în mașină"],
       recommendation: { ...emptyRecommendation(), product: "emergency" as const, emergencyContext: /restaurant/.test(text) ? "la restaurant, asteptand mancarea" : /doctor/.test(text) ? "in sala de asteptare la doctor" : /aeroport|avion/.test(text) ? "in aeroport sau avion" : /coad/.test(text) ? "la coada sau institutii" : "la un drum lung cu masina", duration: "10-20 minute", activityMode: "mix", label: "Deschide Trusa de Răbdare" },
     };
   }
   return {
-    reply: "O poveste bună începe cu un lucru deja drag copilului. Alegeți o lume preferată, iar noi o transformăm într-o aventură pentru seara voastră.",
-    suggestions: ["Îi plac mai mult stelele sau dinozaurii?", "Vrei o poveste liniștită sau una amuzantă?"],
+    reply: "O poveste bună începe cu un lucru deja drag copilului. Ce lume i-ar plăcea să exploreze azi?",
+    suggestions: ["Stele și planete", "Dinozauri"],
     recommendation: { ...emptyRecommendation(), product: "story" as const, theme: /stele|spațiu|spatiu|planet/.test(text) ? "space" : /dino/.test(text) ? "dinosaurs" : /mare|ocean/.test(text) ? "ocean" : "forest", tone: "Liniștită de somn", lesson: "Curaj și încredere 💪", label: "Deschide Povestea de Seară" },
   };
 }
@@ -110,7 +123,7 @@ function sanitizeResponse(value: Record<string, unknown>, fallback: ReturnType<t
   const requestedProduct = PRODUCT_IDS.has(recommendation.product as ProductId) ? recommendation.product as ProductId : fallback.recommendation.product;
   return {
     reply: cleanText(value.reply, 560) || fallback.reply,
-    suggestions: Array.isArray(value.suggestions) ? value.suggestions.map((item) => cleanText(item, 80)).filter(Boolean).slice(0, 2) : fallback.suggestions,
+    suggestions: sanitizeSuggestions(value.suggestions, fallback.suggestions),
     recommendation: {
       ...fallback.recommendation,
       product: requestedProduct,
@@ -139,8 +152,12 @@ function lumiPrompt(history: LumiMessage[], message: string) {
     : "Maximum 55 de cuvinte. Răspunde direct la întrebarea părintelui și oferă cel mult o idee practică.";
   return `Ești Lumi, ghidul cald și pragmatic pentru părinții de la Povestea Mea Magică. Răspunzi exclusiv în română. ${responseLength} Nu ești terapeut și nu ceri date sensibile. Ajută părintele să aleagă un singur material: Povestea de Seară, Scutul de Noapte sau Trusa de Răbdare. Fără limbaj publicitar.
 
+Rolurile din conversație sunt obligatorii: doar liniile care încep cu „Părinte:” sunt mesaje ale părintelui. Nu răspunde niciodată la o întrebare pusă de Lumi ca și cum ar fi fost răspunsul părintelui. Nu inventa niciodată prenumele, vârsta sau preferințele copilului. Nu cere prenumele copilului: formularul îl va cere numai când părintele alege să creeze materialul.
+
+„suggestions” sunt butoane pe care părintele le poate apăsa și care vor fi trimise literal ca următorul mesaj al Părintelui. Prin urmare, ele trebuie să fie doar răspunsuri sau opțiuni scurte, formulate la persoana părintelui, niciodată întrebări. Nu folosi semnul întrebării și nu începe cu „Cum”, „Ce”, „Unde”, „Cine”, „Când”, „Care”, „Vrei”, „Este” sau „Are”. Pune întrebarea necesară în „reply”, apoi oferă cel mult două răspunsuri posibile în „suggestions”. Exemplu bun: reply „Ce lume îl atrage azi?”, suggestions [„Stele și planete”, „Dinozauri”].
+
 Răspunde numai cu JSON valid, fără Markdown:
-{"reply":"text scurt","suggestions":["maximum două întrebări scurte"],"recommendation":{"product":"story|monster|emergency|none","theme":"space|forest|castle|ocean|dinosaurs|clouds sau gol","tone":"Liniștită de somn|Aventură blândă|Amuzantă|Emoțională și caldă sau gol","lesson":"Curaj și încredere 💪|Împărțitul jucăriilor 🧸|Rutina de somn 🌙|Importanța prieteniei 🤝|Descoperirea naturii 🌱 sau gol","storyDetail":"","monsterType":"umbrele noptii|monstrul de sub pat|zgomotele ciudate|dulapul scartaitor|frica de intuneric|vise urate sau gol","fearLocation":"","calmingHelper":"","bedtimeRitual":"","emergencyContext":"la restaurant, asteptand mancarea|la un drum lung cu masina|in sala de asteptare la doctor|in casa, ploua afara|in aeroport sau avion|la coada sau institutii sau gol","interest":"","duration":"5-10 minute|10-20 minute|20+ minute sau gol","activityMode":"liniștite|cu mișcare mică|mix sau gol","label":"un CTA scurt"}}
+{"reply":"text scurt; include aici o întrebare dacă mai ai nevoie de un detaliu","suggestions":["maximum două răspunsuri scurte, nu întrebări"],"recommendation":{"product":"story|monster|emergency|none","theme":"space|forest|castle|ocean|dinosaurs|clouds sau gol","tone":"Liniștită de somn|Aventură blândă|Amuzantă|Emoțională și caldă sau gol","lesson":"Curaj și încredere 💪|Împărțitul jucăriilor 🧸|Rutina de somn 🌙|Importanța prieteniei 🤝|Descoperirea naturii 🌱 sau gol","storyDetail":"","monsterType":"umbrele noptii|monstrul de sub pat|zgomotele ciudate|dulapul scartaitor|frica de intuneric|vise urate sau gol","fearLocation":"","calmingHelper":"","bedtimeRitual":"","emergencyContext":"la restaurant, asteptand mancarea|la un drum lung cu masina|in sala de asteptare la doctor|in casa, ploua afara|in aeroport sau avion|la coada sau institutii sau gol","interest":"","duration":"5-10 minute|10-20 minute|20+ minute sau gol","activityMode":"liniștite|cu mișcare mică|mix sau gol","label":"un CTA scurt"}}
 
 Conversație:\n${transcript}`;
 }

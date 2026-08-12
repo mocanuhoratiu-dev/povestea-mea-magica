@@ -56,6 +56,10 @@ const rememberedProducts: Record<MomentMemory["product"], string> = {
   emergency: "o Trusă de Răbdare",
 };
 
+function looksLikeQuestion(value: string) {
+  return /[?？]/.test(value) || /^(cum|ce|unde|cine|când|cand|care|cât|cat|câți|cati|vrei|este|are|spune-mi)\b/i.test(value.trim());
+}
+
 function readMomentMemory(): MomentMemory | null {
   try {
     const value = window.sessionStorage.getItem("pmm-lumi-last-moment");
@@ -146,6 +150,7 @@ export default function LumiGuide() {
   const [heroIsVisible, setHeroIsVisible] = useState(true);
   const [messages, setMessages] = useState<ChatMessage[]>([welcomeMessage]);
   const [input, setInput] = useState("");
+  const [inputHint, setInputHint] = useState("Sau scrie un detaliu...");
   const [isThinking, setIsThinking] = useState(false);
   const [error, setError] = useState("");
   const [speakingMessage, setSpeakingMessage] = useState<number | null>(null);
@@ -221,6 +226,7 @@ export default function LumiGuide() {
     setIsOpen(false);
     setMessages([welcomeMessage]);
     setInput("");
+    setInputHint("Sau scrie un detaliu...");
     setError("");
   };
 
@@ -251,6 +257,7 @@ export default function LumiGuide() {
     const userMessage: ChatMessage = { role: "user", text: message };
     setMessages((current) => [...current, userMessage]);
     setInput("");
+    setInputHint("Sau scrie un detaliu...");
     setError("");
     setIsThinking(true);
 
@@ -275,6 +282,18 @@ export default function LumiGuide() {
     } finally {
       setIsThinking(false);
     }
+  };
+
+  const chooseSuggestion = (suggestion: string) => {
+    // Older responses or a model regression must never turn Lumi's question into the parent's message.
+    if (looksLikeQuestion(suggestion)) {
+      setMessages((current) => [...current, { role: "model", text: suggestion }]);
+      setInput("");
+      setInputHint("Scrie răspunsul tău...");
+      window.setTimeout(() => inputRef.current?.focus(), 0);
+      return;
+    }
+    void sendMessage(suggestion);
   };
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -353,14 +372,14 @@ export default function LumiGuide() {
 
             {!isThinking && latestMessage?.role === "model" && latestMessage.suggestions && latestMessage.suggestions.length > 0 && (
               <div className="flex flex-wrap gap-1.5 border-t border-brand-navy/10 px-3 py-2.5">
-                {latestMessage.suggestions.map((suggestion) => <button key={suggestion} type="button" onClick={() => void sendMessage(suggestion)} className="border border-brand-purple/20 px-2 py-1.5 text-left text-[10px] font-black text-brand-purple transition-colors hover:bg-brand-purple hover:text-white">{suggestion}</button>)}
+                {latestMessage.suggestions.map((suggestion) => <button key={suggestion} type="button" onClick={() => chooseSuggestion(suggestion)} className="border border-brand-purple/20 px-2 py-1.5 text-left text-[10px] font-black text-brand-purple transition-colors hover:bg-brand-purple hover:text-white">{suggestion}</button>)}
               </div>
             )}
 
             <form onSubmit={onSubmit} className="border-t border-brand-navy/12 p-2.5">
               <label className="sr-only" htmlFor="lumi-message">Mesaj pentru Lumi</label>
               <div className="flex gap-2">
-                <input ref={inputRef} id="lumi-message" value={input} onChange={(event) => setInput(event.target.value)} maxLength={500} placeholder="Sau scrie un detaliu..." className="min-w-0 flex-1 border border-brand-navy/18 bg-white px-3 py-2 text-[13px] font-semibold text-brand-navy outline-none placeholder:text-brand-navy/40 focus:border-brand-purple" />
+                <input ref={inputRef} id="lumi-message" value={input} onChange={(event) => setInput(event.target.value)} maxLength={500} placeholder={inputHint} className="min-w-0 flex-1 border border-brand-navy/18 bg-white px-3 py-2 text-[13px] font-semibold text-brand-navy outline-none placeholder:text-brand-navy/40 focus:border-brand-purple" />
                 <button type="submit" disabled={!input.trim() || isThinking} className="grid h-9 w-9 shrink-0 place-items-center bg-brand-navy text-brand-cream transition-colors hover:bg-brand-purple disabled:cursor-not-allowed disabled:opacity-40" aria-label="Trimite mesajul"><Send size={15} /></button>
               </div>
               {error && <p className="mt-2 text-xs font-bold leading-relaxed text-red-700">{error}</p>}
