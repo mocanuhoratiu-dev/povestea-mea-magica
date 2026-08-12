@@ -6,6 +6,7 @@ import { ShieldCheck, Download, Sparkles, Star } from 'lucide-react';
 import BrandMark from './BrandMark';
 import MagicalLoader from './MagicalLoader';
 import FeedbackInvite from './FeedbackInvite';
+import LumiMomentCheck from './LumiMomentCheck';
 import QuickRating from './QuickRating';
 import EmailDelivery from './EmailDelivery';
 import { trackEvent } from "@/lib/clientTelemetry";
@@ -803,6 +804,7 @@ export default function MonsterKit() {
                 </motion.button>
                 <EmailDelivery product="monster" filename={`Kit_Magic_${name.trim() || 'Erou'}.pdf`} childName={name} createPdf={createMonsterPdfBlob} />
                 {showQuickRating && <QuickRating product="monster" />}
+                <LumiMomentCheck product="monster" />
                 <FeedbackInvite product="monster" compact />
               </div>
             </motion.div>

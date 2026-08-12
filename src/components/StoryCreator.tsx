@@ -6,6 +6,7 @@ import { Castle, Cloud, FileText, Footprints, Image as ImageIcon, RefreshCw, Roc
 import LanternSignature from "@/components/LanternSignature";
 import MagicalLoader from "./MagicalLoader";
 import FeedbackInvite from "./FeedbackInvite";
+import LumiMomentCheck from "./LumiMomentCheck";
 import QuickRating from "./QuickRating";
 import EmailDelivery from "./EmailDelivery";
 import { commerce, siteCopy } from "@/lib/siteMode";
@@ -871,6 +872,7 @@ export default function StoryCreator() {
               <div className="bg-white/50 px-6 pb-6 md:px-8 md:pb-8">
                 <EmailDelivery product="story" filename={`Povestea_lui_${name.trim() || "Erou"}.pdf`} childName={name} createPdf={createStoryPdfBlob} />
                 {showQuickRating && <QuickRating product="story" />}
+                <LumiMomentCheck product="story" />
                 <FeedbackInvite product="story" compact />
               </div>
             </motion.div>
@@ -988,9 +990,9 @@ export default function StoryCreator() {
 
               <aside className="border-y border-brand-purple/15 py-4" aria-live="polite">
                 <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-purple">Ideea lui Lumi</p>
-                <p className="mt-2 text-sm font-bold leading-relaxed text-brand-navy/70">În {activeTheme.label}, {activeTheme.lumiHint}. Pentru lecția de azi, {activeLessonHint}.</p>
+                <p className="mt-2 text-sm font-bold leading-relaxed text-brand-navy/70">În {activeTheme.label}, Lumi ar porni cu {activeTheme.lumiHint}. Pentru lecția de azi, {activeLessonHint}.</p>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <button type="button" onClick={() => setThemeDetail((current) => current || activeTheme.detailHint)} className="border border-brand-purple/25 px-3 py-2 text-xs font-black text-brand-purple transition-colors hover:border-brand-purple hover:bg-brand-purple hover:text-white">Adaugă ideea lumii</button>
+                  <button type="button" onClick={() => setThemeDetail((current) => current || activeTheme.detailHint)} className="border border-brand-purple/25 px-3 py-2 text-xs font-black text-brand-purple transition-colors hover:border-brand-purple hover:bg-brand-purple hover:text-white">Folosește ideea lui Lumi</button>
                   <button type="button" onClick={() => setLessonDetail((current) => current || activeLessonHint)} className="border border-brand-purple/25 px-3 py-2 text-xs font-black text-brand-purple transition-colors hover:border-brand-purple hover:bg-brand-purple hover:text-white">Adaugă ideea lecției</button>
                 </div>
               </aside>

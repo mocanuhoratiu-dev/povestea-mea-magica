@@ -32,12 +32,6 @@ export default function LanternSignature({
         transition={{ duration: 3.4, repeat: Infinity, ease: "easeInOut" }}
         className="absolute h-full w-full rounded-full bg-brand-gold/35 blur-xl"
       />
-      <motion.span
-        aria-hidden="true"
-        animate={reduceMotion ? undefined : { rotate: 360 }}
-        transition={{ duration: 24, repeat: Infinity, ease: "linear" }}
-        className="absolute h-[128%] w-[128%] rounded-full border border-brand-gold/30 border-dashed"
-      />
       <motion.div
         animate={reduceMotion ? undefined : { y: [0, -3, 0], rotate: [-1, 1, -1] }}
         transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}

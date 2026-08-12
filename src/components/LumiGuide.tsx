@@ -34,6 +34,10 @@ type ChatMessage = {
   suggestions?: string[];
   recommendation?: Recommendation;
 };
+type MomentMemory = {
+  product: Exclude<ProductId, "none">;
+  helpful: boolean;
+};
 
 const quickPrompts = [
   { label: "O poveste pentru azi", prompt: "Vreau o poveste personalizată pentru seara asta.", icon: BookOpen },
@@ -45,6 +49,37 @@ const welcomeMessage: ChatMessage = {
   role: "model",
   text: "Alege momentul de mai jos. Îți spun de unde să începi și pregătesc formularul potrivit.",
 };
+
+const rememberedProducts: Record<MomentMemory["product"], string> = {
+  story: "o poveste",
+  monster: "un Scut de Noapte",
+  emergency: "o Trusă de Răbdare",
+};
+
+function readMomentMemory(): MomentMemory | null {
+  try {
+    const value = window.sessionStorage.getItem("pmm-lumi-last-moment");
+    if (!value) return null;
+    const parsed = JSON.parse(value) as Partial<MomentMemory>;
+    if ((parsed.product === "story" || parsed.product === "monster" || parsed.product === "emergency") && typeof parsed.helpful === "boolean") {
+      return { product: parsed.product, helpful: parsed.helpful };
+    }
+  } catch {
+    // The guide stays useful even when browser storage is unavailable.
+  }
+  return null;
+}
+
+function memoryPrompt(memory: MomentMemory) {
+  if (memory.helpful) {
+    return memory.product === "story"
+      ? "Ne-a plăcut povestea de data trecută. Vreau o nouă aventură în același stil."
+      : `Ne-a ajutat ${rememberedProducts[memory.product]}. Vrem o idee asemănătoare pentru azi.`;
+  }
+  return memory.product === "story"
+    ? "Povestea de data trecută nu s-a potrivit. Vreau o recomandare diferită pentru azi."
+    : `${rememberedProducts[memory.product]} de data trecută nu s-a potrivit. Vreau o alternativă pentru azi.`;
+}
 
 function LumiSpirit() {
   const group = useRef<THREE.Group>(null);
@@ -114,6 +149,7 @@ export default function LumiGuide() {
   const [isThinking, setIsThinking] = useState(false);
   const [error, setError] = useState("");
   const [speakingMessage, setSpeakingMessage] = useState<number | null>(null);
+  const [lastMoment, setLastMoment] = useState<MomentMemory | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -127,6 +163,13 @@ export default function LumiGuide() {
   useEffect(() => {
     if (isOpen) window.setTimeout(() => inputRef.current?.focus(), 220);
   }, [isOpen]);
+
+  useEffect(() => {
+    const updateMomentMemory = () => setLastMoment(readMomentMemory());
+    updateMomentMemory();
+    window.addEventListener("pmm:lumi-moment-updated", updateMomentMemory);
+    return () => window.removeEventListener("pmm:lumi-moment-updated", updateMomentMemory);
+  }, []);
 
   useEffect(() => {
     window.dispatchEvent(new CustomEvent("pmm:lumi-open-change", { detail: { isOpen } }));
@@ -285,8 +328,17 @@ export default function LumiGuide() {
             </div>
 
             {!isThinking && messages.length === 1 && (
-              <div className="grid grid-cols-3 gap-1.5 border-t border-brand-navy/10 px-3 py-2.5">
-                {quickPrompts.map(({ label, prompt, icon: Icon }) => <button key={label} type="button" onClick={() => void sendMessage(prompt)} className="min-h-14 border border-brand-purple/20 bg-white/70 px-2 py-2 text-left text-[10px] font-black leading-tight text-brand-purple transition-colors hover:bg-brand-purple hover:text-white"><Icon size={14} className="mb-1" /> {label}</button>)}
+              <div className="border-t border-brand-navy/10 px-3 py-2.5">
+                {lastMoment && (
+                  <div className="mb-2 border border-brand-gold/35 bg-brand-gold/10 px-2.5 py-2">
+                    <p className="text-[10px] font-black uppercase tracking-[0.1em] text-brand-purple">Lumi își amintește</p>
+                    <p className="mt-1 text-[11px] font-semibold leading-relaxed text-brand-navy/70">Data trecută ați ales {rememberedProducts[lastMoment.product]}. {lastMoment.helpful ? "Continuăm pe firul care a funcționat?" : "Hai să găsim o idee mai potrivită."}</p>
+                    <button type="button" onClick={() => void sendMessage(memoryPrompt(lastMoment))} className="mt-2 border-b border-brand-purple pb-0.5 text-[10px] font-black text-brand-purple transition-colors hover:border-brand-navy hover:text-brand-navy">Pornește de aici</button>
+                  </div>
+                )}
+                <div className="grid grid-cols-3 gap-1.5">
+                  {quickPrompts.map(({ label, prompt, icon: Icon }) => <button key={label} type="button" onClick={() => void sendMessage(prompt)} className="min-h-14 border border-brand-purple/20 bg-white/70 px-2 py-2 text-left text-[10px] font-black leading-tight text-brand-purple transition-colors hover:bg-brand-purple hover:text-white"><Icon size={14} className="mb-1" /> {label}</button>)}
+                </div>
               </div>
             )}
 

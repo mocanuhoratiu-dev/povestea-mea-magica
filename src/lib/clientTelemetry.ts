@@ -17,6 +17,8 @@ type ClientEvent =
   | "lumi_opened"
   | "lumi_message_sent"
   | "lumi_recommendation_applied"
+  | "lumi_moment_helpful"
+  | "lumi_moment_not_helpful"
   | "lumi_voice_played"
   | "lumi_response_failed";
 

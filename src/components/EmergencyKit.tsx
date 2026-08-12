@@ -6,6 +6,7 @@ import { Utensils, Car, Stethoscope, CloudRain, Sparkles, Download, Plane, Clock
 import BrandMark from "./BrandMark";
 import MagicalLoader from "./MagicalLoader";
 import FeedbackInvite from "./FeedbackInvite";
+import LumiMomentCheck from "./LumiMomentCheck";
 import QuickRating from "./QuickRating";
 import EmailDelivery from "./EmailDelivery";
 import { trackEvent } from "@/lib/clientTelemetry";
@@ -911,6 +912,7 @@ export default function EmergencyKit() {
                 </motion.button>
                 <EmailDelivery product="emergency" filename={`Trusa_Urgenta_${name.trim() || "Erou"}.pdf`} childName={name} createPdf={createEmergencyPdfBlob} />
                 {showQuickRating && <QuickRating product="emergency" />}
+                <LumiMomentCheck product="emergency" />
                 <FeedbackInvite product="emergency" compact />
               </div>
             </motion.div>

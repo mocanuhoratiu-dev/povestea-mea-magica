@@ -46,6 +46,8 @@ type TelemetryEvent =
   | "pmm_lumi_opened"
   | "pmm_lumi_message_sent"
   | "pmm_lumi_recommendation_applied"
+  | "pmm_lumi_moment_helpful"
+  | "pmm_lumi_moment_not_helpful"
   | "pmm_lumi_voice_played"
   | "pmm_lumi_response"
   | "pmm_lumi_response_failed";
