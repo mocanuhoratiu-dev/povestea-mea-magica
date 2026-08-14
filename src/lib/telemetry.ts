@@ -50,7 +50,10 @@ type TelemetryEvent =
   | "pmm_lumi_moment_not_helpful"
   | "pmm_lumi_voice_played"
   | "pmm_lumi_response"
-  | "pmm_lumi_response_failed";
+  | "pmm_lumi_response_failed"
+  | "pmm_checkout_started"
+  | "pmm_checkout_completed"
+  | "pmm_checkout_failed";
 
 /**
  * Emits aggregate product events to Cloud Run logs. Never add child names,

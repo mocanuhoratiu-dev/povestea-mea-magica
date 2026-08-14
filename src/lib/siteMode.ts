@@ -4,8 +4,11 @@ export const siteMode = "production" as const;
 // One source of truth for the commercial stage. Payments stay off until
 // checkout, order storage and support flows are all ready together.
 export const commerce = {
-  status: "launch_access" as const,
-  acceptsPayments: false,
+  // This is deliberately an explicit public build flag. A valid Stripe key is
+  // not enough to activate payments: order persistence and fulfillment must be
+  // live as well. Keep it false until the launch checklist is complete.
+  status: process.env.NEXT_PUBLIC_STRIPE_ENABLED === "true" ? "commerce" as const : "launch_access" as const,
+  acceptsPayments: process.env.NEXT_PUBLIC_STRIPE_ENABLED === "true",
   prices: {
     storyShort: "19 lei",
     storyLong: "29 lei",
