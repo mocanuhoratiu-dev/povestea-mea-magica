@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import BrandMark from "@/components/BrandMark";
+import { legalOperator } from "@/lib/publicContact";
 
 export default function Footer() {
   return (
@@ -42,7 +43,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="flex flex-col gap-3 pt-8 text-sm font-medium text-brand-cream/45 md:flex-row md:items-center md:justify-between">
-          <p>© 2026 Povestea Mea Magică. Toate drepturile rezervate.</p>
+          <p>© 2026 {legalOperator.name} · CUI {legalOperator.cui}</p>
           <p>Materiale digitale pentru familii, create pentru momente de folosit împreună.</p>
         </div>
       </div>
