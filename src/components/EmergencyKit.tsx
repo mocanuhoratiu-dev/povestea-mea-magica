@@ -930,17 +930,17 @@ export default function EmergencyKit() {
         {showResult && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[11000] bg-brand-navy/95 backdrop-blur-md flex items-center justify-center p-4"
+            className="fixed inset-0 z-[11000] flex items-center justify-center overflow-y-auto bg-brand-navy/95 p-2 backdrop-blur-md sm:p-4"
           >
             <motion.div
               initial={{ scale: 0.9, y: 40 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 40 }}
-              className="relative flex w-full max-w-lg flex-col overflow-hidden border border-brand-orange/40 bg-white shadow-2xl"
+              className="relative my-auto flex max-h-[calc(100dvh-1rem)] w-full max-w-lg min-h-0 flex-col overflow-hidden border border-brand-orange/40 bg-white shadow-2xl sm:max-h-[calc(100dvh-2rem)]"
             >
               <button onClick={() => setShowResult(false)}
                 className="absolute top-5 right-5 w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-black text-gray-500 transition-all z-10">
                 ✕
               </button>
-              <div className="p-10 text-center">
+              <div className="min-h-0 overflow-y-auto overscroll-contain p-5 pb-7 pr-4 text-center sm:p-8 sm:pr-6 md:p-10 md:pr-8">
                 <div className="text-7xl mb-6 block">🚨</div>
                 <h3 className="font-nunito font-black text-3xl text-brand-navy mb-3">Trusa este pregătită!</h3>
                 <p className="text-gray-600 font-medium mb-8">

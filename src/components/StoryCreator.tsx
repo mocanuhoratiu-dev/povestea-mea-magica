@@ -783,12 +783,12 @@ export default function StoryCreator() {
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="fixed inset-0 z-[11000] bg-brand-navy/95 backdrop-blur-md flex items-center justify-center p-2 md:p-10"
+            className="fixed inset-0 z-[11000] flex items-center justify-center overflow-y-auto bg-brand-navy/95 p-2 backdrop-blur-md md:p-10"
           >
             <motion.div 
               initial={{ scale: 0.9, y: 50 }}
               animate={{ scale: 1, y: 0 }}
-              className="bg-brand-cream max-w-2xl w-full h-full max-h-[90vh] md:max-h-[85vh] rounded-[2rem] md:rounded-[3rem] border-4 md:border-8 border-brand-purple/20 relative shadow-2xl flex flex-col overflow-hidden"
+              className="relative my-auto flex max-h-[calc(100dvh-1rem)] w-full max-w-2xl min-h-0 flex-col overflow-hidden rounded-[2rem] border-4 border-brand-purple/20 bg-brand-cream shadow-2xl md:max-h-[calc(100dvh-5rem)] md:rounded-[3rem] md:border-8"
             >
               <button 
                 onClick={() => {
@@ -800,7 +800,7 @@ export default function StoryCreator() {
                 ✕
               </button>
   
-              <div className="flex-1 overflow-y-auto p-6 md:p-12 custom-scrollbar" id="story-content">
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-5 pb-7 pr-4 custom-scrollbar sm:p-7 sm:pr-6 md:p-12 md:pr-10" id="story-content">
                 <div className="text-center mb-8 pt-4">
                   <Sparkles className="text-brand-purple w-10 h-10 mx-auto mb-4 animate-pulse" />
                   <h3 className="font-nunito font-black text-2xl md:text-3xl text-brand-navy px-4">{storyTitle || `Povestea lui ${name}`} ✨</h3>
@@ -873,49 +873,46 @@ export default function StoryCreator() {
                   onChange={(event) => setStoryText(event.target.value)}
                   className="w-full min-h-[420px] rounded-2xl bg-white/75 border-2 border-brand-purple/10 focus:border-brand-purple outline-none p-5 text-brand-navy/85 font-medium leading-relaxed text-base md:text-lg resize-y shadow-inner"
                 />
-              </div>
-  
-              <div className="p-6 md:p-8 bg-white/50 border-t border-brand-navy/5 backdrop-blur-sm grid grid-cols-2 gap-4">
-                <button 
-                  onClick={toggleSpeech}
-                  disabled={!storyText || isNarrationLoading}
-                  className={`flex items-center justify-center gap-2 py-4 rounded-xl font-black text-sm md:text-base shadow-lg transition-all overflow-hidden relative ${
-                    isSpeaking ? "bg-brand-navy text-white" : "bg-brand-purple text-white"
-                  }`}
-                >
-                  {isSpeaking ? (
-                    <span className="flex items-center gap-2 relative z-10">
-                      <div className="flex gap-1 items-end h-4">
-                        {[1,2,3].map(i => (
-                          <motion.div key={i} animate={{ height: ["30%", "100%", "30%"] }} transition={{ duration: 0.5, repeat: Infinity, delay: i * 0.1 }} className="w-1 bg-brand-gold rounded-full" />
-                        ))}
-                      </div>
-                      Oprește Vocea
-                    </span>
-                  ) : isNarrationLoading ? "Pregătim vocea..." : "Ascultă Povestea 🎧"}
-                  
-                  {/* Subtle background glow when playing */}
-                  {isSpeaking && (
-                    <motion.div 
-                      animate={{ opacity: [0.1, 0.3, 0.1] }} 
-                      transition={{ duration: 2, repeat: Infinity }} 
-                      className="absolute inset-0 bg-brand-purple mix-blend-screen pointer-events-none" 
-                    />
-                  )}
-                </button>
-                <button 
-                  onClick={downloadPDF}
-                  disabled={isLoading || isCoverLoading}
-                  className="bg-brand-pink text-white py-4 rounded-xl font-black text-sm md:text-base shadow-lg hover:scale-[1.02] active:scale-95 transition-all disabled:cursor-wait disabled:opacity-60"
-                >
-                  {isCoverLoading ? "Pregătim coperta..." : "Descarcă PDF 📥"}
-                </button>
-              </div>
-              <div className="bg-white/50 px-6 pb-6 md:px-8 md:pb-8">
-                <EmailDelivery product="story" filename={`Povestea_lui_${name.trim() || "Erou"}.pdf`} childName={name} createPdf={createStoryPdfBlob} />
-                {showQuickRating && <QuickRating product="story" />}
-                <LumiMomentCheck product="story" />
-                <FeedbackInvite product="story" compact />
+                <div className="mt-6 border-t border-brand-navy/10 pt-5">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <button
+                      onClick={toggleSpeech}
+                      disabled={!storyText || isNarrationLoading}
+                      className={`relative flex items-center justify-center gap-2 overflow-hidden rounded-xl py-4 text-sm font-black shadow-lg transition-all md:text-base ${
+                        isSpeaking ? "bg-brand-navy text-white" : "bg-brand-purple text-white"
+                      }`}
+                    >
+                      {isSpeaking ? (
+                        <span className="relative z-10 flex items-center gap-2">
+                          <div className="flex h-4 items-end gap-1">
+                            {[1,2,3].map(i => (
+                              <motion.div key={i} animate={{ height: ["30%", "100%", "30%"] }} transition={{ duration: 0.5, repeat: Infinity, delay: i * 0.1 }} className="w-1 rounded-full bg-brand-gold" />
+                            ))}
+                          </div>
+                          Oprește Vocea
+                        </span>
+                      ) : isNarrationLoading ? "Pregătim vocea..." : "Ascultă Povestea 🎧"}
+                      {isSpeaking && (
+                        <motion.div
+                          animate={{ opacity: [0.1, 0.3, 0.1] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                          className="pointer-events-none absolute inset-0 bg-brand-purple mix-blend-screen"
+                        />
+                      )}
+                    </button>
+                    <button
+                      onClick={downloadPDF}
+                      disabled={isLoading || isCoverLoading}
+                      className="rounded-xl bg-brand-pink py-4 text-sm font-black text-white shadow-lg transition-all hover:scale-[1.02] active:scale-95 disabled:cursor-wait disabled:opacity-60 md:text-base"
+                    >
+                      {isCoverLoading ? "Pregătim coperta..." : "Descarcă PDF 📥"}
+                    </button>
+                  </div>
+                  <EmailDelivery product="story" filename={`Povestea_lui_${name.trim() || "Erou"}.pdf`} childName={name} createPdf={createStoryPdfBlob} />
+                  {showQuickRating && <QuickRating product="story" />}
+                  <LumiMomentCheck product="story" />
+                  <FeedbackInvite product="story" compact />
+                </div>
               </div>
             </motion.div>
           </motion.div>

@@ -806,17 +806,17 @@ export default function MonsterKit() {
         {showResult && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[11000] bg-brand-navy/95 backdrop-blur-md flex items-center justify-center p-4"
+            className="fixed inset-0 z-[11000] flex items-center justify-center overflow-y-auto bg-brand-navy/95 p-2 backdrop-blur-md sm:p-4"
           >
             <motion.div
               initial={{ scale: 0.9, y: 40 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 40 }}
-              className="bg-brand-cream max-w-lg w-full rounded-[3rem] border-4 border-brand-gold relative flex flex-col overflow-hidden shadow-2xl"
+              className="relative my-auto flex max-h-[calc(100dvh-1rem)] w-full max-w-lg min-h-0 flex-col overflow-hidden rounded-[2rem] border-4 border-brand-gold bg-brand-cream shadow-2xl sm:max-h-[calc(100dvh-2rem)] sm:rounded-[3rem]"
             >
               <button onClick={() => setShowResult(false)}
                 className="absolute top-5 right-5 w-10 h-10 rounded-full bg-brand-navy/10 hover:bg-brand-navy/20 flex items-center justify-center font-black text-brand-navy/60 transition-all z-10">
                 ✕
               </button>
-              <div className="p-10 text-center">
+              <div className="min-h-0 overflow-y-auto overscroll-contain p-5 pb-7 pr-4 text-center sm:p-8 sm:pr-6 md:p-10 md:pr-8">
                 <motion.div
                   animate={{ rotate: [0, 10, -10, 0], scale: [1, 1.1, 1] }}
                   transition={{ duration: 1.2, delay: 0.2 }}
