@@ -23,6 +23,16 @@ Aplicatia salveaza configuratia aleasa in Firestore inainte de Checkout. Dupa pl
 
 ## Pregatirea livrarii dupa plata
 
+Varianta recomandata este scriptul idempotent din repository. Creeaza doar resursele lipsa, aplica TTL-ul Firestore, lifecycle-ul bucketului, permisiunile IAM si secretele interne ale comenzilor, fara sa activeze Stripe:
+
+```bash
+cd ~/povestea-mea-magica
+git pull origin main
+./scripts/provision-paid-orders.sh
+```
+
+Alternativ, daca ai nevoie sa rulezi manual fiecare pas, foloseste instructiunile de mai jos.
+
 Ruleaza o singura data in Cloud Shell, dupa ce alegi un nume de bucket unic:
 
 ```bash
