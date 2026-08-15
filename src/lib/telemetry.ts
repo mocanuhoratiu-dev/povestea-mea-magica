@@ -7,7 +7,7 @@ export type StoryLength = "short" | "long";
 
 type TelemetryFields = {
   product?: TelemetryProduct;
-  result?: "success" | "error" | "rejected";
+  result?: "success" | "error" | "rejected" | "pending";
   generationMode?: GenerationMode;
   durationMs?: number;
   continuationCount?: number;
@@ -52,6 +52,7 @@ type TelemetryEvent =
   | "pmm_lumi_response"
   | "pmm_lumi_response_failed"
   | "pmm_checkout_started"
+  | "pmm_checkout_awaiting_payment"
   | "pmm_checkout_completed"
   | "pmm_checkout_failed"
   | "pmm_order_delivered"

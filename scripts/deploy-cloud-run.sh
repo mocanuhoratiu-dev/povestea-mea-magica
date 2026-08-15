@@ -8,6 +8,7 @@ DOMAIN_SERVICE="${DOMAIN_SERVICE:-povestea-mea-magica-domain}"
 DOMAIN_REGION="${DOMAIN_REGION:-europe-west1}"
 SERVICE_ACCOUNT="${SERVICE_ACCOUNT:-povestea-mea-magica-ai@${PROJECT_ID}.iam.gserviceaccount.com}"
 SITE_URL="${SITE_URL:-https://www.povestea-mea-magica.ro}"
+STRIPE_ENABLED="${STRIPE_ENABLED:-false}"
 
 deploy_service() {
   local service="$1"
@@ -22,7 +23,8 @@ deploy_service() {
     --concurrency 4 \
     --max-instances 3 \
     --timeout 120 \
-    --update-env-vars "NEXT_PUBLIC_SITE_MODE=production,NEXT_PUBLIC_SITE_URL=${SITE_URL},AI_PROVIDER=vertex,VERTEX_AI_PROJECT_ID=${PROJECT_ID},VERTEX_AI_LOCATION=global,VERTEX_AI_MODEL=gemini-3.5-flash,VERTEX_AI_FALLBACK_MODELS=gemini-3.1-flash-lite,VERTEX_AI_LUMI_MODEL=gemini-3.5-flash,LUMI_AI_FALLBACK_MAX_MODELS=2,VERTEX_AI_IMAGE_MODEL=gemini-3.1-flash-image,VERTEX_AI_IMAGE_FALLBACK_MODELS=gemini-2.5-flash-image,GOOGLE_TTS_STORY_VOICE=ro-RO-Chirp3-HD-Zephyr,GOOGLE_TTS_LUMI_VOICE=ro-RO-Chirp3-HD-Aoede,ORDER_STORE_PROJECT_ID=${PROJECT_ID},ORDER_TASKS_LOCATION=${REGION},ORDER_TASKS_QUEUE=pmm-order-processing,ORDER_TASKS_SERVICE_ACCOUNT=pmm-order-worker@${PROJECT_ID}.iam.gserviceaccount.com"
+    --update-build-env-vars "NEXT_PUBLIC_STRIPE_ENABLED=${STRIPE_ENABLED}" \
+    --update-env-vars "NEXT_PUBLIC_SITE_MODE=production,NEXT_PUBLIC_SITE_URL=${SITE_URL},NEXT_PUBLIC_STRIPE_ENABLED=${STRIPE_ENABLED},AI_PROVIDER=vertex,VERTEX_AI_PROJECT_ID=${PROJECT_ID},VERTEX_AI_LOCATION=global,VERTEX_AI_MODEL=gemini-3.5-flash,VERTEX_AI_FALLBACK_MODELS=gemini-3.1-flash-lite,VERTEX_AI_LUMI_MODEL=gemini-3.5-flash,LUMI_AI_FALLBACK_MAX_MODELS=2,VERTEX_AI_IMAGE_MODEL=gemini-3.1-flash-image,VERTEX_AI_IMAGE_FALLBACK_MODELS=gemini-2.5-flash-image,GOOGLE_TTS_STORY_VOICE=ro-RO-Chirp3-HD-Zephyr,GOOGLE_TTS_LUMI_VOICE=ro-RO-Chirp3-HD-Aoede,ORDER_STORE_PROJECT_ID=${PROJECT_ID},ORDER_TASKS_LOCATION=${REGION},ORDER_TASKS_QUEUE=pmm-order-processing,ORDER_TASKS_SERVICE_ACCOUNT=pmm-order-worker@${PROJECT_ID}.iam.gserviceaccount.com"
 }
 
 deploy_service "$SERVICE" "$REGION"

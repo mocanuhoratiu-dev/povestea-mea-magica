@@ -35,6 +35,15 @@ gcloud firestore databases create --location="$REGION" --project="$PROJECT_ID"
 gcloud storage buckets create "gs://${BUCKET}" --location="$REGION" --uniform-bucket-level-access --project="$PROJECT_ID"
 ```
 
+Activeaza TTL pentru campul `expiresAt` din toate documentele `orders`. Aplicatia pune comenzile neplatite la expirare dupa 24 de ore si comenzile platite la expirare dupa 31 de zile. Firestore elimina documentele expiratate automat; actiunea poate dura pana la aproximativ 24 de ore dupa momentul de expirare.
+
+```bash
+gcloud firestore fields ttls update expiresAt \
+  --collection-group=orders \
+  --enable-ttl \
+  --project="$PROJECT_ID"
+```
+
 Pentru regula de stergere automata, creeaza `lifecycle.json` cu acest continut:
 
 ```json
@@ -67,6 +76,16 @@ Genereaza secretele o singura data. Nu le afisa si nu le adauga in `.env` versio
 ```bash
 openssl rand -base64 48 | tr -d '\n' | gcloud secrets create pmm-order-access-secret --data-file=- --project="$PROJECT_ID"
 openssl rand -base64 48 | tr -d '\n' | gcloud secrets create pmm-order-worker-secret --data-file=- --project="$PROJECT_ID"
+```
+
+Acorda aplicatiei acces strict de citire la secretele de comenzi:
+
+```bash
+for SECRET in pmm-order-access-secret pmm-order-worker-secret; do
+  gcloud secrets add-iam-policy-binding "$SECRET" --project="$PROJECT_ID" \
+    --member="serviceAccount:${APP_SA}" \
+    --role="roles/secretmanager.secretAccessor"
+done
 ```
 
 Ataseaza-le ambelor servicii, impreuna cu `ORDER_STORAGE_BUCKET`:
@@ -106,12 +125,32 @@ stripe trigger checkout.session.completed
 
 ## Configurare Cloud Run
 
-Adauga secretele in Google Cloud Secret Manager, apoi acorda service account-ului Cloud Run acces `Secret Manager Secret Accessor`. La deploy, le atasezi astfel:
+Adauga secretele Stripe in Google Cloud Secret Manager si acorda aplicatiei acces strict de citire. Domeniul public este servit de `povestea-mea-magica-domain`, astfel incat configuratia trebuie sa fie identica pentru ambele servicii:
 
 ```bash
-gcloud run services update povestea-mea-magica \
-  --region=europe-west3 \
-  --update-secrets=STRIPE_SECRET_KEY=stripe-secret-key:latest,STRIPE_WEBHOOK_SECRET=stripe-webhook-secret:latest
+read -rsp "Stripe secret key: " STRIPE_SECRET_KEY; echo
+printf '%s' "$STRIPE_SECRET_KEY" | gcloud secrets create stripe-secret-key --data-file=- --project="$PROJECT_ID"
+unset STRIPE_SECRET_KEY
+
+read -rsp "Stripe webhook secret: " STRIPE_WEBHOOK_SECRET; echo
+printf '%s' "$STRIPE_WEBHOOK_SECRET" | gcloud secrets create stripe-webhook-secret --data-file=- --project="$PROJECT_ID"
+unset STRIPE_WEBHOOK_SECRET
+
+for SECRET in stripe-secret-key stripe-webhook-secret; do
+  gcloud secrets add-iam-policy-binding "$SECRET" --project="$PROJECT_ID" \
+    --member="serviceAccount:${APP_SA}" \
+    --role="roles/secretmanager.secretAccessor"
+done
+```
+
+Ataseaza apoi secretele ambelor servicii:
+
+```bash
+for SERVICE_REGION in "povestea-mea-magica:europe-west3" "povestea-mea-magica-domain:europe-west1"; do
+  SERVICE="${SERVICE_REGION%%:*}"; REGION="${SERVICE_REGION##*:}"
+  gcloud run services update "$SERVICE" --region="$REGION" --project="$PROJECT_ID" \
+    --update-secrets="STRIPE_SECRET_KEY=stripe-secret-key:latest,STRIPE_WEBHOOK_SECRET=stripe-webhook-secret:latest"
+done
 ```
 
 In Stripe Dashboard adauga endpointul live:
@@ -121,6 +160,18 @@ https://www.povestea-mea-magica.ro/api/stripe-webhook
 ```
 
 Selecteaza cel putin `checkout.session.completed`, `checkout.session.async_payment_succeeded` si `checkout.session.async_payment_failed`.
+
+## Activare comerciala
+
+`NEXT_PUBLIC_STRIPE_ENABLED` este o setare compilata in aplicatia web. Dupa ce parcurgi toate testele de mai sus si Stripe este gata de productie, ruleaza deploy-ul cu Stripe activat. Scriptul transmite setarea atat la build, cat si la runtime, pentru ambele servicii Cloud Run:
+
+```bash
+cd ~/povestea-mea-magica
+git pull origin main
+STRIPE_ENABLED=true ./scripts/deploy-cloud-run.sh
+```
+
+Pentru a reveni la experienta beta fara plata, foloseste `STRIPE_ENABLED=false` si ruleaza din nou acelasi deploy.
 
 ## Date personale
 

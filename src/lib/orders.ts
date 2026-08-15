@@ -16,6 +16,7 @@ export type StoredOrder = {
   customerEmail?: string;
   createdAt: string;
   updatedAt: string;
+  expiresAt: string;
   deliveryExpiresAt?: string;
   errorCode?: string;
   updateTime?: string;
@@ -39,8 +40,10 @@ function firestoreDocumentUrl(id: string) {
   return `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(project)}/databases/(default)/documents/orders/${encodeURIComponent(id)}`;
 }
 
+type FirestoreField = { stringValue?: string; timestampValue?: string };
+
 function firestoreFields(order: StoredOrder) {
-  const values: Record<string, { stringValue?: string }> = {
+  const values: Record<string, FirestoreField> = {
     id: { stringValue: order.id },
     productId: { stringValue: order.productId },
     product: { stringValue: order.product },
@@ -48,6 +51,7 @@ function firestoreFields(order: StoredOrder) {
     configuration: { stringValue: JSON.stringify(order.configuration) },
     createdAt: { stringValue: order.createdAt },
     updatedAt: { stringValue: order.updatedAt },
+    expiresAt: { timestampValue: order.expiresAt },
   };
 
   if (order.output) values.output = { stringValue: JSON.stringify(order.output) };
@@ -58,11 +62,15 @@ function firestoreFields(order: StoredOrder) {
   return values;
 }
 
-function readString(fields: Record<string, { stringValue?: string }> | undefined, name: string) {
+function readString(fields: Record<string, FirestoreField> | undefined, name: string) {
   return fields?.[name]?.stringValue || "";
 }
 
-function readJson(fields: Record<string, { stringValue?: string }> | undefined, name: string) {
+function readTimestamp(fields: Record<string, FirestoreField> | undefined, name: string) {
+  return fields?.[name]?.timestampValue || "";
+}
+
+function readJson(fields: Record<string, FirestoreField> | undefined, name: string) {
   const value = readString(fields, name);
   if (!value) return undefined;
   try {
@@ -73,7 +81,7 @@ function readJson(fields: Record<string, { stringValue?: string }> | undefined, 
   }
 }
 
-function fromFirestore(document: { name?: string; updateTime?: string; fields?: Record<string, { stringValue?: string }> }): StoredOrder | null {
+function fromFirestore(document: { name?: string; updateTime?: string; fields?: Record<string, FirestoreField> }): StoredOrder | null {
   const fields = document.fields;
   const id = readString(fields, "id");
   const productId = readString(fields, "productId") as CheckoutProductId;
@@ -93,6 +101,7 @@ function fromFirestore(document: { name?: string; updateTime?: string; fields?: 
     ...(readString(fields, "customerEmail") ? { customerEmail: readString(fields, "customerEmail") } : {}),
     createdAt: readString(fields, "createdAt"),
     updatedAt: readString(fields, "updatedAt"),
+    expiresAt: readTimestamp(fields, "expiresAt") || readString(fields, "expiresAt"),
     ...(readString(fields, "deliveryExpiresAt") ? { deliveryExpiresAt: readString(fields, "deliveryExpiresAt") } : {}),
     ...(readString(fields, "errorCode") ? { errorCode: readString(fields, "errorCode") } : {}),
     updateTime: document.updateTime,
@@ -139,7 +148,8 @@ export function getProductFromId(productId: CheckoutProductId): OrderProduct {
 
 export async function createOrder(productId: CheckoutProductId, configuration: Record<string, unknown>) {
   const now = new Date().toISOString();
-  const order: StoredOrder = { id: createOrderId(), productId, product: getProductFromId(productId), status: "draft", configuration, createdAt: now, updatedAt: now };
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+  const order: StoredOrder = { id: createOrderId(), productId, product: getProductFromId(productId), status: "draft", configuration, createdAt: now, updatedAt: now, expiresAt };
   await firestoreFetch(`${firestoreDocumentUrl(order.id)}?currentDocument.exists=false`, { method: "PATCH", body: JSON.stringify({ fields: firestoreFields(order) }) });
   return order;
 }
@@ -161,7 +171,7 @@ export async function saveOrder(order: StoredOrder, expectedUpdateTime?: string)
   return fromFirestore(await response.json());
 }
 
-export async function setOrderStatus(order: StoredOrder, status: OrderStatus, fields: Partial<Pick<StoredOrder, "customerEmail" | "output" | "coverObjectName" | "deliveryExpiresAt" | "errorCode">> = {}) {
+export async function setOrderStatus(order: StoredOrder, status: OrderStatus, fields: Partial<Pick<StoredOrder, "customerEmail" | "output" | "coverObjectName" | "deliveryExpiresAt" | "expiresAt" | "errorCode">> = {}) {
   return saveOrder({ ...order, ...fields, status, updatedAt: new Date().toISOString() }, order.updateTime);
 }
 

@@ -29,6 +29,11 @@ export async function POST(request: Request) {
     case "checkout.session.completed":
     case "checkout.session.async_payment_succeeded": {
       const session = event.data.object;
+      const paymentConfirmed = event.type === "checkout.session.async_payment_succeeded" || session.payment_status === "paid";
+      if (!paymentConfirmed) {
+        logTelemetry("pmm_checkout_awaiting_payment", { result: "pending" });
+        return NextResponse.json({ received: true });
+      }
       const orderId = session.metadata?.order_id;
       const order = orderId ? await getOrder(orderId) : null;
       if (!order) {
@@ -36,7 +41,10 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Comanda nu a fost gasita." }, { status: 409 });
       }
       if (["delivered", "processing"].includes(order.status)) return NextResponse.json({ received: true });
-      const paidOrder = await setOrderStatus(order, "paid", { customerEmail: session.customer_details?.email || order.customerEmail });
+      const paidOrder = await setOrderStatus(order, "paid", {
+        customerEmail: session.customer_details?.email || order.customerEmail,
+        expiresAt: new Date(Date.now() + 31 * 86_400_000).toISOString(),
+      });
       if (!paidOrder) return NextResponse.json({ error: "Comanda nu a putut fi actualizata." }, { status: 409 });
       await enqueueOrderProcessing(order.id, siteUrl);
       logTelemetry("pmm_checkout_completed", { product: order.product, result: "success" });
