@@ -24,7 +24,7 @@ VERTEX_AI_MODEL=gemini-3.5-flash
 VERTEX_AI_FALLBACK_MODELS=gemini-3.1-flash-lite
 VERTEX_AI_LUMI_MODEL=gemini-3.5-flash
 LUMI_AI_FALLBACK_MAX_MODELS=2
-VERTEX_AI_IMAGE_MODEL=gemini-2.5-flash-image
+VERTEX_AI_IMAGE_MODEL=gemini-3.1-flash-image
 GOOGLE_TTS_STORY_VOICE=ro-RO-Chirp3-HD-Zephyr
 GOOGLE_TTS_LUMI_VOICE=ro-RO-Chirp3-HD-Aoede
 AI_GENERATION_BUDGET_MS=55000
@@ -86,9 +86,9 @@ The app emits privacy-conscious, structured Cloud Run logs for visits, starts, c
 
 The browser renders the PDF, then the server sends it through Resend as a single transactional attachment. The app does not persist the PDF or address and deliberately excludes both from telemetry. Verify an expeditor domain in Resend, store `RESEND_API_KEY` in Cloud Secret Manager and configure `EMAIL_FROM` on Cloud Run. The exact no-guesswork steps are in [`docs/cloud-run-operations.md`](cloud-run-operations.md).
 
-## Parked For Stripe/Order Phase
+## Stripe And Paid Order Phase
 
-These can stay empty until checkout and fulfillment are implemented:
+Checkout, webhook verification, server-side orders and email delivery are implemented, but payments remain intentionally disabled until the Stripe account and the Google Cloud delivery resources are configured. Keep these values unset until that activation checklist is complete:
 
 ```bash
 STRIPE_SECRET_KEY=
@@ -127,8 +127,7 @@ If `ready` is `false`, production is missing a required Vertex AI configuration 
 - Collect and review real parent feedback. Only publish a quote when the family has explicitly agreed.
 - Confirm legal pages still match the no-payment production state.
 - Add legal business identity and a support response commitment to the public legal/contact surfaces.
-- Implement an authenticated Stripe Checkout Session endpoint. Never expose a secret key to the browser.
-- Persist a minimal server-side order record before fulfillment, then verify every Stripe webhook signature before granting access or sending a receipt.
+- Complete the Firestore TTL, Cloud Tasks, Cloud Storage and Secret Manager setup in [`stripe-setup.md`](stripe-setup.md).
 - Confirm the Resend domain, delivery flow and retry/error handling before switching `commerce.acceptsPayments` to `true`.
 - Test Stripe test mode from payment through receipt, PDF access, cancellation and support handling.
-- Keep Stripe variables unset until the complete checkout and fulfillment flow is implemented.
+- Activate production checkout only with `STRIPE_ENABLED=true ./scripts/deploy-cloud-run.sh` after the full test passes.
