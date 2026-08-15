@@ -2,6 +2,7 @@
 
 import { HeartHandshake } from "lucide-react";
 import { trackEvent } from "@/lib/clientTelemetry";
+import { publicContact } from "@/lib/publicContact";
 import type { TelemetryProduct } from "@/lib/telemetry";
 
 type FeedbackInviteProps = {
@@ -17,7 +18,7 @@ const productNames: Record<TelemetryProduct, string> = {
 
 export default function FeedbackInvite({ product, compact = false }: FeedbackInviteProps) {
   const productName = productNames[product];
-  const href = `mailto:horatiu@zenithcustomersuccess.com?subject=${encodeURIComponent(`Recenzie beta - ${productName}`)}&body=${encodeURIComponent(`Am folosit ${productName} în beta și vreau să las o recenzie.\n\nCe ne-a plăcut:\n\nCe am îmbunătăți:\n\nSunteți de acord să publicăm un scurt fragment anonim? Da / Nu:\n`)}`;
+  const href = `mailto:${publicContact.betaFeedbackEmail}?subject=${encodeURIComponent(`Recenzie beta - ${productName}`)}&body=${encodeURIComponent(`Am folosit ${productName} în beta și vreau să las o recenzie.\n\nCe ne-a plăcut:\n\nCe am îmbunătăți:\n\nSunteți de acord să publicăm un scurt fragment anonim? Da / Nu:\n`)}`;
 
   return (
     <aside className={`${compact ? "mt-5 border-t border-brand-navy/10 pt-5" : "border-y border-brand-navy/15 py-12"} flex items-start gap-4 text-left`}>

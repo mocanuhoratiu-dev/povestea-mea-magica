@@ -1,6 +1,6 @@
 export const publicContact = {
-  email: process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "mocanuhoratiu@gmail.com",
-  betaFeedbackEmail: "horatiu@zenithcustomersuccess.com",
+  email: process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "office@povestea-mea-magica.ro",
+  betaFeedbackEmail: "office@povestea-mea-magica.ro",
 };
 
 export const legalOperator = {

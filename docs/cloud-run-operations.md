@@ -101,10 +101,18 @@ Apoi deschide site-ul într-o fereastră incognito și testează:
 Aplicația folosește Resend și nu trimite email până nu faci pașii de mai jos.
 
 1. Creează cont în [Resend](https://resend.com/).
-2. În **Domains**, adaugă `povesteamagica.ro` sau domeniul expeditor ales.
+2. În **Domains**, adaugă `povestea-mea-magica.ro` sau domeniul expeditor ales.
 3. Copiază în DNS toate înregistrările cerute de Resend și așteaptă statusul **Verified**.
 4. Creează o API key de trimitere. Nu o pune în editor, GitHub sau screenshot-uri.
-5. În Cloud Shell, rulează comanda următoare și înlocuiește cheia dintre ghilimele:
+5. În Cloud Shell, după ce adresa de expeditor este **Verified** în Resend, rulează scriptul de mai jos. Cheia nu este afișată, nu ajunge în Git și este salvată în Secret Manager pentru ambele servicii Cloud Run:
+
+```bash
+cd ~/povestea-mea-magica
+git pull origin main
+./scripts/configure-resend.sh
+```
+
+Alternativ, poți urma manual pașii de mai jos și înlocui cheia dintre ghilimele:
 
 ```bash
 PROJECT_ID=project-e0c2efff-d456-48f9-9fe
@@ -116,7 +124,7 @@ printf %s 're_inlocuieste_cu_cheia_ta' | gcloud secrets create pmm-resend-api-ke
 gcloud projects add-iam-policy-binding "$PROJECT_ID" --member="serviceAccount:$SERVICE_ACCOUNT" --role="roles/secretmanager.secretAccessor"
 gcloud run services update "$SERVICE" --project="$PROJECT_ID" --region="$REGION" \
   --update-secrets RESEND_API_KEY=pmm-resend-api-key:latest \
-  --update-env-vars EMAIL_FROM=povesti@povesteamagica.ro,EMAIL_REPLY_TO=contact@povesteamagica.ro
+  --update-env-vars EMAIL_FROM=office@povestea-mea-magica.ro,EMAIL_REPLY_TO=office@povestea-mea-magica.ro
 ```
 
 `EMAIL_FROM` trebuie să fie o adresă de pe domeniul verificat în Resend. Dacă secretul există deja și trebuie rotit, nu îl recreezi:
