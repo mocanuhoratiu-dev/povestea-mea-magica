@@ -92,6 +92,7 @@ export default function ProductExamples() {
                   <span className="mt-1 block font-serif text-xl leading-tight text-brand-navy">{example.title}</span>
                   <span className="mt-1 block text-xs font-semibold leading-relaxed text-brand-navy/60">{example.description}</span>
                   <span className="mt-2 block text-sm font-black text-brand-navy">{example.price}</span>
+                  <span className="mt-1 block text-[11px] font-bold text-brand-purple">Acces de lansare gratuit</span>
                 </span>
                 <ArrowRight size={19} className="shrink-0 text-brand-navy/45 transition-transform group-hover:translate-x-1" />
               </a>

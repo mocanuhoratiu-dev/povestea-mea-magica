@@ -20,7 +20,7 @@ function getImageModels() {
   const configuredModels = [
     process.env.VERTEX_AI_IMAGE_MODEL,
     ...(process.env.VERTEX_AI_IMAGE_FALLBACK_MODELS || "").split(","),
-    "gemini-2.5-flash-image",
+    "gemini-3.1-flash-image",
   ];
 
   const models = Array.from(

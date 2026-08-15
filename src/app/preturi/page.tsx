@@ -18,7 +18,7 @@ const offers = [
 
 export default function PricingPage() {
   return (
-    <CommercialPage eyebrow="Prețuri transparente" title="Alegi materialul, vezi prețul, apoi începi." description="Acestea sunt prețurile planificate pentru lansarea comercială. În beta, accesul rămâne gratuit și nu există pas de plată.">
+    <CommercialPage eyebrow="Prețuri transparente" title="Alegi materialul, vezi prețul, apoi începi." description="Acestea sunt prețurile planificate pentru lansarea comercială. În această etapă, accesul rămâne gratuit și nu există pas de plată.">
       <section className="px-6 py-16 md:py-20">
         <div className="mx-auto max-w-5xl border-y border-brand-gold/45 bg-brand-gold/10 px-6 py-6 text-center">
           <p className="text-sm font-black text-brand-navy">{siteCopy.launchAccess}</p>

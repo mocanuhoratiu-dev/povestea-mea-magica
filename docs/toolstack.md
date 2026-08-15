@@ -26,8 +26,8 @@
 | --- | --- |
 | Google Cloud Vertex AI | Platforma principala pentru generare text, conversatia Lumi si imagini de coperta. Consuma billing/credite Google Cloud. |
 | `@google/genai` | SDK-ul folosit de server pentru apelurile Vertex AI. |
-| Gemini 2.5 Flash | Modelul Vertex principal pentru continutul personalizat. |
-| Gemini 2.5 Flash Lite | Model Vertex de rezerva. Daca modelul principal nu raspunde, fiecare produs il incearca inainte de orice fallback local. |
+| Gemini 3.5 Flash | Modelul Vertex principal pentru continutul personalizat si conversatia Lumi. |
+| Gemini 3.1 Flash Lite | Model Vertex de rezerva. Daca modelul principal nu raspunde, fiecare produs il incearca inainte de orice fallback local. |
 | Fallback template personalizat | A treia plasa de siguranta. Genereaza continut local, personalizat dupa alegerile familiei, cand modelele AI nu sunt disponibile. |
 | Vertex image model | Genereaza coperta ilustrata a povestii. Pentru indisponibilitate exista un fallback vizual generic, fara datele copilului. |
 | Google Cloud Text-to-Speech | Previzualizare audio in romana prin service account-ul Cloud Run: Zephyr pentru povesti si Aoede pentru Lumi. |
@@ -52,14 +52,14 @@ Ordinea pentru generarea produselor este: **model Vertex principal -> model Vert
 | Google Cloud IAM / service account | Autentificare intre Cloud Run si Vertex AI, fara cheie de service account stocata in repository. |
 | Google Cloud Monitoring | Dashboard-uri pentru utilizarea Vertex si comportamentul operational al serviciului. |
 | Cloud Run structured logs | Telemetrie agregata pentru vizite, generari, erori, descarcari si feedback. Nu logheaza nume, povesti, prompturi sau conversatii. |
-| Rate limiting in-memory | Protectie best-effort pentru endpoint-urile de generare, telemetrie si Lumi in perioada beta. |
+| Rate limiting in-memory | Protectie best-effort pentru endpoint-urile de generare, telemetrie si Lumi in perioada de lansare. |
 | Endpoint `/api/health` | Verificare publica a starii de productie si a configuratiei esentiale, fara expunerea secretelor. |
 
 ## Optional / neactiv in aceasta etapa
 
 | Tehnologie | Rol |
 | --- | --- |
-| Stripe | Pregatita pentru etapa de comanda si plata, dar checkout-ul nu este activ in beta. |
+| Stripe | Pregatita pentru etapa de comanda si plata; checkout-ul rămâne dezactivat până la configurarea contului bancar. |
 | Resend | Livrare tranzactionala a PDF-urilor ca atasament email. Se activeaza printr-o cheie stocata in Secret Manager si un domeniu expeditor verificat. |
 | n8n | Pregatit pentru automatizari operationale ulterioare. |
 

@@ -1,6 +1,6 @@
 export const publicContact = {
   email: process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "office@povestea-mea-magica.ro",
-  betaFeedbackEmail: "office@povestea-mea-magica.ro",
+  feedbackEmail: "office@povestea-mea-magica.ro",
 };
 
 export const legalOperator = {

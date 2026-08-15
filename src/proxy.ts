@@ -4,6 +4,7 @@ const PRIMARY_HOST = "www.povestea-mea-magica.ro";
 const REDIRECT_TO_PRIMARY = new Set([
   "povestea-mea-magica.ro",
   "povestea-mea-magica-634103832719.europe-west3.run.app",
+  "povestea-mea-magica-domain-634103832719.europe-west1.run.app",
 ]);
 
 function requestHost(request: NextRequest) {

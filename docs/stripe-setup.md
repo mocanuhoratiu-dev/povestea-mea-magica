@@ -181,7 +181,7 @@ git pull origin main
 STRIPE_ENABLED=true ./scripts/deploy-cloud-run.sh
 ```
 
-Pentru a reveni la experienta beta fara plata, foloseste `STRIPE_ENABLED=false` si ruleaza din nou acelasi deploy.
+Pentru a reveni la experiența gratuită fără plată, folosește `STRIPE_ENABLED=false` și rulează din nou același deploy.
 
 ## Date personale
 

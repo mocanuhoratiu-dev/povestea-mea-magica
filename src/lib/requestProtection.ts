@@ -46,7 +46,7 @@ function pruneExpiredBuckets(now: number) {
 }
 
 /**
- * Best-effort protection for public beta endpoints. Cloud Run can use multiple
+ * Best-effort protection for public launch endpoints. Cloud Run can use multiple
  * instances, so this intentionally complements, rather than replaces, an edge
  * rate limit when traffic grows.
  */

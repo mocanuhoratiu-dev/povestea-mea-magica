@@ -130,7 +130,7 @@ function LumiSpirit() {
 
 function LumiVisual({ className }: { className: string }) {
   return (
-    <div aria-hidden="true" className={`pointer-events-none relative ${className}`}>
+    <div aria-hidden="true" className={`pointer-events-none ${className}`}>
       <Canvas className="!h-full !w-full" style={{ width: "100%", height: "100%" }} camera={{ position: [0, 0, 4], fov: 30 }} dpr={[1, 1.5]} gl={{ alpha: true, antialias: true }}>
         <LumiSpirit />
       </Canvas>

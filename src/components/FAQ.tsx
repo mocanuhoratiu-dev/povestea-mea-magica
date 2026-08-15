@@ -31,7 +31,7 @@ const faqs = [
   },
   {
     question: "Care sunt prețurile?",
-    answer: "Prețurile planificate sunt 19 lei pentru povestea scurtă, 29 lei pentru cea lungă și 19 lei pentru fiecare kit. Pachetul complet este 49 lei. În beta, accesul este gratuit și nu există pas de plată.",
+    answer: "Prețurile planificate sunt 19 lei pentru povestea scurtă, 29 lei pentru cea lungă și 19 lei pentru fiecare kit. Pachetul complet este 49 lei. În această etapă, accesul este gratuit și nu există pas de plată.",
   },
   {
     question: "Sunt materialele un sfat medical sau terapeutic?",

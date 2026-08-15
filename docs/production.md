@@ -76,7 +76,7 @@ TELEMETRY_RATE_LIMIT_MAX=120
 
 Cloud Text-to-Speech folosește service account-ul Cloud Run. Vocile de mai sus sunt valorile implicite și pot fi schimbate fără modificarea codului.
 
-The rate limit is a best-effort, per-instance Cloud Run safeguard for public beta. The deployment script also caps the service at three instances and four concurrent requests per instance, so a burst cannot grow AI costs without bound. Before paid acquisition or a multi-instance rollout, add a shared edge rate limit in Cloudflare and configure Cloud Billing budget alerts.
+The rate limit is a best-effort, per-instance Cloud Run safeguard for the public launch. The deployment script also caps the service at three instances and four concurrent requests per instance, so a burst cannot grow AI costs without bound. Before paid acquisition or a multi-instance rollout, add a shared edge rate limit in Cloudflare and configure Cloud Billing budget alerts.
 
 ## Aggregate Product Metrics
 
