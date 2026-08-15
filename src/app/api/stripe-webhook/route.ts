@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
 import { logTelemetry } from "@/lib/telemetry";
+import { enqueueOrderProcessing, getOrder, setOrderStatus } from "@/lib/orders";
+import { siteUrl } from "@/lib/siteMode";
 
 export const runtime = "nodejs";
 
@@ -26,9 +28,18 @@ export async function POST(request: Request) {
   switch (event.type) {
     case "checkout.session.completed":
     case "checkout.session.async_payment_succeeded": {
-      // Fulfillment will be attached to the durable order store before payments
-      // are enabled. This endpoint must remain idempotent when that happens.
-      logTelemetry("pmm_checkout_completed", { result: "success" });
+      const session = event.data.object;
+      const orderId = session.metadata?.order_id;
+      const order = orderId ? await getOrder(orderId) : null;
+      if (!order) {
+        console.error("Stripe event did not match an order", event.id);
+        return NextResponse.json({ error: "Comanda nu a fost gasita." }, { status: 409 });
+      }
+      if (["delivered", "processing"].includes(order.status)) return NextResponse.json({ received: true });
+      const paidOrder = await setOrderStatus(order, "paid", { customerEmail: session.customer_details?.email || order.customerEmail });
+      if (!paidOrder) return NextResponse.json({ error: "Comanda nu a putut fi actualizata." }, { status: 409 });
+      await enqueueOrderProcessing(order.id, siteUrl);
+      logTelemetry("pmm_checkout_completed", { product: order.product, result: "success" });
       break;
     }
     case "checkout.session.async_payment_failed":

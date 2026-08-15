@@ -10,6 +10,8 @@ import LumiMomentCheck from "./LumiMomentCheck";
 import QuickRating from "./QuickRating";
 import EmailDelivery from "./EmailDelivery";
 import { trackEvent } from "@/lib/clientTelemetry";
+import { commerce } from "@/lib/siteMode";
+import { beginOrderCheckout } from "@/lib/clientOrderCheckout";
 import { useMobileProductVisibility } from "@/lib/mobileProductFlow";
 import MobileFlowSteps from "./MobileFlowSteps";
 
@@ -478,6 +480,35 @@ export default function EmergencyKit() {
     return () => window.removeEventListener("pmm:lumi-material-choice", applyLumiChoice);
   }, []);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const orderId = params.get("order");
+    const token = params.get("token");
+    if (!orderId || !token) return;
+
+    void fetch(`/api/orders/${encodeURIComponent(orderId)}?token=${encodeURIComponent(token)}`)
+      .then(async (response) => response.ok ? response.json() : null)
+      .then((delivery: { product?: string; configuration?: Record<string, unknown>; output?: Partial<EmergencyKitData> } | null) => {
+        if (!delivery || delivery.product !== "emergency" || !delivery.output) return;
+        const generation = delivery.configuration?.generation as Record<string, unknown> | undefined;
+        const deliveredName = typeof generation?.name === "string" ? generation.name : "";
+        const deliveredAge = typeof generation?.age === "string" ? generation.age : "1";
+        const deliveredContext = typeof generation?.context === "string" && contexts.some((context) => context.id === generation.context) ? generation.context : contexts[0].id;
+        const deliveredInterest = typeof generation?.interest === "string" ? generation.interest : "";
+        const deliveredDuration = typeof generation?.duration === "string" ? generation.duration : durationOptions[1].id;
+        const deliveredMode = typeof generation?.activityMode === "string" ? generation.activityMode : activityModes[2].id;
+        setName(deliveredName);
+        setAge(deliveredAge);
+        setSelectedContext(deliveredContext);
+        setInterest(deliveredInterest);
+        setDuration(deliveredDuration);
+        setActivityMode(deliveredMode);
+        setEkData(mergeEmergencyKit(delivery.output, buildEmergencyKit({ name: deliveredName, age: deliveredAge, selectedContext: deliveredContext, interest: deliveredInterest, duration: deliveredDuration, activityMode: deliveredMode })));
+        setShowResult(true);
+      })
+      .catch(() => undefined);
+  }, []);
+
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
@@ -485,6 +516,19 @@ export default function EmergencyKit() {
     setShowQuickRating(false);
     setResultNote("");
     setIsLoading(true);
+
+    if (commerce.acceptsPayments) {
+      try {
+        await beginOrderCheckout("patience-kit", {
+          generation: { type: "emergency", name, age, context: selectedContext, interest, duration, activityMode },
+        });
+      } catch (error) {
+        alert(error instanceof Error ? error.message : "Nu am putut pregati plata.");
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
 
     const fallback = buildEmergencyKit({ name, age, selectedContext, interest, duration, activityMode });
 

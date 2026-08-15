@@ -10,6 +10,8 @@ import LumiMomentCheck from './LumiMomentCheck';
 import QuickRating from './QuickRating';
 import EmailDelivery from './EmailDelivery';
 import { trackEvent } from "@/lib/clientTelemetry";
+import { commerce } from "@/lib/siteMode";
+import { beginOrderCheckout } from "@/lib/clientOrderCheckout";
 import { useMobileProductVisibility } from "@/lib/mobileProductFlow";
 import MobileFlowSteps from "./MobileFlowSteps";
 
@@ -498,6 +500,30 @@ export default function MonsterKit() {
     return () => window.removeEventListener('pmm:lumi-material-choice', applyLumiChoice);
   }, []);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const orderId = params.get("order");
+    const token = params.get("token");
+    if (!orderId || !token) return;
+
+    void fetch(`/api/orders/${encodeURIComponent(orderId)}?token=${encodeURIComponent(token)}`)
+      .then(async (response) => response.ok ? response.json() : null)
+      .then((delivery: { product?: string; configuration?: Record<string, unknown>; output?: Partial<MonsterKitContent> } | null) => {
+        if (!delivery || delivery.product !== "monster" || !delivery.output) return;
+        const generation = delivery.configuration?.generation as Record<string, unknown> | undefined;
+        const deliveredName = typeof generation?.name === "string" ? generation.name : "";
+        const deliveredMonster = typeof generation?.monster === "string" && monsters.some((monster) => monster.id === generation.monster) ? generation.monster : monsters[0].id;
+        if (typeof generation?.name === "string") setName(generation.name);
+        if (deliveredMonster) setMonsterType(deliveredMonster);
+        if (typeof generation?.context === "string") setFearLocation(generation.context);
+        if (typeof generation?.interest === "string") setCalmingHelper(generation.interest);
+        if (typeof generation?.tone === "string") setBedtimeRitual(generation.tone);
+        setGeneratedContent(mergeMonsterKitContent(delivery.output, buildPersonalizedKitContent({ name: deliveredName, monsterType: deliveredMonster, fearLocation: typeof generation?.context === "string" ? generation.context : "", calmingHelper: typeof generation?.interest === "string" ? generation.interest : "", bedtimeRitual: typeof generation?.tone === "string" ? generation.tone : "" })));
+        setShowResult(true);
+      })
+      .catch(() => undefined);
+  }, []);
+
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
@@ -505,6 +531,19 @@ export default function MonsterKit() {
     setShowQuickRating(false);
     setResultNote("");
     setIsGenerating(true);
+
+    if (commerce.acceptsPayments) {
+      try {
+        await beginOrderCheckout("night-shield", {
+          generation: { type: "monster", name, monster: monsterType, context: fearLocation, interest: calmingHelper, tone: bedtimeRitual },
+        });
+      } catch (error) {
+        alert(error instanceof Error ? error.message : "Nu am putut pregati plata.");
+      } finally {
+        setIsGenerating(false);
+      }
+      return;
+    }
 
     const fallback = buildPersonalizedKitContent({
       name,

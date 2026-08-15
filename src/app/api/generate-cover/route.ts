@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { checkRateLimit, requestExceedsBodyLimit } from "@/lib/requestProtection";
 import { logTelemetry } from "@/lib/telemetry";
 import { generateVertexStoryCover } from "@/lib/vertexImage";
+import { isTrustedOrderWorker } from "@/lib/orders";
 
 function readPrompt(value: unknown) {
   if (typeof value !== "string") return "";
@@ -18,7 +19,7 @@ export async function POST(req: Request) {
   }
 
   const limit = checkRateLimit(req, "generate-cover");
-  if (!limit.allowed) {
+  if (!isTrustedOrderWorker(req) && !limit.allowed) {
     return NextResponse.json(
       { success: false, error: "Ai ajuns la limita de regenerări ale copertei pentru moment." },
       { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } }

@@ -4,6 +4,7 @@ import https from "node:https";
 import { checkRateLimit, requestExceedsBodyLimit } from "@/lib/requestProtection";
 import { logTelemetry, type TelemetryProduct } from "@/lib/telemetry";
 import { readBoundedDuration, withTimeout } from "@/lib/aiTimeout";
+import { isTrustedOrderWorker } from "@/lib/orders";
 
 type GenerateRequest = {
   type?: "monster" | "story" | "emergency";
@@ -988,7 +989,7 @@ export async function POST(req: Request) {
     }
 
     const limit = checkRateLimit(req, "generate");
-    if (!limit.allowed) {
+    if (!isTrustedOrderWorker(req) && !limit.allowed) {
       return NextResponse.json(
         { success: false, error: "Ai ajuns la limita de generări pentru moment. Încearcă din nou mai târziu." },
         { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } }

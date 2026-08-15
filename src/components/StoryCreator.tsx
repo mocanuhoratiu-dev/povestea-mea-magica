@@ -10,6 +10,7 @@ import LumiMomentCheck from "./LumiMomentCheck";
 import QuickRating from "./QuickRating";
 import EmailDelivery from "./EmailDelivery";
 import { commerce, siteCopy } from "@/lib/siteMode";
+import { beginOrderCheckout } from "@/lib/clientOrderCheckout";
 import { trackEvent } from "@/lib/clientTelemetry";
 import { playNarration, stopNarration, subscribeToNarration } from "@/lib/narrationPlayback";
 import { useMobileProductVisibility } from "@/lib/mobileProductFlow";
@@ -481,6 +482,39 @@ export default function StoryCreator() {
     return () => window.cancelAnimationFrame(frame);
   }, []);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const orderId = params.get("order");
+    const token = params.get("token");
+    if (!orderId || !token) return;
+
+    void fetch(`/api/orders/${encodeURIComponent(orderId)}?token=${encodeURIComponent(token)}`)
+      .then(async (response) => response.ok ? response.json() : null)
+      .then((delivery: { product?: string; configuration?: Record<string, unknown>; output?: StoryApiData; coverImageDataUrl?: string } | null) => {
+        if (!delivery || delivery.product !== "story" || !delivery.output) return;
+        const configuration = delivery.configuration || {};
+        const generation = configuration.generation as Record<string, unknown> | undefined;
+        if (typeof generation?.name === "string") setName(generation.name);
+        if (typeof generation?.age === "string") setAge(generation.age);
+        if (typeof generation?.theme === "string" && themes.some((theme) => theme.id === generation.theme)) setSelectedTheme(generation.theme);
+        if (typeof generation?.lesson === "string" && lessons.includes(generation.lesson)) setLesson(generation.lesson);
+        if (generation?.storyLength === "long" || generation?.storyLength === "short") setStoryLength(generation.storyLength);
+        if (typeof generation?.context === "string") setStoryDetails(generation.context);
+        if (typeof generation?.tone === "string" && toneOptions.includes(generation.tone)) setTone(generation.tone);
+        if (typeof generation?.themeDetail === "string") setThemeDetail(generation.themeDetail);
+        if (typeof generation?.lessonDetail === "string") setLessonDetail(generation.lessonDetail);
+        if (typeof configuration.dedication === "string") setDedication(configuration.dedication);
+        if (typeof configuration.dedicationFrom === "string") setDedicationFrom(configuration.dedicationFrom);
+        setStoryTitle(delivery.output.title || "Povestea ta");
+        setStoryText(delivery.output.text || "");
+        setImagePrompt(delivery.output.imagePrompt || "");
+        setImageUrl(delivery.coverImageDataUrl || buildPollinationsFallbackUrl(typeof generation?.theme === "string" ? generation.theme : "space", typeof generation?.lesson === "string" ? generation.lesson : lessons[0]));
+        setGenerationNote("");
+        setShowResult(true);
+      })
+      .catch(() => undefined);
+  }, []);
+
   const buildStoryRequest = () => ({
     type: "story",
     name,
@@ -536,6 +570,14 @@ export default function StoryCreator() {
     trackEvent("product_started", { product: "story", storyLength });
     setIsLoading(true);
     try {
+      if (commerce.acceptsPayments) {
+        await beginOrderCheckout(storyLength === "long" ? "story-long" : "story-short", {
+          generation: buildStoryRequest(),
+          dedication,
+          dedicationFrom,
+        });
+        return;
+      }
       const response = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

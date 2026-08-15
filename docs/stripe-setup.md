@@ -14,12 +14,71 @@ Integrarea foloseste Stripe Checkout, gazduit de Stripe. Cheile private si semna
 Nu seta `NEXT_PUBLIC_STRIPE_ENABLED=true` pana nu exista:
 
 1. Cont Stripe verificat, cont bancar asociat si setari fiscale finalizate.
-2. Un sistem persistent de comenzi care retine configuratia aleasa **inainte** de plata si marcheaza comanda platita din webhook.
-3. Un job idempotent de generare/livrare pe email dupa confirmarea platii.
+2. Firestore, Cloud Tasks, Cloud Storage si secretele de mai jos configurate in proiect.
+3. Un test reusit de generare/livrare pe email dupa confirmarea platii.
 4. Teste Stripe in test mode: plata reusita, plata esuata, webhook repetat si email livrat.
 5. Politica de rambursare, date de facturare si emailul comercial verificate juridic.
 
-Aplicatia curenta genereaza PDF-ul direct in browser. Din acest motiv, Checkout este pregatit, dar mentinut dezactivat: altfel o plata confirmata nu ar avea inca un context sigur al personalizarii din care sa fie creat produsul.
+Aplicatia salveaza configuratia aleasa in Firestore inainte de Checkout. Dupa plata, webhookul pune o sarcina in Cloud Tasks; workerul genereaza materialul, pastreaza coperta privata in Cloud Storage si trimite emailul cu un link semnat. Linkul redeschide template-ul existent pentru previzualizare si descarcare PDF. Nu trimitem datele copilului in Stripe metadata.
+
+## Pregatirea livrarii dupa plata
+
+Ruleaza o singura data in Cloud Shell, dupa ce alegi un nume de bucket unic:
+
+```bash
+export PROJECT_ID="project-e0c2efff-d456-48f9-9fe"
+export REGION="europe-west3"
+export BUCKET="pmm-orders-${PROJECT_ID}"
+
+gcloud services enable firestore.googleapis.com cloudtasks.googleapis.com storage.googleapis.com secretmanager.googleapis.com --project="$PROJECT_ID"
+gcloud firestore databases create --location="$REGION" --project="$PROJECT_ID"
+gcloud storage buckets create "gs://${BUCKET}" --location="$REGION" --uniform-bucket-level-access --project="$PROJECT_ID"
+```
+
+Pentru regula de stergere automata, creeaza `lifecycle.json` cu acest continut:
+
+```json
+{"rule":[{"action":{"type":"Delete"},"condition":{"age":31,"matchesPrefix":["orders/"]}}]}
+```
+
+Aplica apoi regula:
+
+```bash
+gcloud storage buckets update "gs://${BUCKET}" --lifecycle-file=lifecycle.json --project="$PROJECT_ID"
+gcloud tasks queues create pmm-order-processing --location="$REGION" --max-attempts=5 --max-retry-duration=1h --project="$PROJECT_ID"
+gcloud iam service-accounts create pmm-order-worker --display-name="PMM order worker" --project="$PROJECT_ID"
+```
+
+Service account-ul existent al site-ului are nevoie de acces la Firestore, Cloud Tasks si obiectele din bucket. Workerul Cloud Tasks are nevoie doar de dreptul de a invoca serviciile Cloud Run:
+
+```bash
+export APP_SA="povestea-mea-magica-ai@${PROJECT_ID}.iam.gserviceaccount.com"
+export WORKER_SA="pmm-order-worker@${PROJECT_ID}.iam.gserviceaccount.com"
+
+gcloud projects add-iam-policy-binding "$PROJECT_ID" --member="serviceAccount:${APP_SA}" --role="roles/datastore.user"
+gcloud projects add-iam-policy-binding "$PROJECT_ID" --member="serviceAccount:${APP_SA}" --role="roles/cloudtasks.enqueuer"
+gcloud storage buckets add-iam-policy-binding "gs://${BUCKET}" --member="serviceAccount:${APP_SA}" --role="roles/storage.objectAdmin"
+gcloud run services add-iam-policy-binding povestea-mea-magica --region=europe-west3 --member="serviceAccount:${WORKER_SA}" --role="roles/run.invoker"
+gcloud run services add-iam-policy-binding povestea-mea-magica-domain --region=europe-west1 --member="serviceAccount:${WORKER_SA}" --role="roles/run.invoker"
+```
+
+Genereaza secretele o singura data. Nu le afisa si nu le adauga in `.env` versionat:
+
+```bash
+openssl rand -base64 48 | tr -d '\n' | gcloud secrets create pmm-order-access-secret --data-file=- --project="$PROJECT_ID"
+openssl rand -base64 48 | tr -d '\n' | gcloud secrets create pmm-order-worker-secret --data-file=- --project="$PROJECT_ID"
+```
+
+Ataseaza-le ambelor servicii, impreuna cu `ORDER_STORAGE_BUCKET`:
+
+```bash
+for SERVICE_REGION in "povestea-mea-magica:europe-west3" "povestea-mea-magica-domain:europe-west1"; do
+  SERVICE="${SERVICE_REGION%%:*}"; REGION="${SERVICE_REGION##*:}"
+  gcloud run services update "$SERVICE" --region="$REGION" --project="$PROJECT_ID" \
+    --update-env-vars="ORDER_STORAGE_BUCKET=${BUCKET}" \
+    --update-secrets="ORDER_ACCESS_SECRET=pmm-order-access-secret:latest,ORDER_WORKER_SECRET=pmm-order-worker-secret:latest"
+done
+```
 
 ## Configurare test mode
 
