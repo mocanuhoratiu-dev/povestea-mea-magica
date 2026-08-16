@@ -21,6 +21,24 @@ const benefits = [
   },
 ];
 
+const testimonials = [
+  {
+    quote: "Ador cât de simplu este să creezi o poveste pentru copii.",
+    name: "Florentina",
+    detail: "mamă a unui băiat și a unei fete",
+  },
+  {
+    quote: "Am găsit ceva distractiv care o ajută pe fetița mea să se liniștească atunci când îi este teamă de întuneric. Mi se pare o idee genială.",
+    name: "Antonia",
+    detail: "mamă a unei fetițe",
+  },
+  {
+    quote: "Am testat zona de activități în timp ce eram la restaurant cu fata cea mare. Am fost uimită de cât de captivată a fost.",
+    name: "Larisa",
+    detail: "mamă a două fete",
+  },
+];
+
 export default function Reviews() {
   return (
     <section id="recenzii" className="bg-brand-cream px-6 py-24">
@@ -69,6 +87,24 @@ export default function Reviews() {
             <figcaption className="mt-7 border-t border-brand-cream/20 pt-4 text-sm font-black text-brand-gold">Bogdan <span className="font-semibold text-brand-cream/70">· tată a doi copii</span></figcaption>
           </div>
         </motion.figure>
+        <div className="mt-5 grid gap-5 md:grid-cols-3">
+          {testimonials.map((testimonial, index) => (
+            <motion.figure
+              key={testimonial.name}
+              initial={{ opacity: 0, y: 18 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ delay: index * 0.08 }}
+              className="flex min-h-64 flex-col justify-between border border-brand-navy/12 bg-white p-7"
+            >
+              <Quote size={24} strokeWidth={1.6} className="text-brand-purple" aria-hidden="true" />
+              <blockquote className="mt-7 font-serif text-xl leading-relaxed text-brand-navy">„{testimonial.quote}”</blockquote>
+              <figcaption className="mt-7 border-t border-brand-navy/10 pt-4 text-sm font-black text-brand-purple">
+                {testimonial.name} <span className="font-semibold text-brand-navy/60">· {testimonial.detail}</span>
+              </figcaption>
+            </motion.figure>
+          ))}
+        </div>
       </div>
     </section>
   );
