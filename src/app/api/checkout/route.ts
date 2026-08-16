@@ -66,6 +66,14 @@ export async function POST(request: Request) {
       }],
       success_url: `${siteUrl}/comanda-confirmata?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${siteUrl}/preturi?plata=anulata`,
+      consent_collection: {
+        terms_of_service: "required",
+      },
+      custom_text: {
+        terms_of_service_acceptance: {
+          message: "Prin bifare, soliciți furnizarea imediată a materialului digital personalizat după confirmarea plății și confirmi că ai luat cunoștință de condițiile privind dreptul de retragere.",
+        },
+      },
       metadata: {
         product_id: product.id,
         order_id: order.id,

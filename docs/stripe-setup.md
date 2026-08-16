@@ -8,6 +8,7 @@ Integrarea foloseste Stripe Checkout, gazduit de Stripe. Cheile private si semna
 - `POST /api/stripe-webhook` verifica semnatura Stripe folosind corpul brut al cererii.
 - Catalogul comercial este in `src/lib/catalog.ts`, cu sume in bani (RON).
 - Plata este oprita implicit prin `NEXT_PUBLIC_STRIPE_ENABLED=false`.
+- Stripe Checkout cere acceptarea Termenilor și afișează acordul pentru livrarea imediată a materialului digital. Webhookul nu pornește livrarea fără confirmarea acestui consimțământ de la Stripe.
 
 ## Conditii inainte de activare
 
@@ -16,8 +17,9 @@ Nu seta `NEXT_PUBLIC_STRIPE_ENABLED=true` pana nu exista:
 1. Cont Stripe verificat, cont bancar asociat si setari fiscale finalizate.
 2. Firestore, Cloud Tasks, Cloud Storage si secretele de mai jos configurate in proiect.
 3. Un test reusit de generare/livrare pe email dupa confirmarea platii.
-4. Teste Stripe in test mode: plata reusita, plata esuata, webhook repetat si email livrat.
-5. Politica de rambursare, date de facturare si emailul comercial verificate juridic.
+4. URL-ul public al Termenilor este configurat în Stripe Dashboard: `https://www.povestea-mea-magica.ro/termeni-si-conditii`.
+5. Teste Stripe in test mode: plata reusita, plata esuata, webhook repetat, acceptarea termenilor si email livrat.
+6. Politica de rambursare, date de facturare si emailul comercial verificate juridic.
 
 Aplicatia salveaza configuratia aleasa in Firestore inainte de Checkout. Dupa plata, webhookul pune o sarcina in Cloud Tasks; workerul genereaza materialul, pastreaza coperta privata in Cloud Storage si trimite emailul cu un link semnat. Linkul redeschide template-ul existent pentru previzualizare si descarcare PDF. Nu trimitem datele copilului in Stripe metadata.
 
@@ -170,6 +172,14 @@ https://www.povestea-mea-magica.ro/api/stripe-webhook
 ```
 
 Selecteaza cel putin `checkout.session.completed`, `checkout.session.async_payment_succeeded` si `checkout.session.async_payment_failed`.
+
+In **Settings → Public details**, setează URL-ul pentru Termeni și condiții:
+
+```text
+https://www.povestea-mea-magica.ro/termeni-si-conditii
+```
+
+Checkout-ul cere această acceptare înainte de plată. Mesajul de sub bifă explică livrarea imediată a materialului digital personalizat și condițiile privind retragerea.
 
 ## Activare comerciala
 

@@ -31,7 +31,7 @@ const faqs = [
   },
   {
     question: "Care sunt prețurile?",
-    answer: "Prețurile planificate sunt 19 lei pentru povestea scurtă, 29 lei pentru cea lungă și 19 lei pentru fiecare kit. Pachetul complet este 49 lei. În această etapă, accesul este gratuit și nu există pas de plată.",
+    answer: "Povestea scurtă costă 19 lei, cea lungă 29 lei, iar fiecare kit costă 19 lei. Plățile online se activează în curând; până atunci, poți crea și descărca materialele fără cost.",
   },
   {
     question: "Sunt materialele un sfat medical sau terapeutic?",

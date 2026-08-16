@@ -34,6 +34,10 @@ export async function POST(request: Request) {
         logTelemetry("pmm_checkout_awaiting_payment", { result: "pending" });
         return NextResponse.json({ received: true });
       }
+      if (session.consent?.terms_of_service !== "accepted") {
+        console.error("Stripe Checkout completed without terms consent", event.id);
+        return NextResponse.json({ error: "Consimtamantul pentru livrarea digitala lipseste." }, { status: 409 });
+      }
       const orderId = session.metadata?.order_id;
       const order = orderId ? await getOrder(orderId) : null;
       if (!order) {

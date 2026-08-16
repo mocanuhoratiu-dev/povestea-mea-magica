@@ -147,7 +147,7 @@ export default function ModelsPage() {
 
       <section className="mt-24 bg-brand-navy px-6 py-14 text-brand-cream">
         <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-8 md:flex-row md:items-center">
-          <div><p className="text-xs font-black uppercase tracking-[0.16em] text-brand-gold">Pachet complet</p><p className="mt-3 font-serif text-4xl">Toate cele trei materiale, 49 lei.</p><p className="mt-3 max-w-xl font-medium leading-relaxed text-brand-cream/75">O poveste, un ritual de noapte și o trusă pentru așteptare, fiecare pornind de la alegerile familiei voastre.</p></div>
+          <div><p className="text-xs font-black uppercase tracking-[0.16em] text-brand-gold">Materiale pentru momente reale</p><p className="mt-3 font-serif text-4xl">Începe cu momentul de care aveți nevoie.</p><p className="mt-3 max-w-xl font-medium leading-relaxed text-brand-cream/75">Alegi o poveste, un ritual de noapte sau activități pentru timpul de așteptare și le personalizezi pentru familia voastră.</p></div>
           <Link href="/#alege-materialul" className="inline-flex items-center gap-2 bg-brand-gold px-6 py-4 font-black text-brand-navy transition-colors hover:bg-brand-cream">Alege un moment <ArrowRight size={18} /></Link>
         </div>
       </section>

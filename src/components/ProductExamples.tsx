@@ -4,6 +4,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowRight, BookOpen, ShieldCheck, TimerReset } from "lucide-react";
 import { MobileProductId, openMobileProduct } from "@/lib/mobileProductFlow";
+import { commerce } from "@/lib/siteMode";
 
 const examples: Array<{
   id: MobileProductId;
@@ -92,7 +93,7 @@ export default function ProductExamples() {
                   <span className="mt-1 block font-serif text-xl leading-tight text-brand-navy">{example.title}</span>
                   <span className="mt-1 block text-xs font-semibold leading-relaxed text-brand-navy/60">{example.description}</span>
                   <span className="mt-2 block text-sm font-black text-brand-navy">{example.price}</span>
-                  <span className="mt-1 block text-[11px] font-bold text-brand-purple">Acces de lansare gratuit</span>
+                  {!commerce.acceptsPayments && <span className="mt-1 block text-[11px] font-bold text-brand-purple">Creezi fără cost până la activarea plăților</span>}
                 </span>
                 <ArrowRight size={19} className="shrink-0 text-brand-navy/45 transition-transform group-hover:translate-x-1" />
               </a>
@@ -137,7 +138,7 @@ export default function ProductExamples() {
                 </ul>
                 <a href="/modele" className="mt-5 inline-flex w-fit items-center gap-2 border-b border-brand-navy/20 pb-1 text-sm font-black text-brand-navy/70 transition-colors hover:border-brand-purple hover:text-brand-purple">Răsfoiește pagini din model <ArrowRight size={15} /></a>
                 <div className="mt-7 flex items-end justify-between gap-4">
-                  <div><p className="font-nunito text-3xl font-black text-brand-navy">{example.price}</p><p className="text-xs font-bold text-brand-navy/50">preț de lansare comercială</p></div>
+                  <div><p className="font-nunito text-3xl font-black text-brand-navy">{example.price}</p><p className="text-xs font-bold text-brand-navy/50">preț final</p></div>
                   <a href={example.href} className="inline-flex items-center gap-2 bg-brand-navy px-4 py-3 text-sm font-black text-brand-cream transition-colors hover:bg-brand-purple">{example.cta} <ArrowRight size={16} /></a>
                 </div>
               </div>

@@ -25,7 +25,7 @@ export async function POST(request: Request) {
 
   try {
     const { productId, configuration } = await request.json();
-    if (!isCheckoutProductId(productId) || productId === "complete-set") return NextResponse.json({ error: "Produsul selectat nu este disponibil." }, { status: 400 });
+    if (!isCheckoutProductId(productId)) return NextResponse.json({ error: "Produsul selectat nu este disponibil." }, { status: 400 });
     const clean = cleanConfiguration(configuration);
     if (!clean) return NextResponse.json({ error: "Datele materialului nu sunt valide." }, { status: 400 });
     const order = await createOrder(productId, clean);

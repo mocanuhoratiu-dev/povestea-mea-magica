@@ -9,6 +9,7 @@ import FeedbackInvite from './FeedbackInvite';
 import LumiMomentCheck from './LumiMomentCheck';
 import QuickRating from './QuickRating';
 import EmailDelivery from './EmailDelivery';
+import DigitalPurchaseConsent from './DigitalPurchaseConsent';
 import { trackEvent } from "@/lib/clientTelemetry";
 import { commerce } from "@/lib/siteMode";
 import { beginOrderCheckout } from "@/lib/clientOrderCheckout";
@@ -480,6 +481,8 @@ export default function MonsterKit() {
   const [calmingHelper, setCalmingHelper] = useState('');
   const [bedtimeRitual, setBedtimeRitual] = useState('');
   const [generatedContent, setGeneratedContent] = useState<MonsterKitContent | null>(null);
+  const [hasPurchaseConsent, setHasPurchaseConsent] = useState(false);
+  const [purchaseConsentError, setPurchaseConsentError] = useState('');
 
   useEffect(() => {
     const applyLumiChoice = (event: Event) => {
@@ -527,6 +530,11 @@ export default function MonsterKit() {
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
+    if (commerce.acceptsPayments && !hasPurchaseConsent) {
+      setPurchaseConsentError('Confirmă livrarea imediată înainte de a continua către plată.');
+      return;
+    }
+    setPurchaseConsentError('');
     trackEvent('product_started', { product: 'monster' });
     setShowQuickRating(false);
     setResultNote("");
@@ -782,12 +790,24 @@ export default function MonsterKit() {
               Notă pentru adult: spray-ul magic este un ritual simbolic de joacă. Prepară-l doar cu ingrediente alimentare inofensive, pulverizează în aer sau lângă obiecte, niciodată pe piele, față, ochi, pernă sau animale.
             </p>
 
+            {commerce.acceptsPayments && (
+              <DigitalPurchaseConsent
+                checked={hasPurchaseConsent}
+                onCheckedChange={(checked) => {
+                  setHasPurchaseConsent(checked);
+                  if (checked) setPurchaseConsentError('');
+                }}
+                productLabel="Scutul de Noapte"
+                error={purchaseConsentError}
+              />
+            )}
+
             <motion.button
               type="submit" disabled={!name.trim() || isGenerating}
               whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
               className="w-full bg-brand-navy text-brand-cream py-6 rounded-2xl font-black text-xl md:text-2xl shadow-2xl border-b-8 border-brand-gold disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-3 transition-all"
             >
-              <ShieldCheck size={28} /> {isGenerating ? 'Pregătim magia...' : 'Generează kitul'}
+              <ShieldCheck size={28} /> {isGenerating ? 'Pregătim magia...' : commerce.acceptsPayments ? 'Continuă către plată' : 'Generează kitul'}
             </motion.button>
           </form>
         </motion.div>

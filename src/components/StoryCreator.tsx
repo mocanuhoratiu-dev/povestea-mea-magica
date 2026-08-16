@@ -9,6 +9,7 @@ import FeedbackInvite from "./FeedbackInvite";
 import LumiMomentCheck from "./LumiMomentCheck";
 import QuickRating from "./QuickRating";
 import EmailDelivery from "./EmailDelivery";
+import DigitalPurchaseConsent from "./DigitalPurchaseConsent";
 import { commerce, siteCopy } from "@/lib/siteMode";
 import { beginOrderCheckout } from "@/lib/clientOrderCheckout";
 import { trackEvent } from "@/lib/clientTelemetry";
@@ -433,6 +434,8 @@ export default function StoryCreator() {
   const [isCoverLoading, setIsCoverLoading] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [showQuickRating, setShowQuickRating] = useState(false);
+  const [hasPurchaseConsent, setHasPurchaseConsent] = useState(false);
+  const [purchaseConsentError, setPurchaseConsentError] = useState("");
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const coverRequestId = useRef(0);
 
@@ -565,6 +568,11 @@ export default function StoryCreator() {
 
   const handleGenerateStory = async () => {
     if (!name) return;
+    if (commerce.acceptsPayments && !hasPurchaseConsent) {
+      setPurchaseConsentError("Confirmă livrarea imediată înainte de a continua către plată.");
+      return;
+    }
+    setPurchaseConsentError("");
     coverRequestId.current += 1;
     setIsCoverLoading(false);
     trackEvent("product_started", { product: "story", storyLength });
@@ -1119,12 +1127,23 @@ export default function StoryCreator() {
               </div>
 
               <div className="space-y-4">
+                {commerce.acceptsPayments && (
+                  <DigitalPurchaseConsent
+                    checked={hasPurchaseConsent}
+                    onCheckedChange={(checked) => {
+                      setHasPurchaseConsent(checked);
+                      if (checked) setPurchaseConsentError("");
+                    }}
+                    productLabel={`Povestea de Seară ${storyLength === "short" ? "scurtă" : "lungă"}`}
+                    error={purchaseConsentError}
+                  />
+                )}
                 <button
                   onClick={handleGenerateStory}
                   disabled={!name}
                   className="flex w-full items-center justify-center gap-4 bg-brand-purple py-5 text-xl font-black text-white shadow-2xl transition-colors hover:bg-brand-navy disabled:cursor-not-allowed disabled:opacity-30 md:py-6 md:text-2xl"
                 >
-                  Creează povestea {storyLength === "short" ? "scurtă" : "lungă"} <Sparkles className="group-hover:rotate-12 transition-transform" />
+                  {commerce.acceptsPayments ? "Continuă către plată" : `Creează povestea ${storyLength === "short" ? "scurtă" : "lungă"}`} <Sparkles className="group-hover:rotate-12 transition-transform" />
                 </button>
               </div>
             </div>

@@ -2,6 +2,7 @@
 
 import { Check, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
+import { commerce } from "@/lib/siteMode";
 
 const products = [
   {
@@ -42,13 +43,15 @@ export default function Pricing() {
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-14">
           <div className="inline-flex items-center gap-2 rounded-full bg-brand-purple/10 px-5 py-2 text-sm font-black uppercase tracking-widest text-brand-purple">
-            <Sparkles size={16} /> Prețuri de lansare
+            <Sparkles size={16} /> Prețuri
           </div>
           <h2 className="mt-5 font-nunito text-4xl md:text-5xl font-extrabold text-brand-navy">
             Alege materialul potrivit pentru copilul tău
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg font-medium leading-relaxed text-brand-navy/65">
-            Accesul de lansare este gratuit. Prețurile de mai jos se vor aplica odată cu activarea plăților online.
+            {commerce.acceptsPayments
+              ? "Alegi materialul, confirmi detaliile, apoi plătești în siguranță."
+              : "Plățile online se activează în curând. Până atunci, poți crea și descărca materialele fără cost."}
           </p>
         </div>
 
@@ -74,7 +77,7 @@ export default function Pricing() {
 
               <div className="mt-6 flex items-end gap-3">
                 <span className="font-nunito text-5xl font-black text-brand-purple">{product.price}</span>
-                <span className="pb-2 text-sm font-black text-brand-navy/45">la lansarea comercială</span>
+                <span className="pb-2 text-sm font-black text-brand-navy/45">preț final</span>
               </div>
 
               <ul className="mt-7 space-y-3">
@@ -96,15 +99,6 @@ export default function Pricing() {
               </a>
             </motion.article>
           ))}
-        </div>
-
-        <div className="mt-8 rounded-[2rem] border-2 border-brand-purple/15 bg-brand-purple/5 p-6 text-center">
-          <p className="font-nunito text-2xl font-black text-brand-navy">
-            Pachet recomandat: povestea lungă, Scutul și Trusa la <span className="text-brand-purple">49 lei</span>
-          </p>
-          <p className="mt-2 text-sm font-bold text-brand-navy/55">
-            Accesul de lansare este gratuit până la activarea plăților online.
-          </p>
         </div>
       </div>
     </section>

@@ -9,7 +9,7 @@ export async function POST(request: Request) {
     }
     const limit = checkRateLimit(request, "narrate");
     if (!limit.allowed) {
-      return NextResponse.json({ error: "Ai ajuns la limita de previzualizări audio. Încearcă din nou mai târziu." }, { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } });
+      return NextResponse.json({ error: "Ai ajuns la limita de ascultări audio. Încearcă din nou mai târziu." }, { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } });
     }
 
     const body = (await request.json()) as { text?: unknown; kind?: unknown };
@@ -21,6 +21,6 @@ export async function POST(request: Request) {
     return new Response(audio, { headers: { "Content-Type": "audio/mpeg", "Cache-Control": "no-store" } });
   } catch (error) {
     console.error("Google Cloud Text-to-Speech error:", error);
-    return NextResponse.json({ error: "Previzualizarea audio nu este disponibilă chiar acum. Încearcă din nou în câteva clipe." }, { status: 503 });
+    return NextResponse.json({ error: "Redarea audio nu este disponibilă chiar acum. Încearcă din nou în câteva clipe." }, { status: 503 });
   }
 }

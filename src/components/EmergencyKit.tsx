@@ -9,6 +9,7 @@ import FeedbackInvite from "./FeedbackInvite";
 import LumiMomentCheck from "./LumiMomentCheck";
 import QuickRating from "./QuickRating";
 import EmailDelivery from "./EmailDelivery";
+import DigitalPurchaseConsent from "./DigitalPurchaseConsent";
 import { trackEvent } from "@/lib/clientTelemetry";
 import { commerce } from "@/lib/siteMode";
 import { beginOrderCheckout } from "@/lib/clientOrderCheckout";
@@ -460,6 +461,8 @@ export default function EmergencyKit() {
   const [interest, setInterest] = useState("");
   const [duration, setDuration] = useState(durationOptions[1].id);
   const [activityMode, setActivityMode] = useState(activityModes[2].id);
+  const [hasPurchaseConsent, setHasPurchaseConsent] = useState(false);
+  const [purchaseConsentError, setPurchaseConsentError] = useState("");
 
   useEffect(() => {
     const applyLumiChoice = (event: Event) => {
@@ -512,6 +515,11 @@ export default function EmergencyKit() {
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
+    if (commerce.acceptsPayments && !hasPurchaseConsent) {
+      setPurchaseConsentError("Confirmă livrarea imediată înainte de a continua către plată.");
+      return;
+    }
+    setPurchaseConsentError("");
     trackEvent("product_started", { product: "emergency" });
     setShowQuickRating(false);
     setResultNote("");
@@ -737,12 +745,24 @@ export default function EmergencyKit() {
               </div>
             </details>
 
+            {commerce.acceptsPayments && (
+              <DigitalPurchaseConsent
+                checked={hasPurchaseConsent}
+                onCheckedChange={(checked) => {
+                  setHasPurchaseConsent(checked);
+                  if (checked) setPurchaseConsentError("");
+                }}
+                productLabel="Trusa de Răbdare"
+                error={purchaseConsentError}
+              />
+            )}
+
             <motion.button
               type="submit" disabled={!name.trim()}
               whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
               className="flex w-full items-center justify-center gap-3 bg-brand-orange py-6 text-xl font-black text-white shadow-xl transition-colors hover:bg-brand-navy disabled:cursor-not-allowed disabled:opacity-30 md:text-2xl"
             >
-              <Sparkles size={28} /> Pregătește trusa
+              <Sparkles size={28} /> {commerce.acceptsPayments ? "Continuă către plată" : "Pregătește trusa"}
             </motion.button>
           </form>
         </motion.div>

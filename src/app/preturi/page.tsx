@@ -6,22 +6,22 @@ import { commerce, siteCopy } from "@/lib/siteMode";
 
 export const metadata: Metadata = {
   title: "Prețuri | Povestea Mea Magică",
-  description: "Prețurile planificate pentru poveștile și materialele digitale personalizate Povestea Mea Magică.",
+  description: "Prețurile pentru poveștile și materialele digitale personalizate Povestea Mea Magică.",
   alternates: { canonical: "/preturi" },
 };
 
 const offers = [
-  { title: "Povestea de Seară", price: `Scurtă ${commerce.prices.storyShort} · Lungă ${commerce.prices.storyLong}`, description: "O aventură ilustrată, cu dedicație de la familie și text adaptat alegerilor voastre.", details: ["Scurtă: copertă, dedicație și 2 pagini de poveste", "Lungă: copertă, dedicație și 4 pagini de poveste", "Previzualizare, editare și PDF pentru descărcare"], href: "/#creator", cta: "Personalizează povestea", icon: BookOpen },
+  { title: "Povestea de Seară", price: `Scurtă ${commerce.prices.storyShort} · Lungă ${commerce.prices.storyLong}`, description: "O aventură ilustrată, cu dedicație de la familie și text adaptat alegerilor voastre.", details: ["Scurtă: copertă, dedicație și 2 pagini de poveste", "Lungă: copertă, dedicație și 4 pagini de poveste", "Verificare, editare și PDF pentru descărcare"], href: "/#creator", cta: "Personalizează povestea", icon: BookOpen },
   { title: "Scutul de Noapte", price: commerce.prices.nightShield, description: "Un ritual simbolic pentru seară, construit în jurul unei frici și a lucrurilor care liniștesc copilul.", details: ["Certificat personalizat", "Ritual simplu, de repetat împreună", "Etichete pentru flacon"], href: "/#monster-away", cta: "Personalizează Scutul", icon: ShieldCheck },
   { title: "Trusa de Răbdare", price: commerce.prices.patienceKit, description: "Activități printabile pentru momentele de așteptare: drum, restaurant, doctor, aeroport sau acasă.", details: ["5 pagini de activități", "Misiuni adaptate contextului", "Diplomă de final"], href: "/#emergency-kit", cta: "Personalizează Trusa", icon: TimerReset },
 ];
 
 export default function PricingPage() {
   return (
-    <CommercialPage eyebrow="Prețuri transparente" title="Alegi materialul, vezi prețul, apoi începi." description="Acestea sunt prețurile planificate pentru lansarea comercială. În această etapă, accesul rămâne gratuit și nu există pas de plată.">
+    <CommercialPage eyebrow="Prețuri transparente" title="Alegi materialul, vezi prețul, apoi începi." description="Prețurile de mai jos se aplică odată cu activarea plăților online. Până atunci, poți crea și descărca materialele fără cost.">
       <section className="px-6 py-16 md:py-20">
         <div className="mx-auto max-w-5xl border-y border-brand-gold/45 bg-brand-gold/10 px-6 py-6 text-center">
-          <p className="text-sm font-black text-brand-navy">{siteCopy.launchAccess}</p>
+          <p className="text-sm font-black text-brand-navy">{siteCopy.paymentNotice}</p>
         </div>
         <div className="mx-auto mt-14 max-w-5xl divide-y divide-brand-navy/15 border-y border-brand-navy/15">
           {offers.map((offer) => {
@@ -32,7 +32,6 @@ export default function PricingPage() {
             </article>;
           })}
         </div>
-        <div className="mx-auto mt-12 max-w-5xl border border-brand-navy/15 bg-white px-7 py-8 md:flex md:items-center md:justify-between"><div><p className="text-xs font-black uppercase tracking-[0.15em] text-brand-purple">Pachet complet</p><p className="mt-2 font-serif text-3xl text-brand-navy">Povestea lungă, Scutul și Trusa: {commerce.prices.completeSet}</p></div><Link href="/modele" className="mt-5 inline-flex items-center gap-2 bg-brand-navy px-5 py-3 text-sm font-black text-brand-cream transition-colors hover:bg-brand-purple md:mt-0">Răsfoiește modelele <ArrowRight size={16} /></Link></div>
       </section>
     </CommercialPage>
   );

@@ -39,7 +39,7 @@ export default function Hero() {
           <p className="mx-auto mt-5 max-w-xl text-base font-medium leading-relaxed text-brand-cream/90 sm:mt-6 sm:text-lg md:text-xl lg:mx-0">
             Povești de seară, ritualuri pentru nopțile cu emoții și misiuni pentru timpul de așteptare. Făcute pentru momentul vostru.
           </p>
-          <p className="mx-auto mt-5 hidden max-w-xl border-y border-brand-gold/70 bg-brand-navy/30 px-4 py-3 text-sm font-bold leading-relaxed text-brand-cream/85 md:block lg:mx-0 lg:border-y-0 lg:border-l-2">{siteCopy.launchAccess}</p>
+          <p className="mx-auto mt-5 hidden max-w-xl border-y border-brand-gold/70 bg-brand-navy/30 px-4 py-3 text-sm font-bold leading-relaxed text-brand-cream/85 md:block lg:mx-0 lg:border-y-0 lg:border-l-2">{siteCopy.paymentNotice}</p>
           <div className="mt-7 flex flex-col gap-3 sm:mt-9 sm:flex-row lg:justify-start">
             <motion.a
               href="#alege-materialul"
