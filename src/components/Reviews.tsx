@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { FileCheck2, HeartHandshake, Sparkles } from "lucide-react";
+import { FileCheck2, HeartHandshake, Quote, Sparkles } from "lucide-react";
 
 const benefits = [
   {
@@ -51,6 +51,24 @@ export default function Reviews() {
             );
           })}
         </div>
+        <motion.figure
+          initial={{ opacity: 0, y: 18 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.35 }}
+          className="mt-12 grid overflow-hidden border border-brand-gold/45 bg-brand-navy md:grid-cols-[.68fr_1.32fr]"
+        >
+          <div className="flex min-h-44 flex-col justify-between bg-brand-purple px-7 py-8 text-white md:px-10">
+            <Quote size={32} strokeWidth={1.6} className="text-brand-gold" aria-hidden="true" />
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-brand-gold">Din primele familii</p>
+              <p className="mt-2 font-serif text-3xl leading-tight">O poveste care începe ușor.</p>
+            </div>
+          </div>
+          <div className="flex flex-col justify-between px-7 py-8 md:px-10">
+            <blockquote className="font-serif text-2xl leading-relaxed text-brand-cream md:text-3xl">„Îmi place foarte mult ideea voastră și am rămas plăcut impresionat de cât de ușor este să avem o poveste împreună cu copiii mei.”</blockquote>
+            <figcaption className="mt-7 border-t border-brand-cream/20 pt-4 text-sm font-black text-brand-gold">Bogdan <span className="font-semibold text-brand-cream/70">· tată a doi copii</span></figcaption>
+          </div>
+        </motion.figure>
       </div>
     </section>
   );
