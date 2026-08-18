@@ -40,7 +40,7 @@ printf '%s\n' '{"rule":[{"action":{"type":"Delete"},"condition":{"age":31,"match
 gcloud storage buckets update "gs://${BUCKET}" --lifecycle-file="$lifecycle_file" --project="$PROJECT_ID"
 
 if ! gcloud tasks queues describe pmm-order-processing --location="$REGION" --project="$PROJECT_ID" >/dev/null 2>&1; then
-  gcloud tasks queues create pmm-order-processing --location="$REGION" --max-attempts=5 --max-retry-duration=1h --project="$PROJECT_ID"
+  gcloud tasks queues create pmm-order-processing --location="$REGION" --max-attempts=5 --max-retry-duration=3600s --project="$PROJECT_ID"
 fi
 
 ensure_service_account "$WORKER_SA"
