@@ -31,7 +31,7 @@ const faqs = [
   },
   {
     question: "Care sunt prețurile?",
-    answer: "Povestea scurtă costă 19 lei, cea lungă 29 lei, iar fiecare kit costă 19 lei. Plățile online se activează în curând; până atunci, poți crea și descărca materialele fără cost.",
+    answer: "Povestea scurtă costă 19 lei, cea lungă 29 lei, iar fiecare kit costă 19 lei. Vezi prețul final înainte de plată, iar materialul digital este pregătit după confirmarea comenzii.",
   },
   {
     question: "Sunt materialele un sfat medical sau terapeutic?",

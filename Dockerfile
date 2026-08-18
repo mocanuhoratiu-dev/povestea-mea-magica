@@ -6,6 +6,10 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 FROM base AS builder
+ARG NEXT_PUBLIC_STRIPE_ENABLED=true
+ARG NEXT_PUBLIC_SUPPORT_EMAIL=office@povestea-mea-magica.ro
+ENV NEXT_PUBLIC_STRIPE_ENABLED=${NEXT_PUBLIC_STRIPE_ENABLED}
+ENV NEXT_PUBLIC_SUPPORT_EMAIL=${NEXT_PUBLIC_SUPPORT_EMAIL}
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build
