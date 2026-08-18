@@ -158,6 +158,25 @@ Exemple recomandate:
 
 Nu publica un cod fără dată de expirare sau limită de utilizări. Pentru produsele actuale, codurile sunt generale. Restricțiile Stripe pe produse individuale necesită trecerea catalogului la produse și prețuri Stripe persistente.
 
+Repository-ul include un script idempotent care configurează campaniile aprobate:
+
+- `MAGIE10`: reducere 10%, maximum 100 utilizări, expirare după 7 zile;
+- `POVESTECADOU100`: reducere 100%, maximum 5 utilizări, expirare după 30 de zile.
+
+Rulează întâi cu cheia Stripe de test:
+
+```bash
+STRIPE_SECRET_KEY="sk_test_..." npm run stripe:promos
+```
+
+După verificarea completă a comenzilor, rulează separat cu cheia live. Dacă cheia este deja în Google Secret Manager, nu o afișa în terminal:
+
+```bash
+STRIPE_SECRET_KEY="$(gcloud secrets versions access latest --secret=stripe-secret-key --project=project-e0c2efff-d456-48f9-9fe)" npm run stripe:promos
+```
+
+Scriptul detectează automat modul TEST sau LIVE, nu afișează cheia și nu creează duplicate la rulări repetate. Datele de expirare se calculează din momentul primei configurări.
+
 ## Configurare Cloud Run
 
 Adauga secretele Stripe in Google Cloud Secret Manager si acorda aplicatiei acces strict de citire. Domeniul public este servit de `povestea-mea-magica-domain`, astfel incat configuratia trebuie sa fie identica pentru ambele servicii:

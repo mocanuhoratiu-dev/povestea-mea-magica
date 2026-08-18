@@ -6,7 +6,8 @@
     "dev": "next dev -p 3010",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "stripe:promos": "node scripts/provision-stripe-promotion-codes.mjs"
   },
   "dependencies": {
     "@google/genai": "^1.52.0",
