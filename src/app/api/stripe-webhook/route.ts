@@ -29,7 +29,10 @@ export async function POST(request: Request) {
     case "checkout.session.completed":
     case "checkout.session.async_payment_succeeded": {
       const session = event.data.object;
-      const paymentConfirmed = event.type === "checkout.session.async_payment_succeeded" || session.payment_status === "paid";
+      const paymentConfirmed =
+        event.type === "checkout.session.async_payment_succeeded"
+        || session.payment_status === "paid"
+        || session.payment_status === "no_payment_required";
       if (!paymentConfirmed) {
         logTelemetry("pmm_checkout_awaiting_payment", { result: "pending" });
         return NextResponse.json({ received: true });

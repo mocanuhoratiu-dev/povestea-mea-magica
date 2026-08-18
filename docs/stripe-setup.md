@@ -9,6 +9,8 @@ Integrarea foloseste Stripe Checkout, gazduit de Stripe. Cheile private si semna
 - Catalogul comercial este in `src/lib/catalog.ts`, cu sume in bani (RON).
 - Plata este oprita implicit prin `NEXT_PUBLIC_STRIPE_ENABLED=false`.
 - Stripe Checkout cere acceptarea Termenilor și afișează acordul pentru livrarea imediată a materialului digital. Webhookul nu pornește livrarea fără confirmarea acestui consimțământ de la Stripe.
+- Stripe Checkout afișează câmpul pentru coduri promoționale. Reducerile sunt validate și calculate exclusiv de Stripe.
+- Comenzile reduse la 0 RON sunt acceptate și livrate după confirmarea semnată de Stripe cu statusul `no_payment_required`.
 
 ## Conditii inainte de activare
 
@@ -19,7 +21,8 @@ Nu seta `NEXT_PUBLIC_STRIPE_ENABLED=true` pana nu exista:
 3. Un test reusit de generare/livrare pe email dupa confirmarea platii.
 4. URL-ul public al Termenilor este configurat în Stripe Dashboard: `https://www.povestea-mea-magica.ro/termeni-si-conditii`.
 5. Teste Stripe in test mode: plata reusita, plata esuata, webhook repetat, acceptarea termenilor si email livrat.
-6. Politica de rambursare, date de facturare si emailul comercial verificate juridic.
+6. Teste pentru codurile promoționale: cod valid, cod expirat, limită de utilizări atinsă și reducere de 100%.
+7. Politica de rambursare, date de facturare si emailul comercial verificate juridic.
 
 Aplicatia salveaza configuratia aleasa in Firestore inainte de Checkout. Dupa plata, webhookul pune o sarcina in Cloud Tasks; workerul genereaza materialul, pastreaza coperta privata in Cloud Storage si trimite emailul cu un link semnat. Linkul redeschide template-ul existent pentru previzualizare si descarcare PDF. Nu trimitem datele copilului in Stripe metadata.
 
@@ -134,6 +137,26 @@ stripe listen --forward-to localhost:3010/api/stripe-webhook
 ```bash
 stripe trigger checkout.session.completed
 ```
+
+## Coduri promoționale
+
+Codurile se administrează în Stripe Dashboard, fără modificări sau deploy-uri noi în aplicație:
+
+1. Creează un **Coupon** cu reducerea dorită, procentuală sau valorică.
+2. Creează peste acel coupon un **Promotion code**, adică textul introdus de client, de exemplu `LUMI10`.
+3. Configurează data expirării și numărul maxim de utilizări.
+4. Pentru colaboratori, folosește câte un cod distinct, astfel încât utilizările să poată fi urmărite separat în Stripe.
+5. Testează codul în Stripe test mode înainte să îl recreezi în live mode. Obiectele și codurile din test mode nu se transferă automat în live mode.
+
+Exemple recomandate:
+
+| Scop | Cod | Reducere | Limită recomandată |
+| --- | --- | --- | --- |
+| Lansare | `MAGIE10` | 10% | 100 utilizări, 7 zile |
+| Colaborator | `NUME15` | 15% | limită și expirare per colaborare |
+| Cadou / test controlat | `POVESTECADOU` | 100% | 1-5 utilizări |
+
+Nu publica un cod fără dată de expirare sau limită de utilizări. Pentru produsele actuale, codurile sunt generale. Restricțiile Stripe pe produse individuale necesită trecerea catalogului la produse și prețuri Stripe persistente.
 
 ## Configurare Cloud Run
 
