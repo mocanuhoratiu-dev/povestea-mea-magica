@@ -6,6 +6,7 @@ import { ArrowRight, BookOpen, LoaderCircle, MoonStar, Send, Sparkles, Square, T
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { trackEvent } from "@/lib/clientTelemetry";
+import { wantsLumiMaterialRecommendation } from "@/lib/lumiIntent";
 import { playNarration, stopNarration as stopSharedNarration, subscribeToNarration } from "@/lib/narrationPlayback";
 import { openMobileProduct } from "@/lib/mobileProductFlow";
 
@@ -54,6 +55,12 @@ const rememberedProducts: Record<MomentMemory["product"], string> = {
   story: "o poveste",
   monster: "un Scut de Noapte",
   emergency: "o Trusă de Răbdare",
+};
+
+const recommendationLabels: Record<Exclude<ProductId, "none">, string> = {
+  story: "Deschide Povestea de Seară",
+  monster: "Deschide Scutul de Noapte",
+  emergency: "Deschide Trusa de Răbdare",
 };
 
 function looksLikeQuestion(value: string) {
@@ -254,6 +261,8 @@ export default function LumiGuide() {
 
     trackEvent("lumi_message_sent");
     const history = messages.slice(-6).map(({ role, text }) => ({ role, text }));
+    const previousModelMessage = [...messages].reverse().find((item) => item.role === "model")?.text || "";
+    const allowRecommendation = wantsLumiMaterialRecommendation(message, previousModelMessage);
     const userMessage: ChatMessage = { role: "user", text: message };
     setMessages((current) => [...current, userMessage]);
     setInput("");
@@ -273,7 +282,7 @@ export default function LumiGuide() {
         role: "model",
         text: payload.reply,
         suggestions: Array.isArray(payload.suggestions) ? payload.suggestions : [],
-        recommendation: payload.recommendation,
+        recommendation: allowRecommendation ? payload.recommendation : undefined,
       };
       setMessages((current) => [...current, modelMessage]);
     } catch (caught) {
@@ -346,7 +355,7 @@ export default function LumiGuide() {
                   <p className="text-[13px] font-semibold leading-relaxed">{message.text}</p>
                   {recommendation && recommendation.product !== "none" && recommendationTarget(recommendation.product) && (
                     <button type="button" onClick={() => applyRecommendation(recommendation)} className="mt-2 flex w-full items-center justify-center gap-2 bg-brand-purple px-3 py-2 text-[11px] font-black text-white transition-colors hover:bg-brand-navy">
-                      <Sparkles size={14} /> {recommendation.label || "Aplică recomandarea"} <ArrowRight size={14} />
+                      <Sparkles size={14} /> {recommendationLabels[recommendation.product]} <ArrowRight size={14} />
                     </button>
                   )}
                 </div>

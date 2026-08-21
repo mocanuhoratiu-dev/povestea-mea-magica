@@ -158,12 +158,12 @@ function CornerSVG({ pos }: { pos: 'tl'|'tr'|'bl'|'br' }) {
 }
 
 const themes = [
-  { id: "space", label: "Spațiu", icon: <Rocket />, color: "bg-blue-400 text-white", lumiHint: "o rachetă prietenoasă și o planetă care adoarme", detailHint: "o rachetă roz care știe să găsească stelele" },
-  { id: "forest", label: "Pădure fermecată", icon: <Trees />, color: "bg-green-400 text-white", lumiHint: "licurici care aprind o potecă de mușchi", detailHint: "licurici albaștri care arată drumul" },
-  { id: "castle", label: "Castel din nori", icon: <Castle />, color: "bg-orange-400 text-white", lumiHint: "o cheie aurie și turnuri calde de seară", detailHint: "o cheie aurie ascunsă într-un turn de nori" },
-  { id: "ocean", label: "Oceanul de cristal", icon: <Waves />, color: "bg-cyan-500 text-white", lumiHint: "o scoică luminoasă și corali care șoptesc", detailHint: "o scoică luminoasă care știe drumul spre corali" },
-  { id: "dinosaurs", label: "Valea dinozaurilor", icon: <Footprints />, color: "bg-lime-500 text-white", lumiHint: "un pui de dinozaur blând și frunze uriașe", detailHint: "un pui de brahiozaur blând cu pete aurii" },
-  { id: "clouds", label: "Orașul din nori", icon: <Cloud />, color: "bg-sky-400 text-white", lumiHint: "felinare plutitoare și poduri pufoase", detailHint: "un felinar plutitor care se aprinde cu o idee curajoasă" },
+  { id: "space", label: "Spațiu", icon: <Rocket />, color: "bg-blue-400 text-white" },
+  { id: "forest", label: "Pădure fermecată", icon: <Trees />, color: "bg-green-400 text-white" },
+  { id: "castle", label: "Castel din nori", icon: <Castle />, color: "bg-orange-400 text-white" },
+  { id: "ocean", label: "Oceanul de cristal", icon: <Waves />, color: "bg-cyan-500 text-white" },
+  { id: "dinosaurs", label: "Valea dinozaurilor", icon: <Footprints />, color: "bg-lime-500 text-white" },
+  { id: "clouds", label: "Orașul din nori", icon: <Cloud />, color: "bg-sky-400 text-white" },
 ];
 
 const lessons = [
@@ -180,14 +180,6 @@ const toneOptions = [
   "Amuzantă",
   "Emoțională și caldă",
 ];
-
-const lessonHints: Record<string, string> = {
-  "Curaj și încredere 💪": "să încerce un pas mic, chiar dacă are emoții",
-  "Împărțitul jucăriilor 🧸": "să ofere ceva drag și să observe bucuria celuilalt",
-  "Rutina de somn 🌙": "să pregătească seara prin trei pași liniștiți",
-  "Importanța prieteniei 🤝": "să asculte un prieten și să ceară ajutor cu încredere",
-  "Descoperirea naturii 🌱": "să observe un lucru mic din natură și să îl protejeze",
-};
 
 type StoryLength = "short" | "long";
 
@@ -468,9 +460,7 @@ export default function StoryCreator() {
     return () => window.removeEventListener("pmm:lumi-story-choice", applyLumiStoryChoice);
   }, []);
 
-  const activeTheme = themes.find((theme) => theme.id === selectedTheme) ?? themes[0];
   const activeStoryLength = storyLengths.find((option) => option.id === storyLength) ?? storyLengths[0];
-  const activeLessonHint = lessonHints[lesson] ?? "să transforme lecția într-o alegere mică și sinceră";
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -1035,15 +1025,6 @@ export default function StoryCreator() {
                   Varianta scurtă păstrează o aventură completă; cea lungă lasă mai mult loc pentru explorare și dialog.
                 </p>
               </div>
-
-              <aside className="border-y border-brand-purple/15 py-4" aria-live="polite">
-                <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-purple">Ideea lui Lumi</p>
-                <p className="mt-2 text-sm font-bold leading-relaxed text-brand-navy/70">În {activeTheme.label}, Lumi ar porni cu {activeTheme.lumiHint}. Pentru lecția de azi, {activeLessonHint}.</p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <button type="button" onClick={() => setThemeDetail((current) => current || activeTheme.detailHint)} className="border border-brand-purple/25 px-3 py-2 text-xs font-black text-brand-purple transition-colors hover:border-brand-purple hover:bg-brand-purple hover:text-white">Folosește ideea lui Lumi</button>
-                  <button type="button" onClick={() => setLessonDetail((current) => current || activeLessonHint)} className="border border-brand-purple/25 px-3 py-2 text-xs font-black text-brand-purple transition-colors hover:border-brand-purple hover:bg-brand-purple hover:text-white">Adaugă ideea lecției</button>
-                </div>
-              </aside>
 
               <div>
                 <label className="block text-sm md:text-base font-black text-brand-navy mb-2 md:mb-3 uppercase tracking-wider">

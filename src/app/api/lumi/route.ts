@@ -1,6 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
 import { readBoundedDuration, withTimeout } from "@/lib/aiTimeout";
+import { wantsLumiMaterialRecommendation } from "@/lib/lumiIntent";
 import { checkRateLimit, requestExceedsBodyLimit } from "@/lib/requestProtection";
 import { logTelemetry } from "@/lib/telemetry";
 
@@ -87,8 +88,29 @@ function emptyRecommendation(): Recommendation {
   return { product: "none", theme: "", tone: "", lesson: "", storyDetail: "", monsterType: "", fearLocation: "", calmingHelper: "", bedtimeRitual: "", emergencyContext: "", interest: "", duration: "", activityMode: "", label: "" };
 }
 
-function fallbackFor(message: string) {
+function fallbackFor(message: string, allowRecommendation: boolean) {
   const text = message.toLocaleLowerCase("ro-RO");
+  if (!allowRecommendation) {
+    if (/(fric|întuneric|intuneric|coșmar|cosmar|sub pat|zgomot|somn)/.test(text)) {
+      return {
+        reply: "Înțeleg. Pot să-ți dau o idee scurtă pentru seara aceasta sau, dacă vrei, să-ți recomand un material potrivit.",
+        suggestions: ["O idee scurtă acum", "Recomandă-mi un material"],
+        recommendation: emptyRecommendation(),
+      };
+    }
+    if (/(restaurant|drum|mașin|masin|doctor|aeroport|avion|coad|aștept|astept)/.test(text)) {
+      return {
+        reply: "Înțeleg momentul. Pot propune o activitate scurtă acum sau pot recomanda un material numai dacă îți dorești.",
+        suggestions: ["O activitate scurtă", "Recomandă-mi un material"],
+        recommendation: emptyRecommendation(),
+      };
+    }
+    return {
+      reply: "Sunt aici. Spune-mi ce ai nevoie, iar eu răspund fără să schimb alegerile din formular.",
+      suggestions: ["Am o întrebare", "Vreau să aleg un material"],
+      recommendation: emptyRecommendation(),
+    };
+  }
   if (/(fric|întuneric|intuneric|coșmar|cosmar|sub pat|zgomot|somn)/.test(text)) {
     return {
       reply: "Începeți cu lumină blândă și trei respirații împreună. Scutul de Noapte transformă acest mic ritual într-un pas simplu, repetabil.",
@@ -118,9 +140,11 @@ function parseJsonObject(value: string) {
   return JSON.parse(trimmed.slice(first, last + 1)) as Record<string, unknown>;
 }
 
-function sanitizeResponse(value: Record<string, unknown>, fallback: ReturnType<typeof fallbackFor>) {
+function sanitizeResponse(value: Record<string, unknown>, fallback: ReturnType<typeof fallbackFor>, allowRecommendation: boolean) {
   const recommendation = value.recommendation && typeof value.recommendation === "object" ? value.recommendation as Record<string, unknown> : {};
-  const requestedProduct = PRODUCT_IDS.has(recommendation.product as ProductId) ? recommendation.product as ProductId : fallback.recommendation.product;
+  const requestedProduct = allowRecommendation && PRODUCT_IDS.has(recommendation.product as ProductId)
+    ? recommendation.product as ProductId
+    : fallback.recommendation.product;
   return {
     reply: cleanText(value.reply, 560) || fallback.reply,
     suggestions: sanitizeSuggestions(value.suggestions, fallback.suggestions),
@@ -144,13 +168,18 @@ function sanitizeResponse(value: Record<string, unknown>, fallback: ReturnType<t
   };
 }
 
-function lumiPrompt(history: LumiMessage[], message: string) {
+function lumiPrompt(history: LumiMessage[], message: string, allowRecommendation: boolean) {
   const transcript = [...history, { role: "user" as const, text: message }].map((item) => `${item.role === "model" ? "Lumi" : "Părinte"}: ${item.text}`).join("\n");
   const firstParentMessage = !history.some((item) => item.role === "user");
   const responseLength = firstParentMessage
-    ? "Este primul răspuns: maximum 35 de cuvinte. Spune întâi materialul recomandat și un singur motiv concret. Nu explica rutina în pași decât dacă părintele cere asta."
+    ? allowRecommendation
+      ? "Este primul răspuns: maximum 35 de cuvinte. Spune materialul recomandat și un singur motiv concret."
+      : "Este primul răspuns: maximum 35 de cuvinte. Răspunde direct la mesaj fără să recomanzi un material și fără să schimbi formularul."
     : "Maximum 55 de cuvinte. Răspunde direct la întrebarea părintelui și oferă cel mult o idee practică.";
-  return `Ești Lumi, ghidul cald și pragmatic pentru părinții de la Povestea Mea Magică. Răspunzi exclusiv în română. ${responseLength} Nu ești terapeut și nu ceri date sensibile. Ajută părintele să aleagă un singur material: Povestea de Seară, Scutul de Noapte sau Trusa de Răbdare. Fără limbaj publicitar.
+  const recommendationRule = allowRecommendation
+    ? "Părintele a cerut explicit o recomandare sau a confirmat că o dorește. Poți recomanda un singur material și poți completa recommendation."
+    : "Părintele NU a cerut o recomandare. Răspunde la mesaj, dar setează obligatoriu recommendation.product la none și label la șir gol. Poți întreba dacă dorește o recomandare, fără să aplici sau să alegi nimic în locul lui.";
+  return `Ești Lumi, ghidul cald și pragmatic pentru părinții de la Povestea Mea Magică. Răspunzi exclusiv în română. ${responseLength} Nu ești terapeut și nu ceri date sensibile. ${recommendationRule} Fără limbaj publicitar.
 
 Rolurile din conversație sunt obligatorii: doar liniile care încep cu „Părinte:” sunt mesaje ale părintelui. Nu răspunde niciodată la o întrebare pusă de Lumi ca și cum ar fi fost răspunsul părintelui. Nu inventa niciodată prenumele, vârsta sau preferințele copilului. Nu cere prenumele copilului: formularul îl va cere numai când părintele alege să creeze materialul.
 
@@ -172,17 +201,24 @@ export async function POST(request: Request) {
     const body = await request.json() as Record<string, unknown>;
     const message = cleanText(body.message, 500);
     if (!message) return NextResponse.json({ error: "Scrie un mesaj pentru Lumi." }, { status: 400 });
-    const fallback = fallbackFor(message);
+    const history = readHistory(body.history);
+    const previousModelMessage = [...history].reverse().find((item) => item.role === "model")?.text || "";
+    const allowRecommendation = wantsLumiMaterialRecommendation(message, previousModelMessage);
+    const fallbackContext = [...history, { role: "user" as const, text: message }]
+      .slice(-5)
+      .map((item) => item.text)
+      .join(" ");
+    const fallback = fallbackFor(fallbackContext, allowRecommendation);
     const project = process.env.VERTEX_AI_PROJECT_ID?.trim();
     if (!project) return NextResponse.json({ ...fallback, fallback: true });
 
     const client = new GoogleGenAI({ vertexai: true, project, location: process.env.VERTEX_AI_LOCATION?.trim() || "global", ...(getVertexCredentials() ? { googleAuthOptions: { credentials: getVertexCredentials() } } : {}) });
-    const prompt = lumiPrompt(readHistory(body.history), message);
+    const prompt = lumiPrompt(history, message, allowRecommendation);
     const timeoutMs = readBoundedDuration(process.env.VERTEX_AI_LUMI_TIMEOUT_MS, 18_000, 5_000, 45_000);
     for (const model of getModelCandidates()) {
       try {
         const response = await withTimeout(client.models.generateContent({ model, contents: prompt, config: { responseMimeType: "application/json", maxOutputTokens: 260, thinkingConfig: { thinkingBudget: 0 }, temperature: 0.8 } }), timeoutMs, "Lumi a depășit timpul de răspuns.");
-        const result = sanitizeResponse(parseJsonObject(response.text || ""), fallback);
+        const result = sanitizeResponse(parseJsonObject(response.text || ""), fallback, allowRecommendation);
         logTelemetry("pmm_lumi_response", { result: "success", durationMs: Date.now() - startedAt, aiProvider: "vertex", model });
         return NextResponse.json(result);
       } catch {
@@ -193,6 +229,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ ...fallback, fallback: true });
   } catch {
     logTelemetry("pmm_lumi_response_failed", { result: "error", durationMs: Date.now() - startedAt, errorCode: "unknown", aiProvider: "vertex" });
-    return NextResponse.json({ ...fallbackFor("poveste"), fallback: true });
+    return NextResponse.json({ ...fallbackFor("Vreau să aleg o poveste.", true), fallback: true });
   }
 }
