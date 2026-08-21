@@ -198,8 +198,34 @@ export async function saveOrder(order: StoredOrder, expectedUpdateTime?: string)
   return fromFirestore(await response.json());
 }
 
+const orderStatusRank: Record<OrderStatus, number> = {
+  draft: 0,
+  pending_payment: 1,
+  paid: 2,
+  processing: 3,
+  delivered: 4,
+  failed: 5,
+};
+
 export async function setOrderStatus(order: StoredOrder, status: OrderStatus, fields: Partial<Pick<StoredOrder, "customerEmail" | "output" | "coverObjectName" | "deliveryExpiresAt" | "expiresAt" | "errorCode" | "stripeSessionId" | "stripeLivemode" | "invoiceStatus" | "invoiceSeries" | "invoiceNumber" | "invoiceDocumentUrl" | "invoiceErrorCode" | "invoiceUpdatedAt">> = {}) {
-  return saveOrder({ ...order, ...fields, status, updatedAt: new Date().toISOString() }, order.updateTime);
+  let current = order;
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const nextStatus = orderStatusRank[current.status] > orderStatusRank[status] ? current.status : status;
+    try {
+      return await saveOrder({
+        ...current,
+        ...fields,
+        status: nextStatus,
+        updatedAt: new Date().toISOString(),
+      }, current.updateTime);
+    } catch (error) {
+      if (!(error instanceof Error) || !error.message.includes("(412)") || attempt === 3) throw error;
+      const refreshed = await getOrder(order.id);
+      if (!refreshed) throw new Error("Comanda nu a fost gasita dupa un conflict de actualizare.");
+      current = refreshed;
+    }
+  }
+  throw new Error("Comanda nu a putut fi actualizata.");
 }
 
 type InvoiceFields = Partial<Pick<StoredOrder, "stripeSessionId" | "stripeLivemode" | "invoiceStatus" | "invoiceSeries" | "invoiceNumber" | "invoiceDocumentUrl" | "invoiceErrorCode" | "invoiceUpdatedAt">>;
