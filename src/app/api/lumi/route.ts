@@ -32,6 +32,7 @@ const STORY_TONES = ["Liniștită de somn", "Aventură blândă", "Amuzantă", "
 const STORY_LESSONS = ["Curaj și încredere 💪", "Împărțitul jucăriilor 🧸", "Rutina de somn 🌙", "Importanța prieteniei 🤝", "Descoperirea naturii 🌱"] as const;
 const MONSTER_TYPES = ["umbrele noptii", "monstrul de sub pat", "zgomotele ciudate", "dulapul scartaitor", "frica de intuneric", "vise urate"] as const;
 const EMERGENCY_CONTEXTS = ["la restaurant, asteptand mancarea", "la un drum lung cu masina", "in sala de asteptare la doctor", "in casa, ploua afara", "in aeroport sau avion", "la coada sau institutii"] as const;
+const UNSAFE_WELLBEING_LANGUAGE = /\b(terapeut(?:ic(?:ă|a|e|i)?|ică|ica|ice|ici)?|tratament|trateaz(?:ă|a)|vindec(?:ă|a|are)|diagnostic(?:ă|a|are)?)\b/i;
 
 function cleanText(value: unknown, maxLength: number) {
   return typeof value === "string"
@@ -47,9 +48,14 @@ function sanitizeSuggestions(value: unknown, fallback: string[]) {
   if (!Array.isArray(value)) return fallback;
   const suggestions = value
     .map((item) => cleanText(item, 80))
-    .filter((item) => item && !looksLikeQuestion(item))
+    .filter((item) => item && !looksLikeQuestion(item) && !UNSAFE_WELLBEING_LANGUAGE.test(item))
     .slice(0, 2);
   return suggestions.length > 0 ? suggestions : fallback;
+}
+
+function sanitizeReply(value: unknown, fallback: string) {
+  const reply = cleanText(value, 560);
+  return reply && !UNSAFE_WELLBEING_LANGUAGE.test(reply) ? reply : fallback;
 }
 
 function isOneOf<T extends readonly string[]>(value: unknown, choices: T, fallback = "") {
@@ -146,7 +152,7 @@ function sanitizeResponse(value: Record<string, unknown>, fallback: ReturnType<t
     ? recommendation.product as ProductId
     : fallback.recommendation.product;
   return {
-    reply: cleanText(value.reply, 560) || fallback.reply,
+    reply: sanitizeReply(value.reply, fallback.reply),
     suggestions: sanitizeSuggestions(value.suggestions, fallback.suggestions),
     recommendation: {
       ...fallback.recommendation,
@@ -179,7 +185,7 @@ function lumiPrompt(history: LumiMessage[], message: string, allowRecommendation
   const recommendationRule = allowRecommendation
     ? "Părintele a cerut explicit o recomandare sau a confirmat că o dorește. Poți recomanda un singur material și poți completa recommendation."
     : "Părintele NU a cerut o recomandare. Răspunde la mesaj, dar setează obligatoriu recommendation.product la none și label la șir gol. Poți întreba dacă dorește o recomandare, fără să aplici sau să alegi nimic în locul lui.";
-  return `Ești Lumi, ghidul cald și pragmatic pentru părinții de la Povestea Mea Magică. Răspunzi exclusiv în română. ${responseLength} Nu ești terapeut și nu ceri date sensibile. ${recommendationRule} Fără limbaj publicitar.
+  return `Ești Lumi, ghidul cald și pragmatic pentru părinții de la Povestea Mea Magică. Răspunzi exclusiv în română. ${responseLength} Nu ești terapeut și nu ceri date sensibile. Nu descrie niciodată poveștile, activitățile sau ritualurile drept terapeutice, tratamente, vindecare ori diagnostic. Sunt materiale creative și ritualuri de joacă. ${recommendationRule} Fără limbaj publicitar.
 
 Rolurile din conversație sunt obligatorii: doar liniile care încep cu „Părinte:” sunt mesaje ale părintelui. Nu răspunde niciodată la o întrebare pusă de Lumi ca și cum ar fi fost răspunsul părintelui. Nu inventa niciodată prenumele, vârsta sau preferințele copilului. Nu cere prenumele copilului: formularul îl va cere numai când părintele alege să creeze materialul.
 

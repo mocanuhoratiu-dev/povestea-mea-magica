@@ -48,7 +48,7 @@ const quickPrompts = [
 
 const welcomeMessage: ChatMessage = {
   role: "model",
-  text: "Alege momentul de mai jos. Îți spun de unde să începi și pregătesc formularul potrivit.",
+  text: "Spune-mi ce moment aveți. Te ajut să alegi, iar tu decizi ce aplicăm.",
 };
 
 const rememberedProducts: Record<MomentMemory["product"], string> = {
@@ -353,6 +353,9 @@ export default function LumiGuide() {
                     </div>
                   )}
                   <p className="text-[13px] font-semibold leading-relaxed">{message.text}</p>
+                  {message.role === "model" && index === messages.length - 1 && index > 0 && (!recommendation || recommendation.product === "none") && (
+                    <p className="mt-2 border-t border-brand-navy/10 pt-1.5 text-[10px] font-bold text-brand-navy/50">Formularul a rămas neschimbat.</p>
+                  )}
                   {recommendation && recommendation.product !== "none" && recommendationTarget(recommendation.product) && (
                     <button type="button" onClick={() => applyRecommendation(recommendation)} className="mt-2 flex w-full items-center justify-center gap-2 bg-brand-purple px-3 py-2 text-[11px] font-black text-white transition-colors hover:bg-brand-navy">
                       <Sparkles size={14} /> {recommendationLabels[recommendation.product]} <ArrowRight size={14} />
