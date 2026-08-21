@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BookOpen, ShieldCheck, TimerReset } from "lucide-react";
+import { ArrowRight, BookOpen, Gift, ShieldCheck, TimerReset } from "lucide-react";
 import CommercialPage from "@/components/CommercialPage";
 import { commerce, siteCopy } from "@/lib/siteMode";
 
@@ -13,12 +13,13 @@ export const metadata: Metadata = {
 const offers = [
   { title: "Povestea de Seară", price: `Scurtă ${commerce.prices.storyShort} · Lungă ${commerce.prices.storyLong}`, description: "O aventură ilustrată, cu dedicație de la familie și text adaptat alegerilor voastre.", details: ["Scurtă: copertă, dedicație și 2 pagini de poveste", "Lungă: copertă, dedicație și 4 pagini de poveste", "Verificare, editare și PDF pentru descărcare"], href: "/#creator", cta: "Personalizează povestea", icon: BookOpen },
   { title: "Scutul de Noapte", price: commerce.prices.nightShield, description: "Un ritual simbolic pentru seară, construit în jurul unei frici și a lucrurilor care liniștesc copilul.", details: ["Certificat personalizat", "Ritual simplu, de repetat împreună", "Etichete pentru flacon"], href: "/#monster-away", cta: "Personalizează Scutul", icon: ShieldCheck },
-  { title: "Trusa de Răbdare", price: commerce.prices.patienceKit, description: "Activități printabile pentru momentele de așteptare: drum, restaurant, doctor, aeroport sau acasă.", details: ["5 pagini de activități", "Misiuni adaptate contextului", "Diplomă de final"], href: "/#emergency-kit", cta: "Personalizează Trusa", icon: TimerReset },
+  { title: "Trusa de Răbdare", price: commerce.prices.patienceKit, description: "Activități printabile pentru momentele de așteptare: drum, restaurant, doctor, aeroport sau acasă.", details: ["7 pagini A4 de activități", "Misiuni adaptate contextului", "Diplomă de final"], href: "/#emergency-kit", cta: "Personalizează Trusa", icon: TimerReset },
+  { title: "Pachetul Familiei Magice", price: commerce.prices.familyBundle, description: "Toate cele trei materiale într-o singură comandă, cu personalizare independentă pentru fiecare copil și fiecare moment.", details: ["Poveste lungă, Scut de Noapte și Trusă de Răbdare", "Poți folosi aceleași date sau copii diferiți", "O singură plată și trei materiale de descărcat"], href: "/pachet", cta: "Personalizează pachetul", icon: Gift },
 ];
 
 export default function PricingPage() {
   return (
-    <CommercialPage eyebrow="Prețuri transparente" title="Alegi materialul, vezi prețul, apoi începi." description="Prețurile de mai jos se aplică odată cu activarea plăților online. Până atunci, poți crea și descărca materialele fără cost.">
+    <CommercialPage eyebrow="Prețuri transparente" title="Alegi materialul, vezi prețul, apoi începi." description="Prețurile sunt finale și sunt afișate înainte de plata securizată. Pachetul complet reunește toate cele trei materiale la un preț mai bun.">
       <section className="px-6 py-16 md:py-20">
         <div className="mx-auto max-w-5xl border-y border-brand-gold/45 bg-brand-gold/10 px-6 py-6 text-center">
           <p className="text-sm font-black text-brand-navy">{siteCopy.paymentNotice}</p>

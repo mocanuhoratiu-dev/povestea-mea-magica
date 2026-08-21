@@ -48,6 +48,10 @@ gcloud projects add-iam-policy-binding "$PROJECT_ID" --member="serviceAccount:${
 gcloud projects add-iam-policy-binding "$PROJECT_ID" --member="serviceAccount:${APP_SA}" --role="roles/cloudtasks.enqueuer" >/dev/null
 gcloud storage buckets add-iam-policy-binding "gs://${BUCKET}" --member="serviceAccount:${APP_SA}" --role="roles/storage.objectAdmin" >/dev/null
 
+gcloud iam service-accounts add-iam-policy-binding "$WORKER_SA" \
+  --member="serviceAccount:${APP_SA}" \
+  --role="roles/iam.serviceAccountUser" >/dev/null
+
 project_number="$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')"
 gcloud iam service-accounts add-iam-policy-binding "$WORKER_SA" \
   --member="serviceAccount:service-${project_number}@gcp-sa-cloudtasks.iam.gserviceaccount.com" \

@@ -1,12 +1,12 @@
 // The public experience is intentionally the final direct-generation flow.
 export const siteMode = "production" as const;
 
-// One source of truth for the commercial stage. Payments stay off until
-// checkout, order storage and support flows are all ready together.
+// One source of truth for checkout visibility. A deployment must opt in only
+// after the payment, order storage and fulfillment settings are ready together.
 export const commerce = {
   // This is deliberately an explicit public build flag. A valid Stripe key is
   // not enough to activate payments: order persistence and fulfillment must be
-  // live as well. Keep it false until the launch checklist is complete.
+  // live as well.
   status: process.env.NEXT_PUBLIC_STRIPE_ENABLED === "true" ? "commerce" as const : "payments_pending" as const,
   acceptsPayments: process.env.NEXT_PUBLIC_STRIPE_ENABLED === "true",
   prices: {
@@ -14,6 +14,7 @@ export const commerce = {
     storyLong: "29 lei",
     nightShield: "19 lei",
     patienceKit: "19 lei",
+    familyBundle: "49 lei",
   },
 };
 

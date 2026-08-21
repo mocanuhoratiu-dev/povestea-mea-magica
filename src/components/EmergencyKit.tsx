@@ -487,9 +487,10 @@ export default function EmergencyKit() {
     const params = new URLSearchParams(window.location.search);
     const orderId = params.get("order");
     const token = params.get("token");
-    if (!orderId || !token) return;
+    const requestedItem = params.get("item");
+    if (!orderId || !token || (requestedItem && requestedItem !== "emergency")) return;
 
-    void fetch(`/api/orders/${encodeURIComponent(orderId)}?token=${encodeURIComponent(token)}`)
+    void fetch(`/api/orders/${encodeURIComponent(orderId)}?token=${encodeURIComponent(token)}&item=emergency`)
       .then(async (response) => response.ok ? response.json() : null)
       .then((delivery: { product?: string; configuration?: Record<string, unknown>; output?: Partial<EmergencyKitData> } | null) => {
         if (!delivery || delivery.product !== "emergency" || !delivery.output) return;

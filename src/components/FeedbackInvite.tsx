@@ -14,6 +14,7 @@ const productNames: Record<TelemetryProduct, string> = {
   story: "Povestea de Seară",
   monster: "Scutul de Noapte",
   emergency: "Trusa de Răbdare",
+  bundle: "Pachetul Familiei Magice",
 };
 
 export default function FeedbackInvite({ product, compact = false }: FeedbackInviteProps) {

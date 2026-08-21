@@ -2,7 +2,7 @@ import { GoogleAuth, OAuth2Client } from "google-auth-library";
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import type { CheckoutProductId } from "@/lib/catalog";
 
-export type OrderProduct = "story" | "monster" | "emergency";
+export type OrderProduct = "story" | "monster" | "emergency" | "bundle";
 export type OrderStatus = "draft" | "pending_payment" | "paid" | "processing" | "delivered" | "failed";
 
 export type StoredOrder = {
@@ -88,7 +88,7 @@ function fromFirestore(document: { name?: string; updateTime?: string; fields?: 
   const product = readString(fields, "product") as OrderProduct;
   const status = readString(fields, "status") as OrderStatus;
   const configuration = readJson(fields, "configuration");
-  if (!orderIdPattern.test(id) || !configuration || !["story", "monster", "emergency"].includes(product) || !["draft", "pending_payment", "paid", "processing", "delivered", "failed"].includes(status)) return null;
+  if (!orderIdPattern.test(id) || !configuration || !["story", "monster", "emergency", "bundle"].includes(product) || !["draft", "pending_payment", "paid", "processing", "delivered", "failed"].includes(status)) return null;
 
   return {
     id,
@@ -141,6 +141,7 @@ export function createOrderId() {
 }
 
 export function getProductFromId(productId: CheckoutProductId): OrderProduct {
+  if (productId === "family-bundle") return "bundle";
   if (productId === "night-shield") return "monster";
   if (productId === "patience-kit") return "emergency";
   return "story";
@@ -181,12 +182,13 @@ function storageBucket() {
   return bucket;
 }
 
-export async function saveOrderCover(orderId: string, imageDataUrl: string) {
+export async function saveOrderCover(orderId: string, imageDataUrl: string, basename = "cover") {
   const match = /^data:(image\/(?:png|jpeg|webp));base64,([a-zA-Z0-9+/=]+)$/.exec(imageDataUrl);
   if (!match) throw new Error("Coperta generata nu are un format valid.");
   const mimeType = match[1];
   const extension = mimeType === "image/jpeg" ? "jpg" : mimeType.split("/")[1];
-  const objectName = `orders/${orderId}/cover.${extension}`;
+  const safeBasename = basename.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 40) || "cover";
+  const objectName = `orders/${orderId}/${safeBasename}.${extension}`;
   const token = await accessToken(TASKS_SCOPES);
   const response = await fetch(`https://storage.googleapis.com/upload/storage/v1/b/${encodeURIComponent(storageBucket())}/o?uploadType=media&name=${encodeURIComponent(objectName)}`, {
     method: "POST",

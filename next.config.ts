@@ -6,18 +6,21 @@ const contentSecurityPolicy = [
   "form-action 'self'",
   "frame-ancestors 'none'",
   "object-src 'none'",
-  "script-src 'self' 'unsafe-inline'",
+  `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "production" ? "" : " 'unsafe-eval'"}`,
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' data: https://fonts.gstatic.com",
   "img-src 'self' data: blob: https://image.pollinations.ai",
   "media-src 'self' blob:",
   "connect-src 'self'",
   "worker-src 'self' blob:",
-  "upgrade-insecure-requests",
+  ...(process.env.NODE_ENV === "production" ? ["upgrade-insecure-requests"] : []),
 ].join("; ");
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  ...(process.env.NODE_ENV === "production"
+    ? {}
+    : { allowedDevOrigins: ["127.0.0.1", "localhost"] }),
   async headers() {
     return [
       {

@@ -6,6 +6,7 @@ const publicPages = [
   "/despre",
   "/modele",
   "/preturi",
+  "/pachet",
   "/cum-functioneaza",
   "/livrare-digitala",
   "/contact",

@@ -1,4 +1,4 @@
-export const telemetryProducts = ["story", "monster", "emergency"] as const;
+export const telemetryProducts = ["story", "monster", "emergency", "bundle"] as const;
 
 export type TelemetryProduct = (typeof telemetryProducts)[number];
 

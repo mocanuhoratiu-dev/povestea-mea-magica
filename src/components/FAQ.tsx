@@ -31,7 +31,7 @@ const faqs = [
   },
   {
     question: "Care sunt prețurile?",
-    answer: "Povestea scurtă costă 19 lei, cea lungă 29 lei, iar fiecare kit costă 19 lei. Vezi prețul final înainte de plată, iar materialul digital este pregătit după confirmarea comenzii.",
+    answer: "Povestea scurtă costă 19 lei, cea lungă 29 lei, iar fiecare kit costă 19 lei. Pachetul Familiei Magice costă 49 lei și include o poveste lungă, un Scut de Noapte și o Trusă de Răbdare, personalizate separat.",
   },
   {
     question: "Sunt materialele un sfat medical sau terapeutic?",

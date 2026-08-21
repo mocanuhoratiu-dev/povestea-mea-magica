@@ -3,6 +3,7 @@ export const checkoutProductIds = [
   "story-long",
   "night-shield",
   "patience-kit",
+  "family-bundle",
 ] as const;
 
 export type CheckoutProductId = (typeof checkoutProductIds)[number];
@@ -44,6 +45,13 @@ export const checkoutCatalog: Record<CheckoutProductId, CheckoutProduct> = {
     name: "Trusa de Rabdare",
     description: "Activitati personalizate pentru momentele de asteptare.",
     amount: 1900,
+    currency: "ron",
+  },
+  "family-bundle": {
+    id: "family-bundle",
+    name: "Pachetul Familiei Magice",
+    description: "O poveste lunga, un Scut de Noapte si o Trusa de Rabdare, personalizate separat.",
+    amount: 4900,
     currency: "ron",
   },
 };

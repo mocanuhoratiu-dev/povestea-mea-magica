@@ -507,9 +507,10 @@ export default function MonsterKit() {
     const params = new URLSearchParams(window.location.search);
     const orderId = params.get("order");
     const token = params.get("token");
-    if (!orderId || !token) return;
+    const requestedItem = params.get("item");
+    if (!orderId || !token || (requestedItem && requestedItem !== "monster")) return;
 
-    void fetch(`/api/orders/${encodeURIComponent(orderId)}?token=${encodeURIComponent(token)}`)
+    void fetch(`/api/orders/${encodeURIComponent(orderId)}?token=${encodeURIComponent(token)}&item=monster`)
       .then(async (response) => response.ok ? response.json() : null)
       .then((delivery: { product?: string; configuration?: Record<string, unknown>; output?: Partial<MonsterKitContent> } | null) => {
         if (!delivery || delivery.product !== "monster" || !delivery.output) return;

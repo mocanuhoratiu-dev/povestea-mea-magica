@@ -70,7 +70,7 @@ const models = [
     moment: "Pentru așteptare",
     title: "Trusa de Răbdare",
     price: "19 lei",
-    pageCount: "5 pagini de activități",
+    pageCount: "7 pagini A4",
     description: "Activități pentru drum, restaurant, medic sau alte momente în care timpul pare să treacă mai greu.",
     readerNote: "Paginile alternează între observare, desen, joc de cuvinte și o mică reușită de final. Le puteți folosi în orice ordine.",
     href: "/#emergency-kit",

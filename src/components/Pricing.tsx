@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Sparkles } from "lucide-react";
+import { ArrowRight, Check, Gift, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { commerce } from "@/lib/siteMode";
 
@@ -26,7 +26,7 @@ const products = [
     features: ["Certificat oficial", "Rețetă simbolică", "Etichete pentru flacon"],
   },
   {
-    name: "Trusa Urgență",
+    name: "Trusa de Răbdare",
     price: "19 lei",
     description: "Activități rapide pentru restaurant, drum, doctor, casă, aeroport sau stat la coadă.",
     href: "#emergency-kit",
@@ -99,6 +99,11 @@ export default function Pricing() {
               </a>
             </motion.article>
           ))}
+        </div>
+        <div className="mt-8 grid gap-6 border-y border-brand-gold/60 bg-brand-navy px-6 py-8 text-brand-cream md:grid-cols-[auto_1fr_auto] md:items-center">
+          <span className="grid h-14 w-14 place-items-center rounded-md bg-brand-gold text-brand-navy"><Gift size={26} /></span>
+          <div><p className="text-xs font-black uppercase tracking-[0.14em] text-brand-gold">Economisești 18 lei</p><h3 className="mt-2 font-serif text-3xl">Pachetul Familiei Magice</h3><p className="mt-2 max-w-2xl text-sm font-semibold leading-relaxed text-brand-cream/70">Poveste lungă, Scut de Noapte și Trusă de Răbdare, cu personalizare separată pentru fiecare material.</p></div>
+          <div className="md:text-right"><p className="font-nunito text-4xl font-black text-brand-gold">49 lei</p><a href="/pachet" className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-md bg-brand-purple px-5 text-sm font-black text-white">Alege pachetul <ArrowRight size={16} /></a></div>
         </div>
       </div>
     </section>

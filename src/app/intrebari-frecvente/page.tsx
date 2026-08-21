@@ -15,7 +15,7 @@ const questions = [
   ["Cât durează?", "De regulă, materialul este gata în mai puțin de un minut. Povestea și coperta pot dura mai mult deoarece sunt create pornind de la alegerile tale."],
   ["Pot modifica ceva înainte de PDF?", "Da. Poți ajusta alegerile și crea o variantă nouă. Pentru poveste poți edita textul înainte de descărcare și poți regenera coperta."],
   ["Pot printa materialele?", "Da. Sunt gândite pentru A4 și funcționează bine atât pe ecran, cât și printate acasă sau la un centru de print."],
-  ["Care sunt prețurile?", "Povestea scurtă costă 19 lei, cea lungă 29 lei, iar fiecare kit costă 19 lei. Vezi prețul final înainte de plată, iar materialul digital este pregătit după confirmarea comenzii."],
+  ["Care sunt prețurile?", "Povestea scurtă costă 19 lei, cea lungă 29 lei, iar fiecare kit costă 19 lei. Pachetul Familiei Magice costă 49 lei și include toate cele trei materiale, cu personalizare separată."],
   ["Sunt materialele un sfat medical sau terapeutic?", "Nu. Sunt povești, activități și ritualuri de joacă. Dacă o teamă sau o situație este intensă ori persistă, cel mai potrivit este să discuți cu un specialist."],
 ];
 

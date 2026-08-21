@@ -22,6 +22,7 @@ export default function Footer() {
               <li><Link href="/#creator" className="transition-colors hover:text-brand-gold">Povestea de Seară</Link></li>
               <li><Link href="/#monster-away" className="transition-colors hover:text-brand-gold">Scutul de Noapte</Link></li>
               <li><Link href="/#emergency-kit" className="transition-colors hover:text-brand-gold">Trusa de Răbdare</Link></li>
+              <li><Link href="/pachet" className="transition-colors hover:text-brand-gold">Pachetul complet</Link></li>
               <li><Link href="/modele" className="transition-colors hover:text-brand-gold">Modele PDF</Link></li>
               <li><Link href="/preturi" className="transition-colors hover:text-brand-gold">Prețuri</Link></li>
               <li><Link href="/cum-functioneaza" className="transition-colors hover:text-brand-gold">Cum funcționează</Link></li>

@@ -15,6 +15,7 @@ export default function Navbar() {
     { label: "Povestea de seară", href: "/#creator" },
     { label: "Scutul de noapte", href: "/#monster-away" },
     { label: "Trusa de răbdare", href: "/#emergency-kit" },
+    { label: "Pachetul complet", href: "/pachet" },
     { label: "Modele", href: "/modele" },
     { label: "Despre", href: "/despre" },
   ];

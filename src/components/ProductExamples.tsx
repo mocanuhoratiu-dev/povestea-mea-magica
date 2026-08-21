@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { ArrowRight, BookOpen, ShieldCheck, TimerReset } from "lucide-react";
+import { ArrowRight, BookOpen, Gift, ShieldCheck, TimerReset } from "lucide-react";
 import { MobileProductId, openMobileProduct } from "@/lib/mobileProductFlow";
 import { commerce } from "@/lib/siteMode";
 
@@ -144,6 +144,11 @@ export default function ProductExamples() {
               </div>
             </motion.article>
           ))}
+        </div>
+        <div className="mt-10 grid gap-6 border-y border-brand-gold/55 bg-brand-navy px-5 py-7 text-brand-cream sm:grid-cols-[auto_1fr_auto] sm:items-center sm:px-7 md:mt-12">
+          <span className="grid h-12 w-12 place-items-center rounded-md bg-brand-gold text-brand-navy"><Gift size={24} /></span>
+          <div><p className="text-xs font-black uppercase tracking-[0.14em] text-brand-gold">Oferta completă</p><h3 className="mt-2 font-serif text-2xl">Pachetul Familiei Magice · 49 lei</h3><p className="mt-2 text-sm font-semibold leading-relaxed text-brand-cream/70">O poveste lungă, un Scut de Noapte și o Trusă de Răbdare. Fiecare poate fi personalizat pentru alt copil.</p></div>
+          <a href="/pachet" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-brand-purple px-5 text-sm font-black text-white transition-colors hover:bg-brand-gold hover:text-brand-navy">Personalizează pachetul <ArrowRight size={17} /></a>
         </div>
       </div>
     </section>
