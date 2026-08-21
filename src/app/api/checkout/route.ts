@@ -57,6 +57,8 @@ export async function POST(request: Request) {
       mode: "payment",
       customer_creation: "always",
       allow_promotion_codes: true,
+      billing_address_collection: "required",
+      tax_id_collection: { enabled: true },
       line_items: [{
         quantity: 1,
         price_data: {

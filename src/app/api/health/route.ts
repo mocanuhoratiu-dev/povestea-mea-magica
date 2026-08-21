@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { commerce, siteMode } from "@/lib/siteMode";
+import { isSmartBillConfigured, smartBillMode } from "@/lib/smartbill";
 
 function configured(value: string | undefined) {
   return Boolean(value && value.trim().length > 0);
@@ -25,6 +26,7 @@ export function GET(request: Request) {
         configured(process.env.GOOGLE_APPLICATION_CREDENTIALS) ||
         configured(process.env.K_SERVICE)),
     emailDelivery: configured(process.env.RESEND_API_KEY) && configured(process.env.EMAIL_FROM),
+    smartBillInvoicing: isSmartBillConfigured(),
   };
 
   // Cloud Run exposes application default credentials through its runtime identity.
@@ -49,7 +51,9 @@ export function GET(request: Request) {
         voicePreview: checks.googleTextToSpeech,
         emailDelivery: checks.emailDelivery,
         stripeCheckout: commerce.acceptsPayments,
+        smartBillInvoicing: checks.smartBillInvoicing,
       },
+      smartBillMode: smartBillMode(),
       timestamp: new Date().toISOString(),
     }
     : {

@@ -4,9 +4,10 @@ Produs digital Next.js în limba română: povești personalizate pentru copii, 
 
 ## Status
 
-- Modul curent: acces de lansare. Materialele se generează direct, iar prețurile sunt informative până când checkout-ul este activ.
-- Plăți Stripe: intenționat amânate pentru o etapă ulterioară.
-- Livrare email: PDF-ul poate fi trimis ca atașament prin Resend după configurarea domeniului expeditor și a secretului Cloud Run. Comenzile sunt încă neactivate.
+- Modul curent: producție cu catalog comercial și personalizare înainte de checkout.
+- Plăți Stripe: Checkout găzduit, coduri promoționale și webhook semnat pentru livrare asincronă.
+- Livrare email: comenzile plătite sunt generate prin Cloud Tasks și livrate prin Resend cu link privat valabil 30 de zile.
+- Facturare: SmartBill rulează asincron după Stripe, separat de livrarea materialului, cu blocare strictă între mediile test și live.
 - Generare AI: Vertex AI (Gemini) pentru text și Google Cloud Text-to-Speech pentru previzualizarea audio în română.
 - Observabilitate: evenimente agregate fără conținut personalizat pentru vizite, generări, fallback-uri, erori și descărcări PDF. Vezi [`docs/analytics.md`](docs/analytics.md).
 - Domeniu principal: `https://www.povestea-mea-magica.ro`; domeniul fără `www` și URL-ul Cloud Run se redirecționează aici în producție.
@@ -53,7 +54,7 @@ npm run build
 - Verify `/api/health` returns `ready: true` after deploy.
 - Generate real samples on the deployed domain and download all PDFs.
 - Confirm the Resend domain, one-off email delivery and retry/error handling before enabling paid checkout.
-- Add authenticated Stripe checkout, verified webhook fulfillment, server-side order persistence and email delivery together.
+- Confirmă separat o comandă Stripe + SmartBill în test și în live înainte de trafic plătit.
 - Add rate limiting and stricter validation around AI endpoints.
 - Add monitoring/error tracking.
 - Review legal copy after payments, analytics, and data retention are finalized.

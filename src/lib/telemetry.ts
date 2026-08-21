@@ -55,6 +55,10 @@ type TelemetryEvent =
   | "pmm_checkout_awaiting_payment"
   | "pmm_checkout_completed"
   | "pmm_checkout_failed"
+  | "pmm_invoice_started"
+  | "pmm_invoice_completed"
+  | "pmm_invoice_failed"
+  | "pmm_invoice_needs_review"
   | "pmm_order_delivered"
   | "pmm_order_failed";
 

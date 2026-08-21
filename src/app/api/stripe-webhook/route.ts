@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
 import { logTelemetry } from "@/lib/telemetry";
-import { enqueueOrderProcessing, getOrder, setOrderStatus } from "@/lib/orders";
+import { enqueueOrderInvoicing, enqueueOrderProcessing, getOrder, setOrderStatus } from "@/lib/orders";
+import { isSmartBillConfigured } from "@/lib/smartbill";
 import { siteUrl } from "@/lib/siteMode";
 
 export const runtime = "nodejs";
@@ -47,13 +48,19 @@ export async function POST(request: Request) {
         console.error("Stripe event did not match an order", event.id);
         return NextResponse.json({ error: "Comanda nu a fost gasita." }, { status: 409 });
       }
-      if (["delivered", "processing"].includes(order.status)) return NextResponse.json({ received: true });
-      const paidOrder = await setOrderStatus(order, "paid", {
+      const invoiceRequired = isSmartBillConfigured() && typeof session.amount_total === "number" && session.amount_total > 0;
+      const nextStatus = ["draft", "pending_payment"].includes(order.status) ? "paid" : order.status;
+      const paidOrder = await setOrderStatus(order, nextStatus, {
         customerEmail: session.customer_details?.email || order.customerEmail,
         expiresAt: new Date(Date.now() + 31 * 86_400_000).toISOString(),
+        stripeSessionId: session.id,
+        stripeLivemode: session.livemode,
+        invoiceStatus: order.invoiceStatus || (invoiceRequired ? "pending" : "not_required"),
+        invoiceUpdatedAt: order.invoiceUpdatedAt || new Date().toISOString(),
       });
       if (!paidOrder) return NextResponse.json({ error: "Comanda nu a putut fi actualizata." }, { status: 409 });
-      await enqueueOrderProcessing(order.id, siteUrl);
+      if (paidOrder.status !== "delivered") await enqueueOrderProcessing(order.id, siteUrl);
+      if (paidOrder.invoiceStatus === "pending") await enqueueOrderInvoicing(order.id, siteUrl);
       logTelemetry("pmm_checkout_completed", { product: order.product, result: "success" });
       break;
     }

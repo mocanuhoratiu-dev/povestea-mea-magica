@@ -4,6 +4,7 @@ import type { CheckoutProductId } from "@/lib/catalog";
 
 export type OrderProduct = "story" | "monster" | "emergency" | "bundle";
 export type OrderStatus = "draft" | "pending_payment" | "paid" | "processing" | "delivered" | "failed";
+export type InvoiceStatus = "pending" | "issuing" | "issued" | "failed" | "needs_review" | "not_required";
 
 export type StoredOrder = {
   id: string;
@@ -14,6 +15,14 @@ export type StoredOrder = {
   output?: Record<string, unknown>;
   coverObjectName?: string;
   customerEmail?: string;
+  stripeSessionId?: string;
+  stripeLivemode?: boolean;
+  invoiceStatus?: InvoiceStatus;
+  invoiceSeries?: string;
+  invoiceNumber?: string;
+  invoiceDocumentUrl?: string;
+  invoiceErrorCode?: string;
+  invoiceUpdatedAt?: string;
   createdAt: string;
   updatedAt: string;
   expiresAt: string;
@@ -57,6 +66,14 @@ function firestoreFields(order: StoredOrder) {
   if (order.output) values.output = { stringValue: JSON.stringify(order.output) };
   if (order.coverObjectName) values.coverObjectName = { stringValue: order.coverObjectName };
   if (order.customerEmail) values.customerEmail = { stringValue: order.customerEmail };
+  if (order.stripeSessionId) values.stripeSessionId = { stringValue: order.stripeSessionId };
+  if (typeof order.stripeLivemode === "boolean") values.stripeLivemode = { stringValue: String(order.stripeLivemode) };
+  if (order.invoiceStatus) values.invoiceStatus = { stringValue: order.invoiceStatus };
+  if (order.invoiceSeries) values.invoiceSeries = { stringValue: order.invoiceSeries };
+  if (order.invoiceNumber) values.invoiceNumber = { stringValue: order.invoiceNumber };
+  if (order.invoiceDocumentUrl) values.invoiceDocumentUrl = { stringValue: order.invoiceDocumentUrl };
+  if (order.invoiceErrorCode) values.invoiceErrorCode = { stringValue: order.invoiceErrorCode };
+  if (order.invoiceUpdatedAt) values.invoiceUpdatedAt = { stringValue: order.invoiceUpdatedAt };
   if (order.deliveryExpiresAt) values.deliveryExpiresAt = { stringValue: order.deliveryExpiresAt };
   if (order.errorCode) values.errorCode = { stringValue: order.errorCode };
   return values;
@@ -88,6 +105,7 @@ function fromFirestore(document: { name?: string; updateTime?: string; fields?: 
   const product = readString(fields, "product") as OrderProduct;
   const status = readString(fields, "status") as OrderStatus;
   const configuration = readJson(fields, "configuration");
+  const invoiceStatus = readString(fields, "invoiceStatus") as InvoiceStatus;
   if (!orderIdPattern.test(id) || !configuration || !["story", "monster", "emergency", "bundle"].includes(product) || !["draft", "pending_payment", "paid", "processing", "delivered", "failed"].includes(status)) return null;
 
   return {
@@ -99,6 +117,14 @@ function fromFirestore(document: { name?: string; updateTime?: string; fields?: 
     ...(readJson(fields, "output") ? { output: readJson(fields, "output") } : {}),
     ...(readString(fields, "coverObjectName") ? { coverObjectName: readString(fields, "coverObjectName") } : {}),
     ...(readString(fields, "customerEmail") ? { customerEmail: readString(fields, "customerEmail") } : {}),
+    ...(readString(fields, "stripeSessionId") ? { stripeSessionId: readString(fields, "stripeSessionId") } : {}),
+    ...(readString(fields, "stripeLivemode") ? { stripeLivemode: readString(fields, "stripeLivemode") === "true" } : {}),
+    ...(["pending", "issuing", "issued", "failed", "needs_review", "not_required"].includes(invoiceStatus) ? { invoiceStatus } : {}),
+    ...(readString(fields, "invoiceSeries") ? { invoiceSeries: readString(fields, "invoiceSeries") } : {}),
+    ...(readString(fields, "invoiceNumber") ? { invoiceNumber: readString(fields, "invoiceNumber") } : {}),
+    ...(readString(fields, "invoiceDocumentUrl") ? { invoiceDocumentUrl: readString(fields, "invoiceDocumentUrl") } : {}),
+    ...(readString(fields, "invoiceErrorCode") ? { invoiceErrorCode: readString(fields, "invoiceErrorCode") } : {}),
+    ...(readString(fields, "invoiceUpdatedAt") ? { invoiceUpdatedAt: readString(fields, "invoiceUpdatedAt") } : {}),
     createdAt: readString(fields, "createdAt"),
     updatedAt: readString(fields, "updatedAt"),
     expiresAt: readTimestamp(fields, "expiresAt") || readString(fields, "expiresAt"),
@@ -172,8 +198,36 @@ export async function saveOrder(order: StoredOrder, expectedUpdateTime?: string)
   return fromFirestore(await response.json());
 }
 
-export async function setOrderStatus(order: StoredOrder, status: OrderStatus, fields: Partial<Pick<StoredOrder, "customerEmail" | "output" | "coverObjectName" | "deliveryExpiresAt" | "expiresAt" | "errorCode">> = {}) {
+export async function setOrderStatus(order: StoredOrder, status: OrderStatus, fields: Partial<Pick<StoredOrder, "customerEmail" | "output" | "coverObjectName" | "deliveryExpiresAt" | "expiresAt" | "errorCode" | "stripeSessionId" | "stripeLivemode" | "invoiceStatus" | "invoiceSeries" | "invoiceNumber" | "invoiceDocumentUrl" | "invoiceErrorCode" | "invoiceUpdatedAt">> = {}) {
   return saveOrder({ ...order, ...fields, status, updatedAt: new Date().toISOString() }, order.updateTime);
+}
+
+type InvoiceFields = Partial<Pick<StoredOrder, "stripeSessionId" | "stripeLivemode" | "invoiceStatus" | "invoiceSeries" | "invoiceNumber" | "invoiceDocumentUrl" | "invoiceErrorCode" | "invoiceUpdatedAt">>;
+
+export async function updateOrderInvoice(
+  orderId: string,
+  fields: InvoiceFields,
+  allowedStatuses?: Array<InvoiceStatus | undefined>,
+) {
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const current = await getOrder(orderId);
+    if (!current) throw new Error("Comanda nu a fost gasita pentru actualizarea facturii.");
+    if (allowedStatuses && !allowedStatuses.includes(current.invoiceStatus)) {
+      return { order: current, updated: false };
+    }
+    try {
+      const saved = await saveOrder({
+        ...current,
+        ...fields,
+        updatedAt: new Date().toISOString(),
+      }, current.updateTime);
+      if (!saved) throw new Error("Actualizarea facturii nu a fost salvata.");
+      return { order: saved, updated: true };
+    } catch (error) {
+      if (!(error instanceof Error) || !error.message.includes("(412)") || attempt === 3) throw error;
+    }
+  }
+  throw new Error("Actualizarea facturii nu a putut fi finalizata.");
 }
 
 function storageBucket() {
@@ -236,19 +290,27 @@ export function isValidDeliveryToken(orderId: string, token: string) {
 }
 
 export async function enqueueOrderProcessing(orderId: string, siteUrl: string) {
+  return enqueueOrderTask(orderId, siteUrl, "process");
+}
+
+export async function enqueueOrderInvoicing(orderId: string, siteUrl: string) {
+  return enqueueOrderTask(orderId, siteUrl, "invoice");
+}
+
+async function enqueueOrderTask(orderId: string, siteUrl: string, taskType: "process" | "invoice") {
   const project = projectId();
   const location = process.env.ORDER_TASKS_LOCATION?.trim() || "europe-west3";
   const queue = process.env.ORDER_TASKS_QUEUE?.trim() || "pmm-order-processing";
   const serviceAccountEmail = process.env.ORDER_TASKS_SERVICE_ACCOUNT?.trim();
   if (!project || !serviceAccountEmail) throw new Error("Cloud Tasks nu este configurat pentru comenzi.");
 
-  const taskName = `projects/${project}/locations/${location}/queues/${queue}/tasks/order-${orderId}`;
+  const taskName = `projects/${project}/locations/${location}/queues/${queue}/tasks/${taskType}-${orderId}`;
   const url = `https://cloudtasks.googleapis.com/v2/projects/${encodeURIComponent(project)}/locations/${encodeURIComponent(location)}/queues/${encodeURIComponent(queue)}/tasks`;
   const token = await accessToken(TASKS_SCOPES);
   const response = await fetch(url, {
     method: "POST",
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ task: { name: taskName, httpRequest: { httpMethod: "POST", url: `${siteUrl}/api/orders/process`, headers: { "Content-Type": "application/json" }, body: Buffer.from(JSON.stringify({ orderId })).toString("base64"), oidcToken: { serviceAccountEmail, audience: siteUrl } } } }),
+    body: JSON.stringify({ task: { name: taskName, httpRequest: { httpMethod: "POST", url: `${siteUrl}/api/orders/${taskType}`, headers: { "Content-Type": "application/json" }, body: Buffer.from(JSON.stringify({ orderId })).toString("base64"), oidcToken: { serviceAccountEmail, audience: siteUrl } } } }),
   });
   if (response.status === 409) return;
   if (!response.ok) throw new Error(`Cloud Tasks request failed (${response.status}).`);

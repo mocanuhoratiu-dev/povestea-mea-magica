@@ -75,7 +75,7 @@ Din același folder:
 bash scripts/deploy-cloud-run.sh
 ```
 
-Scriptul construiește aplicația, actualizează atât serviciul direct, cât și serviciul conectat la domeniul public, trimite tot traficul către noile revizii și verifică `/api/health`. La final trebuie să vezi `ready: true`. Scriptul păstrează fiecare serviciu la maximum trei instanțe și patru cereri simultane pe instanță, pentru a ține costurile AI sub control.
+Scriptul construiește aplicația, actualizează atât serviciul direct, cât și serviciul conectat la domeniul public, trimite tot traficul către noile revizii și verifică `/api/health`. La final trebuie să vezi `ready: true`. Scriptul păstrează fiecare serviciu la maximum trei instanțe și patru cereri simultane pe instanță, pentru a ține costurile AI sub control. Pentru checkout și facturare test rulează `STRIPE_ENABLED=true SMARTBILL_ENABLED=true SMARTBILL_MODE=test ./scripts/deploy-cloud-run.sh`.
 
 ## F. Testul live obligatoriu
 
@@ -95,6 +95,8 @@ Apoi deschide site-ul într-o fereastră incognito și testează:
 6. Descărcarea PDF-urilor.
 7. Emailul, după activare.
 8. Domeniul fără `www`: trebuie să redirecționeze permanent către `https://www.povestea-mea-magica.ro`.
+9. O plată Stripe test cu reducere parțială: verifică suma finală și factura `PMMTEST` în SmartBill.
+10. O comandă de 0 RON: verifică livrarea și confirmă că nu a fost emisă factură.
 
 ## G. Activează livrarea de PDF-uri prin email
 
@@ -153,6 +155,8 @@ jsonPayload.event="pmm_story_cover_failed"
 ```
 
 Înlocuiește evenimentul cu `pmm_story_text_completed`, `pmm_story_continuation_completed` sau `pmm_email_delivery_failed` pentru o etapă anume. Telemetria aplicației nu trimite nume de copil, povești, adrese de email sau atașamente.
+
+Pentru facturare folosește evenimentele `pmm_invoice_started`, `pmm_invoice_completed`, `pmm_invoice_failed` și `pmm_invoice_needs_review`. Orice `needs_review` se verifică mai întâi în seria SmartBill după ID-ul comenzii din observațiile facturii; nu retrimite automat cererea înainte să excluzi existența unei facturi deja emise.
 
 ## I. Rollback imediat
 

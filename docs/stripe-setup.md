@@ -11,6 +11,8 @@ Integrarea foloseste Stripe Checkout, gazduit de Stripe. Cheile private si semna
 - Stripe Checkout cere acceptarea Termenilor și afișează acordul pentru livrarea imediată a materialului digital. Webhookul nu pornește livrarea fără confirmarea acestui consimțământ de la Stripe.
 - Stripe Checkout afișează câmpul pentru coduri promoționale. Reducerile sunt validate și calculate exclusiv de Stripe.
 - Comenzile reduse la 0 RON sunt acceptate și livrate după confirmarea semnată de Stripe cu statusul `no_payment_required`.
+- Checkout colectează adresa de facturare și, opțional, codul fiscal. Datele copilului nu ajung nici în Stripe, nici în SmartBill.
+- După o plată confirmată, facturarea SmartBill și generarea materialului pornesc în sarcini separate; o problemă de facturare nu blochează livrarea PDF-ului.
 
 ## Conditii inainte de activare
 
@@ -235,6 +237,26 @@ STRIPE_ENABLED=true ./scripts/deploy-cloud-run.sh
 
 Pentru a reveni la experiența gratuită fără plată, folosește `STRIPE_ENABLED=false` și rulează din nou același deploy.
 
+## SmartBill Test
+
+Contul de test folosește CIF `99999900` și seria `PMMTEST`. Tokenul se păstrează în Secret Manager sub numele `pmm-smartbill-test-token`; nu se scrie în Git sau în variabile publice.
+
+Protecția de mediu este obligatorie:
+
+- `SMARTBILL_MODE=test` acceptă numai o cheie Stripe `sk_test_`, evenimente Stripe cu `livemode=false` și o serie care conține `TEST`;
+- `SMARTBILL_MODE=live` acceptă numai o cheie Stripe `sk_live_`, evenimente Stripe live și o serie fără `TEST`;
+- comenzile cu total 0 RON sunt livrate, dar marcate `invoiceStatus=not_required` și nu emit factură.
+
+Pentru test, deploy-ul se rulează explicit astfel:
+
+```bash
+STRIPE_ENABLED=true SMARTBILL_ENABLED=true SMARTBILL_MODE=test ./scripts/deploy-cloud-run.sh
+```
+
+Factura este emisă pe totalul final confirmat de Stripe, după aplicarea codului promoțional. SmartBill nu primește datele de personalizare. Linkul facturii este trimis separat prin emailul tranzacțional Resend. Dacă SmartBill răspunde ambiguu sau expiră cererea, comanda trece în `needs_review`; integrarea nu reîncearcă emiterea automat, pentru a evita duplicatele.
+
+La trecerea în producție trebuie create un secret separat, seria fiscală reală și configurarea fiscală validată cu contabilul. Nu reutiliza seria sau CIF-ul contului de test.
+
 ## Date personale
 
-Metadata Stripe contine numai codul produsului si versiunea catalogului. Numele copilului, textul povestii si alte campuri de personalizare nu trebuie trimise in Stripe metadata.
+Metadata Stripe conține numai codul produsului, ID-ul intern al comenzii și versiunea catalogului. SmartBill primește produsul cumpărat, totalul plătit și datele de facturare colectate de Stripe. Numele copilului, textul poveștii și celelalte câmpuri de personalizare nu sunt trimise niciunuia dintre servicii.
