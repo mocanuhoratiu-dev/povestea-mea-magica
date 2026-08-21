@@ -241,6 +241,17 @@ Pentru a reveni la experiența gratuită fără plată, folosește `STRIPE_ENABL
 
 Contul de test folosește CIF `99999900` și seria `PMMTEST`. Tokenul se păstrează în Secret Manager sub numele `pmm-smartbill-test-token`; nu se scrie în Git sau în variabile publice.
 
+### Identitatea vizuală a facturilor
+
+Seria Povestea Mea Magică trebuie personalizată separat în SmartBill, astfel încât celelalte proiecte facturate de Growth IT Labs să poată folosi propriile serii și identități vizuale:
+
+1. În `Configurare > Serii`, activează `Personalizează fiecare serie cu altă siglă`.
+2. Personalizează numai seria `PMMTEST` în test și seria fiscală dedicată `PMM` în producție.
+3. Încarcă `public/smartbill-pmm-logo.png` ca siglă, folosește o culoare apropiată de `#24324F` și păstrează formatul A4.
+4. Verifică previzualizarea înainte de salvare; modificările se aplică facturilor emise ulterior pe seria selectată.
+
+Fișierul de siglă poate fi regenerat prin `node scripts/generate-smartbill-branding.mjs` după orice schimbare a identității vizuale.
+
 Protecția de mediu este obligatorie:
 
 - `SMARTBILL_MODE=test` acceptă numai o cheie Stripe `sk_test_`, evenimente Stripe cu `livemode=false` și o serie care conține `TEST`;
