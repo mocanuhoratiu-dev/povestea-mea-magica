@@ -20,6 +20,7 @@ export default function Footer() {
             <h4 className="text-xs font-black uppercase tracking-[0.16em] text-brand-gold">Materiale</h4>
             <ul className="mt-5 space-y-3 text-sm font-semibold text-brand-cream/70">
               <li><Link href="/#creator" className="transition-colors hover:text-brand-gold">Povestea de Seară</Link></li>
+              <li><Link href="/album-ilustrat" className="transition-colors hover:text-brand-gold">Albumul Meu Magic</Link></li>
               <li><Link href="/#monster-away" className="transition-colors hover:text-brand-gold">Scutul de Noapte</Link></li>
               <li><Link href="/#emergency-kit" className="transition-colors hover:text-brand-gold">Trusa de Răbdare</Link></li>
               <li><Link href="/pachet" className="transition-colors hover:text-brand-gold">Pachetul complet</Link></li>

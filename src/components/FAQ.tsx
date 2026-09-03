@@ -7,11 +7,11 @@ import { ChevronDown } from "lucide-react";
 const faqs = [
   {
     question: "Cum aleg materialul potrivit?",
-    answer: "Începe cu momentul pe care îl aveți acum: Povestea de Seară pentru conectare înainte de somn, Scutul de Noapte pentru un ritual de curaj și Trusa de Răbdare pentru drumuri sau așteptări.",
+    answer: "Începe cu momentul pe care îl aveți acum: Povestea de Seară pentru conectare, Scutul de Noapte pentru un ritual de curaj și Trusa de Răbdare pentru așteptări. Pentru o experiență vizuală mai bogată, alege Albumul Meu Magic.",
   },
   {
     question: "Ce primesc?",
-    answer: "Primești un PDF personalizat, pregătit pentru citit sau print. Povestea scurtă include copertă, dedicație și două pagini de aventură, iar cea lungă are patru pagini de poveste. Scutul are certificat, ritual și etichete. Trusa are activități adaptate locului ales și diplomă de final.",
+    answer: "Primești unul sau două PDF-uri personalizate, pregătite pentru citit ori print. Albumul include o carte ilustrată de 16 pagini și un caiet separat de 8 pagini. Povestea de Seară are 2 sau 4 pagini de aventură, iar kiturile includ ritualurile și activitățile descrise înainte de comandă.",
   },
   {
     question: "Este personalizat cu adevărat?",
@@ -19,7 +19,7 @@ const faqs = [
   },
   {
     question: "Cât durează?",
-    answer: "De obicei, materialul este gata în mai puțin de un minut. Povestea și coperta pot dura puțin mai mult, deoarece sunt create pornind de la alegerile tale.",
+    answer: "Materialele scurte sunt gata, de obicei, în mai puțin de un minut. Albumul ilustrat poate dura 4-8 minute, deoarece cele 13 imagini sunt create separat și apoi așezate în cele două documente.",
   },
   {
     question: "Pot modifica ceva înainte de PDF?",
@@ -27,11 +27,11 @@ const faqs = [
   },
   {
     question: "Pot printa materialele?",
-    answer: "Da. Sunt gândite pentru A4 și funcționează bine atât pe ecran, cât și printate acasă sau la un centru de print.",
+    answer: "Da. Poveștile și kiturile sunt gândite pentru A4. Albumul și caietul lui de activități folosesc format A5 landscape și pot fi tipărite acasă sau la un centru de print.",
   },
   {
     question: "Care sunt prețurile?",
-    answer: "Povestea scurtă costă 19 lei, cea lungă 29 lei, iar fiecare kit costă 19 lei. Pachetul Familiei Magice costă 49 lei și include o poveste lungă, un Scut de Noapte și o Trusă de Răbdare, personalizate separat.",
+    answer: "Povestea scurtă costă 19 lei, cea lungă 29 lei, iar fiecare kit costă 19 lei. Pachetul Familiei Magice costă 49 lei. Albumul Meu Magic costă 59 lei și include cartea ilustrată și caietul separat de activități.",
   },
   {
     question: "Sunt materialele un sfat medical sau terapeutic?",

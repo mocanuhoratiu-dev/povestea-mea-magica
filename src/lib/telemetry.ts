@@ -1,4 +1,4 @@
-export const telemetryProducts = ["story", "monster", "emergency", "bundle"] as const;
+export const telemetryProducts = ["story", "monster", "emergency", "bundle", "album"] as const;
 
 export type TelemetryProduct = (typeof telemetryProducts)[number];
 
@@ -15,9 +15,10 @@ type TelemetryFields = {
   wordCount?: number;
   pageCount?: number;
   storyLength?: StoryLength;
-  errorCode?: "ai_error" | "configuration" | "invalid_request" | "rate_limited" | "unknown";
+  errorCode?: "ai_error" | "configuration" | "invalid_request" | "rate_limited" | "render_error" | "unknown";
   aiProvider?: "gemini" | "vertex";
   model?: string;
+  albumStage?: "plan" | "cover" | "scene" | "coloring" | "render" | "delivery";
 };
 
 type TelemetryEvent =
@@ -60,7 +61,9 @@ type TelemetryEvent =
   | "pmm_invoice_failed"
   | "pmm_invoice_needs_review"
   | "pmm_order_delivered"
-  | "pmm_order_failed";
+  | "pmm_order_failed"
+  | "pmm_album_stage_completed"
+  | "pmm_album_stage_failed";
 
 /**
  * Emits aggregate product events to Cloud Run logs. Never add child names,
@@ -82,6 +85,7 @@ export function logTelemetry(event: TelemetryEvent, fields: TelemetryFields = {}
     error_code: fields.errorCode,
     ai_provider: fields.aiProvider,
     model: fields.model,
+    album_stage: fields.albumStage,
   };
 
   // Omit absent keys so log-based metric labels stay clean and predictable.

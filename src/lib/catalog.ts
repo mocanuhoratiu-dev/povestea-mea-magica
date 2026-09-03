@@ -4,6 +4,7 @@ export const checkoutProductIds = [
   "night-shield",
   "patience-kit",
   "family-bundle",
+  "illustrated-album-digital",
 ] as const;
 
 export type CheckoutProductId = (typeof checkoutProductIds)[number];
@@ -52,6 +53,13 @@ export const checkoutCatalog: Record<CheckoutProductId, CheckoutProduct> = {
     name: "Pachetul Familiei Magice",
     description: "O poveste lunga, un Scut de Noapte si o Trusa de Rabdare, personalizate separat.",
     amount: 4900,
+    currency: "ron",
+  },
+  "illustrated-album-digital": {
+    id: "illustrated-album-digital",
+    name: "Albumul Meu Magic - Digital",
+    description: "Carte ilustrata personalizata si caiet separat de activitati, in format A5 landscape.",
+    amount: 5900,
     currency: "ron",
   },
 };

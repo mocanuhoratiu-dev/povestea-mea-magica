@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { readAlbumOutput } from "@/lib/album/schema";
 import { bundleProducts, readBundleConfiguration, readBundleOutput, type BundleProduct } from "@/lib/bundle";
 import { getOrder, isValidDeliveryToken, readOrderCover } from "@/lib/orders";
 
@@ -12,6 +13,24 @@ export async function GET(request: Request, { params }: { params: Promise<{ orde
   const order = await getOrder(orderId);
   if (!order) return NextResponse.json({ error: "Comanda nu a fost gasita." }, { status: 404 });
   if (order.status !== "delivered" || !order.output) return NextResponse.json({ status: order.status }, { status: 202 });
+
+  if (order.product === "album") {
+    const album = readAlbumOutput(order.output);
+    const generation = order.configuration.generation;
+    const name = generation && typeof generation === "object" && !Array.isArray(generation)
+      ? String((generation as Record<string, unknown>).name || "").slice(0, 40)
+      : "";
+    if (!album?.documents || !album.plan) return NextResponse.json({ error: "Albumul nu este complet." }, { status: 409 });
+    return NextResponse.json({
+      product: "album",
+      childName: name,
+      title: album.plan.title,
+      documents: [
+        { id: "storybook", label: "Cartea ilustrată", pages: 16 },
+        { id: "activities", label: "Caietul de activități", pages: 8 },
+      ],
+    });
+  }
 
   const requestedItem = new URL(request.url).searchParams.get("item");
   if (order.product === "bundle") {

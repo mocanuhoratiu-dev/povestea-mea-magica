@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { ArrowRight, BookOpen, Gift, ShieldCheck, TimerReset } from "lucide-react";
+import { ArrowRight, BookHeart, BookOpen, Gift, Palette, ShieldCheck, TimerReset } from "lucide-react";
 import { MobileProductId, openMobileProduct } from "@/lib/mobileProductFlow";
 import { commerce } from "@/lib/siteMode";
 
@@ -114,6 +114,29 @@ export default function ProductExamples() {
             Vezi toate modelele <ArrowRight size={16} />
           </a>
         </div>
+
+        <article className="mt-8 grid overflow-hidden border-y border-brand-gold/55 bg-brand-navy text-brand-cream md:mt-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(420px,.95fr)]">
+          <div className="order-2 px-6 py-9 sm:px-8 lg:order-1 lg:px-10 lg:py-12">
+            <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-brand-gold"><BookHeart size={17} /> Noul format premium</div>
+            <h3 className="mt-4 max-w-xl font-serif text-4xl leading-tight">Albumul Meu Magic</h3>
+            <p className="mt-4 max-w-2xl text-sm font-semibold leading-relaxed text-brand-cream/72 sm:text-base">O carte vizuală în care copilul apare în 13 scene diferite, plus un caiet separat pentru desen, colorat și joacă.</p>
+            <div className="mt-7 grid gap-3 border-y border-brand-cream/15 py-5 text-sm font-bold sm:grid-cols-2">
+              <p className="flex gap-2"><span className="text-brand-gold">✦</span> Carte ilustrată, 16 pagini</p>
+              <p className="flex gap-2"><span className="text-brand-gold">✦</span> Caiet de activități, 8 pagini</p>
+              <p className="flex gap-2"><span className="text-brand-gold">✦</span> Format A5 landscape</p>
+              <p className="flex gap-2"><span className="text-brand-gold">✦</span> 13 ilustrații unice</p>
+            </div>
+            <div className="mt-7 flex flex-wrap items-center gap-5">
+              <div><p className="font-nunito text-4xl font-black text-brand-gold">{commerce.prices.illustratedAlbum}</p><p className="text-xs font-bold text-brand-cream/50">două PDF-uri incluse</p></div>
+              <a href="/album-ilustrat" className="inline-flex min-h-12 items-center gap-2 bg-brand-gold px-5 text-sm font-black text-brand-navy transition-colors hover:bg-brand-cream">Descoperă albumul <ArrowRight size={17} /></a>
+              <a href="/modele#albumul-meu-magic" className="inline-flex items-center gap-2 border-b border-brand-cream/40 pb-1 text-sm font-black text-brand-cream">Vezi modelul <ArrowRight size={15} /></a>
+            </div>
+          </div>
+          <div className="relative order-1 min-h-[270px] border-b border-brand-gold/30 lg:order-2 lg:min-h-full lg:border-b-0 lg:border-l">
+            <Image src="/examples/album/aventura.webp" alt="Pagină ilustrată din Albumul Meu Magic" fill sizes="(min-width: 1024px) 48vw, 100vw" className="object-cover" />
+            <div className="absolute bottom-4 left-4 inline-flex items-center gap-2 bg-brand-cream px-3 py-2 text-xs font-black text-brand-navy"><Palette size={15} /> Poveste + activități</div>
+          </div>
+        </article>
 
         <div className="mt-10 hidden grid-cols-1 gap-6 md:grid lg:mt-12 lg:grid-cols-3">
           {examples.map((example, index) => (

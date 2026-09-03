@@ -15,6 +15,7 @@ export const commerce = {
     nightShield: "19 lei",
     patienceKit: "19 lei",
     familyBundle: "49 lei",
+    illustratedAlbum: "59 lei",
   },
 };
 

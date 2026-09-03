@@ -80,7 +80,7 @@ export async function POST(request: Request) {
       metadata: {
         product_id: product.id,
         order_id: order.id,
-        catalog_version: "2026-08",
+        catalog_version: "2026-09",
       },
       // No child name, story text or other personalisation is sent to Stripe.
     });

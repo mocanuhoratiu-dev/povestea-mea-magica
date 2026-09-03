@@ -23,16 +23,17 @@ type ProductReaderProps = {
   title: string;
   source: string;
   pages: ReaderPage[];
+  orientation?: "portrait" | "landscape";
 };
 
-function CropPage({ source, crop, alt, className = "" }: { source: string; crop: ReaderCrop; alt: string; className?: string }) {
+function CropPage({ source, crop, alt, orientation, className = "" }: { source: string; crop: ReaderCrop; alt: string; orientation: "portrait" | "landscape"; className?: string }) {
   const zoomX = 10000 / crop.width;
   const zoomY = 10000 / crop.height;
   const moveX = -crop.left;
   const moveY = -crop.top;
 
   return (
-    <div className={`relative aspect-[0.707] overflow-hidden bg-brand-cream ${className}`}>
+    <div className={`relative overflow-hidden bg-brand-cream ${orientation === "landscape" ? "aspect-[1.419]" : "aspect-[0.707]"} ${className}`}>
       <Image
         src={source}
         alt={alt}
@@ -46,7 +47,7 @@ function CropPage({ source, crop, alt, className = "" }: { source: string; crop:
   );
 }
 
-export default function ProductReader({ title, source, pages }: ProductReaderProps) {
+export default function ProductReader({ title, source, pages, orientation = "portrait" }: ProductReaderProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [expanded, setExpanded] = useState(false);
   const activePage = pages[activeIndex];
@@ -69,7 +70,7 @@ export default function ProductReader({ title, source, pages }: ProductReaderPro
             transition={{ duration: 0.2 }}
             className="border border-brand-navy/15 shadow-[0_14px_26px_rgba(36,50,79,0.16)]"
           >
-            <CropPage source={activePage.source ?? source} crop={activePage.crop} alt={`${title}: ${activePage.title}`} />
+            <CropPage source={activePage.source ?? source} crop={activePage.crop} alt={`${title}: ${activePage.title}`} orientation={orientation} />
           </motion.div>
         </AnimatePresence>
         <button
@@ -112,7 +113,7 @@ export default function ProductReader({ title, source, pages }: ProductReaderPro
             aria-pressed={activeIndex === index}
             className={`overflow-hidden border transition ${activeIndex === index ? "border-brand-purple ring-2 ring-brand-purple/25" : "border-brand-navy/15 opacity-70 hover:opacity-100"}`}
           >
-            <CropPage source={page.source ?? source} crop={page.crop} alt="" />
+            <CropPage source={page.source ?? source} crop={page.crop} alt="" orientation={orientation} />
           </button>
         ))}
       </div>
@@ -133,10 +134,10 @@ export default function ProductReader({ title, source, pages }: ProductReaderPro
               initial={{ scale: 0.96, y: 12 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.96, y: 12 }}
-              className="relative w-[min(92vw,calc((100dvh-8rem)*0.707))] min-w-[260px] max-w-[760px] shadow-2xl"
+              className={`relative min-w-[260px] shadow-2xl ${orientation === "landscape" ? "w-[min(94vw,calc((100dvh-8rem)*1.419))] max-w-[1100px]" : "w-[min(92vw,calc((100dvh-8rem)*0.707))] max-w-[760px]"}`}
               onClick={(event) => event.stopPropagation()}
             >
-              <CropPage source={activePage.source ?? source} crop={activePage.crop} alt={`${title}: ${activePage.title}`} className="w-full" />
+              <CropPage source={activePage.source ?? source} crop={activePage.crop} alt={`${title}: ${activePage.title}`} orientation={orientation} className="w-full" />
               <button type="button" onClick={() => setExpanded(false)} className="absolute right-3 top-3 bg-brand-cream px-3 py-2 text-xs font-black text-brand-navy shadow-sm">Închide</button>
               <div className="absolute bottom-0 left-0 right-0 bg-brand-navy/85 px-5 py-4 text-brand-cream"><p className="font-serif text-2xl">{activePage.title}</p></div>
             </motion.div>

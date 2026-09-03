@@ -10,12 +10,12 @@ export const metadata: Metadata = {
 };
 
 const questions = [
-  ["Ce primesc?", "Primești un PDF personalizat. Povestea are copertă, dedicație și 2 sau 4 pagini de aventură. Scutul are certificat, ritual și etichete. Trusa are activități adaptate contextului și diplomă."],
+  ["Ce primesc?", "Primești unul sau două PDF-uri personalizate, în funcție de produs. Albumul Meu Magic include o carte ilustrată de 16 pagini și un caiet separat de 8 pagini. Povestea de Seară are copertă, dedicație și 2 sau 4 pagini de aventură, iar kiturile includ ritualurile și activitățile descrise înainte de comandă."],
   ["Este personalizat cu adevărat?", "Da. Alegerile despre copil, lume, lecție, context și interese schimbă povestea sau misiunile. Pentru poveste poți adăuga și o dedicație de la familie."],
-  ["Cât durează?", "De regulă, materialul este gata în mai puțin de un minut. Povestea și coperta pot dura mai mult deoarece sunt create pornind de la alegerile tale."],
+  ["Cât durează?", "Materialele scurte sunt gata, de regulă, în mai puțin de un minut. Albumul ilustrat poate dura 4-8 minute, deoarece cele 13 imagini sunt create separat și apoi așezate în cele două documente."],
   ["Pot modifica ceva înainte de PDF?", "Da. Poți ajusta alegerile și crea o variantă nouă. Pentru poveste poți edita textul înainte de descărcare și poți regenera coperta."],
-  ["Pot printa materialele?", "Da. Sunt gândite pentru A4 și funcționează bine atât pe ecran, cât și printate acasă sau la un centru de print."],
-  ["Care sunt prețurile?", "Povestea scurtă costă 19 lei, cea lungă 29 lei, iar fiecare kit costă 19 lei. Pachetul Familiei Magice costă 49 lei și include toate cele trei materiale, cu personalizare separată."],
+  ["Pot printa materialele?", "Da. Poveștile și kiturile sunt gândite pentru A4. Albumul și caietul lui de activități folosesc format A5 landscape și pot fi tipărite acasă sau la un centru de print."],
+  ["Care sunt prețurile?", "Povestea scurtă costă 19 lei, cea lungă 29 lei, iar fiecare kit costă 19 lei. Pachetul Familiei Magice costă 49 lei. Albumul Meu Magic costă 59 lei și include cartea ilustrată și caietul separat de activități."],
   ["Sunt materialele un sfat medical sau terapeutic?", "Nu. Sunt povești, activități și ritualuri de joacă. Dacă o teamă sau o situație este intensă ori persistă, cel mai potrivit este să discuți cu un specialist."],
 ];
 

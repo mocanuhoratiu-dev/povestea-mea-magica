@@ -7,7 +7,7 @@ import { logTelemetry } from "@/lib/telemetry";
 
 type LumiRole = "user" | "model";
 type LumiMessage = { role: LumiRole; text: string };
-type ProductId = "story" | "monster" | "emergency" | "none";
+type ProductId = "story" | "album" | "monster" | "emergency" | "none";
 
 type Recommendation = {
   product: ProductId;
@@ -26,7 +26,7 @@ type Recommendation = {
   label: string;
 };
 
-const PRODUCT_IDS = new Set<ProductId>(["story", "monster", "emergency", "none"]);
+const PRODUCT_IDS = new Set<ProductId>(["story", "album", "monster", "emergency", "none"]);
 const STORY_THEMES = ["space", "forest", "castle", "ocean", "dinosaurs", "clouds"] as const;
 const STORY_TONES = ["Liniștită de somn", "Aventură blândă", "Amuzantă", "Emoțională și caldă"] as const;
 const STORY_LESSONS = ["Curaj și încredere 💪", "Împărțitul jucăriilor 🧸", "Rutina de somn 🌙", "Importanța prieteniei 🤝", "Descoperirea naturii 🌱"] as const;
@@ -131,6 +131,13 @@ function fallbackFor(message: string, allowRecommendation: boolean) {
       recommendation: { ...emptyRecommendation(), product: "emergency" as const, emergencyContext: /restaurant/.test(text) ? "la restaurant, asteptand mancarea" : /doctor/.test(text) ? "in sala de asteptare la doctor" : /aeroport|avion/.test(text) ? "in aeroport sau avion" : /coad/.test(text) ? "la coada sau institutii" : "la un drum lung cu masina", duration: "10-20 minute", activityMode: "mix", label: "Deschide Trusa de Răbdare" },
     };
   }
+  if (/(album|foarte vizual|multe imagini|multe ilustra|puțin text|putin text|carte ilustrat)/.test(text)) {
+    return {
+      reply: "Albumul Meu Magic este alegerea potrivită: 13 scene ilustrate, puțin text pe fiecare pagină și un caiet separat de activități.",
+      suggestions: ["Vreau să văd modelul", "Vreau să-l personalizez"],
+      recommendation: { ...emptyRecommendation(), product: "album" as const, theme: /stele|spațiu|spatiu|planet/.test(text) ? "space" : /dino/.test(text) ? "dinosaurs" : /mare|ocean/.test(text) ? "ocean" : "forest", lesson: "Curaj și încredere 💪", storyDetail: "", label: "Deschide Albumul Meu Magic" },
+    };
+  }
   return {
     reply: "O poveste bună începe cu un lucru deja drag copilului. Ce lume i-ar plăcea să exploreze azi?",
     suggestions: ["Stele și planete", "Dinozauri"],
@@ -192,7 +199,7 @@ Rolurile din conversație sunt obligatorii: doar liniile care încep cu „Pări
 „suggestions” sunt butoane pe care părintele le poate apăsa și care vor fi trimise literal ca următorul mesaj al Părintelui. Prin urmare, ele trebuie să fie doar răspunsuri sau opțiuni scurte, formulate la persoana părintelui, niciodată întrebări. Nu folosi semnul întrebării și nu începe cu „Cum”, „Ce”, „Unde”, „Cine”, „Când”, „Care”, „Vrei”, „Este” sau „Are”. Pune întrebarea necesară în „reply”, apoi oferă cel mult două răspunsuri posibile în „suggestions”. Exemplu bun: reply „Ce lume îl atrage azi?”, suggestions [„Stele și planete”, „Dinozauri”].
 
 Răspunde numai cu JSON valid, fără Markdown:
-{"reply":"text scurt; include aici o întrebare dacă mai ai nevoie de un detaliu","suggestions":["maximum două răspunsuri scurte, nu întrebări"],"recommendation":{"product":"story|monster|emergency|none","theme":"space|forest|castle|ocean|dinosaurs|clouds sau gol","tone":"Liniștită de somn|Aventură blândă|Amuzantă|Emoțională și caldă sau gol","lesson":"Curaj și încredere 💪|Împărțitul jucăriilor 🧸|Rutina de somn 🌙|Importanța prieteniei 🤝|Descoperirea naturii 🌱 sau gol","storyDetail":"","monsterType":"umbrele noptii|monstrul de sub pat|zgomotele ciudate|dulapul scartaitor|frica de intuneric|vise urate sau gol","fearLocation":"","calmingHelper":"","bedtimeRitual":"","emergencyContext":"la restaurant, asteptand mancarea|la un drum lung cu masina|in sala de asteptare la doctor|in casa, ploua afara|in aeroport sau avion|la coada sau institutii sau gol","interest":"","duration":"5-10 minute|10-20 minute|20+ minute sau gol","activityMode":"liniștite|cu mișcare mică|mix sau gol","label":"un CTA scurt"}}
+{"reply":"text scurt; include aici o întrebare dacă mai ai nevoie de un detaliu","suggestions":["maximum două răspunsuri scurte, nu întrebări"],"recommendation":{"product":"story|album|monster|emergency|none","theme":"space|forest|castle|ocean|dinosaurs|clouds sau gol","tone":"Liniștită de somn|Aventură blândă|Amuzantă|Emoțională și caldă sau gol","lesson":"Curaj și încredere 💪|Împărțitul jucăriilor 🧸|Rutina de somn 🌙|Importanța prieteniei 🤝|Descoperirea naturii 🌱 sau gol","storyDetail":"","monsterType":"umbrele noptii|monstrul de sub pat|zgomotele ciudate|dulapul scartaitor|frica de intuneric|vise urate sau gol","fearLocation":"","calmingHelper":"","bedtimeRitual":"","emergencyContext":"la restaurant, asteptand mancarea|la un drum lung cu masina|in sala de asteptare la doctor|in casa, ploua afara|in aeroport sau avion|la coada sau institutii sau gol","interest":"","duration":"5-10 minute|10-20 minute|20+ minute sau gol","activityMode":"liniștite|cu mișcare mică|mix sau gol","label":"un CTA scurt"}}
 
 Conversație:\n${transcript}`;
 }

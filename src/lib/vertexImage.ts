@@ -5,6 +5,8 @@ export type CoverGenerationResult =
   | { imageDataUrl: string; model: string; error?: never }
   | { imageDataUrl?: never; model?: never; error: string };
 
+type ImageAspectRatio = "1:1" | "3:2";
+
 function getVertexCredentials() {
   const encodedCredentials = process.env.VERTEX_AI_SERVICE_ACCOUNT_JSON_BASE64?.trim();
   if (!encodedCredentials) return undefined;
@@ -42,11 +44,23 @@ function cleanCoverPrompt(value: string) {
     .slice(0, 1_800);
 }
 
-/**
- * Generates a temporary data URL rather than storing a child's cover in Cloud Storage.
- * Cloud Run uses its service account through Application Default Credentials.
- */
-export async function generateVertexStoryCover(prompt: string): Promise<CoverGenerationResult> {
+function parseReferenceImage(value?: string) {
+  if (!value) return null;
+  const match = /^data:(image\/(?:png|jpeg|webp));base64,([a-zA-Z0-9+/=]+)$/.exec(value);
+  return match ? { mimeType: match[1], data: match[2] } : null;
+}
+
+async function generateVertexImage({
+  prompt,
+  aspectRatio,
+  referenceImageDataUrl,
+  timeoutEnvironment,
+}: {
+  prompt: string;
+  aspectRatio: ImageAspectRatio;
+  referenceImageDataUrl?: string;
+  timeoutEnvironment: "cover" | "album";
+}): Promise<CoverGenerationResult> {
   const project = process.env.VERTEX_AI_PROJECT_ID?.trim();
   const cleanPrompt = cleanCoverPrompt(prompt);
 
@@ -54,7 +68,12 @@ export async function generateVertexStoryCover(prompt: string): Promise<CoverGen
   if (!cleanPrompt) return { error: "Promptul pentru copertă este gol." };
 
   const errors: string[] = [];
-  const timeoutMs = readBoundedDuration(process.env.VERTEX_AI_COVER_TIMEOUT_MS, 35_000, 8_000, 60_000);
+  const timeoutMs = readBoundedDuration(
+    timeoutEnvironment === "album" ? process.env.ALBUM_IMAGE_TIMEOUT_MS : process.env.VERTEX_AI_COVER_TIMEOUT_MS,
+    45_000,
+    8_000,
+    75_000,
+  );
   let client: GoogleGenAI;
   try {
     const credentials = getVertexCredentials();
@@ -67,26 +86,24 @@ export async function generateVertexStoryCover(prompt: string): Promise<CoverGen
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Vertex AI nu a putut fi configurat pentru copertă." };
   }
-  const coverPrompt = [
-    "Create exactly one square, print-quality illustration for a personalised Romanian children's storybook cover.",
-    cleanPrompt,
-    "Use warm watercolor and gouache children's-book art, soft magical bedtime lighting, and a clearly readable main character.",
-    "Do not include any words, letters, title text, logo, watermark, frame, or collage.",
-  ].join(" ");
+  const reference = parseReferenceImage(referenceImageDataUrl);
+  const contents = reference
+    ? [{ role: "user", parts: [{ inlineData: reference }, { text: cleanPrompt }] }]
+    : cleanPrompt;
 
   for (const model of getImageModels()) {
     try {
       const response = await withTimeout(
         client.models.generateContent({
           model,
-          contents: coverPrompt,
+          contents,
           config: {
             responseModalities: [Modality.IMAGE],
-            imageConfig: { aspectRatio: "1:1", imageSize: "1K" },
+            imageConfig: { aspectRatio, imageSize: "1K" },
           },
         }),
         timeoutMs,
-        `Coperta generată cu ${model} a depășit timpul de răspuns.`
+        `Imaginea generată cu ${model} a depășit timpul de răspuns.`
       );
       const imagePart = response.candidates
         ?.flatMap((candidate) => candidate.content?.parts || [])
@@ -104,5 +121,28 @@ export async function generateVertexStoryCover(prompt: string): Promise<CoverGen
     }
   }
 
-  return { error: errors.join(" | ") || "Vertex AI nu a putut genera coperta." };
+  return { error: errors.join(" | ") || "Vertex AI nu a putut genera imaginea." };
+}
+
+/** Generates a temporary data URL. Cloud Run authenticates through its service account. */
+export async function generateVertexStoryCover(prompt: string): Promise<CoverGenerationResult> {
+  return generateVertexImage({
+    prompt: [
+      "Create exactly one square, print-quality illustration for a personalised Romanian children's storybook cover.",
+      prompt,
+      "Use warm watercolor and gouache children's-book art, soft magical bedtime lighting, and a clearly readable main character.",
+      "Do not include any words, letters, title text, logo, watermark, frame, or collage.",
+    ].join(" "),
+    aspectRatio: "1:1",
+    timeoutEnvironment: "cover",
+  });
+}
+
+export async function generateVertexAlbumIllustration(prompt: string, referenceImageDataUrl?: string) {
+  return generateVertexImage({
+    prompt,
+    aspectRatio: "3:2",
+    referenceImageDataUrl,
+    timeoutEnvironment: "album",
+  });
 }

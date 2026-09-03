@@ -13,6 +13,7 @@ export default function Navbar() {
 
   const navigationItems = [
     { label: "Povestea de seară", href: "/#creator" },
+    { label: "Album ilustrat", href: "/album-ilustrat" },
     { label: "Scutul de noapte", href: "/#monster-away" },
     { label: "Trusa de răbdare", href: "/#emergency-kit" },
     { label: "Pachetul complet", href: "/pachet" },
@@ -87,7 +88,7 @@ export default function Navbar() {
             </span>
           </Link>
 
-          <div className="hidden items-center gap-6 lg:flex">
+          <div className="hidden items-center gap-4 xl:gap-6 lg:flex">
           {navigationItems.map((item) => (
             <Link 
               key={item.label} 

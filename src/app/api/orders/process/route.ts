@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { createAlbumOrderOutput } from "@/lib/album/orchestrator";
+import { readAlbumConfiguration } from "@/lib/album/schema";
 import { readBundleConfiguration, readBundleOutput, type BundleOutputItem } from "@/lib/bundle";
 import { createReadyEmailHtml, createReadyEmailSubject, createReadyEmailText } from "@/lib/emailTemplates";
 import { createDeliveryToken, createDeliveryTokenForExpiry, getOrder, saveOrderCover, setOrderStatus, verifyTaskIdentity, type OrderProduct, type StoredOrder } from "@/lib/orders";
@@ -38,7 +40,7 @@ async function sendReadyEmail({ email, product, deliveryUrl, orderId, childName 
   if (!response.ok) throw new Error(`Email delivery failed (${response.status}).`);
 }
 
-async function generateMaterial({ orderId, product, configuration, secret, coverBasename = "cover" }: { orderId: string; product: Exclude<OrderProduct, "bundle">; configuration: Record<string, unknown>; secret: string; coverBasename?: string }) {
+async function generateMaterial({ orderId, product, configuration, secret, coverBasename = "cover" }: { orderId: string; product: Exclude<OrderProduct, "bundle" | "album">; configuration: Record<string, unknown>; secret: string; coverBasename?: string }) {
   const generation = configuration.generation;
   if (!generation || typeof generation !== "object" || Array.isArray(generation)) throw new Error("Configuratia materialului este invalida.");
 
@@ -81,11 +83,31 @@ async function prepareSingleOrder(order: StoredOrder, secret: string) {
   if (!prepared) throw new Error("Comanda nu a putut fi blocata pentru procesare.");
 
   if (!prepared.output) {
-    const generated = await generateMaterial({ orderId: prepared.id, product: prepared.product as Exclude<OrderProduct, "bundle">, configuration: prepared.configuration, secret });
+    const generated = await generateMaterial({ orderId: prepared.id, product: prepared.product as Exclude<OrderProduct, "bundle" | "album">, configuration: prepared.configuration, secret });
     const saved = await setOrderStatus(prepared, "processing", { output: generated.output, ...(generated.coverObjectName ? { coverObjectName: generated.coverObjectName } : {}) });
     if (!saved) throw new Error("Comanda nu a putut salva materialul generat.");
     prepared = saved;
   }
+
+  return ensureDeliveryExpiry(prepared);
+}
+
+async function prepareAlbumOrder(order: StoredOrder) {
+  const configuration = readAlbumConfiguration(order.configuration);
+  if (!configuration) throw new Error("Configurația albumului este invalidă.");
+  let prepared = order.status === "paid" ? await setOrderStatus(order, "processing") : order;
+  if (!prepared) throw new Error("Albumul nu a putut fi blocat pentru procesare.");
+
+  await createAlbumOrderOutput({
+    orderId: prepared.id,
+    configuration,
+    existing: prepared.output,
+    checkpoint: async (output) => {
+      const saved = await setOrderStatus(prepared as StoredOrder, "processing", { output });
+      if (!saved) throw new Error("Progresul albumului nu a putut fi salvat.");
+      prepared = saved;
+    },
+  });
 
   return ensureDeliveryExpiry(prepared);
 }
@@ -114,6 +136,7 @@ async function prepareBundleOrder(order: StoredOrder, secret: string) {
 function deliveryUrlFor(order: StoredOrder, token: string) {
   const query = `order=${encodeURIComponent(order.id)}&token=${encodeURIComponent(token)}`;
   if (order.product === "bundle") return `${siteUrl}/pachet/livrare?${query}`;
+  if (order.product === "album") return `${siteUrl}/album-ilustrat/livrare?${query}`;
   const anchor = order.product === "story" ? "creator" : order.product === "monster" ? "monster-away" : "emergency-kit";
   return `${siteUrl}/?${query}#${anchor}`;
 }
@@ -130,7 +153,11 @@ export async function POST(request: Request) {
   if (order.status !== "paid" && order.status !== "processing") return NextResponse.json({ error: "Comanda nu este gata de procesare." }, { status: 409 });
 
   try {
-    const prepared = order.product === "bundle" ? await prepareBundleOrder(order, secret) : await prepareSingleOrder(order, secret);
+    const prepared = order.product === "bundle"
+      ? await prepareBundleOrder(order, secret)
+      : order.product === "album"
+        ? await prepareAlbumOrder(order)
+        : await prepareSingleOrder(order, secret);
     if (!prepared.customerEmail || !prepared.deliveryExpiresAt) throw new Error("Comanda platita nu este pregatita pentru livrare.");
     const token = createDeliveryTokenForExpiry(prepared.id, prepared.deliveryExpiresAt);
     await sendReadyEmail({
@@ -143,6 +170,7 @@ export async function POST(request: Request) {
     const delivered = await setOrderStatus(prepared, "delivered");
     if (!delivered) throw new Error("Comanda nu a putut fi finalizata.");
     logTelemetry("pmm_order_delivered", { product: delivered.product, result: "success" });
+    if (delivered.product === "album") logTelemetry("pmm_album_stage_completed", { product: "album", result: "success", albumStage: "delivery" });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Order processing failed", error);

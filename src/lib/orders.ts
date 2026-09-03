@@ -2,7 +2,7 @@ import { GoogleAuth, OAuth2Client } from "google-auth-library";
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import type { CheckoutProductId } from "@/lib/catalog";
 
-export type OrderProduct = "story" | "monster" | "emergency" | "bundle";
+export type OrderProduct = "story" | "monster" | "emergency" | "bundle" | "album";
 export type OrderStatus = "draft" | "pending_payment" | "paid" | "processing" | "delivered" | "failed";
 export type InvoiceStatus = "pending" | "issuing" | "issued" | "failed" | "needs_review" | "not_required";
 
@@ -106,7 +106,7 @@ function fromFirestore(document: { name?: string; updateTime?: string; fields?: 
   const status = readString(fields, "status") as OrderStatus;
   const configuration = readJson(fields, "configuration");
   const invoiceStatus = readString(fields, "invoiceStatus") as InvoiceStatus;
-  if (!orderIdPattern.test(id) || !configuration || !["story", "monster", "emergency", "bundle"].includes(product) || !["draft", "pending_payment", "paid", "processing", "delivered", "failed"].includes(status)) return null;
+  if (!orderIdPattern.test(id) || !configuration || !["story", "monster", "emergency", "bundle", "album"].includes(product) || !["draft", "pending_payment", "paid", "processing", "delivered", "failed"].includes(status)) return null;
 
   return {
     id,
@@ -167,6 +167,7 @@ export function createOrderId() {
 }
 
 export function getProductFromId(productId: CheckoutProductId): OrderProduct {
+  if (productId === "illustrated-album-digital") return "album";
   if (productId === "family-bundle") return "bundle";
   if (productId === "night-shield") return "monster";
   if (productId === "patience-kit") return "emergency";
@@ -262,30 +263,45 @@ function storageBucket() {
   return bucket;
 }
 
-export async function saveOrderCover(orderId: string, imageDataUrl: string, basename = "cover") {
-  const match = /^data:(image\/(?:png|jpeg|webp));base64,([a-zA-Z0-9+/=]+)$/.exec(imageDataUrl);
-  if (!match) throw new Error("Coperta generata nu are un format valid.");
-  const mimeType = match[1];
-  const extension = mimeType === "image/jpeg" ? "jpg" : mimeType.split("/")[1];
-  const safeBasename = basename.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 40) || "cover";
+async function uploadOrderFile(orderId: string, data: Buffer, basename: string, mimeType: string, extension: string) {
+  const safeBasename = basename.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 60) || "file";
   const objectName = `orders/${orderId}/${safeBasename}.${extension}`;
   const token = await accessToken(TASKS_SCOPES);
   const response = await fetch(`https://storage.googleapis.com/upload/storage/v1/b/${encodeURIComponent(storageBucket())}/o?uploadType=media&name=${encodeURIComponent(objectName)}`, {
     method: "POST",
     headers: { Authorization: `Bearer ${token}`, "Content-Type": mimeType },
-    body: Buffer.from(match[2], "base64"),
+    body: new Uint8Array(data),
   });
   if (!response.ok) throw new Error(`Cloud Storage upload failed (${response.status}).`);
   return objectName;
 }
 
-export async function readOrderCover(objectName: string) {
+export async function saveOrderFile(orderId: string, data: Buffer, basename: string, mimeType: string) {
+  const extension = mimeType === "application/pdf" ? "pdf" : mimeType === "image/jpeg" ? "jpg" : mimeType.split("/")[1] || "bin";
+  return uploadOrderFile(orderId, data, basename, mimeType, extension);
+}
+
+export async function saveOrderCover(orderId: string, imageDataUrl: string, basename = "cover") {
+  const match = /^data:(image\/(?:png|jpeg|webp));base64,([a-zA-Z0-9+/=]+)$/.exec(imageDataUrl);
+  if (!match) throw new Error("Coperta generata nu are un format valid.");
+  const mimeType = match[1];
+  const extension = mimeType === "image/jpeg" ? "jpg" : mimeType.split("/")[1];
+  return uploadOrderFile(orderId, Buffer.from(match[2], "base64"), basename, mimeType, extension);
+}
+
+export async function readOrderFile(objectName: string) {
   const token = await accessToken(TASKS_SCOPES);
   const response = await fetch(`https://storage.googleapis.com/storage/v1/b/${encodeURIComponent(storageBucket())}/o/${encodeURIComponent(objectName)}?alt=media`, { headers: { Authorization: `Bearer ${token}` } });
   if (!response.ok) throw new Error(`Cloud Storage download failed (${response.status}).`);
-  const contentType = response.headers.get("content-type") || "image/png";
-  const image = Buffer.from(await response.arrayBuffer()).toString("base64");
-  return `data:${contentType};base64,${image}`;
+  return {
+    buffer: Buffer.from(await response.arrayBuffer()),
+    contentType: response.headers.get("content-type") || "application/octet-stream",
+  };
+}
+
+export async function readOrderCover(objectName: string) {
+  const file = await readOrderFile(objectName);
+  return `data:${file.contentType};base64,${file.buffer.toString("base64")}`;
 }
 
 function deliverySignature(orderId: string, expiresAt: string) {
@@ -336,7 +352,7 @@ async function enqueueOrderTask(orderId: string, siteUrl: string, taskType: "pro
   const response = await fetch(url, {
     method: "POST",
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ task: { name: taskName, httpRequest: { httpMethod: "POST", url: `${siteUrl}/api/orders/${taskType}`, headers: { "Content-Type": "application/json" }, body: Buffer.from(JSON.stringify({ orderId })).toString("base64"), oidcToken: { serviceAccountEmail, audience: siteUrl } } } }),
+    body: JSON.stringify({ task: { name: taskName, dispatchDeadline: taskType === "process" ? "1800s" : "300s", httpRequest: { httpMethod: "POST", url: `${siteUrl}/api/orders/${taskType}`, headers: { "Content-Type": "application/json" }, body: Buffer.from(JSON.stringify({ orderId })).toString("base64"), oidcToken: { serviceAccountEmail, audience: siteUrl } } } }),
   });
   if (response.status === 409) return;
   if (!response.ok) throw new Error(`Cloud Tasks request failed (${response.status}).`);

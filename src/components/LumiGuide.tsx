@@ -2,8 +2,9 @@
 
 import { Canvas, useFrame, useLoader } from "@react-three/fiber";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, BookOpen, LoaderCircle, MoonStar, Send, Sparkles, Square, TimerReset, Volume2, X } from "lucide-react";
+import { ArrowRight, BookHeart, BookOpen, LoaderCircle, MoonStar, Send, Sparkles, Square, TimerReset, Volume2, X } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import * as THREE from "three";
 import { trackEvent } from "@/lib/clientTelemetry";
 import { wantsLumiMaterialRecommendation } from "@/lib/lumiIntent";
@@ -12,7 +13,7 @@ import { openMobileProduct } from "@/lib/mobileProductFlow";
 
 const LUMI_NARRATION_OWNER = "lumi-guide";
 
-type ProductId = "story" | "monster" | "emergency" | "none";
+type ProductId = "story" | "album" | "monster" | "emergency" | "none";
 type Recommendation = {
   product: ProductId;
   theme: string;
@@ -42,6 +43,7 @@ type MomentMemory = {
 
 const quickPrompts = [
   { label: "O poveste pentru azi", prompt: "Vreau o poveste personalizată pentru seara asta.", icon: BookOpen },
+  { label: "Un album ilustrat", prompt: "Vreau o poveste foarte vizuală, cu multe ilustrații și puțin text pe pagină.", icon: BookHeart },
   { label: "O seară mai liniștită", prompt: "Avem nevoie de un ritual blând înainte de culcare.", icon: MoonStar },
   { label: "Timp de așteptare", prompt: "Avem un drum sau o perioadă de așteptare și vreau o activitate potrivită.", icon: TimerReset },
 ];
@@ -53,12 +55,14 @@ const welcomeMessage: ChatMessage = {
 
 const rememberedProducts: Record<MomentMemory["product"], string> = {
   story: "o poveste",
+  album: "un album ilustrat",
   monster: "un Scut de Noapte",
   emergency: "o Trusă de Răbdare",
 };
 
 const recommendationLabels: Record<Exclude<ProductId, "none">, string> = {
   story: "Deschide Povestea de Seară",
+  album: "Deschide Albumul Meu Magic",
   monster: "Deschide Scutul de Noapte",
   emergency: "Deschide Trusa de Răbdare",
 };
@@ -72,7 +76,7 @@ function readMomentMemory(): MomentMemory | null {
     const value = window.sessionStorage.getItem("pmm-lumi-last-moment");
     if (!value) return null;
     const parsed = JSON.parse(value) as Partial<MomentMemory>;
-    if ((parsed.product === "story" || parsed.product === "monster" || parsed.product === "emergency") && typeof parsed.helpful === "boolean") {
+    if ((parsed.product === "story" || parsed.product === "album" || parsed.product === "monster" || parsed.product === "emergency") && typeof parsed.helpful === "boolean") {
       return { product: parsed.product, helpful: parsed.helpful };
     }
   } catch {
@@ -147,14 +151,16 @@ function LumiVisual({ className }: { className: string }) {
 
 function recommendationTarget(product: ProductId) {
   if (product === "story") return "creator";
+  if (product === "album") return "album";
   if (product === "monster") return "monster-away";
   if (product === "emergency") return "emergency-kit";
   return null;
 }
 
 export default function LumiGuide() {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-  const [heroIsVisible, setHeroIsVisible] = useState(true);
+  const [heroIsVisible, setHeroIsVisible] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([welcomeMessage]);
   const [input, setInput] = useState("");
   const [inputHint, setInputHint] = useState("Sau scrie un detaliu...");
@@ -240,16 +246,25 @@ export default function LumiGuide() {
   const applyRecommendation = (recommendation: Recommendation) => {
     const target = recommendationTarget(recommendation.product);
     if (!target) return;
-    if (recommendation.product === "story" || recommendation.product === "monster" || recommendation.product === "emergency") {
+    if (recommendation.product === "story" || recommendation.product === "album" || recommendation.product === "monster" || recommendation.product === "emergency") {
       trackEvent("lumi_recommendation_applied", { product: recommendation.product });
     }
     if (recommendation.product === "story") {
       window.dispatchEvent(new CustomEvent("pmm:lumi-story-choice", { detail: recommendation }));
     }
+    if (recommendation.product === "album") {
+      if (window.location.pathname !== "/album-ilustrat") {
+        window.sessionStorage.setItem("pmm-lumi-album-choice", JSON.stringify(recommendation));
+        setIsOpen(false);
+        router.push("/album-ilustrat?lumi=1");
+        return;
+      }
+      window.dispatchEvent(new CustomEvent("pmm:lumi-album-choice", { detail: recommendation }));
+    }
     window.dispatchEvent(new CustomEvent("pmm:lumi-material-choice", { detail: recommendation }));
-    if (recommendation.product !== "none") {
+    if (recommendation.product === "story" || recommendation.product === "monster" || recommendation.product === "emergency") {
       openMobileProduct(recommendation.product);
-    } else {
+    } else if (recommendation.product === "none") {
       document.getElementById(target)?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
     setIsOpen(false);
@@ -376,7 +391,7 @@ export default function LumiGuide() {
                     <button type="button" onClick={() => void sendMessage(memoryPrompt(lastMoment))} className="mt-2 border-b border-brand-purple pb-0.5 text-[10px] font-black text-brand-purple transition-colors hover:border-brand-navy hover:text-brand-navy">Pornește de aici</button>
                   </div>
                 )}
-                <div className="grid grid-cols-3 gap-1.5">
+                <div className="grid grid-cols-2 gap-1.5">
                   {quickPrompts.map(({ label, prompt, icon: Icon }) => <button key={label} type="button" onClick={() => void sendMessage(prompt)} className="min-h-14 border border-brand-purple/20 bg-white/70 px-2 py-2 text-left text-[10px] font-black leading-tight text-brand-purple transition-colors hover:bg-brand-purple hover:text-white"><Icon size={14} className="mb-1" /> {label}</button>)}
                 </div>
               </div>

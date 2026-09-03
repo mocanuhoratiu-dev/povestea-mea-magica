@@ -1,4 +1,4 @@
-export type TransactionalEmailProduct = "story" | "monster" | "emergency" | "bundle";
+export type TransactionalEmailProduct = "story" | "monster" | "emergency" | "bundle" | "album";
 
 type ProductEmailCopy = {
   name: string;
@@ -37,6 +37,13 @@ export const productEmailCopy: Record<TransactionalEmailProduct, ProductEmailCop
     subject: "Pachetul Familiei Magice este gata",
     message: "Povestea, Scutul de Noapte și Trusa de Răbdare vă așteaptă, fiecare cu personalizarea pe care ați ales-o.",
   },
+  album: {
+    name: "Albumul Meu Magic",
+    eyebrow: "O lume întreagă a prins culoare",
+    title: "Albumul vostru ilustrat este gata",
+    subject: "Albumul Meu Magic este gata",
+    message: "Cartea ilustrată și caietul de activități sunt pregătite pentru citit, joacă și păstrat împreună.",
+  },
 };
 
 function escapeHtml(value: string) {
@@ -74,7 +81,7 @@ export function createReadyEmailHtml({
   const markUrl = `${siteUrl}/icon.png`;
   const hasSecureLink = deliveryMode === "secure-link" && Boolean(deliveryUrl);
   const calloutTitle = hasSecureLink
-    ? product === "bundle" ? "Cele trei materiale sunt pregătite." : "Materialul este pregătit."
+    ? product === "bundle" ? "Cele trei materiale sunt pregătite." : product === "album" ? "Cele două documente sunt pregătite." : "Materialul este pregătit."
     : "PDF-ul este atașat acestui email.";
   const calloutMessage = hasSecureLink
     ? "Linkul personal este valabil 30 de zile. De acolo poți deschide și descărca PDF-ul."
@@ -114,7 +121,7 @@ export function createReadyEmailHtml({
               </table>
             </td>
           </tr>
-          ${hasSecureLink ? `<tr><td style="padding:0 34px 32px;text-align:center;"><a href="${escapeHtml(deliveryUrl || "")}" style="display:inline-block;background:#8b5daf;color:#ffffff;font-size:14px;font-weight:700;line-height:20px;padding:13px 22px;text-decoration:none;border-radius:6px;">${product === "bundle" ? "Deschide pachetul" : "Deschide materialul"}</a></td></tr>` : ""}
+        ${hasSecureLink ? `<tr><td style="padding:0 34px 32px;text-align:center;"><a href="${escapeHtml(deliveryUrl || "")}" style="display:inline-block;background:#8b5daf;color:#ffffff;font-size:14px;font-weight:700;line-height:20px;padding:13px 22px;text-decoration:none;border-radius:6px;">${product === "bundle" ? "Deschide pachetul" : product === "album" ? "Deschide albumul" : "Deschide materialul"}</a></td></tr>` : ""}
           <tr>
             <td style="padding:0 34px 30px;text-align:center;">
               <a href="${siteUrl}" style="color:#24324f;font-size:12px;font-weight:700;line-height:18px;text-decoration:underline;text-underline-offset:3px;">Înapoi la Povestea Mea Magică</a>

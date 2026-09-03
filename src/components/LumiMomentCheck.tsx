@@ -14,6 +14,7 @@ const productQuestions: Record<TelemetryProduct, string> = {
   monster: "Scutul de Noapte potrivit",
   emergency: "Trusa de Răbdare potrivită",
   bundle: "pachetul potrivit",
+  album: "albumul ilustrat potrivit",
 };
 
 /** Keeps only a small, browser-local preference for Lumi's next suggestion. */

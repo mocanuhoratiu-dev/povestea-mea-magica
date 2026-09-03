@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { readAlbumConfiguration } from "@/lib/album/schema";
 import { isCheckoutProductId } from "@/lib/catalog";
 import { readBundleConfiguration } from "@/lib/bundle";
 import { createOrder, isOrderStoreConfigured } from "@/lib/orders";
@@ -31,6 +32,9 @@ export async function POST(request: Request) {
     if (!clean) return NextResponse.json({ error: "Datele materialului nu sunt valide." }, { status: 400 });
     if (productId === "family-bundle" && !readBundleConfiguration(clean)) {
       return NextResponse.json({ error: "Pachetul trebuie să conțină toate cele trei materiale personalizate." }, { status: 400 });
+    }
+    if (productId === "illustrated-album-digital" && !readAlbumConfiguration(clean)) {
+      return NextResponse.json({ error: "Verifică toate detaliile albumului înainte de plată." }, { status: 400 });
     }
     const order = await createOrder(productId, clean);
     return NextResponse.json({ orderId: order.id });
