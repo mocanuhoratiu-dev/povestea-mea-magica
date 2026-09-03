@@ -53,6 +53,8 @@ export async function POST(request: Request) {
   if (!stripe) return NextResponse.json({ error: checkoutUnavailable }, { status: 503 });
   const cancelUrl = productId === "illustrated-album-digital"
     ? `${siteUrl}/album-ilustrat?plata=anulata`
+    : productId === "complete-bundle"
+      ? `${siteUrl}/pachet-complet?plata=anulata`
     : productId === "family-bundle"
       ? `${siteUrl}/pachet?plata=anulata`
       : `${siteUrl}/?plata=anulata`;
@@ -85,7 +87,7 @@ export async function POST(request: Request) {
       metadata: {
         product_id: product.id,
         order_id: order.id,
-        catalog_version: "2026-09",
+        catalog_version: "2026-09-complete-bundle",
       },
       // No child name, story text or other personalisation is sent to Stripe.
     });

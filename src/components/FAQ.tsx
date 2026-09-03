@@ -31,7 +31,7 @@ const faqs = [
   },
   {
     question: "Care sunt prețurile?",
-    answer: "Povestea scurtă costă 19 lei, cea lungă 29 lei, iar fiecare kit costă 19 lei. Pachetul Familiei Magice costă 49 lei. Albumul Meu Magic costă 59 lei și include cartea ilustrată și caietul separat de activități.",
+    answer: "Povestea scurtă costă 19 lei, cea lungă 29 lei, iar fiecare kit costă 19 lei. Pachetul Familiei Magice costă 49 lei, iar Albumul Meu Magic costă 59 lei. Pachetul Complet costă 99 lei și le reunește pe toate în cinci PDF-uri.",
   },
   {
     question: "Sunt materialele un sfat medical sau terapeutic?",

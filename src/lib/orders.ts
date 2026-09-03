@@ -168,7 +168,7 @@ export function createOrderId() {
 
 export function getProductFromId(productId: CheckoutProductId): OrderProduct {
   if (productId === "illustrated-album-digital") return "album";
-  if (productId === "family-bundle") return "bundle";
+  if (productId === "family-bundle" || productId === "complete-bundle") return "bundle";
   if (productId === "night-shield") return "monster";
   if (productId === "patience-kit") return "emergency";
   return "story";

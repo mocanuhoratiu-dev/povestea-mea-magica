@@ -168,10 +168,15 @@ export default function ProductExamples() {
             </motion.article>
           ))}
         </div>
-        <div className="mt-10 grid gap-6 border-y border-brand-gold/55 bg-brand-navy px-5 py-7 text-brand-cream sm:grid-cols-[auto_1fr_auto] sm:items-center sm:px-7 md:mt-12">
-          <span className="grid h-12 w-12 place-items-center rounded-md bg-brand-gold text-brand-navy"><Gift size={24} /></span>
-          <div><p className="text-xs font-black uppercase tracking-[0.14em] text-brand-gold">Oferta completă</p><h3 className="mt-2 font-serif text-2xl">Pachetul Familiei Magice · 49 lei</h3><p className="mt-2 text-sm font-semibold leading-relaxed text-brand-cream/70">O poveste lungă, un Scut de Noapte și o Trusă de Răbdare. Fiecare poate fi personalizat pentru alt copil.</p></div>
-          <a href="/pachet" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-brand-purple px-5 text-sm font-black text-white transition-colors hover:bg-brand-gold hover:text-brand-navy">Personalizează pachetul <ArrowRight size={17} /></a>
+        <div className="mt-10 grid gap-px bg-brand-gold/55 md:mt-12 lg:grid-cols-2">
+          <article className="grid gap-5 bg-brand-navy px-5 py-7 text-brand-cream sm:grid-cols-[auto_1fr] sm:px-7">
+            <span className="grid h-12 w-12 place-items-center rounded-md bg-brand-gold text-brand-navy"><Gift size={24} /></span>
+            <div><p className="text-xs font-black uppercase tracking-[0.14em] text-brand-gold">Pentru momentele de zi cu zi</p><h3 className="mt-2 font-serif text-2xl">Pachetul Familiei · 49 lei</h3><p className="mt-2 text-sm font-semibold leading-relaxed text-brand-cream/70">Poveste lungă, Scut de Noapte și Trusă de Răbdare.</p><a href="/pachet" className="mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-brand-purple px-5 text-sm font-black text-white transition-colors hover:bg-brand-gold hover:text-brand-navy">Personalizează <ArrowRight size={17} /></a></div>
+          </article>
+          <article className="grid gap-5 bg-brand-purple px-5 py-7 text-white sm:grid-cols-[auto_1fr] sm:px-7">
+            <span className="grid h-12 w-12 place-items-center rounded-md bg-brand-gold text-brand-navy"><BookHeart size={24} /></span>
+            <div><p className="text-xs font-black uppercase tracking-[0.14em] text-brand-gold">Întreaga colecție digitală</p><h3 className="mt-2 font-serif text-2xl">Pachetul Complet · 99 lei</h3><p className="mt-2 text-sm font-semibold leading-relaxed text-white/75">Tot ce include pachetul familiei, plus cartea ilustrată și caietul de activități.</p><a href="/pachet-complet" className="mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-brand-gold px-5 text-sm font-black text-brand-navy transition-colors hover:bg-brand-cream">Alege tot <ArrowRight size={17} /></a></div>
+          </article>
         </div>
       </div>
     </section>

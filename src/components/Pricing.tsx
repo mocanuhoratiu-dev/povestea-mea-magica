@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Check, Gift, Sparkles } from "lucide-react";
+import { ArrowRight, BookHeart, Check, Gift, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { commerce } from "@/lib/siteMode";
 
@@ -100,10 +100,15 @@ export default function Pricing() {
             </motion.article>
           ))}
         </div>
-        <div className="mt-8 grid gap-6 border-y border-brand-gold/60 bg-brand-navy px-6 py-8 text-brand-cream md:grid-cols-[auto_1fr_auto] md:items-center">
-          <span className="grid h-14 w-14 place-items-center rounded-md bg-brand-gold text-brand-navy"><Gift size={26} /></span>
-          <div><p className="text-xs font-black uppercase tracking-[0.14em] text-brand-gold">Economisești 18 lei</p><h3 className="mt-2 font-serif text-3xl">Pachetul Familiei Magice</h3><p className="mt-2 max-w-2xl text-sm font-semibold leading-relaxed text-brand-cream/70">Poveste lungă, Scut de Noapte și Trusă de Răbdare, cu personalizare separată pentru fiecare material.</p></div>
-          <div className="md:text-right"><p className="font-nunito text-4xl font-black text-brand-gold">49 lei</p><a href="/pachet" className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-md bg-brand-purple px-5 text-sm font-black text-white">Alege pachetul <ArrowRight size={16} /></a></div>
+        <div className="mt-8 grid gap-px bg-brand-gold/60 lg:grid-cols-2">
+          <article className="grid gap-6 bg-brand-navy px-6 py-8 text-brand-cream sm:grid-cols-[auto_1fr]">
+            <span className="grid h-14 w-14 place-items-center rounded-md bg-brand-gold text-brand-navy"><Gift size={26} /></span>
+            <div><p className="text-xs font-black uppercase tracking-[0.14em] text-brand-gold">Economisești 18 lei</p><h3 className="mt-2 font-serif text-3xl">Pachetul Familiei Magice</h3><p className="mt-2 text-sm font-semibold leading-relaxed text-brand-cream/70">Poveste lungă, Scut de Noapte și Trusă de Răbdare.</p><div className="mt-5 flex flex-wrap items-center justify-between gap-4"><p className="font-nunito text-4xl font-black text-brand-gold">49 lei</p><a href="/pachet" className="inline-flex min-h-11 items-center gap-2 rounded-md bg-brand-purple px-5 text-sm font-black text-white">Alege pachetul <ArrowRight size={16} /></a></div></div>
+          </article>
+          <article className="grid gap-6 bg-brand-purple px-6 py-8 text-white sm:grid-cols-[auto_1fr]">
+            <span className="grid h-14 w-14 place-items-center rounded-md bg-brand-gold text-brand-navy"><BookHeart size={26} /></span>
+            <div><p className="text-xs font-black uppercase tracking-[0.14em] text-brand-gold">Economisești 27 lei</p><h3 className="mt-2 font-serif text-3xl">Pachetul Complet</h3><p className="mt-2 text-sm font-semibold leading-relaxed text-white/75">Cele trei materiale, cartea ilustrată și caietul de activități.</p><div className="mt-5 flex flex-wrap items-center justify-between gap-4"><p className="font-nunito text-4xl font-black text-brand-gold">99 lei</p><a href="/pachet-complet" className="inline-flex min-h-11 items-center gap-2 rounded-md bg-brand-gold px-5 text-sm font-black text-brand-navy">Alege tot <ArrowRight size={16} /></a></div></div>
+          </article>
         </div>
       </div>
     </section>

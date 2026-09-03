@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function BundlePage() {
   return (
-    <CommercialPage eyebrow="Pachet complet · 49 lei" title="Trei materiale pentru trei momente ale familiei." description="Pregătești separat povestea, ritualul de seară și activitățile de așteptare. Pot fi pentru același copil sau pentru copii diferiți, iar plata se face o singură dată.">
+    <CommercialPage eyebrow="Pachetul Familiei · 49 lei" title="Trei materiale pentru trei momente ale familiei." description="Pregătești separat povestea, ritualul de seară și activitățile de așteptare. Pot fi pentru același copil sau pentru copii diferiți, iar plata se face o singură dată.">
       <BundleConfigurator />
     </CommercialPage>
   );

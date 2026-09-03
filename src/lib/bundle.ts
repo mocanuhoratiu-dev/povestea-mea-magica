@@ -1,6 +1,9 @@
-export const bundleProducts = ["story", "monster", "emergency"] as const;
+export const familyBundleProducts = ["story", "monster", "emergency"] as const;
+export const completeBundleProducts = ["story", "monster", "emergency", "album"] as const;
+export const bundleProducts = completeBundleProducts;
 
 export type BundleProduct = (typeof bundleProducts)[number];
+export type BundleVariant = "family" | "complete";
 
 export type BundleConfigurationItem = {
   product: BundleProduct;
@@ -13,6 +16,16 @@ export type BundleOutputItem = {
   coverObjectName?: string;
 };
 
+export function bundleVariantForProductId(productId: string): BundleVariant | null {
+  if (productId === "family-bundle") return "family";
+  if (productId === "complete-bundle") return "complete";
+  return null;
+}
+
+export function productsForBundleVariant(variant: BundleVariant) {
+  return variant === "complete" ? completeBundleProducts : familyBundleProducts;
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
@@ -21,8 +34,16 @@ function isBundleProduct(value: unknown): value is BundleProduct {
   return typeof value === "string" && bundleProducts.includes(value as BundleProduct);
 }
 
-export function readBundleConfiguration(value: unknown): BundleConfigurationItem[] | null {
-  if (!isRecord(value) || !Array.isArray(value.items) || value.items.length !== bundleProducts.length) return null;
+export function readBundleConfiguration(value: unknown, variant?: BundleVariant): BundleConfigurationItem[] | null {
+  if (!isRecord(value) || !Array.isArray(value.items)) return null;
+  const inferredVariant = value.items.length === completeBundleProducts.length
+    ? "complete"
+    : value.items.length === familyBundleProducts.length
+      ? "family"
+      : null;
+  const resolvedVariant = variant || inferredVariant;
+  if (!resolvedVariant || (variant && inferredVariant !== variant)) return null;
+  const expectedProducts = productsForBundleVariant(resolvedVariant);
 
   const items: BundleConfigurationItem[] = [];
   for (const rawItem of value.items) {
@@ -33,7 +54,7 @@ export function readBundleConfiguration(value: unknown): BundleConfigurationItem
   }
 
   const products = new Set(items.map((item) => item.product));
-  return products.size === bundleProducts.length && bundleProducts.every((product) => products.has(product)) ? items : null;
+  return products.size === expectedProducts.length && expectedProducts.every((product) => products.has(product)) ? items : null;
 }
 
 export function readBundleOutput(value: unknown): BundleOutputItem[] {

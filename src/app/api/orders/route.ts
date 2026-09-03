@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { readAlbumConfiguration } from "@/lib/album/schema";
 import { isCheckoutProductId } from "@/lib/catalog";
-import { readBundleConfiguration } from "@/lib/bundle";
+import { bundleVariantForProductId, readBundleConfiguration } from "@/lib/bundle";
 import { createOrder, isOrderStoreConfigured } from "@/lib/orders";
 import { checkRateLimit, requestExceedsBodyLimit } from "@/lib/requestProtection";
 
@@ -30,8 +30,16 @@ export async function POST(request: Request) {
     if (!isCheckoutProductId(productId)) return NextResponse.json({ error: "Produsul selectat nu este disponibil." }, { status: 400 });
     const clean = cleanConfiguration(configuration);
     if (!clean) return NextResponse.json({ error: "Datele materialului nu sunt valide." }, { status: 400 });
-    if (productId === "family-bundle" && !readBundleConfiguration(clean)) {
-      return NextResponse.json({ error: "Pachetul trebuie să conțină toate cele trei materiale personalizate." }, { status: 400 });
+    const bundleVariant = bundleVariantForProductId(productId);
+    if (bundleVariant) {
+      const bundle = readBundleConfiguration(clean, bundleVariant);
+      if (!bundle) {
+        return NextResponse.json({ error: bundleVariant === "complete" ? "Pachetul trebuie să conțină toate cele patru produse personalizate." : "Pachetul trebuie să conțină toate cele trei produse personalizate." }, { status: 400 });
+      }
+      const album = bundle.find((item) => item.product === "album");
+      if (bundleVariant === "complete" && (!album || !readAlbumConfiguration(album.configuration))) {
+        return NextResponse.json({ error: "Verifică toate detaliile albumului din pachet înainte de plată." }, { status: 400 });
+      }
     }
     if (productId === "illustrated-album-digital" && !readAlbumConfiguration(clean)) {
       return NextResponse.json({ error: "Verifică toate detaliile albumului înainte de plată." }, { status: 400 });

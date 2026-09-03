@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { createAlbumOrderOutput } from "@/lib/album/orchestrator";
-import { readAlbumConfiguration } from "@/lib/album/schema";
-import { readBundleConfiguration, readBundleOutput, type BundleOutputItem } from "@/lib/bundle";
-import { createReadyEmailHtml, createReadyEmailSubject, createReadyEmailText } from "@/lib/emailTemplates";
+import { readAlbumConfiguration, readAlbumOutput } from "@/lib/album/schema";
+import { bundleVariantForProductId, readBundleConfiguration, readBundleOutput, type BundleOutputItem } from "@/lib/bundle";
+import { createReadyEmailHtml, createReadyEmailSubject, createReadyEmailText, type TransactionalEmailProduct } from "@/lib/emailTemplates";
 import { createDeliveryToken, createDeliveryTokenForExpiry, createOrderDeliveryUrl, getOrder, saveOrderCover, setOrderStatus, verifyTaskIdentity, type OrderProduct, type StoredOrder } from "@/lib/orders";
 import { siteUrl } from "@/lib/siteMode";
 import { logTelemetry } from "@/lib/telemetry";
@@ -20,7 +20,7 @@ function readChildName(configuration: Record<string, unknown>) {
   return typeof name === "string" ? name.replace(/[^\p{L}\p{M}\s'-]/gu, "").replace(/\s+/g, " ").trim().slice(0, 40) : "";
 }
 
-async function sendReadyEmail({ email, product, deliveryUrl, orderId, childName = "" }: { email: string; product: OrderProduct; deliveryUrl: string; orderId: string; childName?: string }) {
+async function sendReadyEmail({ email, product, deliveryUrl, orderId, childName = "" }: { email: string; product: TransactionalEmailProduct; deliveryUrl: string; orderId: string; childName?: string }) {
   const apiKey = process.env.RESEND_API_KEY?.trim();
   const from = process.env.EMAIL_FROM?.trim();
   if (!apiKey || !from) throw new Error("Emailul transactional nu este configurat.");
@@ -113,18 +113,42 @@ async function prepareAlbumOrder(order: StoredOrder) {
 }
 
 async function prepareBundleOrder(order: StoredOrder, secret: string) {
-  const configuredItems = readBundleConfiguration(order.configuration);
+  const variant = bundleVariantForProductId(order.productId);
+  const configuredItems = variant ? readBundleConfiguration(order.configuration, variant) : null;
   if (!configuredItems) throw new Error("Configuratia pachetului este invalida.");
 
   let prepared = order.status === "paid" ? await setOrderStatus(order, "processing") : order;
   if (!prepared) throw new Error("Pachetul nu a putut fi blocat pentru procesare.");
   let completedItems = readBundleOutput(prepared.output);
 
+  const upsertItem = (nextItem: BundleOutputItem) => [
+    ...completedItems.filter((completed) => completed.product !== nextItem.product),
+    nextItem,
+  ];
+
   for (const item of configuredItems) {
-    if (completedItems.some((completed) => completed.product === item.product)) continue;
+    const existing = completedItems.find((completed) => completed.product === item.product);
+    if (item.product === "album") {
+      const albumConfiguration = readAlbumConfiguration(item.configuration);
+      if (!albumConfiguration) throw new Error("Configuratia albumului din pachet este invalida.");
+      if (readAlbumOutput(existing?.output)?.documents) continue;
+      await createAlbumOrderOutput({
+        orderId: prepared.id,
+        configuration: albumConfiguration,
+        existing: existing?.output,
+        checkpoint: async (albumOutput) => {
+          completedItems = upsertItem({ product: "album", output: albumOutput });
+          const checkpoint = await setOrderStatus(prepared as StoredOrder, "processing", { output: { items: completedItems } });
+          if (!checkpoint) throw new Error("Pachetul nu a putut salva progresul albumului.");
+          prepared = checkpoint;
+        },
+      });
+      continue;
+    }
+    if (existing) continue;
     const generated = await generateMaterial({ orderId: prepared.id, product: item.product, configuration: item.configuration, secret, coverBasename: `${item.product}-cover` });
     const completed: BundleOutputItem = { product: item.product, output: generated.output, ...(generated.coverObjectName ? { coverObjectName: generated.coverObjectName } : {}) };
-    completedItems = [...completedItems, completed];
+    completedItems = upsertItem(completed);
     const checkpoint = await setOrderStatus(prepared, "processing", { output: { items: completedItems } });
     if (!checkpoint) throw new Error(`Pachetul nu a putut salva materialul ${item.product}.`);
     prepared = checkpoint;
@@ -154,7 +178,7 @@ export async function POST(request: Request) {
     const token = createDeliveryTokenForExpiry(prepared.id, prepared.deliveryExpiresAt);
     await sendReadyEmail({
       email: prepared.customerEmail,
-      product: prepared.product,
+      product: prepared.productId === "complete-bundle" ? "complete_bundle" : prepared.product,
       deliveryUrl: createOrderDeliveryUrl(prepared, token, siteUrl),
       orderId: prepared.id,
       childName: prepared.product === "bundle" ? "" : readChildName(prepared.configuration),

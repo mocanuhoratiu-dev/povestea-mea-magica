@@ -16,11 +16,12 @@ const offers = [
   { title: "Scutul de Noapte", price: commerce.prices.nightShield, description: "Un ritual simbolic pentru seară, construit în jurul unei frici și a lucrurilor care liniștesc copilul.", details: ["Certificat personalizat", "Ritual simplu, de repetat împreună", "Etichete pentru flacon"], href: "/#monster-away", cta: "Personalizează Scutul", icon: ShieldCheck },
   { title: "Trusa de Răbdare", price: commerce.prices.patienceKit, description: "Activități printabile pentru momentele de așteptare: drum, restaurant, doctor, aeroport sau acasă.", details: ["7 pagini A4 de activități", "Misiuni adaptate contextului", "Diplomă de final"], href: "/#emergency-kit", cta: "Personalizează Trusa", icon: TimerReset },
   { title: "Pachetul Familiei Magice", price: commerce.prices.familyBundle, description: "Toate cele trei materiale într-o singură comandă, cu personalizare independentă pentru fiecare copil și fiecare moment.", details: ["Poveste lungă, Scut de Noapte și Trusă de Răbdare", "Poți folosi aceleași date sau copii diferiți", "O singură plată și trei materiale de descărcat"], href: "/pachet", cta: "Personalizează pachetul", icon: Gift },
+  { title: "Pachetul Complet", price: commerce.prices.completeBundle, description: "Întreaga colecție digitală: cele trei materiale ale familiei și experiența vizuală premium a albumului.", details: ["Poveste lungă, Scut de Noapte și Trusă de Răbdare", "Carte ilustrată de 16 pagini și caiet de activități de 8 pagini", "Cinci PDF-uri, personalizate separat, într-o singură comandă"], href: "/pachet-complet", cta: "Alege pachetul complet", icon: BookHeart },
 ];
 
 export default function PricingPage() {
   return (
-    <CommercialPage eyebrow="Prețuri transparente" title="Alegi materialul, vezi prețul, apoi începi." description="Prețurile sunt finale și sunt afișate înainte de plata securizată. Pachetul complet reunește toate cele trei materiale la un preț mai bun.">
+    <CommercialPage eyebrow="Prețuri transparente" title="Alegi materialul, vezi prețul, apoi începi." description="Prețurile sunt finale și sunt afișate înainte de plata securizată. Poți alege un singur produs, pachetul familiei sau întreaga colecție digitală.">
       <section className="px-6 py-16 md:py-20">
         <div className="mx-auto max-w-5xl border-y border-brand-gold/45 bg-brand-gold/10 px-6 py-6 text-center">
           <p className="text-sm font-black text-brand-navy">{siteCopy.paymentNotice}</p>

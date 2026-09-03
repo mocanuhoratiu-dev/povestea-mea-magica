@@ -16,7 +16,7 @@ export default function Navbar() {
     { label: "Album ilustrat", href: "/album-ilustrat" },
     { label: "Scutul de noapte", href: "/#monster-away" },
     { label: "Trusa de răbdare", href: "/#emergency-kit" },
-    { label: "Pachetul complet", href: "/pachet" },
+    { label: "Pachete", href: "/preturi" },
     { label: "Modele", href: "/modele" },
     { label: "Despre", href: "/despre" },
   ];

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { readAlbumOutput } from "@/lib/album/schema";
+import { bundleVariantForProductId, readBundleConfiguration, readBundleOutput } from "@/lib/bundle";
 import { getOrder, isValidDeliveryToken, readOrderFile } from "@/lib/orders";
 
 export const runtime = "nodejs";
@@ -17,12 +18,20 @@ export async function GET(request: Request, { params }: { params: Promise<{ orde
   if (requestedFile !== "storybook" && requestedFile !== "activities") return NextResponse.json({ error: "Document necunoscut." }, { status: 400 });
 
   const order = await getOrder(orderId);
-  const album = order?.product === "album" ? readAlbumOutput(order.output) : null;
+  const requestedItem = url.searchParams.get("item");
+  const bundleVariant = order ? bundleVariantForProductId(order.productId) : null;
+  const bundleAlbum = order?.product === "bundle" && requestedItem === "album"
+    ? readBundleOutput(order.output).find((item) => item.product === "album")
+    : null;
+  const album = order?.product === "album" ? readAlbumOutput(order.output) : readAlbumOutput(bundleAlbum?.output);
+  const bundleAlbumConfiguration = order && bundleVariant
+    ? readBundleConfiguration(order.configuration, bundleVariant)?.find((item) => item.product === "album")?.configuration
+    : null;
   if (!order || order.status !== "delivered" || !album?.documents) return NextResponse.json({ error: "Documentul nu este pregătit." }, { status: 404 });
 
   const objectName = requestedFile === "storybook" ? album.documents.storybook : album.documents.activityBooklet;
   const file = await readOrderFile(objectName);
-  const generation = order.configuration.generation;
+  const generation = order.product === "album" ? order.configuration.generation : bundleAlbumConfiguration?.generation;
   const name = generation && typeof generation === "object" && !Array.isArray(generation)
     ? safeFilename(String((generation as Record<string, unknown>).name || "copil"))
     : "copil";
@@ -37,4 +46,3 @@ export async function GET(request: Request, { params }: { params: Promise<{ orde
     },
   });
 }
-

@@ -10,6 +10,7 @@ type OrderStatus = "draft" | "pending_payment" | "paid" | "processing" | "delive
 type CheckoutStatus = {
   status: OrderStatus;
   product?: OrderProduct;
+  productId?: string;
   progress?: AlbumPublicProgress;
   deliveryUrl?: string;
   delayed?: boolean;
@@ -30,7 +31,7 @@ function activePresentation(status?: CheckoutStatus) {
   if (status.status === "paid") {
     return { label: "Comanda este confirmată", detail: "Atelierul pornește în câteva clipe.", percent: 8 };
   }
-  if (status.product === "album") return albumProgressPresentation(status.progress);
+  if (status.product === "album" || status.productId === "complete-bundle") return albumProgressPresentation(status.progress);
   return { label: "Creăm materialul vostru", detail: "Personalizarea și documentul sunt în lucru.", percent: 58 };
 }
 
@@ -82,7 +83,11 @@ export default function OrderConfirmationClient() {
   }, [attempt]);
 
   const presentation = useMemo(() => activePresentation(order || undefined), [order]);
-  const productName = order?.product ? productNames[order.product] : "materialul vostru";
+  const productName = order?.productId === "complete-bundle"
+    ? "Pachetul Complet"
+    : order?.product
+      ? productNames[order.product]
+      : "materialul vostru";
 
   if (state === "ready" && order?.deliveryUrl) {
     return (

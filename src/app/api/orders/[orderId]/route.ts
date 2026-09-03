@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { readAlbumOutput } from "@/lib/album/schema";
-import { bundleProducts, readBundleConfiguration, readBundleOutput, type BundleProduct } from "@/lib/bundle";
+import { bundleProducts, bundleVariantForProductId, readBundleConfiguration, readBundleOutput, type BundleProduct } from "@/lib/bundle";
 import { getOrder, isValidDeliveryToken, readOrderCover } from "@/lib/orders";
 
 export const runtime = "nodejs";
@@ -34,9 +34,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ orde
 
   const requestedItem = new URL(request.url).searchParams.get("item");
   if (order.product === "bundle") {
-    const configuredItems = readBundleConfiguration(order.configuration);
+    const variant = bundleVariantForProductId(order.productId);
+    const configuredItems = variant ? readBundleConfiguration(order.configuration, variant) : null;
     const outputItems = readBundleOutput(order.output);
-    if (!configuredItems || outputItems.length !== bundleProducts.length) return NextResponse.json({ error: "Pachetul nu este complet." }, { status: 409 });
+    if (!configuredItems || outputItems.length !== configuredItems.length || configuredItems.some((item) => !outputItems.some((output) => output.product === item.product))) {
+      return NextResponse.json({ error: "Pachetul nu este complet." }, { status: 409 });
+    }
 
     if (!requestedItem) {
       return NextResponse.json({
@@ -49,6 +52,23 @@ export async function GET(request: Request, { params }: { params: Promise<{ orde
     const configured = configuredItems.find((item) => item.product === requestedItem);
     const generated = outputItems.find((item) => item.product === requestedItem);
     if (!configured || !generated) return NextResponse.json({ error: "Materialul nu este pregatit." }, { status: 404 });
+    if (generated.product === "album") {
+      const album = readAlbumOutput(generated.output);
+      const generation = configured.configuration.generation;
+      const name = generation && typeof generation === "object" && !Array.isArray(generation)
+        ? String((generation as Record<string, unknown>).name || "").slice(0, 40)
+        : "";
+      if (!album?.documents || !album.plan) return NextResponse.json({ error: "Albumul nu este complet." }, { status: 409 });
+      return NextResponse.json({
+        product: "album",
+        childName: name,
+        title: album.plan.title,
+        documents: [
+          { id: "storybook", label: "Cartea ilustrată", pages: 16 },
+          { id: "activities", label: "Caietul de activități", pages: 8 },
+        ],
+      });
+    }
     const coverImageDataUrl = generated.coverObjectName ? await readOrderCover(generated.coverObjectName) : "";
     return NextResponse.json({ product: generated.product, configuration: configured.configuration, output: generated.output, coverImageDataUrl });
   }

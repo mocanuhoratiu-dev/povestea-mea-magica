@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { readAlbumOutput } from "@/lib/album/schema";
+import { readBundleOutput } from "@/lib/bundle";
 import { createDeliveryTokenForExpiry, createOrderDeliveryUrl, getOrder } from "@/lib/orders";
 import { checkRateLimit } from "@/lib/requestProtection";
 import { siteUrl } from "@/lib/siteMode";
@@ -37,10 +38,15 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Comanda nu a fost găsită." }, { status: 404, headers: { "Cache-Control": "no-store" } });
     }
 
-    const album = order.product === "album" ? readAlbumOutput(order.output) : null;
+    const album = order.product === "album"
+      ? readAlbumOutput(order.output)
+      : order.productId === "complete-bundle"
+        ? readAlbumOutput(readBundleOutput(order.output).find((item) => item.product === "album")?.output)
+        : null;
     const response: Record<string, unknown> = {
       status: order.status,
       product: order.product,
+      productId: order.productId,
       ...(album?.progress ? { progress: album.progress } : {}),
       delayed: order.status === "processing" && Date.now() - Date.parse(order.updatedAt) > 20 * 60 * 1000,
     };
