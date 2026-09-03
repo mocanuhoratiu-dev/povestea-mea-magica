@@ -88,7 +88,20 @@ async function generateVertexImage({
   }
   const reference = parseReferenceImage(referenceImageDataUrl);
   const contents = reference
-    ? [{ role: "user", parts: [{ inlineData: reference }, { text: cleanPrompt }] }]
+    ? [{
+        role: "user",
+        parts: [
+          { inlineData: reference },
+          {
+            text: [
+              "Use the attached image only as the authoritative character-design reference.",
+              "Preserve the child's face, age, skin tone, hairstyle, hair color, outfit palette and the companion's design exactly; do not redesign them.",
+              "Create a new composition and action for this page, without copying the reference background or pose.",
+              cleanPrompt,
+            ].join(" "),
+          },
+        ],
+      }]
     : cleanPrompt;
 
   for (const model of getImageModels()) {

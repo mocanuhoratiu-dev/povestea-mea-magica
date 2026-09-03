@@ -115,8 +115,8 @@ function drawPageNumber(doc: jsPDF, pageNumber: number, darkPanel = false) {
 
 function storyPanelRect(position: AlbumPanelPosition) {
   const margin = 7;
-  const width = position === "bottom" ? PAGE_W - margin * 2 : 96;
-  const height = position === "bottom" ? 32 : 42;
+  const width = position === "bottom" ? PAGE_W - margin * 2 : 100;
+  const height = position === "bottom" ? 35 : 47;
   const positions: Record<AlbumPanelPosition, [number, number]> = {
     "top-left": [margin, margin],
     "top-right": [PAGE_W - width - margin, margin],
@@ -137,7 +137,7 @@ function drawStoryPanel(doc: jsPDF, scene: AlbumPlan["scenes"][number], pageNumb
   doc.roundedRect(x + 1.4, y + 1.4, width - 2.8, height - 2.8, 1.5, 1.5, "S");
 
   doc.setFont("Liberation", "bold");
-  doc.setFontSize(7.4);
+  doc.setFontSize(8);
   doc.setTextColor(dark ? GOLD_LIGHT : BLUE);
   const headingLines = doc.splitTextToSize(scene.heading.toLocaleUpperCase("ro-RO"), width - 10) as string[];
   if (headingLines.length > 2) throw new Error(`Titlul scenei ${pageNumber} nu încape în panou.`);
@@ -147,20 +147,20 @@ function drawStoryPanel(doc: jsPDF, scene: AlbumPlan["scenes"][number], pageNumb
   doc.setTextColor(dark ? CREAM : INK);
   const bodyY = y + 9.5 + headingLines.length * 3.2;
   const availableHeight = y + height - 5 - bodyY;
-  let bodyFontSize = scene.text.length > 340 ? 8.2 : 8.8;
+  let bodyFontSize = scene.panelPosition === "bottom" ? 11.2 : 10.8;
   let lines: string[] = [];
   let lineHeight = 0;
-  while (bodyFontSize >= 7.2) {
+  while (bodyFontSize >= 9.2) {
     doc.setFontSize(bodyFontSize);
     lines = doc.splitTextToSize(scene.text, width - 10) as string[];
-    lineHeight = bodyFontSize * 0.3528 * 1.22;
+    lineHeight = bodyFontSize * 0.3528 * 1.18;
     if (lines.length * lineHeight <= availableHeight) break;
     bodyFontSize -= 0.25;
   }
-  if (bodyFontSize < 7.2 || lines.length * lineHeight > availableHeight) {
+  if (bodyFontSize < 9.2 || lines.length * lineHeight > availableHeight) {
     throw new Error(`Textul scenei ${pageNumber} nu încape în panou.`);
   }
-  doc.text(lines, x + 5, bodyY, { lineHeightFactor: 1.22 });
+  doc.text(lines, x + 5, bodyY, { lineHeightFactor: 1.18 });
   drawPageNumber(doc, pageNumber, dark);
 }
 

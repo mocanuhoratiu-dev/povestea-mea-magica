@@ -84,7 +84,10 @@ function parsePlan(text: string, input: AlbumGenerationInput, model: string): Al
       ? scene.panelPosition as AlbumPanelPosition
       : (["bottom", "top-left", "top-right", "bottom-left", "bottom-right"] as AlbumPanelPosition[])[index % 5];
     const panelTone = PANEL_TONES.has(scene.panelTone as AlbumPanelTone) ? scene.panelTone as AlbumPanelTone : index % 2 ? "navy" : "cream";
-    if (!heading || wordCount(sceneText) < 25 || !basePrompt) throw new Error(`Scena ${index + 1} nu are conținut suficient.`);
+    const sceneWords = wordCount(sceneText);
+    if (!heading || sceneWords < 24 || sceneWords > 50 || !basePrompt) {
+      throw new Error(`Scena ${index + 1} nu respectă lungimea pentru album (${sceneWords} cuvinte).`);
+    }
     return {
       heading,
       text: sceneText,
@@ -95,7 +98,7 @@ function parsePlan(text: string, input: AlbumGenerationInput, model: string): Al
   });
 
   const totalWords = scenes.reduce((total, scene) => total + wordCount(scene.text), 0);
-  if (totalWords < 430 || totalWords > 720) throw new Error(`Lungimea albumului este în afara intervalului (${totalWords} cuvinte).`);
+  if (totalWords < 360 || totalWords > 560) throw new Error(`Lungimea albumului este în afara intervalului (${totalWords} cuvinte).`);
   const uniquePrompts = new Set(scenes.map((scene) => scene.imagePrompt.toLocaleLowerCase("ro-RO")));
   if (uniquePrompts.size !== scenes.length) throw new Error("Planul conține ilustrații repetate.");
 
@@ -122,7 +125,7 @@ Date confirmate de părinte:
 - tema emoțională: ${input.lesson};
 - detaliu personal: ${input.personalDetail || "nu a fost adăugat"}.
 
-Construiește o aventură completă în EXACT 13 scene. Fiecare scenă are 35-50 de cuvinte și avansează acțiunea. Totalul trebuie să fie 500-620 de cuvinte. Numele copilului, lumea, companionul, culoarea preferată și detaliul personal trebuie să influențeze evenimente reale, nu să apară ca o listă. Lecția se arată prin alegeri și acțiuni, fără morală rigidă. Finalul este luminos și include o despărțire sau o întoarcere acasă.
+Construiește o aventură completă în EXACT 13 scene. Fiecare scenă are 28-40 de cuvinte și avansează acțiunea. Totalul trebuie să fie 400-500 de cuvinte. Scrie aerisit, cu propoziții clare, ușor de citit cu voce tare și fără formulări tehnice sau metafore greoaie. Numele copilului, lumea, companionul, culoarea preferată și detaliul personal trebuie să influențeze evenimente reale, nu să apară ca o listă. Lecția se arată prin alegeri și acțiuni, fără morală rigidă. Finalul este luminos și include o despărțire sau o întoarcere acasă.
 
 Pentru fiecare scenă scrie un prompt vizual în engleză, cu o compoziție și o acțiune unice. Nu repeta nici imaginea, nici unghiul, nici decorul unei alte pagini. Păstrează același copil și același companion în toate imaginile. Alege poziția panoului astfel încât textul să nu acopere fețele sau acțiunea.
 
