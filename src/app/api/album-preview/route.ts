@@ -30,9 +30,9 @@ async function addPreviewWatermark(image: Buffer) {
     <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
       <g transform="translate(${Math.round(width / 2)} ${Math.round(height / 2)}) rotate(-12)">
         <text x="0" y="0" text-anchor="middle" dominant-baseline="middle"
-          font-family="Arial, sans-serif" font-size="${fontSize}" font-weight="800"
-          letter-spacing="${Math.round(fontSize * 0.12)}" fill="rgba(255,255,255,.28)"
-          stroke="rgba(7,18,42,.22)" stroke-width="2">PREVIEW</text>
+          font-family="sans-serif" font-size="${fontSize}" font-weight="800"
+          letter-spacing="${Math.round(fontSize * 0.12)}" fill="#ffffff" fill-opacity="0.42"
+          stroke="#07122a" stroke-opacity="0.42" stroke-width="3">PREVIEW</text>
       </g>
     </svg>
   `);
