@@ -8,6 +8,15 @@ import { generateVertexAlbumIllustration } from "@/lib/vertexImage";
 
 type Checkpoint = (output: AlbumOrderOutput) => Promise<void>;
 
+function wait(milliseconds: number) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
+function isRetryableImageError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  return /429|RESOURCE_EXHAUSTED|503|UNAVAILABLE|timeout|timpul de răspuns/i.test(message);
+}
+
 function initialOutput(): AlbumOrderOutput {
   return {
     kind: "illustrated-album",
@@ -37,24 +46,50 @@ async function generateAndStoreImage({
   attempt?: number;
 }) {
   const startedAt = Date.now();
-  try {
-    const generated = await generateVertexAlbumIllustration(prompt, reference);
-    if ("error" in generated) throw new Error(generated.error);
-    const objectName = await saveOrderCover(orderId, generated.imageDataUrl, basename);
-    logTelemetry("pmm_album_stage_completed", {
-      product: "album",
-      result: "success",
-      durationMs: Date.now() - startedAt,
-      aiProvider: "vertex",
-      model: generated.model,
-      albumStage: stage,
-      attempt,
-    });
-    return { objectName, model: generated.model };
-  } catch (error) {
-    logTelemetry("pmm_album_stage_failed", { product: "album", result: "error", durationMs: Date.now() - startedAt, albumStage: stage, attempt, errorCode: "ai_error" });
-    throw error;
+  const maxAttempts = readBoundedInteger(process.env.ALBUM_IMAGE_MAX_ATTEMPTS, 4, 1, 6);
+  const retryDelayMs = readBoundedInteger(process.env.ALBUM_IMAGE_RETRY_DELAY_MS, 15_000, 2_000, 60_000);
+  let lastError: unknown;
+
+  for (let generationAttempt = 1; generationAttempt <= maxAttempts; generationAttempt += 1) {
+    try {
+      const generated = await generateVertexAlbumIllustration(prompt, reference);
+      if ("error" in generated) throw new Error(generated.error);
+      const objectName = await saveOrderCover(orderId, generated.imageDataUrl, basename);
+      logTelemetry("pmm_album_stage_completed", {
+        product: "album",
+        result: "success",
+        durationMs: Date.now() - startedAt,
+        continuationCount: generationAttempt - 1,
+        aiProvider: "vertex",
+        model: generated.model,
+        albumStage: stage,
+        attempt,
+      });
+      return { objectName, model: generated.model };
+    } catch (error) {
+      lastError = error;
+      const retryable = isRetryableImageError(error);
+      const isLastAttempt = generationAttempt === maxAttempts;
+      logTelemetry("pmm_album_stage_failed", {
+        product: "album",
+        result: retryable && !isLastAttempt ? "pending" : "error",
+        durationMs: Date.now() - startedAt,
+        continuationCount: generationAttempt - 1,
+        albumStage: stage,
+        attempt,
+        errorCode: retryable ? "rate_limited" : "ai_error",
+      });
+      if (!retryable || isLastAttempt) break;
+      await wait(Math.min(retryDelayMs * (2 ** (generationAttempt - 1)), 60_000));
+    }
   }
+
+  throw lastError instanceof Error ? lastError : new Error("Ilustrația nu a putut fi generată.");
+}
+
+function readBoundedInteger(value: string | undefined, fallback: number, min: number, max: number) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? Math.min(max, Math.max(min, Math.round(parsed))) : fallback;
 }
 
 export async function createAlbumOrderOutput({
@@ -110,36 +145,31 @@ export async function createAlbumOrderOutput({
   const coverObjectName = output.assets.cover;
   if (!coverObjectName) throw new Error("Coperta albumului lipsește după etapa de generare.");
   const reference = await readOrderCover(coverObjectName);
-  for (let start = 0; start < 13; start += 2) {
-    const indices = [start, start + 1].filter((index) => index < 13 && !output.assets.scenes[index]);
-    if (!indices.length) continue;
-    const generated = await Promise.all(indices.map(async (index) => ({
-      index,
-      ...await generateAndStoreImage({
-        orderId,
-        basename: `album-scene-${String(index + 1).padStart(2, "0")}`,
-        prompt: plan.scenes[index].imagePrompt,
-        reference,
-        stage: "scene",
-        attempt: index + 1,
-      }),
-    })));
-    const scenes = [...output.assets.scenes];
-    const models = [...output.imageModels];
-    generated.forEach((item) => {
-      scenes[item.index] = item.objectName;
-      models.push(item.model);
+  const pacingMs = readBoundedInteger(process.env.ALBUM_IMAGE_PACING_MS, 4_000, 0, 30_000);
+  for (let index = 0; index < 13; index += 1) {
+    if (output.assets.scenes[index]) continue;
+    const generated = await generateAndStoreImage({
+      orderId,
+      basename: `album-scene-${String(index + 1).padStart(2, "0")}`,
+      prompt: plan.scenes[index].imagePrompt,
+      reference,
+      stage: "scene",
+      attempt: index + 1,
     });
+    const scenes = [...output.assets.scenes];
+    scenes[index] = generated.objectName;
     output = {
       ...output,
       assets: { ...output.assets, scenes },
-      imageModels: Array.from(new Set(models)),
+      imageModels: withModel(output, generated.model),
       progress: { stage: "scenes", current: scenes.filter(Boolean).length, total: 13 },
     };
     await checkpoint(output);
+    if (pacingMs > 0 && index < 12) await wait(pacingMs);
   }
 
   if (!output.assets.coloring) {
+    if (pacingMs > 0) await wait(pacingMs);
     const coloring = await generateAndStoreImage({
       orderId,
       basename: "album-coloring",
