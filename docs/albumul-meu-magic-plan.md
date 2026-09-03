@@ -1,6 +1,6 @@
-# Albumul Meu Magic - plan și status V1
+# Albumul Meu Magic - plan și status V2 Premium
 
-**Status la 3 septembrie 2026:** publicat cap-coadă, verificat printr-o comandă Stripe test completă și livrat cu succes prin Vertex, Cloud Tasks, email, SmartBill test și descărcare securizată. Rendererul final include verificări de rezoluție, imagini aproape identice, overflow și dimensiunea PDF-urilor.
+**Status la 3 septembrie 2026:** varianta premium este implementată și pregătită pentru publicare. Fluxul comercial a fost verificat anterior printr-o comandă Stripe test completă și livrat cu succes prin Vertex, Cloud Tasks, email, SmartBill test și descărcare securizată. V2 adaugă referință vizuală de personaj, imagini 2K, copertă full-bleed, text separat de ilustrații și un caiet compact cu trei activități.
 
 ## 1. Decizia de produs
 
@@ -10,7 +10,7 @@
 
 | Variantă | Disponibilitate | Conținut | Preț |
 | --- | --- | --- | --- |
-| Album Digital | Disponibil | Carte ilustrată de 16 pagini + caiet de activități de 8 pagini, ambele PDF A5 landscape | **59 lei** |
+| Album Digital | Disponibil | Carte ilustrată de 16 pagini + caiet de activități de 5 pagini, ambele PDF A5 landscape | **59 lei** |
 | Pachet tipărit | În curând | Carte ilustrată + caiet separat pe hârtie mată | Fără preț public încă |
 | Carte tipărită premium | Fază ulterioară | Carte cu copertă cartonată + caiet separat capsat | Fără preț public încă |
 
@@ -36,16 +36,13 @@ Clientul primește două PDF-uri complementare, nu un singur document mixt.
 3. Treisprezece pagini de poveste, fiecare cu o ilustrație distinctă.
 4. Copertă finală.
 
-**Caietul de activități are exact 8 pagini:**
+**Caietul de activități are exact 5 pagini:**
 
 1. Copertă personalizată.
 2. Pagină de colorat inspirată din aventură.
 3. Labirint personalizat cu elemente din lumea aleasă.
-4. „Continuă aventura”, o pagină pentru desen și imaginație.
-5. Joc de unit punctele.
-6. Joc de observație cu elemente ascunse.
-7. Pagină de amintire, cu spațiu pentru dată și un mesaj scris de mână.
-8. Copertă finală.
+4. „Găsește cele 5 diferențe”, construit din două imagini ale aceleiași scene.
+5. Copertă finală.
 
 Nicio imagine de poveste nu este reutilizată pe altă pagină. Ultima scenă include „Sfârșit” în compoziția aplicată de renderer, nu în imaginea generată.
 
@@ -55,7 +52,7 @@ Nicio imagine de poveste nu este reutilizată pe altă pagină. Ultima scenă in
 - țintă de 400-500 de cuvinte în total, cu toleranță tehnică 360-560;
 - țintă de 28-40 de cuvinte pe fiecare pagină, cu toleranță tehnică 24-50;
 - text de 10,8-11,2 pt în mod normal, fără a coborî sub 9,2 pt;
-- contrast ridicat și panouri care nu ascund personajele;
+- contrast ridicat, cu textul așezat într-o zonă editorială separată de ilustrație;
 - margine de siguranță de minimum 10 mm;
 - bleed de 3 mm păstrat în design pentru viitorul tipar;
 - rezoluție efectivă a imaginilor de minimum 240 dpi la dimensiunea finală;
@@ -69,14 +66,16 @@ Cele două PDF-uri sunt optimizate pentru ecran și print acasă, dar sunt preg�
 
 1. Prenumele copilului.
 2. Vârsta copilului.
-3. Coafura și culoarea părului.
-4. Nuanța pielii.
+3. Coafura, culoarea părului și culoarea ochilor.
+4. Nuanța pielii, ținuta și semnele distinctive.
 5. Culoarea preferată.
-6. Lumea poveștii.
-7. Companionul sau obiectul preferat.
+6. Lumea poveștii, aleasă din zece variante.
+7. Companionul, ales din zece variante.
 8. Lecția sau emoția urmărită.
-9. Un detaliu personal scurt.
-10. Dedicația și semnătura familiei.
+9. Atmosfera și stilul vizual al albumului.
+10. O idee proprie pentru firul poveștii, de până la 700 de caractere.
+11. Un detaliu personal scurt.
+12. Dedicația și semnătura familiei.
 
 Nu cerem genul și nu încărcăm fotografia copilului în V1. Formularul prezintă o descriere clară a personajului înainte de plată.
 
@@ -127,8 +126,8 @@ Cardul variantei tipărite trebuie să explice scurt: „Pregătim cartea ilustr
 Configurarea are patru pași:
 
 1. **Copilul** - nume, vârstă și aspect.
-2. **Aventura** - lume, companion și lecție.
-3. **Mesajul vostru** - detaliu personal și dedicație.
+2. **Aventura** - lume, companion, lecție, atmosferă și stil vizual.
+3. **Mesajul vostru** - ideea poveștii, detaliu personal și dedicație.
 4. **Confirmare** - rezumat, preț, consimțământ și plată.
 
 Pe mobil, fiecare pas ocupă ecranul, are un singur CTA principal și păstrează datele la revenirea în pasul anterior. Lumi nu acoperă formularul și nu modifică alegerile fără confirmare.
@@ -155,8 +154,8 @@ Pagina interoghează starea comenzii printr-un endpoint protejat și poate fi î
 3. Webhook-ul marchează comanda drept plătită.
 4. Cloud Tasks pornește procesarea asincronă.
 5. Modelul de text produce planul structurat al albumului.
-6. Coperta este generată prima și devine referința personajului.
-7. Cele 13 ilustrații de poveste sunt generate cu aceeași descriere vizuală, dar cu acțiuni și compoziții distincte.
+6. O planșă internă de personaj este generată prima și devine referința vizuală pentru toate imaginile.
+7. Coperta premium și cele 13 ilustrații de poveste sunt generate la rezoluție 2K, cu aceeași referință de personaj, dar cu acțiuni și compoziții distincte.
 8. Fiecare asset este salvat imediat în Cloud Storage.
 9. Rendererul construiește separat cartea ilustrată și caietul de activități A5 landscape.
 10. Comanda este marcată `delivered`.
@@ -170,7 +169,10 @@ Generarea imaginilor rulează secvențial, cu pacing controlat pentru quota Vert
 type AlbumPlan = {
   title: string;
   characterBible: string;
+  characterPrompt: string;
   coverPrompt: string;
+  coloringPrompt: string;
+  differencesPrompt: string;
   scenes: Array<{
     heading: string;
     text: string;
@@ -194,7 +196,7 @@ Reguli obligatorii:
 - țintă de 400-500 de cuvinte;
 - fiecare scenă avansează acțiunea;
 - lumea, lecția și detaliul personal influențează evenimentele;
-- `characterBible` rămâne identică în toate prompturile;
+- `characterBible` și planșa de personaj rămân referințele comune pentru toate imaginile;
 - fără text, logo sau litere în imagini;
 - textul românesc este aplicat numai de renderer;
 - final optimist, potrivit vârstei, fără morală artificială.
@@ -202,7 +204,8 @@ Reguli obligatorii:
 ### Strategia imaginilor
 
 - modelul principal și rezervele rămân configurabile;
-- coperta este referința vizuală pentru personaj;
+- planșa internă de personaj este referința vizuală pentru copertă și toate scenele;
+- toate ilustrațiile albumului sunt solicitate la rezoluție 2K, în raport 16:9 pentru scene, 3:2 pentru copertă și 4:3 pentru activități;
 - maximum patru încercări pentru fiecare asset;
 - imaginile prea mici sau aproape identice cu o scenă existentă sunt respinse automat;
 - checkpoint după fiecare imagine;
@@ -234,7 +237,7 @@ Extindem comanda cu progres și manifest de asseturi:
 
 ```ts
 type OrderAsset = {
-  key: "cover" | `scene-${number}` | "activity" | "pdf";
+  key: "character-reference" | "cover" | `scene-${number}` | "activity-coloring" | "activity-differences" | "pdf";
   objectName: string;
   mimeType: string;
   model?: string;
@@ -251,10 +254,12 @@ Structura Cloud Storage:
 
 ```text
 orders/{orderId}/album/cover.jpg
+orders/{orderId}/album/character-reference.jpg
 orders/{orderId}/album/scene-01.jpg
 orders/{orderId}/album/...
 orders/{orderId}/album/scene-13.jpg
 orders/{orderId}/album/activity-coloring.jpg
+orders/{orderId}/album/activity-differences.jpg
 orders/{orderId}/album/storybook.pdf
 orders/{orderId}/album/activity-booklet.pdf
 ```
@@ -349,9 +354,9 @@ Nu colectăm adresă poștală în V1 și nu creăm produse Stripe pentru ediți
 ### Limite inițiale
 
 - maximum 10 albume pe zi în prima săptămână;
-- maximum 15 imagini generate per comandă, inclusiv coperta și activitatea de colorat;
+- maximum 17 imagini generate per comandă: referința de personaj, coperta, 13 scene și două activități;
 - maximum patru încercări per imagine;
-- alertă dacă P95 depășește 8 minute;
+- alertă dacă P95 depășește 12 minute;
 - alertă dacă rata de eșec depășește 5% în 30 de minute;
 - alertă dacă media costului variabil depășește pragul aprobat;
 - fișierele expiră conform politicii existente de livrare.
@@ -366,7 +371,7 @@ Nu colectăm adresă poștală în V1 și nu creăm produse Stripe pentru ediți
 - retry-ul reia numai asseturile lipsă;
 - execuțiile repetate nu dublează PDF-ul, factura sau emailul;
 - cartea ilustrată are exact 16 pagini A5 landscape;
-- caietul de activități are exact 8 pagini A5 landscape;
+- caietul de activități are exact 5 pagini A5 landscape;
 - niciun text nu depășește panoul;
 - toate diacriticele sunt randate corect;
 - PDF-ul are sub 20 MB;
@@ -413,7 +418,7 @@ Nu cerem copilului să scrie sau să coloreze în cartea cartonată. Acest test 
 - adăugăm tipurile, schema și produsul în catalog;
 - rulăm trei seturi complete de imagini;
 - măsurăm costul, latența, rezoluția și consistența;
-- blocăm promptul și structura celor 16 + 8 pagini.
+- blocăm promptul și structura celor 16 + 5 pagini.
 
 ### Ziua 2 - pipeline
 
@@ -448,7 +453,7 @@ Nu cerem copilului să scrie sau să coloreze în cartea cartonată. Acest test 
 ### Ziua 6 - QA și soft launch
 
 - rulăm matricea de 12 albume;
-- inspectăm toate cele 288 de pagini rezultate;
+- inspectăm toate cele 252 de pagini rezultate;
 - testăm plata, retry-ul, emailul, factura și descărcarea;
 - verificăm mobil, desktop și print;
 - activăm produsul pentru trafic controlat;
@@ -458,12 +463,12 @@ Nu cerem copilului să scrie sau să coloreze în cartea cartonată. Acest test 
 
 Produsul este public. Următoarele praguri sunt urmărite ca obiective operaționale și semnale pentru intervenție:
 
-- costul real pentru maximum 15 imagini este urmărit per comandă;
-- timpul P95 este sub 8 minute;
+- costul real pentru maximum 17 imagini este urmărit per comandă;
+- timpul P95 este sub 12 minute;
 - primele 12 albume sunt evaluate vizual prin eșantionare;
 - urmărim serii de minimum 10 comenzi consecutive livrate fără intervenție;
 - Stripe, SmartBill și emailul sunt verificate în test mode;
-- cartea are 16 pagini, caietul are 8 pagini, ambele au zero overflow și fiecare rămâne sub 20 MB;
+- cartea are 16 pagini, caietul are 5 pagini, ambele au zero overflow și fiecare rămâne sub 24 MB;
 - suportul poate relua sau rambursa o comandă eșuată;
 - ediția tipărită apare numai ca „În curând”.
 

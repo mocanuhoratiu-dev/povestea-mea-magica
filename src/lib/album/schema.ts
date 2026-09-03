@@ -1,6 +1,8 @@
 import {
   albumCompanionOptions,
+  albumArtStyleOptions,
   albumLessonOptions,
+  albumMoodOptions,
   albumWorldOptions,
   type AlbumConfiguration,
   type AlbumGenerationInput,
@@ -38,12 +40,18 @@ export function readAlbumConfiguration(value: unknown): AlbumConfiguration | nul
     age: clean(raw.age, 2),
     hairStyle: clean(raw.hairStyle, 48),
     hairColor: clean(raw.hairColor, 36),
+    eyeColor: clean(raw.eyeColor, 36) || "căprui",
     skinTone: clean(raw.skinTone, 36),
+    outfit: clean(raw.outfit, 100) || `o ținută în culoarea ${clean(raw.favoriteColor, 36) || "preferată"}`,
+    appearanceDetail: clean(raw.appearanceDetail, 240),
     favoriteColor: clean(raw.favoriteColor, 36),
     world: clean(raw.world, 32),
     companion: clean(raw.companion, 80),
     lesson: clean(raw.lesson, 80),
-    personalDetail: clean(raw.personalDetail, 180),
+    mood: clean(raw.mood, 60) || albumMoodOptions[0],
+    artStyle: clean(raw.artStyle, 80) || albumArtStyleOptions[0],
+    personalDetail: clean(raw.personalDetail, 240),
+    storyContext: clean(raw.storyContext, 700),
   };
 
   if (!generation.name || !/^(?:[2-9]|10)$/.test(generation.age)) return null;
@@ -51,6 +59,8 @@ export function readAlbumConfiguration(value: unknown): AlbumConfiguration | nul
   if (!optionExists(albumWorldOptions, generation.world)) return null;
   if (!albumCompanionOptions.includes(generation.companion as (typeof albumCompanionOptions)[number])) return null;
   if (!albumLessonOptions.includes(generation.lesson as (typeof albumLessonOptions)[number])) return null;
+  if (!albumMoodOptions.includes(generation.mood as (typeof albumMoodOptions)[number])) return null;
+  if (!albumArtStyleOptions.includes(generation.artStyle as (typeof albumArtStyleOptions)[number])) return null;
 
   return {
     generation,
@@ -77,7 +87,7 @@ export function readAlbumOutput(value: unknown): AlbumOrderOutput | null {
       const parsed = {
         heading: clean(scene.heading, 70),
         text: clean(scene.text, 650),
-        imagePrompt: clean(scene.imagePrompt, 1_800),
+        imagePrompt: clean(scene.imagePrompt, 3_200),
         panelPosition,
         panelTone,
       };
@@ -86,12 +96,14 @@ export function readAlbumOutput(value: unknown): AlbumOrderOutput | null {
     });
     if (scenes.some((scene) => !scene)) return null;
     const title = clean(value.plan.title, 100);
-    const characterBible = clean(value.plan.characterBible, 1_800);
-    const coverPrompt = clean(value.plan.coverPrompt, 1_800);
-    const coloringPrompt = clean(value.plan.coloringPrompt, 1_800);
+    const characterBible = clean(value.plan.characterBible, 2_400);
+    const characterPrompt = clean(value.plan.characterPrompt, 3_200) || `${characterBible} Full-body character reference on a simple light background, no text.`;
+    const coverPrompt = clean(value.plan.coverPrompt, 3_200);
+    const coloringPrompt = clean(value.plan.coloringPrompt, 3_200);
+    const differencesPrompt = clean(value.plan.differencesPrompt, 3_200) || coloringPrompt;
     const textModel = clean(value.plan.textModel, 120);
     if (!title || !characterBible || !coverPrompt || !coloringPrompt || !textModel) return null;
-    plan = { title, characterBible, coverPrompt, coloringPrompt, textModel, scenes: scenes as NonNullable<typeof scenes[number]>[] };
+    plan = { title, characterBible, characterPrompt, coverPrompt, coloringPrompt, differencesPrompt, textModel, scenes: scenes as NonNullable<typeof scenes[number]>[] };
   }
 
   let documents: AlbumOrderOutput["documents"];
@@ -107,9 +119,11 @@ export function readAlbumOutput(value: unknown): AlbumOrderOutput | null {
     kind: "illustrated-album",
     ...(plan ? { plan } : {}),
     assets: {
+      ...(typeof assets.characterReference === "string" && assets.characterReference ? { characterReference: assets.characterReference } : {}),
       ...(typeof assets.cover === "string" && assets.cover ? { cover: assets.cover } : {}),
       scenes: [...assets.scenes],
       ...(typeof assets.coloring === "string" && assets.coloring ? { coloring: assets.coloring } : {}),
+      ...(typeof assets.differences === "string" && assets.differences ? { differences: assets.differences } : {}),
     },
     ...(documents ? { documents } : {}),
     progress: {

@@ -2,11 +2,11 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { jsPDF } from "jspdf";
 import sharp from "sharp";
-import { albumWorldLabel } from "@/lib/album/schema";
-import type { AlbumConfiguration, AlbumPanelPosition, AlbumPlan } from "@/lib/album/types";
+import type { AlbumConfiguration, AlbumPlan } from "@/lib/album/types";
 
 const PAGE_W = 210;
 const PAGE_H = 148;
+const STORY_IMAGE_H = 103;
 const NAVY = "#07182c";
 const NAVY_SOFT = "#102c48";
 const INK = "#14283a";
@@ -20,44 +20,77 @@ type AlbumAssets = {
   cover: Buffer;
   scenes: Buffer[];
   coloring: Buffer;
+  differences: Buffer;
 };
 
 function toDataUrl(buffer: Buffer, mimeType: string) {
   return `data:${mimeType};base64,${buffer.toString("base64")}`;
 }
 
-async function prepareLandscapeImage(buffer: Buffer) {
+async function prepareCoverImage(buffer: Buffer) {
+  const width = 2100;
+  const height = 1480;
+  const veil = Buffer.from(`<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="v" x1="0" x2="1"><stop offset="0" stop-color="#07182c" stop-opacity="0.92"/><stop offset="0.34" stop-color="#07182c" stop-opacity="0.62"/><stop offset="0.62" stop-color="#07182c" stop-opacity="0"/></linearGradient></defs><rect width="100%" height="100%" fill="url(#v)"/></svg>`);
   const jpeg = await sharp(buffer)
-    .resize(1600, 1128, { fit: "cover", position: "centre" })
-    .jpeg({ quality: 84, progressive: true })
+    .resize(width, height, { fit: "cover", position: "attention" })
+    .composite([{ input: veil }])
+    .sharpen({ sigma: 0.7 })
+    .jpeg({ quality: 91, progressive: true })
+    .toBuffer();
+  return toDataUrl(jpeg, "image/jpeg");
+}
+
+async function prepareStoryImage(buffer: Buffer) {
+  const jpeg = await sharp(buffer)
+    .resize(2100, 1030, { fit: "cover", position: "attention" })
+    .sharpen({ sigma: 0.55 })
+    .jpeg({ quality: 89, progressive: true })
     .toBuffer();
   return toDataUrl(jpeg, "image/jpeg");
 }
 
 async function prepareColoringImage(buffer: Buffer) {
   const png = await sharp(buffer)
-    .resize(1450, 850, { fit: "contain", background: "white" })
+    .resize(1700, 920, { fit: "contain", background: "white" })
     .grayscale()
     .normalize()
-    .threshold(205)
+    .threshold(210)
     .png({ compressionLevel: 9 })
     .toBuffer();
   return toDataUrl(png, "image/png");
 }
 
-async function preparePortraitImage(buffer: Buffer) {
+async function prepareActivityCoverImage(buffer: Buffer) {
   const jpeg = await sharp(buffer)
-    .resize(720, 1220, { fit: "cover", position: "attention" })
-    .jpeg({ quality: 84, progressive: true })
+    .resize(980, 1480, { fit: "cover", position: "attention" })
+    .jpeg({ quality: 88, progressive: true })
     .toBuffer();
   return toDataUrl(jpeg, "image/jpeg");
 }
 
-async function prepareLogo(buffer: Buffer) {
-  const png = await sharp(buffer)
-    .resize(400, 400, { fit: "contain" })
-    .png({ compressionLevel: 9 })
+async function prepareDifferenceImages(buffer: Buffer) {
+  const width = 1200;
+  const height = 900;
+  const base = await sharp(buffer)
+    .resize(width, height, { fit: "cover", position: "attention" })
+    .sharpen({ sigma: 0.55 })
+    .jpeg({ quality: 88, progressive: true })
     .toBuffer();
+  const additions = Buffer.from(`<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+    <g fill="#f3d77b" stroke="#07182c" stroke-width="8" stroke-linejoin="round">
+      <path d="M168 138 L181 170 L216 173 L189 195 L197 230 L168 211 L138 230 L147 195 L120 173 L155 170 Z"/>
+      <path d="M930 135 C875 155 873 237 934 250 C906 218 916 172 958 151 C950 143 941 138 930 135 Z"/>
+      <path d="M226 690 L244 729 L287 734 L255 764 L264 807 L226 786 L188 807 L197 764 L165 734 L208 729 Z"/>
+      <circle cx="1010" cy="650" r="31" fill="none" stroke="#f3d77b" stroke-width="18"/>
+      <path d="M635 270 C651 242 696 246 705 278 C713 309 678 337 635 371 C591 337 557 309 565 278 C574 246 619 242 635 270 Z"/>
+    </g>
+  </svg>`);
+  const changed = await sharp(base).composite([{ input: additions }]).jpeg({ quality: 88, progressive: true }).toBuffer();
+  return { original: toDataUrl(base, "image/jpeg"), changed: toDataUrl(changed, "image/jpeg") };
+}
+
+async function prepareLogo(buffer: Buffer) {
+  const png = await sharp(buffer).resize(400, 400, { fit: "contain" }).png({ compressionLevel: 9 }).toBuffer();
   return toDataUrl(png, "image/png");
 }
 
@@ -119,89 +152,53 @@ function companionInSentence(companion: string) {
   return companion ? companion.charAt(0).toLocaleLowerCase("ro-RO") + companion.slice(1) : "companionul";
 }
 
-function drawPageNumber(doc: jsPDF, pageNumber: number, darkPanel = false) {
-  doc.setFillColor(darkPanel ? GOLD : NAVY);
+function drawPageNumber(doc: jsPDF, pageNumber: number, dark = false) {
+  doc.setFillColor(dark ? GOLD : NAVY);
   doc.circle(PAGE_W - 9, PAGE_H - 7.4, 3.2, "F");
-  doc.setTextColor(darkPanel ? NAVY : CREAM);
+  doc.setTextColor(dark ? NAVY : CREAM);
   doc.setFont("Liberation", "bold");
   doc.setFontSize(6.5);
   doc.text(String(pageNumber), PAGE_W - 9, PAGE_H - 6.6, { align: "center" });
 }
 
-function storyPanelRect(position: AlbumPanelPosition) {
-  const margin = 7;
-  const width = position === "bottom" ? PAGE_W - margin * 2 : 100;
-  const height = position === "bottom" ? 35 : 47;
-  const positions: Record<AlbumPanelPosition, [number, number]> = {
-    "top-left": [margin, margin],
-    "top-right": [PAGE_W - width - margin, margin],
-    "bottom-left": [margin, PAGE_H - height - margin],
-    "bottom-right": [PAGE_W - width - margin, PAGE_H - height - margin],
-    bottom: [margin, PAGE_H - height - margin],
-  };
-  return { x: positions[position][0], y: positions[position][1], width, height };
-}
-
-function drawStoryPanel(doc: jsPDF, scene: AlbumPlan["scenes"][number], pageNumber: number) {
-  const { x, y, width, height } = storyPanelRect(scene.panelPosition);
-  const dark = scene.panelTone === "navy";
-  doc.setFillColor(dark ? NAVY : CREAM);
-  doc.setDrawColor(GOLD);
-  doc.setLineWidth(0.3);
-  doc.roundedRect(x, y, width, height, 2.2, 2.2, "FD");
-  doc.roundedRect(x + 1.4, y + 1.4, width - 2.8, height - 2.8, 1.5, 1.5, "S");
-
-  doc.setFont("Liberation", "bold");
-  doc.setFontSize(8);
-  doc.setTextColor(dark ? GOLD_LIGHT : BLUE);
-  const headingLines = doc.splitTextToSize(scene.heading.toLocaleUpperCase("ro-RO"), width - 10) as string[];
-  if (headingLines.length > 2) throw new Error(`Titlul scenei ${pageNumber} nu încape în panou.`);
-  doc.text(headingLines, x + 5, y + 7.2, { lineHeightFactor: 1.08 });
-
-  doc.setFont("Liberation", "normal");
-  doc.setTextColor(dark ? CREAM : INK);
-  const bodyY = y + 9.5 + headingLines.length * 3.2;
-  const availableHeight = y + height - 5 - bodyY;
-  let bodyFontSize = scene.panelPosition === "bottom" ? 11.2 : 10.8;
-  let lines: string[] = [];
-  let lineHeight = 0;
-  while (bodyFontSize >= 9.2) {
-    doc.setFontSize(bodyFontSize);
-    lines = doc.splitTextToSize(scene.text, width - 10) as string[];
-    lineHeight = bodyFontSize * 0.3528 * 1.18;
-    if (lines.length * lineHeight <= availableHeight) break;
-    bodyFontSize -= 0.25;
-  }
-  if (bodyFontSize < 9.2 || lines.length * lineHeight > availableHeight) {
-    throw new Error(`Textul scenei ${pageNumber} nu încape în panou.`);
-  }
-  doc.text(lines, x + 5, bodyY, { lineHeightFactor: 1.18 });
-  drawPageNumber(doc, pageNumber, dark);
-}
-
 function drawCover(doc: jsPDF, cover: string, title: string, childName: string, logo: string) {
-  doc.addImage(cover, "JPEG", 0, 0, PAGE_W, PAGE_H, undefined, "FAST");
-  doc.setFillColor(NAVY);
+  doc.addImage(cover, "JPEG", 0, 0, PAGE_W, PAGE_H, undefined, "MEDIUM");
+  drawSpark(doc, 16, 18, 2.5, GOLD_LIGHT);
   doc.setDrawColor(GOLD);
-  doc.setLineWidth(0.35);
-  doc.roundedRect(10, 34, 106, 88, 2.5, 2.5, "FD");
-  doc.roundedRect(12, 36, 102, 84, 1.8, 1.8, "S");
-  doc.setTextColor(GOLD);
+  doc.setLineWidth(0.55);
+  doc.line(22, 18, 54, 18);
   doc.setFont("Liberation", "bold");
-  doc.setFontSize(6.5);
-  doc.text("ALBUM ILUSTRAT PERSONALIZAT", 18, 46);
-  doc.setTextColor(CREAM);
-  doc.setFontSize(title.length > 58 ? 18 : 21);
-  const titleLines = (doc.splitTextToSize(title, 88) as string[]).slice(0, 3);
-  doc.text(titleLines, 18, 60, { lineHeightFactor: 1.12 });
-  doc.setDrawColor(GOLD);
-  doc.line(18, 96, 55, 96);
   doc.setTextColor(GOLD_LIGHT);
+  doc.setFontSize(6.5);
+  doc.text("ALBUM ILUSTRAT PERSONALIZAT", 15, 27);
+
+  const titleLines = (doc.splitTextToSize(title, 94) as string[]).slice(0, 3);
+  let titleSize = titleLines.length > 2 ? 19 : 23;
+  doc.setFontSize(titleSize);
+  while (titleSize > 17 && titleLines.some((line) => doc.getTextWidth(line) > 94)) {
+    titleSize -= 0.5;
+    doc.setFontSize(titleSize);
+  }
+  doc.setTextColor(NAVY);
+  doc.text(titleLines, 15.8, 42.8, { lineHeightFactor: 1.08 });
+  doc.setTextColor(CREAM);
+  doc.text(titleLines, 15, 42, { lineHeightFactor: 1.08 });
+
+  const titleHeight = titleLines.length * titleSize * 0.3528 * 1.08;
+  const subtitleY = Math.min(112, 48 + titleHeight);
   doc.setFont("Liberation", "italic");
+  doc.setTextColor(GOLD_LIGHT);
   const subtitle = `O aventură creată pentru ${childName}`;
-  fitSingleLine(doc, subtitle, 88, 8.5, 6.5);
-  doc.text(subtitle, 18, 104);
-  drawLogo(doc, logo, PAGE_W - 23, 7, 15);
+  fitSingleLine(doc, subtitle, 92, 9, 7);
+  doc.text(subtitle, 15, subtitleY);
+  doc.setDrawColor(GOLD);
+  doc.line(15, subtitleY + 5, 50, subtitleY + 5);
+
+  drawLogo(doc, logo, 15, 120, 16);
+  doc.setFont("Liberation", "bold");
+  doc.setFontSize(6.2);
+  doc.setTextColor(CREAM_DARK);
+  doc.text("POVESTEA MEA MAGICĂ", 35, 130);
 }
 
 function drawDedication(doc: jsPDF, config: AlbumConfiguration, logo: string) {
@@ -233,6 +230,48 @@ function drawDedication(doc: jsPDF, config: AlbumConfiguration, logo: string) {
   }
 }
 
+function drawStoryPage(doc: jsPDF, image: string, scene: AlbumPlan["scenes"][number], pageNumber: number, isFinal: boolean) {
+  const dark = scene.panelTone === "navy";
+  doc.addImage(image, "JPEG", 0, 0, PAGE_W, STORY_IMAGE_H, undefined, "MEDIUM");
+  doc.setFillColor(dark ? NAVY : CREAM);
+  doc.rect(0, STORY_IMAGE_H, PAGE_W, PAGE_H - STORY_IMAGE_H, "F");
+  doc.setFillColor(GOLD);
+  doc.rect(0, STORY_IMAGE_H, PAGE_W, 1.2, "F");
+  drawSpark(doc, 13, 113, 1.7, dark ? GOLD_LIGHT : GOLD);
+
+  doc.setFont("Liberation", "bold");
+  doc.setFontSize(7.4);
+  doc.setTextColor(dark ? GOLD_LIGHT : BLUE);
+  const heading = scene.heading.toLocaleUpperCase("ro-RO");
+  fitSingleLine(doc, heading, 132, 7.4, 6.2);
+  doc.text(heading, 18, 114.5);
+
+  const maxWidth = isFinal ? 150 : 179;
+  let bodySize = 10.8;
+  let lines: string[] = [];
+  let lineHeight = 0;
+  doc.setFont("Liberation", "normal");
+  doc.setTextColor(dark ? CREAM : INK);
+  while (bodySize >= 9.4) {
+    doc.setFontSize(bodySize);
+    lines = doc.splitTextToSize(scene.text, maxWidth) as string[];
+    lineHeight = bodySize * 0.3528 * 1.2;
+    if (lines.length * lineHeight <= 20) break;
+    bodySize -= 0.2;
+  }
+  if (lines.length * lineHeight > 20) throw new Error(`Textul scenei ${pageNumber} nu încape în zona editorială.`);
+  doc.text(lines, 14, 124.5, { lineHeightFactor: 1.2 });
+
+  if (isFinal) {
+    doc.setFont("Liberation", "italic");
+    doc.setFontSize(13);
+    doc.setTextColor(dark ? GOLD_LIGHT : BLUE);
+    doc.text("Sfârșit", 180, 132.5, { align: "center" });
+    drawSpark(doc, 180, 121, 1.8, dark ? GOLD_LIGHT : GOLD);
+  }
+  drawPageNumber(doc, pageNumber, dark);
+}
+
 function drawBackCover(doc: jsPDF, logo: string) {
   doc.setFillColor(NAVY);
   doc.rect(0, 0, PAGE_W, PAGE_H, "F");
@@ -251,17 +290,6 @@ function drawBackCover(doc: jsPDF, logo: string) {
   doc.text("povestea-mea-magica.ro", PAGE_W / 2, 136, { align: "center" });
 }
 
-function drawEndMark(doc: jsPDF) {
-  doc.setFillColor(NAVY);
-  doc.setDrawColor(GOLD);
-  doc.setLineWidth(0.3);
-  doc.roundedRect(PAGE_W / 2 - 18, PAGE_H - 15, 36, 9, 2, 2, "FD");
-  doc.setFont("Liberation", "italic");
-  doc.setFontSize(11);
-  doc.setTextColor(GOLD_LIGHT);
-  doc.text("Sfârșit", PAGE_W / 2, PAGE_H - 8.8, { align: "center" });
-}
-
 function drawActivityHeader(doc: jsPDF, eyebrow: string, title: string, subtitle: string) {
   doc.setFillColor(CREAM);
   doc.rect(0, 0, PAGE_W, PAGE_H, "F");
@@ -272,7 +300,7 @@ function drawActivityHeader(doc: jsPDF, eyebrow: string, title: string, subtitle
   doc.setFontSize(6.5);
   doc.setTextColor(GOLD);
   doc.text(eyebrow.toLocaleUpperCase("ro-RO"), 17, 11);
-  fitSingleLine(doc, title, 118, title.length > 36 ? 15 : 17, 11.5);
+  fitSingleLine(doc, title, 122, title.length > 36 ? 15 : 17, 11.5);
   doc.setTextColor(CREAM);
   doc.text(title, 10, 22);
   doc.setFont("Liberation", "italic");
@@ -316,52 +344,33 @@ function buildMaze(cols: number, rows: number) {
   return walls;
 }
 
-function drawFivePointStar(doc: jsPDF, x: number, y: number, radius: number) {
-  const points = Array.from({ length: 10 }, (_, index) => {
-    const angle = Math.PI * (-0.5 + index / 5);
-    const pointRadius = index % 2 === 0 ? radius : radius * 0.42;
-    return [x + Math.cos(angle) * pointRadius, y + Math.sin(angle) * pointRadius] as [number, number];
-  });
-  doc.setDrawColor(NAVY_SOFT);
-  doc.setLineWidth(0.55);
-  for (let index = 0; index < points.length; index += 1) {
-    const next = points[(index + 1) % points.length];
-    doc.line(points[index][0], points[index][1], next[0], next[1]);
-  }
-}
-
 function drawActivityCover(doc: jsPDF, config: AlbumConfiguration, cover: string, logo: string) {
+  doc.addImage(cover, "JPEG", 112, 0, 98, PAGE_H, undefined, "MEDIUM");
   doc.setFillColor(NAVY);
-  doc.rect(0, 0, PAGE_W, PAGE_H, "F");
-  drawBorder(doc);
-  doc.addImage(cover, "JPEG", 121, 13, 72, 122, undefined, "FAST");
-  doc.setFillColor(CREAM);
-  doc.roundedRect(118, 10, 78, 128, 2, 2, "S");
+  doc.rect(0, 0, 114, PAGE_H, "F");
+  doc.setFillColor(GOLD);
+  doc.rect(112, 0, 2, PAGE_H, "F");
+  drawSpark(doc, 18, 24, 2.4, GOLD_LIGHT);
   doc.setFont("Liberation", "bold");
   doc.setTextColor(GOLD);
   doc.setFontSize(6.5);
-  doc.text("CAIET DE ACTIVITĂȚI PERSONALIZAT", 17, 27);
+  doc.text("CAIET DE ACTIVITĂȚI INCLUS", 24, 26);
   doc.setTextColor(CREAM);
   doc.setFontSize(22);
-  doc.text("Caietul magic", 17, 48);
-  fitSingleLine(doc, `pentru ${config.generation.name}`, 91, 22, 13);
-  doc.text(`pentru ${config.generation.name}`, 17, 58);
+  doc.text("Trei misiuni", 17, 49);
+  fitSingleLine(doc, `pentru ${config.generation.name}`, 82, 22, 13);
+  doc.text(`pentru ${config.generation.name}`, 17, 61);
   doc.setDrawColor(GOLD);
-  doc.line(17, 78, 55, 78);
+  doc.line(17, 76, 54, 76);
   doc.setFont("Liberation", "italic");
-  doc.setFontSize(8.5);
+  doc.setFontSize(8.2);
   doc.setTextColor(GOLD_LIGHT);
-  doc.text("6 activități inspirate din poveste", 17, 87);
-  drawLogo(doc, logo, 17, 102, 16);
-  doc.setFont("Liberation", "normal");
-  const activitySubtitle = `Din ${albumWorldLabel(config.generation.world)} · pentru joacă și imaginație`;
-  fitSingleLine(doc, activitySubtitle, 94, 6.5, 5.2);
-  doc.setTextColor(CREAM_DARK);
-  doc.text(activitySubtitle, 17, 129);
+  doc.text(["Colorat · Labirint", "Găsește diferențele"], 17, 86, { lineHeightFactor: 1.35 });
+  drawLogo(doc, logo, 17, 113, 16);
 }
 
 function drawColoringPage(doc: jsPDF, coloring: string) {
-  drawActivityHeader(doc, "Joacă după poveste", "Dă culoare aventurii", "Poți inventa propriile culori");
+  drawActivityHeader(doc, "Misiunea 1 · Culoare", "Dă culoare aventurii", "Culorile tale schimbă povestea");
   doc.setDrawColor(GOLD);
   doc.roundedRect(10, 36, PAGE_W - 20, PAGE_H - 47, 2, 2, "S");
   doc.addImage(coloring, "PNG", 14, 39, PAGE_W - 28, PAGE_H - 54, undefined, "FAST");
@@ -369,7 +378,7 @@ function drawColoringPage(doc: jsPDF, coloring: string) {
 }
 
 function drawMazePage(doc: jsPDF, companion: string) {
-  drawActivityHeader(doc, "Misiunea companionului", "Găsește drumul spre lumină", `Ajută ${companionInSentence(companion)}`);
+  drawActivityHeader(doc, "Misiunea 2 · Curaj", "Găsește drumul spre lumină", `Ajută ${companionInSentence(companion)}`);
   const cols = 12;
   const rows = 6;
   const maze = buildMaze(cols, rows);
@@ -403,90 +412,29 @@ function drawMazePage(doc: jsPDF, companion: string) {
   drawPageNumber(doc, 2);
 }
 
-function drawContinuePage(doc: jsPDF, childName: string) {
-  drawActivityHeader(doc, "Povestea merge mai departe", "Desenează următoarea aventură", `${childName} alege ce se întâmplă`);
-  doc.setDrawColor(GOLD);
-  doc.roundedRect(12, 40, PAGE_W - 24, PAGE_H - 53, 2.3, 2.3, "S");
-  [["UNDE MERGE?", 27], ["CE DESCOPERĂ?", PAGE_W / 2], ["CINE AJUTĂ?", PAGE_W - 27]].forEach(([label, x]) => {
-    drawSpark(doc, Number(x), 37, 1.5);
-    doc.setFont("Liberation", "bold");
-    doc.setFontSize(6.2);
-    doc.setTextColor(BLUE);
-    doc.text(String(label), Number(x), 45, { align: "center" });
-  });
-  drawPageNumber(doc, 3);
-}
-
-function drawConnectDotsPage(doc: jsPDF) {
-  drawActivityHeader(doc, "Joc de observație", "Unește punctele și descoperă steaua", "La final, unește punctul 10 cu 1");
-  const centerX = PAGE_W / 2;
-  const centerY = 84;
-  const points = Array.from({ length: 10 }, (_, index) => {
-    const angle = Math.PI * (-0.5 + index / 5);
-    const radius = index % 2 === 0 ? 40 : 17;
-    return [centerX + Math.cos(angle) * radius, centerY + Math.sin(angle) * radius] as [number, number];
-  });
-  doc.setDrawColor(BLUE);
-  doc.setLineWidth(0.45);
-  points.forEach(([x, y], index) => {
-    doc.setFillColor(CREAM);
-    doc.circle(x, y, 1.6, "FD");
-    doc.setFont("Liberation", "bold");
-    doc.setFontSize(6.5);
-    doc.setTextColor(BLUE);
-    doc.text(String(index + 1), x + (x < centerX ? -4 : 4), y + (y < centerY ? -2 : 4), { align: "center" });
-  });
-  [[30, 48], [178, 48], [34, 127], [174, 124]].forEach(([x, y]) => drawSpark(doc, x, y, 1.6, GOLD_LIGHT));
-  drawPageNumber(doc, 4);
-}
-
-function drawHiddenStarsPage(doc: jsPDF, world: string) {
-  drawActivityHeader(doc, albumWorldLabel(world), "Găsește cele 7 steluțe", "Încercuiește-le pe toate");
-  doc.setDrawColor(GOLD);
-  doc.roundedRect(12, 40, PAGE_W - 24, PAGE_H - 53, 2.2, 2.2, "S");
-  [[30, 60, 5], [61, 111, 4], [89, 54, 5], [119, 85, 4.5], [150, 59, 3.8], [175, 112, 5], [185, 80, 4]].forEach(([x, y, r]) => drawFivePointStar(doc, x, y, r));
-  doc.setDrawColor(BLUE);
-  [[45, 83], [77, 72], [104, 115], [139, 104], [163, 86]].forEach(([x, y]) => {
-    doc.circle(x, y, 4, "S");
-    doc.circle(x + 1.5, y - 0.8, 3, "S");
-  });
-  [[50, 51], [96, 93], [133, 51], [166, 51], [34, 119]].forEach(([x, y]) => {
-    for (let angle = 0; angle < 360; angle += 60) {
-      const radians = angle * Math.PI / 180;
-      doc.circle(x + Math.cos(radians) * 4, y + Math.sin(radians) * 4, 1.2, "S");
-    }
-    doc.circle(x, y, 1.5, "S");
-  });
-  drawPageNumber(doc, 5);
-}
-
-function drawMemoryPage(doc: jsPDF) {
-  doc.setFillColor(CREAM);
-  doc.rect(0, 0, PAGE_W, PAGE_H, "F");
-  drawBorder(doc);
-  drawSpark(doc, 12, 12, 1.8);
-  drawSpark(doc, PAGE_W - 12, PAGE_H - 12, 1.8);
+function drawDifferencesPage(doc: jsPDF, images: { original: string; changed: string }) {
+  drawActivityHeader(doc, "Misiunea 3 · Observație", "Găsește cele 5 diferențe", "Compară imaginile A și B");
+  const imageW = 89;
+  const imageH = 76;
+  const leftX = 10;
+  const rightX = 111;
+  const imageY = 46;
   doc.setFont("Liberation", "bold");
+  doc.setFontSize(7);
   doc.setTextColor(BLUE);
-  doc.setFontSize(6.5);
-  doc.text("PAGINA NOASTRĂ DE AMINTIRE", PAGE_W / 2, 24, { align: "center" });
-  doc.setTextColor(NAVY);
-  doc.setFontSize(19);
-  doc.text("Când am citit povestea", PAGE_W / 2, 38, { align: "center" });
+  doc.text("IMAGINEA A", leftX, 41);
+  doc.text("IMAGINEA B", rightX, 41);
+  doc.setDrawColor(GOLD);
+  doc.setLineWidth(0.4);
+  doc.roundedRect(leftX - 1.5, imageY - 1.5, imageW + 3, imageH + 3, 2, 2, "S");
+  doc.roundedRect(rightX - 1.5, imageY - 1.5, imageW + 3, imageH + 3, 2, 2, "S");
+  doc.addImage(images.original, "JPEG", leftX, imageY, imageW, imageH, undefined, "MEDIUM");
+  doc.addImage(images.changed, "JPEG", rightX, imageY, imageW, imageH, undefined, "MEDIUM");
   doc.setFont("Liberation", "italic");
-  doc.setFontSize(8);
+  doc.setFontSize(7.2);
   doc.setTextColor(INK);
-  doc.text("Un loc pentru clipa voastră de lumină", PAGE_W / 2, 48, { align: "center" });
-  [["DATA", 68], ["CINE A CITIT", 88], ["MOMENTUL NOSTRU PREFERAT", 112]].forEach(([label, y]) => {
-    doc.setFont("Liberation", "bold");
-    doc.setFontSize(6.2);
-    doc.setTextColor(BLUE);
-    doc.text(String(label), 24, Number(y) - 3);
-    doc.setDrawColor(BLUE);
-    doc.setLineWidth(0.25);
-    doc.line(24, Number(y), PAGE_W - 24, Number(y));
-  });
-  drawPageNumber(doc, 6);
+  doc.text("Ai găsit toate licăririle magice? Încercuiește-le în imaginea B.", PAGE_W / 2, 136, { align: "center" });
+  drawPageNumber(doc, 3);
 }
 
 function drawActivityBack(doc: jsPDF, childName: string, logo: string) {
@@ -501,7 +449,7 @@ function drawActivityBack(doc: jsPDF, childName: string, logo: string) {
   doc.setFont("Liberation", "italic");
   doc.setFontSize(8.5);
   doc.setTextColor(INK);
-  doc.text("Ai dus toate misiunile până la capăt.", PAGE_W / 2, 94, { align: "center" });
+  doc.text("Ai dus toate cele trei misiuni până la capăt.", PAGE_W / 2, 94, { align: "center" });
   doc.setFont("Liberation", "bold");
   doc.setFontSize(6.2);
   doc.setTextColor(BLUE);
@@ -510,13 +458,14 @@ function drawActivityBack(doc: jsPDF, childName: string, logo: string) {
 
 export async function renderAlbumDocuments(config: AlbumConfiguration, plan: AlbumPlan, assets: AlbumAssets) {
   if (assets.scenes.length !== 13) throw new Error("Albumul are nevoie de exact 13 ilustrații distincte.");
-  const [cover, activityCover, coloring, logo] = await Promise.all([
-    prepareLandscapeImage(assets.cover),
-    preparePortraitImage(assets.cover),
+  const [cover, activityCover, coloring, differenceImages, logo] = await Promise.all([
+    prepareCoverImage(assets.cover),
+    prepareActivityCoverImage(assets.cover),
     prepareColoringImage(assets.coloring),
+    prepareDifferenceImages(assets.differences),
     readFile(path.join(process.cwd(), "public", "brand-mark.png")).then(prepareLogo),
   ]);
-  const sceneImages = await Promise.all(assets.scenes.map(prepareLandscapeImage));
+  const sceneImages = await Promise.all(assets.scenes.map(prepareStoryImage));
 
   const storybook = await createDocument(`${plan.title} - Album ilustrat`);
   drawCover(storybook, cover, plan.title, config.generation.name, logo);
@@ -524,13 +473,7 @@ export async function renderAlbumDocuments(config: AlbumConfiguration, plan: Alb
   drawDedication(storybook, config, logo);
   plan.scenes.forEach((scene, index) => {
     storybook.addPage();
-    storybook.addImage(sceneImages[index], "JPEG", 0, 0, PAGE_W, PAGE_H, undefined, "FAST");
-    const isFinal = index === plan.scenes.length - 1;
-    const finalScene = isFinal && (scene.panelPosition === "bottom" || scene.panelPosition.startsWith("bottom-"))
-      ? { ...scene, panelPosition: "top-left" as const }
-      : scene;
-    drawStoryPanel(storybook, finalScene, index + 1);
-    if (isFinal) drawEndMark(storybook);
+    drawStoryPage(storybook, sceneImages[index], scene, index + 1, index === plan.scenes.length - 1);
   });
   storybook.addPage();
   drawBackCover(storybook, logo);
@@ -542,21 +485,15 @@ export async function renderAlbumDocuments(config: AlbumConfiguration, plan: Alb
   activities.addPage();
   drawMazePage(activities, config.generation.companion);
   activities.addPage();
-  drawContinuePage(activities, config.generation.name);
-  activities.addPage();
-  drawConnectDotsPage(activities);
-  activities.addPage();
-  drawHiddenStarsPage(activities, config.generation.world);
-  activities.addPage();
-  drawMemoryPage(activities);
+  drawDifferencesPage(activities, differenceImages);
   activities.addPage();
   drawActivityBack(activities, config.generation.name, logo);
 
   const storybookBuffer = outputBuffer(storybook);
   const activityBookletBuffer = outputBuffer(activities);
-  const maximumBytes = 20 * 1024 * 1024;
+  const maximumBytes = 24 * 1024 * 1024;
   if (storybookBuffer.length > maximumBytes || activityBookletBuffer.length > maximumBytes) {
-    throw new Error("Documentul depășește limita de 20 MB.");
+    throw new Error("Documentul depășește limita de 24 MB.");
   }
   return { storybook: storybookBuffer, activityBooklet: activityBookletBuffer };
 }

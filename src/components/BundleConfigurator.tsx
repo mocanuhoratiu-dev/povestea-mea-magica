@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, BookHeart, BookOpen, Check, LoaderCircle, ShieldCheck, Sparkles, TimerReset } from "lucide-react";
 import DigitalPurchaseConsent from "@/components/DigitalPurchaseConsent";
-import { albumCompanionOptions, albumLessonOptions, albumWorldOptions } from "@/lib/album/types";
+import { albumArtStyleOptions, albumCompanionOptions, albumLessonOptions, albumMoodOptions, albumWorldOptions } from "@/lib/album/types";
 import type { BundleVariant } from "@/lib/bundle";
 import { beginOrderCheckout } from "@/lib/clientOrderCheckout";
 import { trackEvent } from "@/lib/clientTelemetry";
@@ -60,9 +60,11 @@ export default function BundleConfigurator({ variant = "family" }: { variant?: B
   const [albumSameChild, setAlbumSameChild] = useState(true);
   const [albumSameDedication, setAlbumSameDedication] = useState(true);
   const [album, setAlbum] = useState({
-    name: "", age: "5", hairStyle: "ondulat până la umeri", hairColor: "șaten", skinTone: "deschisă",
+    name: "", age: "5", hairStyle: "ondulat până la umeri", hairColor: "șaten", eyeColor: "căprui", skinTone: "deschisă",
+    outfit: "pulover moale și pantaloni comozi", appearanceDetail: "",
     favoriteColor: "mov ametist", world: albumWorldOptions[0].id as string, companion: albumCompanionOptions[0] as string,
-    lesson: albumLessonOptions[0] as string, personalDetail: "", dedication: "", dedicationFrom: "",
+    lesson: albumLessonOptions[0] as string, mood: albumMoodOptions[0] as string, artStyle: albumArtStyleOptions[0] as string,
+    personalDetail: "", storyContext: "", dedication: "", dedicationFrom: "",
   });
 
   const effectiveMonsterName = monsterSameChild ? story.name : monster.name;
@@ -147,7 +149,7 @@ export default function BundleConfigurator({ variant = "family" }: { variant?: B
       { product: "emergency", configuration: { generation: { type: "emergency", name: effectiveEmergencyName.trim(), age: effectiveEmergencyAge, context: emergency.context, interest: emergency.interest.trim(), duration: emergency.duration, activityMode: emergency.activityMode } } },
     ];
     if (includesAlbum) items.push({ product: "album", configuration: {
-      generation: { type: "album", name: effectiveAlbumName.trim(), age: effectiveAlbumAge, hairStyle: album.hairStyle, hairColor: album.hairColor, skinTone: album.skinTone, favoriteColor: album.favoriteColor, world: album.world, companion: album.companion, lesson: album.lesson, personalDetail: album.personalDetail.trim() },
+      generation: { type: "album", name: effectiveAlbumName.trim(), age: effectiveAlbumAge, hairStyle: album.hairStyle, hairColor: album.hairColor, eyeColor: album.eyeColor, skinTone: album.skinTone, outfit: album.outfit.trim(), appearanceDetail: album.appearanceDetail.trim(), favoriteColor: album.favoriteColor, world: album.world, companion: album.companion, lesson: album.lesson, mood: album.mood, artStyle: album.artStyle, personalDetail: album.personalDetail.trim(), storyContext: album.storyContext.trim() },
       dedication: effectiveAlbumDedication.trim(), dedicationFrom: effectiveAlbumDedicationFrom.trim(),
     } });
     try {
@@ -197,17 +199,23 @@ export default function BundleConfigurator({ variant = "family" }: { variant?: B
         <label className={labelClass}>Tipul activităților<select className={inputClass} value={emergency.activityMode} onChange={(event) => setEmergency({ ...emergency, activityMode: event.target.value })}><option value="liniștite">Liniștite</option><option value="cu mișcare mică">Cu mișcare mică</option><option value="mix">Mix</option></select></label>
       </div></div>}
 
-      {includesAlbum && step === 3 && <div><p className="text-xs font-black uppercase tracking-[0.15em] text-brand-purple">4 din 5 · Albumul Meu Magic</p><h2 className="mt-3 font-serif text-4xl text-brand-navy">Copilul devine eroul fiecărei ilustrații</h2><p className="mt-3 text-sm font-semibold leading-relaxed text-brand-navy/60">Detaliile de mai jos păstrează personajul recognoscibil în toate cele 13 scene ale cărții.</p><div className="mt-8 grid gap-5 sm:grid-cols-2">
+      {includesAlbum && step === 3 && <div><p className="text-xs font-black uppercase tracking-[0.15em] text-brand-purple">4 din 5 · Albumul Meu Magic</p><h2 className="mt-3 font-serif text-4xl text-brand-navy">Copilul devine eroul fiecărei ilustrații</h2><p className="mt-3 text-sm font-semibold leading-relaxed text-brand-navy/60">Definim personajul, stilul vizual și aventura înainte de a crea cele 13 scene 2K.</p><div className="mt-8 grid gap-5 sm:grid-cols-2">
         <div className="sm:col-span-2"><ChildReuse checked={albumSameChild} onChange={setAlbumSameChild} name={story.name} /></div>
         {!albumSameChild && <><label className={labelClass}>Numele copilului<input className={inputClass} value={album.name} maxLength={40} onChange={(event) => setAlbum({ ...album, name: event.target.value })} /></label><label className={labelClass}>Vârsta<select className={inputClass} value={album.age} onChange={(event) => setAlbum({ ...album, age: event.target.value })}>{Array.from({ length: 9 }, (_, index) => index + 2).map((value) => <option key={value} value={value}>{value} ani</option>)}</select></label></>}
         <label className={labelClass}>Coafura<select className={inputClass} value={album.hairStyle} onChange={(event) => setAlbum({ ...album, hairStyle: event.target.value })}><option>scurt și drept</option><option>ondulat până la umeri</option><option>lung și drept</option><option>creț</option><option>două împletituri</option></select></label>
         <label className={labelClass}>Culoarea părului<select className={inputClass} value={album.hairColor} onChange={(event) => setAlbum({ ...album, hairColor: event.target.value })}><option>șaten</option><option>blond</option><option>brunet</option><option>roșcat</option><option>negru</option></select></label>
+        <label className={labelClass}>Culoarea ochilor<select className={inputClass} value={album.eyeColor} onChange={(event) => setAlbum({ ...album, eyeColor: event.target.value })}><option>căprui</option><option>albaștri</option><option>verzi</option><option>cenușii</option><option>negri</option></select></label>
         <label className={labelClass}>Nuanța pielii<select className={inputClass} value={album.skinTone} onChange={(event) => setAlbum({ ...album, skinTone: event.target.value })}><option>deschisă</option><option>medie</option><option>măslinie</option><option>închisă</option></select></label>
+        <label className={`${labelClass} sm:col-span-2`}>Ținuta personajului<input className={inputClass} value={album.outfit} maxLength={100} onChange={(event) => setAlbum({ ...album, outfit: event.target.value })} placeholder="Exemplu: rochiță galbenă și cizme mov" /></label>
+        <label className={`${labelClass} sm:col-span-2`}>Alte detalii de aspect<textarea className={`${inputClass} min-h-20 resize-y`} value={album.appearanceDetail} maxLength={240} onChange={(event) => setAlbum({ ...album, appearanceDetail: event.target.value })} placeholder="Ochelari, pistrui sau un accesoriu preferat" /></label>
         <label className={labelClass}>Culoarea preferată<select className={inputClass} value={album.favoriteColor} onChange={(event) => setAlbum({ ...album, favoriteColor: event.target.value })}><option>mov ametist</option><option>albastru ceresc</option><option>verde smarald</option><option>roz zmeură</option><option>galben solar</option></select></label>
         <label className={labelClass}>Lumea albumului<select className={inputClass} value={album.world} onChange={(event) => setAlbum({ ...album, world: event.target.value })}>{albumWorldOptions.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}</select></label>
         <label className={labelClass}>Companion<select className={inputClass} value={album.companion} onChange={(event) => setAlbum({ ...album, companion: event.target.value })}>{albumCompanionOptions.map((option) => <option key={option}>{option}</option>)}</select></label>
-        <label className={`${labelClass} sm:col-span-2`}>Ce descoperim împreună<select className={inputClass} value={album.lesson} onChange={(event) => setAlbum({ ...album, lesson: event.target.value })}>{albumLessonOptions.map((option) => <option key={option}>{option}</option>)}</select></label>
-        <label className={`${labelClass} sm:col-span-2`}>Un detaliu pe care copilul îl va recunoaște<textarea className={`${inputClass} min-h-24 resize-y`} value={album.personalDetail} maxLength={180} onChange={(event) => setAlbum({ ...album, personalDetail: event.target.value })} placeholder="Un obiect iubit, o pasiune sau un obicei simpatic" /></label>
+        <label className={labelClass}>Ce descoperim împreună<select className={inputClass} value={album.lesson} onChange={(event) => setAlbum({ ...album, lesson: event.target.value })}>{albumLessonOptions.map((option) => <option key={option}>{option}</option>)}</select></label>
+        <label className={labelClass}>Atmosfera<select className={inputClass} value={album.mood} onChange={(event) => setAlbum({ ...album, mood: event.target.value })}>{albumMoodOptions.map((option) => <option key={option}>{option}</option>)}</select></label>
+        <label className={labelClass}>Stilul ilustrațiilor<select className={inputClass} value={album.artStyle} onChange={(event) => setAlbum({ ...album, artStyle: event.target.value })}>{albumArtStyleOptions.map((option) => <option key={option}>{option}</option>)}</select></label>
+        <label className={`${labelClass} sm:col-span-2`}>Ideea ta pentru poveste<textarea className={`${inputClass} min-h-32 resize-y`} value={album.storyContext} maxLength={700} onChange={(event) => setAlbum({ ...album, storyContext: event.target.value })} placeholder="Descrie pe scurt aventura pe care ți-o imaginezi sau lasă câmpul liber" /></label>
+        <label className={`${labelClass} sm:col-span-2`}>Un detaliu pe care copilul îl va recunoaște<textarea className={`${inputClass} min-h-24 resize-y`} value={album.personalDetail} maxLength={240} onChange={(event) => setAlbum({ ...album, personalDetail: event.target.value })} placeholder="Un obiect iubit, o pasiune sau un obicei simpatic" /></label>
         <label className="flex cursor-pointer items-center gap-3 rounded-md border border-brand-gold/50 bg-brand-gold/10 px-4 py-3 text-sm font-bold text-brand-navy sm:col-span-2"><input type="checkbox" checked={albumSameDedication} onChange={(event) => setAlbumSameDedication(event.target.checked)} className="h-4 w-4 accent-brand-purple" /> Folosește dedicația din poveste și în album</label>
         {!albumSameDedication && <><label className={`${labelClass} sm:col-span-2`}>Dedicația albumului<textarea className={`${inputClass} min-h-24 resize-y`} value={album.dedication} maxLength={320} onChange={(event) => setAlbum({ ...album, dedication: event.target.value })} /></label><label className={`${labelClass} sm:col-span-2`}>Din partea cui<input className={inputClass} value={album.dedicationFrom} maxLength={80} onChange={(event) => setAlbum({ ...album, dedicationFrom: event.target.value })} /></label></>}
       </div></div>}

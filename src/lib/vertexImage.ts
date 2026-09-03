@@ -5,7 +5,7 @@ export type CoverGenerationResult =
   | { imageDataUrl: string; model: string; error?: never }
   | { imageDataUrl?: never; model?: never; error: string };
 
-type ImageAspectRatio = "1:1" | "3:2";
+type ImageAspectRatio = "1:1" | "4:3" | "3:2" | "16:9";
 
 function getVertexCredentials() {
   const encodedCredentials = process.env.VERTEX_AI_SERVICE_ACCOUNT_JSON_BASE64?.trim();
@@ -41,7 +41,7 @@ function cleanCoverPrompt(value: string) {
     .replace(/[\u0000-\u001F\u007F]/g, " ")
     .replace(/\s+/g, " ")
     .trim()
-    .slice(0, 1_800);
+    .slice(0, 3_600);
 }
 
 function parseReferenceImage(value?: string) {
@@ -55,11 +55,13 @@ async function generateVertexImage({
   aspectRatio,
   referenceImageDataUrl,
   timeoutEnvironment,
+  imageSize,
 }: {
   prompt: string;
   aspectRatio: ImageAspectRatio;
   referenceImageDataUrl?: string;
   timeoutEnvironment: "cover" | "album";
+  imageSize: "1K" | "2K";
 }): Promise<CoverGenerationResult> {
   const project = process.env.VERTEX_AI_PROJECT_ID?.trim();
   const cleanPrompt = cleanCoverPrompt(prompt);
@@ -112,7 +114,7 @@ async function generateVertexImage({
           contents,
           config: {
             responseModalities: [Modality.IMAGE],
-            imageConfig: { aspectRatio, imageSize: "1K" },
+            imageConfig: { aspectRatio, imageSize },
           },
         }),
         timeoutMs,
@@ -148,14 +150,20 @@ export async function generateVertexStoryCover(prompt: string): Promise<CoverGen
     ].join(" "),
     aspectRatio: "1:1",
     timeoutEnvironment: "cover",
+    imageSize: "1K",
   });
 }
 
-export async function generateVertexAlbumIllustration(prompt: string, referenceImageDataUrl?: string) {
+export async function generateVertexAlbumIllustration(
+  prompt: string,
+  referenceImageDataUrl?: string,
+  aspectRatio: Exclude<ImageAspectRatio, "1:1"> = "3:2",
+) {
   return generateVertexImage({
     prompt,
-    aspectRatio: "3:2",
+    aspectRatio,
     referenceImageDataUrl,
     timeoutEnvironment: "album",
+    imageSize: "2K",
   });
 }

@@ -82,6 +82,7 @@ async function generateAndStoreImage({
   reference,
   stage,
   attempt,
+  aspectRatio = "3:2",
   avoidFingerprints = [],
 }: {
   orderId: string;
@@ -90,6 +91,7 @@ async function generateAndStoreImage({
   reference?: string;
   stage: "cover" | "scene" | "coloring";
   attempt?: number;
+  aspectRatio?: "4:3" | "3:2" | "16:9";
   avoidFingerprints?: VisualFingerprint[];
 }) {
   const startedAt = Date.now();
@@ -99,7 +101,7 @@ async function generateAndStoreImage({
 
   for (let generationAttempt = 1; generationAttempt <= maxAttempts; generationAttempt += 1) {
     try {
-      const generated = await generateVertexAlbumIllustration(prompt, reference);
+      const generated = await generateVertexAlbumIllustration(prompt, reference, aspectRatio);
       if ("error" in generated) throw new Error(generated.error);
       const fingerprint = await inspectGeneratedImage(generated.imageDataUrl, avoidFingerprints);
       const objectName = await saveOrderCover(orderId, generated.imageDataUrl, basename);
@@ -180,8 +182,27 @@ export async function createAlbumOrderOutput({
   const plan = output.plan;
   if (!plan) throw new Error("Planul albumului lipsește după etapa de generare.");
 
+  if (!output.assets.characterReference && !output.assets.cover) {
+    const characterReference = await generateAndStoreImage({
+      orderId,
+      basename: "album-character-reference",
+      prompt: plan.characterPrompt,
+      stage: "cover",
+    });
+    output = {
+      ...output,
+      assets: { ...output.assets, characterReference: characterReference.objectName },
+      imageModels: withModel(output, characterReference.model),
+    };
+    await checkpoint(output);
+  }
+
+  const referenceObjectName = output.assets.characterReference || output.assets.cover;
+  if (!referenceObjectName) throw new Error("Referința vizuală a personajului lipsește.");
+  const reference = await readOrderCover(referenceObjectName);
+
   if (!output.assets.cover) {
-    const cover = await generateAndStoreImage({ orderId, basename: "album-cover", prompt: plan.coverPrompt, stage: "cover" });
+    const cover = await generateAndStoreImage({ orderId, basename: "album-cover", prompt: plan.coverPrompt, reference, stage: "cover" });
     output = {
       ...output,
       assets: { ...output.assets, cover: cover.objectName },
@@ -193,7 +214,6 @@ export async function createAlbumOrderOutput({
 
   const coverObjectName = output.assets.cover;
   if (!coverObjectName) throw new Error("Coperta albumului lipsește după etapa de generare.");
-  const reference = await readOrderCover(coverObjectName);
   const pacingMs = readBoundedInteger(process.env.ALBUM_IMAGE_PACING_MS, 4_000, 0, 30_000);
   const sceneFingerprints = await Promise.all(
     output.assets.scenes.filter(Boolean).map(async (objectName) => createVisualFingerprint((await readOrderFile(objectName)).buffer)),
@@ -207,6 +227,7 @@ export async function createAlbumOrderOutput({
       reference,
       stage: "scene",
       attempt: index + 1,
+      aspectRatio: "16:9",
       avoidFingerprints: sceneFingerprints,
     });
     const scenes = [...output.assets.scenes];
@@ -235,11 +256,33 @@ export async function createAlbumOrderOutput({
       prompt: plan.coloringPrompt,
       reference,
       stage: "coloring",
+      aspectRatio: "4:3",
     });
     output = {
       ...output,
       assets: { ...output.assets, coloring: coloring.objectName },
       imageModels: withModel(output, coloring.model),
+      progress: { stage: "activity", current: 13, total: 13 },
+    };
+    await checkpoint(output);
+  }
+
+  if (!output.assets.differences) {
+    if (pacingMs > 0) await wait(pacingMs);
+    const differences = await generateAndStoreImage({
+      orderId,
+      basename: "album-differences",
+      prompt: plan.differencesPrompt,
+      reference,
+      stage: "coloring",
+      attempt: 2,
+      aspectRatio: "4:3",
+      avoidFingerprints: sceneFingerprints,
+    });
+    output = {
+      ...output,
+      assets: { ...output.assets, differences: differences.objectName },
+      imageModels: withModel(output, differences.model),
       progress: { stage: "rendering", current: 13, total: 13 },
     };
     await checkpoint(output);
@@ -247,19 +290,22 @@ export async function createAlbumOrderOutput({
 
   if (!output.documents) {
     const coloringObjectName = output.assets.coloring;
-    if (!coloringObjectName || output.assets.scenes.some((objectName) => !objectName)) {
+    const differencesObjectName = output.assets.differences;
+    if (!coloringObjectName || !differencesObjectName || output.assets.scenes.some((objectName) => !objectName)) {
       throw new Error("Ilustrațiile albumului nu sunt complete înainte de randare.");
     }
     const startedAt = Date.now();
     try {
-      const [coverFile, coloringFile, ...sceneFiles] = await Promise.all([
+      const [coverFile, coloringFile, differencesFile, ...sceneFiles] = await Promise.all([
         readOrderFile(coverObjectName),
         readOrderFile(coloringObjectName),
+        readOrderFile(differencesObjectName),
         ...output.assets.scenes.map((objectName) => readOrderFile(objectName)),
       ]);
       const documents = await renderAlbumDocuments(configuration, plan, {
         cover: coverFile.buffer,
         coloring: coloringFile.buffer,
+        differences: differencesFile.buffer,
         scenes: sceneFiles.map((file) => file.buffer),
       });
       const [storybook, activityBooklet] = await Promise.all([
@@ -272,8 +318,8 @@ export async function createAlbumOrderOutput({
         progress: { stage: "delivery", current: 13, total: 13 },
       };
       await checkpoint(output);
-      logTelemetry("pmm_pdf_render_completed", { product: "album", result: "success", durationMs: Date.now() - startedAt, pageCount: 24 });
-      logTelemetry("pmm_album_stage_completed", { product: "album", result: "success", durationMs: Date.now() - startedAt, albumStage: "render", pageCount: 24 });
+      logTelemetry("pmm_pdf_render_completed", { product: "album", result: "success", durationMs: Date.now() - startedAt, pageCount: 21 });
+      logTelemetry("pmm_album_stage_completed", { product: "album", result: "success", durationMs: Date.now() - startedAt, albumStage: "render", pageCount: 21 });
     } catch (error) {
       logTelemetry("pmm_album_stage_failed", { product: "album", result: "error", durationMs: Date.now() - startedAt, albumStage: "render", errorCode: "render_error" });
       throw error;

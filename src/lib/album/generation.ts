@@ -9,12 +9,12 @@ const PANEL_TONES = new Set<AlbumPanelTone>(["cream", "navy"]);
 const ALBUM_PLAN_SCHEMA = {
   type: "object",
   additionalProperties: false,
-  required: ["title", "characterBible", "coverPrompt", "coloringPrompt", "scenes"],
+  required: ["title", "coverPrompt", "coloringPrompt", "differencesPrompt", "scenes"],
   properties: {
     title: { type: "string" },
-    characterBible: { type: "string" },
     coverPrompt: { type: "string" },
     coloringPrompt: { type: "string" },
+    differencesPrompt: { type: "string" },
     scenes: {
       type: "array",
       minItems: 13,
@@ -34,6 +34,32 @@ const ALBUM_PLAN_SCHEMA = {
     },
   },
 } as const;
+
+const CAMERA_DIRECTIONS = [
+  "wide cinematic establishing shot, tiny hero inside a vast layered world",
+  "low-angle medium-wide shot with forward movement and wind in the environment",
+  "high overhead view with a winding visual path and clear story geography",
+  "intimate eye-level medium shot focused on a warm character interaction",
+  "panoramic side view with the characters moving from left to right",
+  "dramatic view through a natural foreground frame, with strong depth",
+  "quiet close-medium composition with expressive faces and tactile details",
+  "dynamic diagonal composition during a decisive action",
+  "symmetrical wonder-filled reveal with monumental scale",
+  "ground-level perspective with foreground details leading toward the child",
+  "soft backlit silhouette resolving into a hopeful scene",
+  "celebratory wide shot with layered characters and environmental movement",
+  "calm golden-hour homecoming, seen from a gentle three-quarter angle",
+] as const;
+
+function artDirection(style: string) {
+  const directions: Record<string, string> = {
+    "Acuarelă cinematografică": "premium cinematic watercolor and gouache, luminous washes, refined ink accents, layered atmospheric depth, sophisticated European picture-book illustration",
+    "Guașă pictată manual": "premium hand-painted gouache, rich opaque color, visible brush texture, elegant shapes, editorial European children's-book illustration",
+    "Ilustrație 3D de poveste": "premium handcrafted 3D storybook illustration, tactile fabric and painted-paper textures, expressive sculpted characters, cinematic lighting, never glossy or plastic",
+    "Creioane colorate premium": "premium colored-pencil and soft pastel illustration on fine paper, intricate texture, luminous color layering, elegant contemporary picture-book finish",
+  };
+  return directions[style] || directions["Acuarelă cinematografică"];
+}
 
 function clean(value: unknown, maxLength: number) {
   return String(value ?? "")
@@ -70,9 +96,13 @@ function parsePlan(text: string, input: AlbumGenerationInput, model: string): Al
 
   const characterBible = [
     `The same ${input.age}-year-old child named ${input.name} appears in every illustration.`,
-    `${input.hairStyle} ${input.hairColor} hair, ${input.skinTone} skin tone, favorite color ${input.favoriteColor}.`,
-    "Keep facial features, hairstyle, outfit colors, proportions and age identical on every page.",
-  ].join(" ");
+    `${input.hairStyle} ${input.hairColor} hair, ${input.eyeColor} eyes, ${input.skinTone} skin tone.`,
+    `Signature outfit: ${input.outfit}. Favorite color accent: ${input.favoriteColor}.`,
+    input.appearanceDetail ? `Distinctive visual details: ${input.appearanceDetail}.` : "",
+    `The companion is always ${input.companion.toLocaleLowerCase("ro-RO")}, with the same colors, proportions and accessories.`,
+    "Keep the child's face, hairstyle, eye color, outfit, proportions and apparent age identical on every page.",
+  ].filter(Boolean).join(" ");
+  const visualStyle = artDirection(input.artStyle);
 
   const scenes = parsed.scenes.map((raw, index): AlbumScene => {
     if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw new Error(`Scena ${index + 1} este invalidă.`);
@@ -91,7 +121,7 @@ function parsePlan(text: string, input: AlbumGenerationInput, model: string): Al
     return {
       heading,
       text: sceneText,
-      imagePrompt: `${characterBible} ${basePrompt} Full-page landscape children's-book illustration, clear focal action, no text, no letters, no frame, no collage.`,
+      imagePrompt: `${characterBible} ${basePrompt} ${CAMERA_DIRECTIONS[index]}. ${visualStyle}. Wide 16:9 editorial composition with the complete action inside the central safe area, layered foreground, middle ground and background, expressive body language, nuanced lighting, print-quality detail. Every prop and background must serve this exact scene. No generic fantasy stock imagery, no repeated pose, no text, no letters, no frame, no collage, no watermark.`,
       panelPosition,
       panelTone,
     };
@@ -105,8 +135,10 @@ function parsePlan(text: string, input: AlbumGenerationInput, model: string): Al
   return {
     title: clean(parsed.title, 100) || `${input.name} și aventura magică`,
     characterBible,
-    coverPrompt: `${characterBible} ${clean(parsed.coverPrompt, 900)} Premium landscape children's-book cover scene with open space for title overlay, no text, no letters, no logo, no frame.`,
-    coloringPrompt: `${characterBible} ${clean(parsed.coloringPrompt, 900)} Clean black-and-white coloring-book line art, large closed shapes, white background, no gray, no shading, no text.`,
+    characterPrompt: `${characterBible} ${visualStyle}. Create a clean full-body character-design reference showing the child and companion standing together, both fully visible, neutral warm studio background, simple relaxed pose, clear face and outfit details, no scenery, no action, no duplicate figures, no text, no letters, no labels, no frame, no collage.`,
+    coverPrompt: `${characterBible} ${clean(parsed.coverPrompt, 900)} ${visualStyle}. Spectacular full-bleed A5 landscape picture-book cover art with a dynamic narrative moment, sweeping movement, rich depth and a memorable silhouette. Place the child and companion in the right half; keep the upper-left third atmospheric and visually quiet for editorial title typography. Premium bookstore cover, emotionally expressive, print-quality detail. No title, no text, no letters, no logo, no border, no frame, no collage, no watermark.`,
+    coloringPrompt: `${characterBible} ${clean(parsed.coloringPrompt, 900)} Refined black-and-white coloring-book line art based on a recognizable moment from this exact adventure, balanced 4:3 composition, large closed shapes, varied but uncluttered details, generous white areas, crisp dark outlines, white background, no gray, no shading, no text, no border.`,
+    differencesPrompt: `${characterBible} ${clean(parsed.differencesPrompt, 900)} Create one clean, richly detailed but readable storybook observation scene from this exact adventure. ${visualStyle}. Center the child and companion with five clearly separated supporting objects around them. Balanced 4:3 composition, no text, no letters, no frame, no collage, no watermark.`,
     scenes,
     textModel: model,
   };
@@ -118,16 +150,23 @@ function buildPrompt(input: AlbumGenerationInput) {
 
 Date confirmate de părinte:
 - copil: ${input.name}, ${input.age} ani;
-- aspect consecvent: păr ${input.hairStyle}, culoarea părului ${input.hairColor}, nuanța pielii ${input.skinTone};
+- aspect consecvent: păr ${input.hairStyle}, culoarea părului ${input.hairColor}, ochi ${input.eyeColor}, nuanța pielii ${input.skinTone};
+- ținută: ${input.outfit};
+- alte trăsături vizuale: ${input.appearanceDetail || "nu au fost adăugate"};
 - culoare preferată: ${input.favoriteColor};
 - lume: ${world};
 - companion: ${input.companion};
 - tema emoțională: ${input.lesson};
-- detaliu personal: ${input.personalDetail || "nu a fost adăugat"}.
+- atmosferă: ${input.mood};
+- stil vizual ales: ${input.artStyle};
+- detaliu personal: ${input.personalDetail || "nu a fost adăugat"};
+- ideea părintelui pentru poveste: ${input.storyContext || "autorul poate construi liber aventura"}.
 
 Construiește o aventură completă în EXACT 13 scene. Fiecare scenă are 28-40 de cuvinte și avansează acțiunea. Totalul trebuie să fie 400-500 de cuvinte. Scrie aerisit, cu propoziții clare, ușor de citit cu voce tare și fără formulări tehnice sau metafore greoaie. Numele copilului, lumea, companionul, culoarea preferată și detaliul personal trebuie să influențeze evenimente reale, nu să apară ca o listă. Lecția se arată prin alegeri și acțiuni, fără morală rigidă. Finalul este luminos și include o despărțire sau o întoarcere acasă.
 
-Pentru fiecare scenă scrie un prompt vizual în engleză, cu o compoziție și o acțiune unice. Nu repeta nici imaginea, nici unghiul, nici decorul unei alte pagini. Păstrează același copil și același companion în toate imaginile. Alege poziția panoului astfel încât textul să nu acopere fețele sau acțiunea.
+Respectă ideea părintelui atunci când este oferită, dar transform-o într-o poveste coerentă, sigură și potrivită vârstei. Pentru fiecare scenă scrie un prompt vizual în engleză, cu o acțiune, un decor și o stare vizuală specifice acelui moment. Nu repeta aceeași imagine, poziție a corpului sau același fundal. Păstrează același copil și același companion în toate imaginile. Textul va fi randat separat de imagine, deci compune acțiunea în centrul cadrului și nu cere zone pentru text.
+
+Scrie și două prompturi separate pentru activități: coloringPrompt pentru o scenă de colorat și differencesPrompt pentru o scenă de observație. Ambele trebuie să folosească lumea, companionul și un moment recognoscibil din poveste, fără a copia o ilustrație de poveste.
 
 Returnează numai JSON valid conform schemei, fără Markdown.`;
 }

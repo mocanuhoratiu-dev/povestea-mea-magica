@@ -11,7 +11,7 @@ const faqs = [
   },
   {
     question: "Ce primesc?",
-    answer: "Primești unul sau două PDF-uri personalizate, pregătite pentru citit ori print. Albumul include o carte ilustrată de 16 pagini și un caiet separat de 8 pagini. Povestea de Seară are 2 sau 4 pagini de aventură, iar kiturile includ ritualurile și activitățile descrise înainte de comandă.",
+    answer: "Primești unul sau două PDF-uri personalizate, pregătite pentru citit ori print. Albumul include o carte ilustrată de 16 pagini și un caiet separat de 5 pagini, cu colorat, labirint și joc de diferențe. Povestea de Seară are 2 sau 4 pagini de aventură, iar kiturile includ ritualurile și activitățile descrise înainte de comandă.",
   },
   {
     question: "Este personalizat cu adevărat?",
@@ -19,7 +19,7 @@ const faqs = [
   },
   {
     question: "Cât durează?",
-    answer: "Materialele scurte sunt gata, de obicei, în mai puțin de un minut. Albumul ilustrat poate dura 4-8 minute, deoarece cele 13 imagini sunt create separat și apoi așezate în cele două documente.",
+    answer: "Materialele scurte sunt gata, de obicei, în mai puțin de un minut. Albumul ilustrat poate dura 6-10 minute, deoarece personajul, coperta, cele 13 scene și imaginile pentru activități sunt create separat la rezoluție mare.",
   },
   {
     question: "Pot modifica ceva înainte de PDF?",

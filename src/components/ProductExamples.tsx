@@ -122,7 +122,7 @@ export default function ProductExamples() {
             <p className="mt-4 max-w-2xl text-sm font-semibold leading-relaxed text-brand-cream/72 sm:text-base">O carte vizuală în care copilul apare în 13 scene diferite, plus un caiet separat pentru desen, colorat și joacă.</p>
             <div className="mt-7 grid gap-3 border-y border-brand-cream/15 py-5 text-sm font-bold sm:grid-cols-2">
               <p className="flex gap-2"><span className="text-brand-gold">✦</span> Carte ilustrată, 16 pagini</p>
-              <p className="flex gap-2"><span className="text-brand-gold">✦</span> Caiet de activități, 8 pagini</p>
+              <p className="flex gap-2"><span className="text-brand-gold">✦</span> Caiet inclus: colorat, labirint și diferențe</p>
               <p className="flex gap-2"><span className="text-brand-gold">✦</span> Format A5 landscape</p>
               <p className="flex gap-2"><span className="text-brand-gold">✦</span> 13 ilustrații unice</p>
             </div>

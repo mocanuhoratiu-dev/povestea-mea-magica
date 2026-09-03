@@ -6,7 +6,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, BookHeart, Check, Clock3, Download, Mail, Palette, Printer, Sparkles } from "lucide-react";
 import DigitalPurchaseConsent from "@/components/DigitalPurchaseConsent";
 import { albumWorldFromLumi } from "@/lib/album/presentation";
-import { albumCompanionOptions, albumLessonOptions, albumWorldOptions } from "@/lib/album/types";
+import { albumArtStyleOptions, albumCompanionOptions, albumLessonOptions, albumMoodOptions, albumWorldOptions } from "@/lib/album/types";
 import { beginOrderCheckout } from "@/lib/clientOrderCheckout";
 import { trackEvent } from "@/lib/clientTelemetry";
 import { commerce } from "@/lib/siteMode";
@@ -30,12 +30,18 @@ export default function AlbumCreator() {
   const [age, setAge] = useState("5");
   const [hairStyle, setHairStyle] = useState("ondulat până la umeri");
   const [hairColor, setHairColor] = useState("șaten");
+  const [eyeColor, setEyeColor] = useState("căprui");
   const [skinTone, setSkinTone] = useState("deschisă");
+  const [outfit, setOutfit] = useState("pulover moale și pantaloni comozi");
+  const [appearanceDetail, setAppearanceDetail] = useState("");
   const [favoriteColor, setFavoriteColor] = useState(colors[0].value);
   const [world, setWorld] = useState<string>(albumWorldOptions[0].id);
   const [companion, setCompanion] = useState<string>(albumCompanionOptions[0]);
   const [lesson, setLesson] = useState<string>(albumLessonOptions[0]);
+  const [mood, setMood] = useState<string>(albumMoodOptions[0]);
+  const [artStyle, setArtStyle] = useState<string>(albumArtStyleOptions[0]);
   const [personalDetail, setPersonalDetail] = useState("");
+  const [storyContext, setStoryContext] = useState("");
   const [dedication, setDedication] = useState("");
   const [dedicationFrom, setDedicationFrom] = useState("");
   const [hasConsent, setHasConsent] = useState(false);
@@ -43,7 +49,7 @@ export default function AlbumCreator() {
   const [isLoading, setIsLoading] = useState(false);
 
   const worldLabel = useMemo(() => albumWorldOptions.find((option) => option.id === world)?.label || "Lume magică", [world]);
-  const canContinue = step === 0 ? Boolean(name.trim() && age && hairStyle && hairColor && skinTone) : true;
+  const canContinue = step === 0 ? Boolean(name.trim() && age && hairStyle && hairColor && eyeColor && skinTone && outfit.trim()) : true;
 
   useEffect(() => {
     const restoreTimer = window.setTimeout(() => {
@@ -55,12 +61,18 @@ export default function AlbumCreator() {
           if (typeof draft.age === "string") setAge(draft.age);
           if (typeof draft.hairStyle === "string") setHairStyle(draft.hairStyle);
           if (typeof draft.hairColor === "string") setHairColor(draft.hairColor);
+          if (typeof draft.eyeColor === "string") setEyeColor(draft.eyeColor);
           if (typeof draft.skinTone === "string") setSkinTone(draft.skinTone);
+          if (typeof draft.outfit === "string") setOutfit(draft.outfit.slice(0, 100));
+          if (typeof draft.appearanceDetail === "string") setAppearanceDetail(draft.appearanceDetail.slice(0, 240));
           if (typeof draft.favoriteColor === "string") setFavoriteColor(draft.favoriteColor);
           if (typeof draft.world === "string" && albumWorldOptions.some((option) => option.id === draft.world)) setWorld(draft.world);
           if (typeof draft.companion === "string" && albumCompanionOptions.includes(draft.companion as (typeof albumCompanionOptions)[number])) setCompanion(draft.companion);
           if (typeof draft.lesson === "string" && albumLessonOptions.includes(draft.lesson as (typeof albumLessonOptions)[number])) setLesson(draft.lesson);
-          if (typeof draft.personalDetail === "string") setPersonalDetail(draft.personalDetail.slice(0, 180));
+          if (typeof draft.mood === "string" && albumMoodOptions.includes(draft.mood as (typeof albumMoodOptions)[number])) setMood(draft.mood);
+          if (typeof draft.artStyle === "string" && albumArtStyleOptions.includes(draft.artStyle as (typeof albumArtStyleOptions)[number])) setArtStyle(draft.artStyle);
+          if (typeof draft.personalDetail === "string") setPersonalDetail(draft.personalDetail.slice(0, 240));
+          if (typeof draft.storyContext === "string") setStoryContext(draft.storyContext.slice(0, 700));
           if (typeof draft.dedication === "string") setDedication(draft.dedication.slice(0, 320));
           if (typeof draft.dedicationFrom === "string") setDedicationFrom(draft.dedicationFrom.slice(0, 80));
           setStep(3);
@@ -136,8 +148,8 @@ export default function AlbumCreator() {
     try {
       try {
         window.sessionStorage.setItem(albumDraftKey, JSON.stringify({
-          name: name.trim(), age, hairStyle, hairColor, skinTone, favoriteColor, world, companion, lesson,
-          personalDetail: personalDetail.trim(), dedication: dedication.trim(), dedicationFrom: dedicationFrom.trim(),
+          name: name.trim(), age, hairStyle, hairColor, eyeColor, skinTone, outfit, appearanceDetail, favoriteColor, world, companion, lesson, mood, artStyle,
+          personalDetail: personalDetail.trim(), storyContext: storyContext.trim(), dedication: dedication.trim(), dedicationFrom: dedicationFrom.trim(),
         }));
       } catch {
         // Checkout must remain available when session storage is disabled.
@@ -149,12 +161,18 @@ export default function AlbumCreator() {
           age,
           hairStyle,
           hairColor,
+          eyeColor,
           skinTone,
+          outfit: outfit.trim(),
+          appearanceDetail: appearanceDetail.trim(),
           favoriteColor,
           world,
           companion,
           lesson,
+          mood,
+          artStyle,
           personalDetail: personalDetail.trim(),
+          storyContext: storyContext.trim(),
         },
         dedication: dedication.trim(),
         dedicationFrom: dedicationFrom.trim(),
@@ -188,13 +206,16 @@ export default function AlbumCreator() {
             {step === 0 && (
               <fieldset>
                 <legend className="font-serif text-3xl text-brand-navy sm:text-4xl">Cum apare copilul în poveste?</legend>
-                <p className="mt-3 max-w-xl text-sm font-semibold leading-relaxed text-brand-navy/60">Folosim aceste detalii pentru ca personajul să rămână recognoscibil în toate cele 13 ilustrații.</p>
+                <p className="mt-3 max-w-xl text-sm font-semibold leading-relaxed text-brand-navy/60">Construim mai întâi personajul, apoi îl păstrăm recognoscibil în copertă și în toate cele 13 ilustrații.</p>
                 <div className="mt-8 grid gap-5 sm:grid-cols-2">
                   <label className={labelClass}>Prenume<input className={inputClass} value={name} onChange={(event) => setName(event.target.value)} maxLength={40} placeholder="Exemplu: Eva" autoComplete="off" required /></label>
                   <label className={labelClass}>Vârsta<select className={inputClass} value={age} onChange={(event) => setAge(event.target.value)}>{Array.from({ length: 9 }, (_, index) => index + 2).map((value) => <option key={value} value={value}>{value} ani</option>)}</select></label>
                   <label className={labelClass}>Coafura<select className={inputClass} value={hairStyle} onChange={(event) => setHairStyle(event.target.value)}><option>scurt și drept</option><option>ondulat până la umeri</option><option>lung și drept</option><option>creț</option><option>două împletituri</option></select></label>
                   <label className={labelClass}>Culoarea părului<select className={inputClass} value={hairColor} onChange={(event) => setHairColor(event.target.value)}><option>șaten</option><option>blond</option><option>brunet</option><option>roșcat</option><option>negru</option></select></label>
+                  <label className={labelClass}>Culoarea ochilor<select className={inputClass} value={eyeColor} onChange={(event) => setEyeColor(event.target.value)}><option>căprui</option><option>albaștri</option><option>verzi</option><option>cenușii</option><option>negri</option></select></label>
                   <label className={labelClass}>Nuanța pielii<select className={inputClass} value={skinTone} onChange={(event) => setSkinTone(event.target.value)}><option>deschisă</option><option>medie</option><option>măslinie</option><option>închisă</option></select></label>
+                  <label className={`${labelClass} sm:col-span-2`}>Ținuta personajului<input className={inputClass} value={outfit} onChange={(event) => setOutfit(event.target.value)} maxLength={100} placeholder="Exemplu: rochiță galbenă și cizme mov" /></label>
+                  <label className={`${labelClass} sm:col-span-2`}>Alte detalii de aspect, opțional<textarea className={`${inputClass} min-h-20 resize-y`} value={appearanceDetail} onChange={(event) => setAppearanceDetail(event.target.value)} maxLength={240} placeholder="Ochelari rotunzi, pistrui, un semn din naștere sau accesoriul preferat" /><span className="mt-1 block text-right text-[10px] text-brand-navy/40">{appearanceDetail.length}/240</span></label>
                 </div>
               </fieldset>
             )}
@@ -212,6 +233,8 @@ export default function AlbumCreator() {
                 <div className="mt-6 grid gap-5 sm:grid-cols-2">
                   <label className={labelClass}>Companion<select className={inputClass} value={companion} onChange={(event) => setCompanion(event.target.value)}>{albumCompanionOptions.map((option) => <option key={option}>{option}</option>)}</select></label>
                   <label className={labelClass}>Ce descoperim împreună<select className={inputClass} value={lesson} onChange={(event) => setLesson(event.target.value)}>{albumLessonOptions.map((option) => <option key={option}>{option}</option>)}</select></label>
+                  <label className={labelClass}>Atmosfera poveștii<select className={inputClass} value={mood} onChange={(event) => setMood(event.target.value)}>{albumMoodOptions.map((option) => <option key={option}>{option}</option>)}</select></label>
+                  <label className={labelClass}>Stilul ilustrațiilor<select className={inputClass} value={artStyle} onChange={(event) => setArtStyle(event.target.value)}>{albumArtStyleOptions.map((option) => <option key={option}>{option}</option>)}</select></label>
                 </div>
                 <div className="mt-6">
                   <p className={labelClass}>Culoarea preferată</p>
@@ -223,9 +246,10 @@ export default function AlbumCreator() {
             {step === 2 && (
               <fieldset>
                 <legend className="font-serif text-3xl text-brand-navy sm:text-4xl">Puneți o bucățică din familie în album</legend>
-                <p className="mt-3 max-w-xl text-sm font-semibold leading-relaxed text-brand-navy/60">Detaliul personal intră în acțiune. Dedicația rămâne pe pagina ei, exact cum o scrieți.</p>
+                <p className="mt-3 max-w-xl text-sm font-semibold leading-relaxed text-brand-navy/60">Poți lăsa autorul să creeze liber sau poți descrie chiar tu ideea aventurii. Dedicația rămâne pe pagina ei.</p>
                 <div className="mt-8 space-y-6">
-                  <label className={labelClass}>Un detaliu pe care copilul îl va recunoaște<textarea className={`${inputClass} min-h-24 resize-y`} value={personalDetail} onChange={(event) => setPersonalDetail(event.target.value)} maxLength={180} placeholder="Exemplu: poartă mereu un rucsac cu stele și adoră clătitele cu afine" /><span className="mt-1 block text-right text-[10px] text-brand-navy/40">{personalDetail.length}/180</span></label>
+                  <label className={labelClass}>Cum ai vrea să fie povestea?<textarea className={`${inputClass} min-h-32 resize-y`} value={storyContext} onChange={(event) => setStoryContext(event.target.value)} maxLength={700} placeholder="Exemplu: Eva găsește o ușă mică în biblioteca bunicii și ajunge într-un oraș unde poveștile și-au pierdut finalurile. Vreau să le ajute să le găsească." /><span className="mt-1 block text-right text-[10px] text-brand-navy/40">{storyContext.length}/700</span></label>
+                  <label className={labelClass}>Un detaliu pe care copilul îl va recunoaște<textarea className={`${inputClass} min-h-24 resize-y`} value={personalDetail} onChange={(event) => setPersonalDetail(event.target.value)} maxLength={240} placeholder="Exemplu: poartă mereu un rucsac cu stele și adoră clătitele cu afine" /><span className="mt-1 block text-right text-[10px] text-brand-navy/40">{personalDetail.length}/240</span></label>
                   <label className={labelClass}>Dedicație<textarea className={`${inputClass} min-h-28 resize-y`} value={dedication} onChange={(event) => setDedication(event.target.value)} maxLength={320} placeholder={`Pentru ${name || "micuțul vostru"}, care găsește lumină în fiecare aventură...`} /><span className="mt-1 block text-right text-[10px] text-brand-navy/40">{dedication.length}/320</span></label>
                   <label className={labelClass}>Semnătura familiei<input className={inputClass} value={dedicationFrom} onChange={(event) => setDedicationFrom(event.target.value)} maxLength={80} placeholder="Cu drag, Mama și Tata" /></label>
                 </div>
@@ -237,13 +261,13 @@ export default function AlbumCreator() {
                 <h2 className="font-serif text-3xl text-brand-navy sm:text-4xl">Albumul este pregătit pentru comandă</h2>
                 <p className="mt-3 max-w-xl text-sm font-semibold leading-relaxed text-brand-navy/60">Verifică alegerile. După plată, generarea continuă pe server și primești email când ambele PDF-uri sunt gata.</p>
                 <div className="mt-8 divide-y divide-brand-navy/12 border-y border-brand-navy/15 text-sm">
-                  {[['Pentru', `${name}, ${age} ani`], ['Lume', worldLabel], ['Companion', companion], ['Temă', lesson], ['Culoare', favoriteColor]].map(([label, value]) => <div key={label} className="grid grid-cols-[110px_1fr] gap-4 py-3"><span className="font-black text-brand-navy/45">{label}</span><span className="font-bold text-brand-navy">{value}</span></div>)}
+                  {[['Pentru', `${name}, ${age} ani`], ['Lume', worldLabel], ['Companion', companion], ['Temă', lesson], ['Atmosferă', mood], ['Stil', artStyle], ['Culoare', favoriteColor]].map(([label, value]) => <div key={label} className="grid grid-cols-[110px_1fr] gap-4 py-3"><span className="font-black text-brand-navy/45">{label}</span><span className="font-bold text-brand-navy">{value}</span></div>)}
                 </div>
                 <div className="mt-7 grid gap-3 sm:grid-cols-2">
-                  <div className="border border-brand-gold/60 bg-brand-gold/10 p-4"><BookHeart className="text-brand-purple" size={22} /><p className="mt-3 font-black text-brand-navy">Cartea ilustrată</p><p className="mt-1 text-xs font-semibold text-brand-navy/60">16 pagini, 13 ilustrații unice</p></div>
-                  <div className="border border-brand-gold/60 bg-brand-gold/10 p-4"><Palette className="text-brand-purple" size={22} /><p className="mt-3 font-black text-brand-navy">Caietul de activități</p><p className="mt-1 text-xs font-semibold text-brand-navy/60">8 pagini, 6 activități printabile</p></div>
+                  <div className="border border-brand-gold/60 bg-brand-gold/10 p-4"><BookHeart className="text-brand-purple" size={22} /><p className="mt-3 font-black text-brand-navy">Cartea ilustrată</p><p className="mt-1 text-xs font-semibold text-brand-navy/60">16 pagini, ilustrații 2K și layout pentru print</p></div>
+                  <div className="border border-brand-gold/60 bg-brand-gold/10 p-4"><Palette className="text-brand-purple" size={22} /><p className="mt-3 font-black text-brand-navy">Caiet inclus</p><p className="mt-1 text-xs font-semibold text-brand-navy/60">5 pagini: colorat, labirint și diferențe</p></div>
                 </div>
-                <div className="mt-7 flex items-end justify-between border-y border-brand-navy/15 py-5"><div><p className="text-xs font-black uppercase tracking-[0.12em] text-brand-navy/45">Preț final</p><p className="mt-1 font-nunito text-4xl font-black text-brand-purple">{commerce.prices.illustratedAlbum}</p></div><p className="max-w-[190px] text-right text-xs font-bold leading-relaxed text-brand-navy/55">Include generarea, cele 13 ilustrații și ambele PDF-uri.</p></div>
+                <div className="mt-7 flex items-end justify-between border-y border-brand-navy/15 py-5"><div><p className="text-xs font-black uppercase tracking-[0.12em] text-brand-navy/45">Preț final</p><p className="mt-1 font-nunito text-4xl font-black text-brand-purple">{commerce.prices.illustratedAlbum}</p></div><p className="max-w-[210px] text-right text-xs font-bold leading-relaxed text-brand-navy/55">Include personajul vizual, coperta premium, 13 scene 2K și caietul de activități.</p></div>
                 {commerce.acceptsPayments && <div className="mt-6"><DigitalPurchaseConsent checked={hasConsent} onCheckedChange={setHasConsent} productLabel="Albumul Meu Magic - Digital" /></div>}
               </div>
             )}
@@ -259,10 +283,10 @@ export default function AlbumCreator() {
         <aside className="border-t border-brand-navy/15 bg-brand-navy px-5 py-9 text-brand-cream sm:px-8 lg:border-l lg:border-t-0 lg:px-10 lg:py-12">
           <p className="text-xs font-black uppercase tracking-[0.15em] text-brand-gold">Vezi ce primești</p>
           <div className="mt-5 overflow-hidden border border-brand-gold/50"><Image src="/examples/album/coperta.webp" alt="Coperta modelului Albumul Meu Magic" width={960} height={676} priority className="h-auto w-full" /></div>
-          <div className="mt-3 grid grid-cols-3 gap-2"><Image src="/examples/album/aventura.webp" alt="Pagină ilustrată" width={480} height={338} className="aspect-[1.42] w-full object-cover" /><Image src="/examples/album/colorat.webp" alt="Pagină de colorat" width={480} height={338} className="aspect-[1.42] w-full object-cover" /><Image src="/examples/album/labirint.webp" alt="Pagină cu labirint" width={480} height={338} className="aspect-[1.42] w-full object-cover" /></div>
-          <p className="mt-5 font-serif text-2xl">O ilustrație nouă pe fiecare pagină.</p>
-          <ul className="mt-5 space-y-3 text-sm font-semibold text-brand-cream/75">{["Format real A5 landscape", "Cartea și activitățile sunt separate", "Link securizat, valabil 30 de zile", "Livrare automată pe email"].map((item) => <li key={item} className="flex gap-3"><Check size={17} className="mt-0.5 shrink-0 text-brand-gold" />{item}</li>)}</ul>
-          <div className="mt-8 grid grid-cols-3 border-y border-brand-cream/15 py-5 text-center"><div><Clock3 className="mx-auto text-brand-gold" size={19} /><p className="mt-2 text-[10px] font-black">4-8 minute</p></div><div><Mail className="mx-auto text-brand-gold" size={19} /><p className="mt-2 text-[10px] font-black">Primești email</p></div><div><Download className="mx-auto text-brand-gold" size={19} /><p className="mt-2 text-[10px] font-black">2 PDF-uri</p></div></div>
+          <div className="mt-3 grid grid-cols-2 gap-2"><Image src="/examples/album/aventura.webp" alt="Pagină ilustrată" width={480} height={338} className="aspect-[1.42] w-full object-cover" /><Image src="/examples/album/colorat.webp" alt="Pagină de colorat" width={480} height={338} className="aspect-[1.42] w-full object-cover" /><Image src="/examples/album/labirint.webp" alt="Pagină cu labirint" width={480} height={338} className="aspect-[1.42] w-full object-cover" /><Image src="/examples/album/diferente.webp" alt="Pagină cu joc de diferențe" width={480} height={338} className="aspect-[1.42] w-full object-cover" /></div>
+          <p className="mt-5 font-serif text-2xl">O carte construită ca un album adevărat.</p>
+          <ul className="mt-5 space-y-3 text-sm font-semibold text-brand-cream/75">{["Ilustrații premium la rezoluție 2K", "Textul nu acoperă imaginile", "Caiet separat cu 3 activități", "Format real A5 landscape", "Livrare automată pe email"].map((item) => <li key={item} className="flex gap-3"><Check size={17} className="mt-0.5 shrink-0 text-brand-gold" />{item}</li>)}</ul>
+          <div className="mt-8 grid grid-cols-3 border-y border-brand-cream/15 py-5 text-center"><div><Clock3 className="mx-auto text-brand-gold" size={19} /><p className="mt-2 text-[10px] font-black">6-10 minute</p></div><div><Mail className="mx-auto text-brand-gold" size={19} /><p className="mt-2 text-[10px] font-black">Primești email</p></div><div><Download className="mx-auto text-brand-gold" size={19} /><p className="mt-2 text-[10px] font-black">2 PDF-uri</p></div></div>
           <Link href="/modele#albumul-meu-magic" className="mt-7 inline-flex items-center gap-2 border-b border-brand-gold pb-1 text-sm font-black text-brand-gold">Vezi paginile modelului <ArrowRight size={16} /></Link>
         </aside>
       </div>

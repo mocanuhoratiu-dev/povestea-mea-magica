@@ -18,7 +18,7 @@ const documentPresentation = {
     icon: BookHeart,
   },
   activities: {
-    description: "8 pagini A5 landscape, cu 6 activități pregătite pentru print.",
+    description: "5 pagini A5 landscape, cu colorat, labirint și joc de diferențe.",
     icon: Palette,
   },
 } as const;

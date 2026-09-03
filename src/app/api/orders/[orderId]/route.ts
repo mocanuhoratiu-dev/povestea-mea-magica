@@ -27,7 +27,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ orde
       title: album.plan.title,
       documents: [
         { id: "storybook", label: "Cartea ilustrată", pages: 16 },
-        { id: "activities", label: "Caietul de activități", pages: 8 },
+        { id: "activities", label: "Caietul de activități", pages: 5 },
       ],
     });
   }
@@ -65,7 +65,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ orde
         title: album.plan.title,
         documents: [
           { id: "storybook", label: "Cartea ilustrată", pages: 16 },
-          { id: "activities", label: "Caietul de activități", pages: 8 },
+          { id: "activities", label: "Caietul de activități", pages: 5 },
         ],
       });
     }
