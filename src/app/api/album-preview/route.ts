@@ -26,16 +26,21 @@ async function addPreviewWatermark(image: Buffer) {
   const width = metadata.width || 1200;
   const height = metadata.height || 800;
   const fontSize = Math.max(64, Math.round(width * 0.105));
-  const label = Buffer.from(`
+  const labelSvg = Buffer.from(`
     <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
       <g transform="translate(${Math.round(width / 2)} ${Math.round(height / 2)}) rotate(-12)">
         <text x="0" y="0" text-anchor="middle" dominant-baseline="middle"
           font-family="sans-serif" font-size="${fontSize}" font-weight="800"
-          letter-spacing="${Math.round(fontSize * 0.12)}" fill="#ffffff" fill-opacity="0.42"
-          stroke="#07122a" stroke-opacity="0.42" stroke-width="3">PREVIEW</text>
+          letter-spacing="${Math.round(fontSize * 0.12)}" fill="#ffffff"
+          stroke="#07122a" stroke-width="4">PREVIEW</text>
       </g>
     </svg>
   `);
+  const label = await sharp(labelSvg)
+    .ensureAlpha()
+    .linear([1, 1, 1, 0.42], [0, 0, 0, 0])
+    .png()
+    .toBuffer();
   return sharp(image).composite([{ input: label, top: 0, left: 0 }]).webp({ quality: 88 }).toBuffer();
 }
 
