@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { jsPDF } from "jspdf";
 import sharp from "sharp";
+import { albumWorldLabel } from "@/lib/album/schema";
 import type { AlbumConfiguration, AlbumPanelPosition, AlbumPlan } from "@/lib/album/types";
 
 const PAGE_W = 210;
@@ -104,6 +105,20 @@ function drawLogo(doc: jsPDF, logo: string, x: number, y: number, size: number) 
   doc.addImage(logo, "PNG", x, y, size, size, undefined, "FAST");
 }
 
+function fitSingleLine(doc: jsPDF, text: string, maxWidth: number, preferredSize: number, minimumSize: number) {
+  let size = preferredSize;
+  doc.setFontSize(size);
+  while (size > minimumSize && doc.getTextWidth(text) > maxWidth) {
+    size -= 0.25;
+    doc.setFontSize(size);
+  }
+  return size;
+}
+
+function companionInSentence(companion: string) {
+  return companion ? companion.charAt(0).toLocaleLowerCase("ro-RO") + companion.slice(1) : "companionul";
+}
+
 function drawPageNumber(doc: jsPDF, pageNumber: number, darkPanel = false) {
   doc.setFillColor(darkPanel ? GOLD : NAVY);
   doc.circle(PAGE_W - 9, PAGE_H - 7.4, 3.2, "F");
@@ -183,8 +198,9 @@ function drawCover(doc: jsPDF, cover: string, title: string, childName: string, 
   doc.line(18, 96, 55, 96);
   doc.setTextColor(GOLD_LIGHT);
   doc.setFont("Liberation", "italic");
-  doc.setFontSize(8.5);
-  doc.text(`O aventură creată pentru ${childName}`, 18, 104);
+  const subtitle = `O aventură creată pentru ${childName}`;
+  fitSingleLine(doc, subtitle, 88, 8.5, 6.5);
+  doc.text(subtitle, 18, 104);
   drawLogo(doc, logo, PAGE_W - 23, 7, 15);
 }
 
@@ -197,7 +213,7 @@ function drawDedication(doc: jsPDF, config: AlbumConfiguration, logo: string) {
   doc.setFontSize(7);
   doc.setTextColor(BLUE);
   doc.text("O POVESTE CREATĂ SPECIAL PENTRU", 18, 28);
-  doc.setFontSize(23);
+  fitSingleLine(doc, config.generation.name, 82, 23, 13);
   doc.setTextColor(NAVY);
   doc.text(config.generation.name, 18, 43);
   doc.setDrawColor(GOLD);
@@ -211,7 +227,9 @@ function drawDedication(doc: jsPDF, config: AlbumConfiguration, logo: string) {
   if (config.dedicationFrom) {
     doc.setFont("Liberation", "italic");
     doc.setTextColor(BLUE);
-    doc.text(config.dedicationFrom, 80, 111, { align: "center" });
+    doc.setFontSize(10);
+    const signatureLines = (doc.splitTextToSize(config.dedicationFrom, 105) as string[]).slice(0, 2);
+    doc.text(signatureLines, 80, 108, { align: "center", lineHeightFactor: 1.25 });
   }
 }
 
@@ -254,11 +272,11 @@ function drawActivityHeader(doc: jsPDF, eyebrow: string, title: string, subtitle
   doc.setFontSize(6.5);
   doc.setTextColor(GOLD);
   doc.text(eyebrow.toLocaleUpperCase("ro-RO"), 17, 11);
-  doc.setFontSize(title.length > 36 ? 15 : 17);
+  fitSingleLine(doc, title, 118, title.length > 36 ? 15 : 17, 11.5);
   doc.setTextColor(CREAM);
   doc.text(title, 10, 22);
   doc.setFont("Liberation", "italic");
-  doc.setFontSize(7.2);
+  fitSingleLine(doc, subtitle, 72, 7.2, 5.4);
   doc.setTextColor(GOLD_LIGHT);
   doc.text(subtitle, PAGE_W - 10, 20, { align: "right" });
 }
@@ -325,18 +343,21 @@ function drawActivityCover(doc: jsPDF, config: AlbumConfiguration, cover: string
   doc.text("CAIET DE ACTIVITĂȚI PERSONALIZAT", 17, 27);
   doc.setTextColor(CREAM);
   doc.setFontSize(22);
-  doc.text(["Caietul magic", `pentru ${config.generation.name}`], 17, 48, { lineHeightFactor: 1.15 });
+  doc.text("Caietul magic", 17, 48);
+  fitSingleLine(doc, `pentru ${config.generation.name}`, 91, 22, 13);
+  doc.text(`pentru ${config.generation.name}`, 17, 58);
   doc.setDrawColor(GOLD);
   doc.line(17, 78, 55, 78);
   doc.setFont("Liberation", "italic");
   doc.setFontSize(8.5);
   doc.setTextColor(GOLD_LIGHT);
-  doc.text("6 jocuri inspirate din poveste", 17, 87);
+  doc.text("6 activități inspirate din poveste", 17, 87);
   drawLogo(doc, logo, 17, 102, 16);
   doc.setFont("Liberation", "normal");
-  doc.setFontSize(6.5);
+  const activitySubtitle = `Din ${albumWorldLabel(config.generation.world)} · pentru joacă și imaginație`;
+  fitSingleLine(doc, activitySubtitle, 94, 6.5, 5.2);
   doc.setTextColor(CREAM_DARK);
-  doc.text("Pentru creioane colorate, joacă și imaginație", 17, 129);
+  doc.text(activitySubtitle, 17, 129);
 }
 
 function drawColoringPage(doc: jsPDF, coloring: string) {
@@ -347,8 +368,8 @@ function drawColoringPage(doc: jsPDF, coloring: string) {
   drawPageNumber(doc, 1);
 }
 
-function drawMazePage(doc: jsPDF) {
-  drawActivityHeader(doc, "Misiunea companionului", "Găsește drumul spre lumină", "Începe de la steluță");
+function drawMazePage(doc: jsPDF, companion: string) {
+  drawActivityHeader(doc, "Misiunea companionului", "Găsește drumul spre lumină", `Ajută ${companionInSentence(companion)}`);
   const cols = 12;
   const rows = 6;
   const maze = buildMaze(cols, rows);
@@ -419,8 +440,8 @@ function drawConnectDotsPage(doc: jsPDF) {
   drawPageNumber(doc, 4);
 }
 
-function drawHiddenStarsPage(doc: jsPDF) {
-  drawActivityHeader(doc, "Misiunea grădinii", "Găsește cele 7 steluțe", "Încercuiește-le pe toate");
+function drawHiddenStarsPage(doc: jsPDF, world: string) {
+  drawActivityHeader(doc, albumWorldLabel(world), "Găsește cele 7 steluțe", "Încercuiește-le pe toate");
   doc.setDrawColor(GOLD);
   doc.roundedRect(12, 40, PAGE_W - 24, PAGE_H - 53, 2.2, 2.2, "S");
   [[30, 60, 5], [61, 111, 4], [89, 54, 5], [119, 85, 4.5], [150, 59, 3.8], [175, 112, 5], [185, 80, 4]].forEach(([x, y, r]) => drawFivePointStar(doc, x, y, r));
@@ -474,7 +495,7 @@ function drawActivityBack(doc: jsPDF, childName: string, logo: string) {
   drawBorder(doc);
   drawLogo(doc, logo, PAGE_W / 2 - 14, 40, 28);
   doc.setFont("Liberation", "bold");
-  doc.setFontSize(17);
+  fitSingleLine(doc, `Bravo, ${childName}!`, 130, 17, 11);
   doc.setTextColor(NAVY);
   doc.text(`Bravo, ${childName}!`, PAGE_W / 2, 83, { align: "center" });
   doc.setFont("Liberation", "italic");
@@ -519,17 +540,23 @@ export async function renderAlbumDocuments(config: AlbumConfiguration, plan: Alb
   activities.addPage();
   drawColoringPage(activities, coloring);
   activities.addPage();
-  drawMazePage(activities);
+  drawMazePage(activities, config.generation.companion);
   activities.addPage();
   drawContinuePage(activities, config.generation.name);
   activities.addPage();
   drawConnectDotsPage(activities);
   activities.addPage();
-  drawHiddenStarsPage(activities);
+  drawHiddenStarsPage(activities, config.generation.world);
   activities.addPage();
   drawMemoryPage(activities);
   activities.addPage();
   drawActivityBack(activities, config.generation.name, logo);
 
-  return { storybook: outputBuffer(storybook), activityBooklet: outputBuffer(activities) };
+  const storybookBuffer = outputBuffer(storybook);
+  const activityBookletBuffer = outputBuffer(activities);
+  const maximumBytes = 20 * 1024 * 1024;
+  if (storybookBuffer.length > maximumBytes || activityBookletBuffer.length > maximumBytes) {
+    throw new Error("Documentul depășește limita de 20 MB.");
+  }
+  return { storybook: storybookBuffer, activityBooklet: activityBookletBuffer };
 }

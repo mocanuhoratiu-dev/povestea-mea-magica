@@ -3,7 +3,7 @@ import { createAlbumOrderOutput } from "@/lib/album/orchestrator";
 import { readAlbumConfiguration } from "@/lib/album/schema";
 import { readBundleConfiguration, readBundleOutput, type BundleOutputItem } from "@/lib/bundle";
 import { createReadyEmailHtml, createReadyEmailSubject, createReadyEmailText } from "@/lib/emailTemplates";
-import { createDeliveryToken, createDeliveryTokenForExpiry, getOrder, saveOrderCover, setOrderStatus, verifyTaskIdentity, type OrderProduct, type StoredOrder } from "@/lib/orders";
+import { createDeliveryToken, createDeliveryTokenForExpiry, createOrderDeliveryUrl, getOrder, saveOrderCover, setOrderStatus, verifyTaskIdentity, type OrderProduct, type StoredOrder } from "@/lib/orders";
 import { siteUrl } from "@/lib/siteMode";
 import { logTelemetry } from "@/lib/telemetry";
 
@@ -133,14 +133,6 @@ async function prepareBundleOrder(order: StoredOrder, secret: string) {
   return ensureDeliveryExpiry(prepared);
 }
 
-function deliveryUrlFor(order: StoredOrder, token: string) {
-  const query = `order=${encodeURIComponent(order.id)}&token=${encodeURIComponent(token)}`;
-  if (order.product === "bundle") return `${siteUrl}/pachet/livrare?${query}`;
-  if (order.product === "album") return `${siteUrl}/album-ilustrat/livrare?${query}`;
-  const anchor = order.product === "story" ? "creator" : order.product === "monster" ? "monster-away" : "emergency-kit";
-  return `${siteUrl}/?${query}#${anchor}`;
-}
-
 export async function POST(request: Request) {
   if (!await verifyTaskIdentity(request, siteUrl)) return NextResponse.json({ error: "Neautorizat." }, { status: 401 });
   const secret = workerSecret();
@@ -163,7 +155,7 @@ export async function POST(request: Request) {
     await sendReadyEmail({
       email: prepared.customerEmail,
       product: prepared.product,
-      deliveryUrl: deliveryUrlFor(prepared, token),
+      deliveryUrl: createOrderDeliveryUrl(prepared, token, siteUrl),
       orderId: prepared.id,
       childName: prepared.product === "bundle" ? "" : readChildName(prepared.configuration),
     });

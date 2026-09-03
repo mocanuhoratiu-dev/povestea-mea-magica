@@ -51,6 +51,11 @@ export async function POST(request: Request) {
   const product = checkoutCatalog[productId];
   const stripe = getStripe();
   if (!stripe) return NextResponse.json({ error: checkoutUnavailable }, { status: 503 });
+  const cancelUrl = productId === "illustrated-album-digital"
+    ? `${siteUrl}/album-ilustrat?plata=anulata`
+    : productId === "family-bundle"
+      ? `${siteUrl}/pachet?plata=anulata`
+      : `${siteUrl}/?plata=anulata`;
 
   try {
     const session = await stripe.checkout.sessions.create({
@@ -68,7 +73,7 @@ export async function POST(request: Request) {
         },
       }],
       success_url: `${siteUrl}/comanda-confirmata?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${siteUrl}/preturi?plata=anulata`,
+      cancel_url: cancelUrl,
       consent_collection: {
         terms_of_service: "required",
       },

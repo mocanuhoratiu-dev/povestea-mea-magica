@@ -88,6 +88,10 @@ export default function AlbumDeliveryClient() {
 
   return (
     <div>
+      <div className="mb-6 border-l-4 border-brand-gold bg-brand-navy px-5 py-5 text-brand-cream sm:px-7">
+        <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-gold">Creat pentru {delivery.childName}</p>
+        <h2 className="mt-2 font-serif text-2xl sm:text-3xl">{delivery.title}</h2>
+      </div>
       <div className="border-y border-brand-navy/15 bg-white">
         {delivery.documents.map((document) => {
           const presentation = documentPresentation[document.id];

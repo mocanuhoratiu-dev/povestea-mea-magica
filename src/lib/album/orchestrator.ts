@@ -5,16 +5,61 @@ import type { AlbumConfiguration, AlbumOrderOutput, AlbumPlan } from "@/lib/albu
 import { readOrderCover, readOrderFile, saveOrderCover, saveOrderFile } from "@/lib/orders";
 import { logTelemetry } from "@/lib/telemetry";
 import { generateVertexAlbumIllustration } from "@/lib/vertexImage";
+import sharp from "sharp";
 
 type Checkpoint = (output: AlbumOrderOutput) => Promise<void>;
+type VisualFingerprint = Uint8Array;
+
+class AlbumImageQualityError extends Error {
+  constructor(public readonly code: "image_duplicate" | "image_low_resolution", message: string) {
+    super(message);
+    this.name = "AlbumImageQualityError";
+  }
+}
 
 function wait(milliseconds: number) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
 function isRetryableImageError(error: unknown) {
+  if (error instanceof AlbumImageQualityError) return true;
   const message = error instanceof Error ? error.message : String(error);
   return /429|RESOURCE_EXHAUSTED|503|UNAVAILABLE|timeout|timpul de răspuns/i.test(message);
+}
+
+function decodeImageDataUrl(imageDataUrl: string) {
+  const match = /^data:image\/(?:png|jpeg|webp);base64,([a-zA-Z0-9+/=]+)$/.exec(imageDataUrl);
+  if (!match) throw new AlbumImageQualityError("image_low_resolution", "Ilustrația nu are un format valid.");
+  return Buffer.from(match[1], "base64");
+}
+
+async function createVisualFingerprint(buffer: Buffer) {
+  return new Uint8Array(await sharp(buffer).grayscale().resize(32, 32, { fit: "fill" }).raw().toBuffer());
+}
+
+function fingerprintDistance(first: VisualFingerprint, second: VisualFingerprint) {
+  if (first.length !== second.length || first.length === 0) return 1;
+  let difference = 0;
+  for (let index = 0; index < first.length; index += 1) difference += Math.abs(first[index] - second[index]);
+  return difference / (first.length * 255);
+}
+
+async function inspectGeneratedImage(imageDataUrl: string, avoidFingerprints: VisualFingerprint[]) {
+  try {
+    const buffer = decodeImageDataUrl(imageDataUrl);
+    const metadata = await sharp(buffer).metadata();
+    if (!metadata.width || !metadata.height || metadata.width < 768 || metadata.height < 512) {
+      throw new AlbumImageQualityError("image_low_resolution", "Ilustrația este prea mică pentru album.");
+    }
+    const fingerprint = await createVisualFingerprint(buffer);
+    if (avoidFingerprints.some((known) => fingerprintDistance(fingerprint, known) < 0.035)) {
+      throw new AlbumImageQualityError("image_duplicate", "Ilustrația seamănă prea mult cu o scenă deja folosită.");
+    }
+    return fingerprint;
+  } catch (error) {
+    if (error instanceof AlbumImageQualityError) throw error;
+    throw new AlbumImageQualityError("image_low_resolution", "Ilustrația primită nu poate fi folosită în album.");
+  }
 }
 
 function initialOutput(): AlbumOrderOutput {
@@ -37,6 +82,7 @@ async function generateAndStoreImage({
   reference,
   stage,
   attempt,
+  avoidFingerprints = [],
 }: {
   orderId: string;
   basename: string;
@@ -44,6 +90,7 @@ async function generateAndStoreImage({
   reference?: string;
   stage: "cover" | "scene" | "coloring";
   attempt?: number;
+  avoidFingerprints?: VisualFingerprint[];
 }) {
   const startedAt = Date.now();
   const maxAttempts = readBoundedInteger(process.env.ALBUM_IMAGE_MAX_ATTEMPTS, 4, 1, 6);
@@ -54,6 +101,7 @@ async function generateAndStoreImage({
     try {
       const generated = await generateVertexAlbumIllustration(prompt, reference);
       if ("error" in generated) throw new Error(generated.error);
+      const fingerprint = await inspectGeneratedImage(generated.imageDataUrl, avoidFingerprints);
       const objectName = await saveOrderCover(orderId, generated.imageDataUrl, basename);
       logTelemetry("pmm_album_stage_completed", {
         product: "album",
@@ -65,11 +113,12 @@ async function generateAndStoreImage({
         albumStage: stage,
         attempt,
       });
-      return { objectName, model: generated.model };
+      return { objectName, model: generated.model, fingerprint };
     } catch (error) {
       lastError = error;
       const retryable = isRetryableImageError(error);
       const isLastAttempt = generationAttempt === maxAttempts;
+      const errorCode = error instanceof AlbumImageQualityError ? error.code : retryable ? "rate_limited" : "ai_error";
       logTelemetry("pmm_album_stage_failed", {
         product: "album",
         result: retryable && !isLastAttempt ? "pending" : "error",
@@ -77,7 +126,7 @@ async function generateAndStoreImage({
         continuationCount: generationAttempt - 1,
         albumStage: stage,
         attempt,
-        errorCode: retryable ? "rate_limited" : "ai_error",
+        errorCode,
       });
       if (!retryable || isLastAttempt) break;
       await wait(Math.min(retryDelayMs * (2 ** (generationAttempt - 1)), 60_000));
@@ -146,6 +195,9 @@ export async function createAlbumOrderOutput({
   if (!coverObjectName) throw new Error("Coperta albumului lipsește după etapa de generare.");
   const reference = await readOrderCover(coverObjectName);
   const pacingMs = readBoundedInteger(process.env.ALBUM_IMAGE_PACING_MS, 4_000, 0, 30_000);
+  const sceneFingerprints = await Promise.all(
+    output.assets.scenes.filter(Boolean).map(async (objectName) => createVisualFingerprint((await readOrderFile(objectName)).buffer)),
+  );
   for (let index = 0; index < 13; index += 1) {
     if (output.assets.scenes[index]) continue;
     const generated = await generateAndStoreImage({
@@ -155,6 +207,7 @@ export async function createAlbumOrderOutput({
       reference,
       stage: "scene",
       attempt: index + 1,
+      avoidFingerprints: sceneFingerprints,
     });
     const scenes = [...output.assets.scenes];
     scenes[index] = generated.objectName;
@@ -164,11 +217,17 @@ export async function createAlbumOrderOutput({
       imageModels: withModel(output, generated.model),
       progress: { stage: "scenes", current: scenes.filter(Boolean).length, total: 13 },
     };
+    sceneFingerprints.push(generated.fingerprint);
     await checkpoint(output);
     if (pacingMs > 0 && index < 12) await wait(pacingMs);
   }
 
   if (!output.assets.coloring) {
+    output = {
+      ...output,
+      progress: { stage: "activity", current: 13, total: 13 },
+    };
+    await checkpoint(output);
     if (pacingMs > 0) await wait(pacingMs);
     const coloring = await generateAndStoreImage({
       orderId,

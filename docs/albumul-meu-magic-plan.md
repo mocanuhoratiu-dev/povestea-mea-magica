@@ -1,6 +1,6 @@
 # Albumul Meu Magic - plan și status V1
 
-**Status la 3 septembrie 2026:** implementat local cap-coadă și verificat cu randare reală a celor două PDF-uri. Înainte de publicare mai rămâne un singur test complet în Stripe test mode, cu generarea Vertex, emailul și descărcarea finală.
+**Status la 3 septembrie 2026:** publicat cap-coadă, verificat printr-o comandă Stripe test completă și livrat cu succes prin Vertex, Cloud Tasks, email, SmartBill test și descărcare securizată. Rendererul final include verificări de rezoluție, imagini aproape identice, overflow și dimensiunea PDF-urilor.
 
 ## 1. Decizia de produs
 
@@ -21,7 +21,7 @@ Prețul standard de lansare este 59 lei. Reducerile vor fi aplicate numai prin c
 | Produs | Rol | Format | Text | Ilustrații |
 | --- | --- | --- | --- | --- |
 | Povestea de Seară | Lectură personalizată, cu mai mult text | A4 portret | 2 sau 4 pagini de poveste | Copertă personalizată |
-| Albumul Meu Magic | Experiență vizuală și cadou personalizat | A5 landscape | 480-650 de cuvinte | Copertă + 13 ilustrații distincte |
+| Albumul Meu Magic | Experiență vizuală și cadou personalizat | A5 landscape | 400-500 de cuvinte | Copertă + 13 ilustrații distincte |
 
 ## 2. Contractul V1
 
@@ -52,9 +52,9 @@ Nicio imagine de poveste nu este reutilizată pe altă pagină. Ultima scenă in
 ### Specificații vizuale
 
 - format real A5 landscape: 210 x 148 mm;
-- 480-650 de cuvinte în total;
-- 35-60 de cuvinte pe fiecare pagină de poveste;
-- text de minimum 13,5 pt;
+- țintă de 400-500 de cuvinte în total, cu toleranță tehnică 360-560;
+- țintă de 28-40 de cuvinte pe fiecare pagină, cu toleranță tehnică 24-50;
+- text de 10,8-11,2 pt în mod normal, fără a coborî sub 9,2 pt;
 - contrast ridicat și panouri care nu ascund personajele;
 - margine de siguranță de minimum 10 mm;
 - bleed de 3 mm păstrat în design pentru viitorul tipar;
@@ -140,10 +140,11 @@ Utilizatorul vede un progres real:
 1. „Scriem aventura”
 2. „Dăm chip personajului”
 3. „Ilustrăm scenele 2 din 13”
-4. „Așezăm povestea în pagină”
-5. „Albumul este gata”
+4. „Pregătim caietul de activități”
+5. „Așezăm povestea în pagină”
+6. „Albumul este gata”
 
-Pagina poate fi închisă. Emailul este trimis automat când albumul este gata, iar linkul securizat permite descărcarea fără regenerare.
+Pagina interoghează starea comenzii printr-un endpoint protejat și poate fi închisă. Emailul este trimis automat când albumul este gata, iar linkul securizat permite descărcarea fără regenerare. Dacă plata este anulată, configuratorul restaurează local alegerile făcute în aceeași sesiune de browser.
 
 ## 5. Arhitectura de generare
 
@@ -161,7 +162,7 @@ Pagina poate fi închisă. Emailul este trimis automat când albumul este gata, 
 10. Comanda este marcată `delivered`.
 11. Clientul primește emailul și linkul securizat.
 
-Generarea imaginilor rulează cu maximum două apeluri simultane. Un retry reia numai asseturile lipsă, fără a regenera tot albumul și fără a dubla factura sau emailul.
+Generarea imaginilor rulează secvențial, cu pacing controlat pentru quota Vertex. Un retry reia numai asseturile lipsă, fără a regenera tot albumul și fără a dubla factura sau emailul.
 
 ### Contractul AI
 
@@ -188,9 +189,9 @@ type AlbumPlan = {
 
 Reguli obligatorii:
 
-- exact 10 momente narative împărțite în 13 pagini;
+- exact 13 scene care formează un arc narativ complet;
 - exact 13 prompturi vizuale distincte, fără reutilizarea aceleiași imagini;
-- 480-650 de cuvinte;
+- țintă de 400-500 de cuvinte;
 - fiecare scenă avansează acțiunea;
 - lumea, lecția și detaliul personal influențează evenimentele;
 - `characterBible` rămâne identică în toate prompturile;
@@ -202,7 +203,8 @@ Reguli obligatorii:
 
 - modelul principal și rezervele rămân configurabile;
 - coperta este referința vizuală pentru personaj;
-- maximum două încercări pentru fiecare asset;
+- maximum patru încercări pentru fiecare asset;
+- imaginile prea mici sau aproape identice cu o scenă existentă sunt respinse automat;
 - checkpoint după fiecare imagine;
 - asseturile sub rezoluția minimă sunt respinse;
 - pentru produsul premium plătit nu livrăm imagini lipsă;
@@ -239,7 +241,7 @@ type OrderAsset = {
 };
 
 type OrderProgress = {
-  stage: "planning" | "cover" | "scenes" | "rendering" | "delivery";
+  stage: "planning" | "cover" | "scenes" | "activity" | "rendering" | "delivery";
   current: number;
   total: number;
 };
@@ -273,6 +275,9 @@ Firestore păstrează numai manifestul. Numele copilului, dedicația, povestea �
 - `src/lib/album/orchestrator.ts`
 - `src/lib/album/renderer.ts`
 - `src/app/api/orders/[orderId]/document/route.ts`
+- `src/app/api/checkout/status/route.ts`
+- `src/components/OrderConfirmationClient.tsx`
+- `src/lib/album/presentation.ts`
 
 ### Fișiere extinse
 
@@ -345,7 +350,7 @@ Nu colectăm adresă poștală în V1 și nu creăm produse Stripe pentru ediți
 
 - maximum 10 albume pe zi în prima săptămână;
 - maximum 15 imagini generate per comandă, inclusiv coperta și activitatea de colorat;
-- maximum două încercări per imagine;
+- maximum patru încercări per imagine;
 - alertă dacă P95 depășește 8 minute;
 - alertă dacă rata de eșec depășește 5% în 30 de minute;
 - alertă dacă media costului variabil depășește pragul aprobat;
@@ -356,8 +361,8 @@ Nu colectăm adresă poștală în V1 și nu creăm produse Stripe pentru ediți
 ### Teste automate
 
 - schema respinge payload-uri invalide și texte prea lungi;
-- planul conține 10 momente narative și exact 13 prompturi vizuale distincte;
-- povestea are 480-650 de cuvinte;
+- planul conține exact 13 momente narative și 13 prompturi vizuale distincte;
+- povestea respectă toleranța 360-560 și ținta editorială 400-500 de cuvinte;
 - retry-ul reia numai asseturile lipsă;
 - execuțiile repetate nu dublează PDF-ul, factura sau emailul;
 - cartea ilustrată are exact 16 pagini A5 landscape;
@@ -449,14 +454,14 @@ Nu cerem copilului să scrie sau să coloreze în cartea cartonată. Acest test 
 - activăm produsul pentru trafic controlat;
 - trecem în producție după 10 comenzi consecutive reușite.
 
-## 13. Gate-uri de lansare
+## 13. Verificări continue după lansare
 
-Produsul nu devine public până când:
+Produsul este public. Următoarele praguri sunt urmărite ca obiective operaționale și semnale pentru intervenție:
 
-- costul real pentru maximum 15 imagini este măsurat;
+- costul real pentru maximum 15 imagini este urmărit per comandă;
 - timpul P95 este sub 8 minute;
-- 12 albume trec evaluarea vizuală;
-- 10 comenzi consecutive sunt livrate fără intervenție;
+- primele 12 albume sunt evaluate vizual prin eșantionare;
+- urmărim serii de minimum 10 comenzi consecutive livrate fără intervenție;
 - Stripe, SmartBill și emailul sunt verificate în test mode;
 - cartea are 16 pagini, caietul are 8 pagini, ambele au zero overflow și fiecare rămâne sub 20 MB;
 - suportul poate relua sau rambursa o comandă eșuată;

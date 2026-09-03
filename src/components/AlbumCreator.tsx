@@ -5,6 +5,7 @@ import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, BookHeart, Check, Clock3, Download, Mail, Palette, Printer, Sparkles } from "lucide-react";
 import DigitalPurchaseConsent from "@/components/DigitalPurchaseConsent";
+import { albumWorldFromLumi } from "@/lib/album/presentation";
 import { albumCompanionOptions, albumLessonOptions, albumWorldOptions } from "@/lib/album/types";
 import { beginOrderCheckout } from "@/lib/clientOrderCheckout";
 import { trackEvent } from "@/lib/clientTelemetry";
@@ -21,6 +22,7 @@ const colors = [
 
 const inputClass = "mt-2 min-h-12 w-full border border-brand-navy/20 bg-white px-4 py-3 text-sm font-bold text-brand-navy outline-none transition focus:border-brand-purple focus:ring-2 focus:ring-brand-purple/15";
 const labelClass = "block text-xs font-black uppercase tracking-[0.12em] text-brand-navy/60";
+const albumDraftKey = "pmm-album-draft";
 
 export default function AlbumCreator() {
   const [step, setStep] = useState(0);
@@ -44,6 +46,36 @@ export default function AlbumCreator() {
   const canContinue = step === 0 ? Boolean(name.trim() && age && hairStyle && hairColor && skinTone) : true;
 
   useEffect(() => {
+    const restoreTimer = window.setTimeout(() => {
+      try {
+        const stored = window.sessionStorage.getItem(albumDraftKey);
+        if (stored) {
+          const draft = JSON.parse(stored) as Record<string, unknown>;
+          if (typeof draft.name === "string") setName(draft.name.slice(0, 40));
+          if (typeof draft.age === "string") setAge(draft.age);
+          if (typeof draft.hairStyle === "string") setHairStyle(draft.hairStyle);
+          if (typeof draft.hairColor === "string") setHairColor(draft.hairColor);
+          if (typeof draft.skinTone === "string") setSkinTone(draft.skinTone);
+          if (typeof draft.favoriteColor === "string") setFavoriteColor(draft.favoriteColor);
+          if (typeof draft.world === "string" && albumWorldOptions.some((option) => option.id === draft.world)) setWorld(draft.world);
+          if (typeof draft.companion === "string" && albumCompanionOptions.includes(draft.companion as (typeof albumCompanionOptions)[number])) setCompanion(draft.companion);
+          if (typeof draft.lesson === "string" && albumLessonOptions.includes(draft.lesson as (typeof albumLessonOptions)[number])) setLesson(draft.lesson);
+          if (typeof draft.personalDetail === "string") setPersonalDetail(draft.personalDetail.slice(0, 180));
+          if (typeof draft.dedication === "string") setDedication(draft.dedication.slice(0, 320));
+          if (typeof draft.dedicationFrom === "string") setDedicationFrom(draft.dedicationFrom.slice(0, 80));
+          setStep(3);
+        }
+        if (new URLSearchParams(window.location.search).get("plata") === "anulata") {
+          setNotice("Plata nu a fost finalizată. Alegerile albumului sunt păstrate și le poți verifica înainte să încerci din nou.");
+        }
+      } catch {
+        // Browser storage is optional; the configurator remains fully usable without it.
+      }
+    }, 0);
+    return () => window.clearTimeout(restoreTimer);
+  }, []);
+
+  useEffect(() => {
     const lessonMap: Record<string, string> = {
       "Curaj și încredere 💪": "Curaj și încredere",
       "Împărțitul jucăriilor 🧸": "Prietenie și bunătate",
@@ -53,7 +85,10 @@ export default function AlbumCreator() {
     };
     const applyChoice = (event: Event) => {
       const detail = (event as CustomEvent<Record<string, unknown>>).detail || {};
-      if (typeof detail.theme === "string" && albumWorldOptions.some((option) => option.id === detail.theme)) setWorld(detail.theme);
+      if (typeof detail.theme === "string") {
+        const recommendedWorld = albumWorldFromLumi(detail.theme);
+        if (recommendedWorld) setWorld(recommendedWorld);
+      }
       if (typeof detail.lesson === "string" && lessonMap[detail.lesson]) setLesson(lessonMap[detail.lesson]);
       if (typeof detail.storyDetail === "string" && detail.storyDetail.trim()) setPersonalDetail(detail.storyDetail.trim().slice(0, 180));
       setNotice("Am aplicat în album lumea și tema discutate cu Lumi. Tu completezi datele copilului.");
@@ -99,6 +134,14 @@ export default function AlbumCreator() {
     setNotice("");
     trackEvent("product_started", { product: "album" });
     try {
+      try {
+        window.sessionStorage.setItem(albumDraftKey, JSON.stringify({
+          name: name.trim(), age, hairStyle, hairColor, skinTone, favoriteColor, world, companion, lesson,
+          personalDetail: personalDetail.trim(), dedication: dedication.trim(), dedicationFrom: dedicationFrom.trim(),
+        }));
+      } catch {
+        // Checkout must remain available when session storage is disabled.
+      }
       await beginOrderCheckout("illustrated-album-digital", {
         generation: {
           type: "album",
@@ -198,7 +241,7 @@ export default function AlbumCreator() {
                 </div>
                 <div className="mt-7 grid gap-3 sm:grid-cols-2">
                   <div className="border border-brand-gold/60 bg-brand-gold/10 p-4"><BookHeart className="text-brand-purple" size={22} /><p className="mt-3 font-black text-brand-navy">Cartea ilustrată</p><p className="mt-1 text-xs font-semibold text-brand-navy/60">16 pagini, 13 ilustrații unice</p></div>
-                  <div className="border border-brand-gold/60 bg-brand-gold/10 p-4"><Palette className="text-brand-purple" size={22} /><p className="mt-3 font-black text-brand-navy">Caietul de activități</p><p className="mt-1 text-xs font-semibold text-brand-navy/60">8 pagini, 6 jocuri printabile</p></div>
+                  <div className="border border-brand-gold/60 bg-brand-gold/10 p-4"><Palette className="text-brand-purple" size={22} /><p className="mt-3 font-black text-brand-navy">Caietul de activități</p><p className="mt-1 text-xs font-semibold text-brand-navy/60">8 pagini, 6 activități printabile</p></div>
                 </div>
                 <div className="mt-7 flex items-end justify-between border-y border-brand-navy/15 py-5"><div><p className="text-xs font-black uppercase tracking-[0.12em] text-brand-navy/45">Preț final</p><p className="mt-1 font-nunito text-4xl font-black text-brand-purple">{commerce.prices.illustratedAlbum}</p></div><p className="max-w-[190px] text-right text-xs font-bold leading-relaxed text-brand-navy/55">Include generarea, cele 13 ilustrații și ambele PDF-uri.</p></div>
                 {commerce.acceptsPayments && <div className="mt-6"><DigitalPurchaseConsent checked={hasConsent} onCheckedChange={setHasConsent} productLabel="Albumul Meu Magic - Digital" /></div>}
@@ -214,7 +257,7 @@ export default function AlbumCreator() {
         </div>
 
         <aside className="border-t border-brand-navy/15 bg-brand-navy px-5 py-9 text-brand-cream sm:px-8 lg:border-l lg:border-t-0 lg:px-10 lg:py-12">
-          <p className="text-xs font-black uppercase tracking-[0.15em] text-brand-gold">Model aprobat</p>
+          <p className="text-xs font-black uppercase tracking-[0.15em] text-brand-gold">Vezi ce primești</p>
           <div className="mt-5 overflow-hidden border border-brand-gold/50"><Image src="/examples/album/coperta.webp" alt="Coperta modelului Albumul Meu Magic" width={960} height={676} priority className="h-auto w-full" /></div>
           <div className="mt-3 grid grid-cols-3 gap-2"><Image src="/examples/album/aventura.webp" alt="Pagină ilustrată" width={480} height={338} className="aspect-[1.42] w-full object-cover" /><Image src="/examples/album/colorat.webp" alt="Pagină de colorat" width={480} height={338} className="aspect-[1.42] w-full object-cover" /><Image src="/examples/album/labirint.webp" alt="Pagină cu labirint" width={480} height={338} className="aspect-[1.42] w-full object-cover" /></div>
           <p className="mt-5 font-serif text-2xl">O ilustrație nouă pe fiecare pagină.</p>

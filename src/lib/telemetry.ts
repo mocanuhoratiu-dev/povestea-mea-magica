@@ -15,7 +15,7 @@ type TelemetryFields = {
   wordCount?: number;
   pageCount?: number;
   storyLength?: StoryLength;
-  errorCode?: "ai_error" | "configuration" | "invalid_request" | "rate_limited" | "render_error" | "unknown";
+  errorCode?: "ai_error" | "configuration" | "invalid_request" | "rate_limited" | "render_error" | "image_duplicate" | "image_low_resolution" | "unknown";
   aiProvider?: "gemini" | "vertex";
   model?: string;
   albumStage?: "plan" | "cover" | "scene" | "coloring" | "render" | "delivery";

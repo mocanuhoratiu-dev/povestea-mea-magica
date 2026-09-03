@@ -319,6 +319,14 @@ export function createDeliveryTokenForExpiry(orderId: string, expiresAt: string)
   return `${expiresAt}.${deliverySignature(orderId, expiresAt)}`;
 }
 
+export function createOrderDeliveryUrl(order: StoredOrder, token: string, baseUrl: string) {
+  const query = `order=${encodeURIComponent(order.id)}&token=${encodeURIComponent(token)}`;
+  if (order.product === "bundle") return `${baseUrl}/pachet/livrare?${query}`;
+  if (order.product === "album") return `${baseUrl}/album-ilustrat/livrare?${query}`;
+  const anchor = order.product === "story" ? "creator" : order.product === "monster" ? "monster-away" : "emergency-kit";
+  return `${baseUrl}/?${query}#${anchor}`;
+}
+
 export function isValidDeliveryToken(orderId: string, token: string) {
   const separator = token.lastIndexOf(".");
   if (separator <= 0) return false;
