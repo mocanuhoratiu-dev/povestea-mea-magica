@@ -3,15 +3,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, BookHeart, Check, Clock3, Download, Mail, Palette, Printer, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookHeart, Check, Clock3, Download, Eye, Mail, Palette, Printer, Sparkles } from "lucide-react";
 import DigitalPurchaseConsent from "@/components/DigitalPurchaseConsent";
 import { albumWorldFromLumi } from "@/lib/album/presentation";
-import { albumArtStyleOptions, albumCompanionOptions, albumLessonOptions, albumMoodOptions, albumWorldOptions } from "@/lib/album/types";
-import { beginOrderCheckout } from "@/lib/clientOrderCheckout";
+import { albumArtStyleOptions, albumCompanionOptions, albumLessonOptions, albumMoodOptions, albumWorldOptions, type AlbumConfiguration } from "@/lib/album/types";
+import { beginPreparedOrderCheckout } from "@/lib/clientOrderCheckout";
 import { trackEvent } from "@/lib/clientTelemetry";
 import { commerce } from "@/lib/siteMode";
 
-const steps = ["Copilul", "Aventura", "Mesajul vostru", "Confirmare"];
+const steps = ["Copilul", "Aventura", "Mesajul vostru", "Preview"];
 const colors = [
   { label: "Mov ametist", value: "mov ametist", swatch: "#8052a0" },
   { label: "Albastru ceresc", value: "albastru ceresc", swatch: "#5b93af" },
@@ -23,6 +23,30 @@ const colors = [
 const inputClass = "mt-2 min-h-12 w-full border border-brand-navy/20 bg-white px-4 py-3 text-sm font-bold text-brand-navy outline-none transition focus:border-brand-purple focus:ring-2 focus:ring-brand-purple/15";
 const labelClass = "block text-xs font-black uppercase tracking-[0.12em] text-brand-navy/60";
 const albumDraftKey = "pmm-album-draft";
+
+type AlbumPreviewState = {
+  orderId: string;
+  imageUrl: string;
+  title: string;
+  configurationFingerprint: string;
+};
+
+function readStoredPreview(value: unknown): AlbumPreviewState | null {
+  if (!value || typeof value !== "object") return null;
+  const preview = value as Record<string, unknown>;
+  if (
+    typeof preview.orderId !== "string"
+    || typeof preview.imageUrl !== "string"
+    || typeof preview.title !== "string"
+    || typeof preview.configurationFingerprint !== "string"
+  ) return null;
+  return {
+    orderId: preview.orderId,
+    imageUrl: preview.imageUrl,
+    title: preview.title,
+    configurationFingerprint: preview.configurationFingerprint,
+  };
+}
 
 export default function AlbumCreator() {
   const [step, setStep] = useState(0);
@@ -47,8 +71,34 @@ export default function AlbumCreator() {
   const [hasConsent, setHasConsent] = useState(false);
   const [notice, setNotice] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [preview, setPreview] = useState<AlbumPreviewState | null>(null);
 
   const worldLabel = useMemo(() => albumWorldOptions.find((option) => option.id === world)?.label || "Lume magică", [world]);
+  const albumConfiguration = useMemo<AlbumConfiguration>(() => ({
+    generation: {
+      type: "album",
+      name: name.trim(),
+      age,
+      hairStyle,
+      hairColor,
+      eyeColor,
+      skinTone,
+      outfit: outfit.trim(),
+      appearanceDetail: appearanceDetail.trim(),
+      favoriteColor,
+      world,
+      companion,
+      lesson,
+      mood,
+      artStyle,
+      personalDetail: personalDetail.trim(),
+      storyContext: storyContext.trim(),
+    },
+    dedication: dedication.trim(),
+    dedicationFrom: dedicationFrom.trim(),
+  }), [name, age, hairStyle, hairColor, eyeColor, skinTone, outfit, appearanceDetail, favoriteColor, world, companion, lesson, mood, artStyle, personalDetail, storyContext, dedication, dedicationFrom]);
+  const configurationFingerprint = useMemo(() => JSON.stringify(albumConfiguration), [albumConfiguration]);
+  const activePreview = preview?.configurationFingerprint === configurationFingerprint ? preview : null;
   const canContinue = step === 0 ? Boolean(name.trim() && age && hairStyle && hairColor && eyeColor && skinTone && outfit.trim()) : true;
 
   useEffect(() => {
@@ -75,6 +125,8 @@ export default function AlbumCreator() {
           if (typeof draft.storyContext === "string") setStoryContext(draft.storyContext.slice(0, 700));
           if (typeof draft.dedication === "string") setDedication(draft.dedication.slice(0, 320));
           if (typeof draft.dedicationFrom === "string") setDedicationFrom(draft.dedicationFrom.slice(0, 80));
+          const storedPreview = readStoredPreview(draft.preview);
+          if (storedPreview) setPreview(storedPreview);
           setStep(3);
         }
         if (new URLSearchParams(window.location.search).get("plata") === "anulata") {
@@ -86,6 +138,50 @@ export default function AlbumCreator() {
     }, 0);
     return () => window.clearTimeout(restoreTimer);
   }, []);
+
+  const persistDraft = (currentPreview: AlbumPreviewState | null = activePreview) => {
+    try {
+      window.sessionStorage.setItem(albumDraftKey, JSON.stringify({
+        ...albumConfiguration.generation,
+        dedication: albumConfiguration.dedication,
+        dedicationFrom: albumConfiguration.dedicationFrom,
+        preview: currentPreview,
+      }));
+    } catch {
+      // Checkout remains available when session storage is disabled.
+    }
+  };
+
+  const createPreview = async () => {
+    setIsLoading(true);
+    setNotice("");
+    setHasConsent(false);
+    trackEvent("product_started", { product: "album" });
+    try {
+      const response = await fetch("/api/album-preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ configuration: albumConfiguration }),
+      });
+      const result = await response.json() as { orderId?: string; previewUrl?: string; title?: string; error?: string };
+      if (!response.ok || !result.orderId || !result.previewUrl || !result.title) {
+        throw new Error(result.error || "Preview-ul nu a putut fi creat acum.");
+      }
+      const nextPreview: AlbumPreviewState = {
+        orderId: result.orderId,
+        imageUrl: result.previewUrl,
+        title: result.title,
+        configurationFingerprint,
+      };
+      setPreview(nextPreview);
+      persistDraft(nextPreview);
+      setNotice("Preview-ul este gata. Aceasta va fi coperta și referința vizuală a personajului în album.");
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Preview-ul nu a putut fi creat acum.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     const lessonMap: Record<string, string> = {
@@ -133,6 +229,10 @@ export default function AlbumCreator() {
       goNext();
       return;
     }
+    if (!activePreview) {
+      await createPreview();
+      return;
+    }
     if (!commerce.acceptsPayments) {
       setNotice("Comenzile pentru album se deschid odată cu activarea plăților.");
       return;
@@ -144,39 +244,9 @@ export default function AlbumCreator() {
 
     setIsLoading(true);
     setNotice("");
-    trackEvent("product_started", { product: "album" });
     try {
-      try {
-        window.sessionStorage.setItem(albumDraftKey, JSON.stringify({
-          name: name.trim(), age, hairStyle, hairColor, eyeColor, skinTone, outfit, appearanceDetail, favoriteColor, world, companion, lesson, mood, artStyle,
-          personalDetail: personalDetail.trim(), storyContext: storyContext.trim(), dedication: dedication.trim(), dedicationFrom: dedicationFrom.trim(),
-        }));
-      } catch {
-        // Checkout must remain available when session storage is disabled.
-      }
-      await beginOrderCheckout("illustrated-album-digital", {
-        generation: {
-          type: "album",
-          name: name.trim(),
-          age,
-          hairStyle,
-          hairColor,
-          eyeColor,
-          skinTone,
-          outfit: outfit.trim(),
-          appearanceDetail: appearanceDetail.trim(),
-          favoriteColor,
-          world,
-          companion,
-          lesson,
-          mood,
-          artStyle,
-          personalDetail: personalDetail.trim(),
-          storyContext: storyContext.trim(),
-        },
-        dedication: dedication.trim(),
-        dedicationFrom: dedicationFrom.trim(),
-      });
+      persistDraft(activePreview);
+      await beginPreparedOrderCheckout("illustrated-album-digital", activePreview.orderId);
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Plata nu a putut fi deschisă acum.");
       setIsLoading(false);
@@ -258,8 +328,8 @@ export default function AlbumCreator() {
 
             {step === 3 && (
               <div>
-                <h2 className="font-serif text-3xl text-brand-navy sm:text-4xl">Albumul este pregătit pentru comandă</h2>
-                <p className="mt-3 max-w-xl text-sm font-semibold leading-relaxed text-brand-navy/60">Verifică alegerile. După plată, generarea continuă pe server și primești email când ambele PDF-uri sunt gata.</p>
+                <h2 className="font-serif text-3xl text-brand-navy sm:text-4xl">Vezi personajul înainte de plată</h2>
+                <p className="mt-3 max-w-xl text-sm font-semibold leading-relaxed text-brand-navy/60">Creăm o copertă personalizată din alegerile tale. După ce o vezi, aceeași imagine fixează chipul, ținuta și atmosfera în întregul album.</p>
                 <div className="mt-8 divide-y divide-brand-navy/12 border-y border-brand-navy/15 text-sm">
                   {[['Pentru', `${name}, ${age} ani`], ['Lume', worldLabel], ['Companion', companion], ['Temă', lesson], ['Atmosferă', mood], ['Stil', artStyle], ['Culoare', favoriteColor]].map(([label, value]) => <div key={label} className="grid grid-cols-[110px_1fr] gap-4 py-3"><span className="font-black text-brand-navy/45">{label}</span><span className="font-bold text-brand-navy">{value}</span></div>)}
                 </div>
@@ -267,8 +337,42 @@ export default function AlbumCreator() {
                   <div className="border border-brand-gold/60 bg-brand-gold/10 p-4"><BookHeart className="text-brand-purple" size={22} /><p className="mt-3 font-black text-brand-navy">Cartea ilustrată</p><p className="mt-1 text-xs font-semibold text-brand-navy/60">16 pagini, ilustrații 2K și layout pentru print</p></div>
                   <div className="border border-brand-gold/60 bg-brand-gold/10 p-4"><Palette className="text-brand-purple" size={22} /><p className="mt-3 font-black text-brand-navy">Caiet inclus</p><p className="mt-1 text-xs font-semibold text-brand-navy/60">5 pagini: colorat, labirint și diferențe</p></div>
                 </div>
+                {activePreview ? (
+                  <div className="mt-7">
+                    <div className="relative isolate overflow-hidden border border-brand-gold/70 bg-brand-navy shadow-[0_18px_45px_rgba(9,20,45,.18)]">
+                      <Image
+                        unoptimized
+                        src={activePreview.imageUrl}
+                        alt={`Preview personalizat pentru ${name}`}
+                        width={1200}
+                        height={800}
+                        className="aspect-[3/2] w-full object-cover"
+                        onError={() => {
+                          setPreview(null);
+                          setHasConsent(false);
+                          setNotice("Preview-ul a expirat. Creează unul nou pentru a continua către plată.");
+                        }}
+                      />
+                      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(8,19,43,.58)_0%,rgba(8,19,43,.18)_42%,transparent_68%)]" />
+                      <div className="pointer-events-none absolute left-[6%] top-[10%] max-w-[46%] text-brand-cream [text-shadow:0_2px_16px_rgba(4,12,30,.75)]">
+                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-brand-gold sm:text-[11px]">Albumul Meu Magic</p>
+                        <p className="mt-2 font-serif text-[clamp(1.25rem,4vw,2.45rem)] leading-[1.02]">{activePreview.title}</p>
+                      </div>
+                      <span className="pointer-events-none absolute bottom-[7%] right-[5%] rotate-[-7deg] border-2 border-white/65 px-3 py-1 text-xs font-black uppercase tracking-[0.22em] text-white/75 sm:text-base">Preview</span>
+                    </div>
+                    <div className="flex gap-3 border-x border-b border-brand-gold/40 bg-brand-gold/10 p-4">
+                      <Check className="mt-0.5 shrink-0 text-brand-purple" size={20} />
+                      <p className="text-xs font-bold leading-relaxed text-brand-navy/70">Coperta finală nu va avea watermark. Personajul de aici devine referința vizuală pentru toate cele 13 scene.</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mt-7 border border-brand-purple/25 bg-brand-purple/[0.06] p-5 sm:flex sm:items-center sm:gap-5">
+                    <span className="grid h-12 w-12 shrink-0 place-items-center bg-brand-purple text-white"><Eye size={24} /></span>
+                    <div className="mt-4 sm:mt-0"><p className="font-black text-brand-navy">{preview ? "Alegerile s-au schimbat" : "Un preview inclus înainte de checkout"}</p><p className="mt-1 text-xs font-semibold leading-relaxed text-brand-navy/60">{preview ? "Creează un preview nou pentru a vedea personajul actualizat înainte de plată." : "Durează aproximativ un minut. Imaginea este privată, are watermark în preview și rămâne disponibilă 24 de ore."}</p></div>
+                  </div>
+                )}
                 <div className="mt-7 flex items-end justify-between border-y border-brand-navy/15 py-5"><div><p className="text-xs font-black uppercase tracking-[0.12em] text-brand-navy/45">Preț final</p><p className="mt-1 font-nunito text-4xl font-black text-brand-purple">{commerce.prices.illustratedAlbum}</p></div><p className="max-w-[210px] text-right text-xs font-bold leading-relaxed text-brand-navy/55">Include personajul vizual, coperta premium, 13 scene 2K și caietul de activități.</p></div>
-                {commerce.acceptsPayments && <div className="mt-6"><DigitalPurchaseConsent checked={hasConsent} onCheckedChange={setHasConsent} productLabel="Albumul Meu Magic - Digital" /></div>}
+                {activePreview && commerce.acceptsPayments && <div className="mt-6"><DigitalPurchaseConsent checked={hasConsent} onCheckedChange={setHasConsent} productLabel="Albumul Meu Magic - Digital" /></div>}
               </div>
             )}
           </div>
@@ -276,7 +380,7 @@ export default function AlbumCreator() {
           {notice && <p role="alert" className="mb-5 border-l-4 border-brand-purple bg-brand-purple/8 px-4 py-3 text-sm font-bold text-brand-navy">{notice}</p>}
           <div className="flex items-center justify-between gap-3 border-t border-brand-navy/12 pt-6">
             <button type="button" onClick={() => setStep((current) => Math.max(0, current - 1))} disabled={step === 0 || isLoading} className="inline-flex min-h-12 items-center gap-2 px-2 text-sm font-black text-brand-navy disabled:opacity-25"><ArrowLeft size={17} /> Înapoi</button>
-            {step < 3 ? <button type="submit" className="inline-flex min-h-12 items-center gap-2 bg-brand-navy px-6 text-sm font-black text-brand-cream transition hover:bg-brand-purple">Continuă <ArrowRight size={17} /></button> : <button type="submit" disabled={isLoading || !commerce.acceptsPayments} className="inline-flex min-h-14 items-center gap-2 bg-brand-purple px-6 text-sm font-black text-white transition hover:bg-brand-navy disabled:cursor-not-allowed disabled:opacity-45">{isLoading ? "Deschidem plata..." : "Continuă către plată"} <Sparkles size={18} /></button>}
+            {step < 3 ? <button type="submit" className="inline-flex min-h-12 items-center gap-2 bg-brand-navy px-6 text-sm font-black text-brand-cream transition hover:bg-brand-purple">Continuă <ArrowRight size={17} /></button> : <button type="submit" disabled={isLoading || Boolean(activePreview && !commerce.acceptsPayments)} className="inline-flex min-h-14 items-center gap-2 bg-brand-purple px-6 text-sm font-black text-white transition hover:bg-brand-navy disabled:cursor-not-allowed disabled:opacity-45">{isLoading ? (activePreview ? "Deschidem plata..." : "Creăm preview-ul...") : (activePreview ? "Continuă către plată" : "Vezi preview-ul personalizat")} <Sparkles size={18} /></button>}
           </div>
         </div>
 

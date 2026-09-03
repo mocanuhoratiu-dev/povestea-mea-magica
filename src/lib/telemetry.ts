@@ -19,11 +19,19 @@ type TelemetryFields = {
   aiProvider?: "gemini" | "vertex";
   model?: string;
   albumStage?: "plan" | "cover" | "scene" | "coloring" | "render" | "delivery";
+  samplePage?: number;
 };
 
-type TelemetryEvent =
+export type TelemetryEvent =
   | "pmm_site_visited"
   | "pmm_story_preview_started"
+  | "pmm_album_preview_started"
+  | "pmm_album_preview_completed"
+  | "pmm_album_preview_failed"
+  | "pmm_album_sample_page_viewed"
+  | "pmm_album_sample_audio_played"
+  | "pmm_album_sample_expanded"
+  | "pmm_album_sample_cta_clicked"
   | "pmm_product_started"
   | "pmm_generation_completed"
   | "pmm_generation_failed"
@@ -86,6 +94,7 @@ export function logTelemetry(event: TelemetryEvent, fields: TelemetryFields = {}
     ai_provider: fields.aiProvider,
     model: fields.model,
     album_stage: fields.albumStage,
+    sample_page: fields.samplePage,
   };
 
   // Omit absent keys so log-based metric labels stay clean and predictable.

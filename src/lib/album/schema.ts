@@ -117,6 +117,7 @@ export function readAlbumOutput(value: unknown): AlbumOrderOutput | null {
 
   return {
     kind: "illustrated-album",
+    ...(clean(value.previewTitle, 100) ? { previewTitle: clean(value.previewTitle, 100) } : {}),
     ...(plan ? { plan } : {}),
     assets: {
       ...(typeof assets.characterReference === "string" && assets.characterReference ? { characterReference: assets.characterReference } : {}),

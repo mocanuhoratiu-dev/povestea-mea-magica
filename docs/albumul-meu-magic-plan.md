@@ -1,6 +1,6 @@
 # Albumul Meu Magic - plan și status V2 Premium
 
-**Status la 3 septembrie 2026:** varianta premium este implementată și pregătită pentru publicare. Fluxul comercial a fost verificat anterior printr-o comandă Stripe test completă și livrat cu succes prin Vertex, Cloud Tasks, email, SmartBill test și descărcare securizată. V2 adaugă referință vizuală de personaj, imagini 2K, copertă full-bleed, text separat de ilustrații și un caiet compact cu trei activități.
+**Status la 4 septembrie 2026:** varianta premium include modelul public răsfoibil și preview-ul personalizat al copertei înainte de plată. Linkul privat al preview-ului expiră în 24 de ore; coperta curată este păstrată intern conform ciclului de viață existent, devine coperta finală și referința vizuală pentru scene. Fluxul comercial rămâne bazat pe Stripe, Vertex, Cloud Tasks, email, SmartBill și descărcare securizată.
 
 ## 1. Decizia de produs
 
@@ -128,7 +128,7 @@ Configurarea are patru pași:
 1. **Copilul** - nume, vârstă și aspect.
 2. **Aventura** - lume, companion, lecție, atmosferă și stil vizual.
 3. **Mesajul vostru** - ideea poveștii, detaliu personal și dedicație.
-4. **Confirmare** - rezumat, preț, consimțământ și plată.
+4. **Preview** - copertă personalizată cu watermark, urmată de consimțământ și plată.
 
 Pe mobil, fiecare pas ocupă ecranul, are un singur CTA principal și păstrează datele la revenirea în pasul anterior. Lumi nu acoperă formularul și nu modifică alegerile fără confirmare.
 
@@ -149,17 +149,16 @@ Pagina interoghează starea comenzii printr-un endpoint protejat și poate fi î
 
 ### Fluxul complet
 
-1. Configurația este validată și salvată în comanda existentă.
-2. Stripe Checkout încasează plata.
-3. Webhook-ul marchează comanda drept plătită.
-4. Cloud Tasks pornește procesarea asincronă.
-5. Modelul de text produce planul structurat al albumului.
-6. O planșă internă de personaj este generată prima și devine referința vizuală pentru toate imaginile.
-7. Coperta premium și cele 13 ilustrații de poveste sunt generate la rezoluție 2K, cu aceeași referință de personaj, dar cu acțiuni și compoziții distincte.
+1. Configurația este validată și salvată într-o comandă draft.
+2. Coperta premium este generată la rezoluție 2K, salvată privat și afișată cu watermark printr-un link temporar.
+3. Coperta văzută de client devine referința vizuală a personajului; schimbarea alegerilor cere un preview nou.
+4. Stripe Checkout încasează plata pe aceeași comandă.
+5. Webhook-ul marchează comanda drept plătită, iar Cloud Tasks pornește procesarea asincronă.
+6. Modelul de text produce planul structurat al albumului și păstrează titlul din preview.
+7. Cele 13 ilustrații de poveste sunt generate la rezoluție 2K folosind coperta drept referință, dar cu acțiuni și compoziții distincte.
 8. Fiecare asset este salvat imediat în Cloud Storage.
 9. Rendererul construiește separat cartea ilustrată și caietul de activități A5 landscape.
-10. Comanda este marcată `delivered`.
-11. Clientul primește emailul și linkul securizat.
+10. Comanda este marcată `delivered`, iar clientul primește emailul și linkul securizat.
 
 Generarea imaginilor rulează secvențial, cu pacing controlat pentru quota Vertex. Un retry reia numai asseturile lipsă, fără a regenera tot albumul și fără a dubla factura sau emailul.
 
@@ -204,7 +203,7 @@ Reguli obligatorii:
 ### Strategia imaginilor
 
 - modelul principal și rezervele rămân configurabile;
-- planșa internă de personaj este referința vizuală pentru copertă și toate scenele;
+- coperta aprobată în preview este referința vizuală pentru toate scenele;
 - toate ilustrațiile albumului sunt solicitate la rezoluție 2K, în raport 16:9 pentru scene, 3:2 pentru copertă și 4:3 pentru activități;
 - maximum patru încercări pentru fiecare asset;
 - imaginile prea mici sau aproape identice cu o scenă existentă sunt respinse automat;
@@ -354,7 +353,8 @@ Nu colectăm adresă poștală în V1 și nu creăm produse Stripe pentru ediți
 ### Limite inițiale
 
 - maximum 10 albume pe zi în prima săptămână;
-- maximum 17 imagini generate per comandă: referința de personaj, coperta, 13 scene și două activități;
+- maximum 16 imagini generate per comandă: coperta din preview, 13 scene și două activități;
+- maximum două preview-uri pe zi pentru aceeași adresă de rețea, ca limită inițială de protecție;
 - maximum patru încercări per imagine;
 - alertă dacă P95 depășește 12 minute;
 - alertă dacă rata de eșec depășește 5% în 30 de minute;
@@ -474,7 +474,7 @@ Produsul este public. Următoarele praguri sunt urmărite ca obiective operațio
 
 ## 14. Definition of Done
 
-V1 este complet când părintele poate configura și plăti albumul pe telefon, poate închide pagina în timpul procesării și primește ulterior două PDF-uri coerente, personalizate și descărcabile în siguranță. Personajul trebuie să rămână recognoscibil în copertă și în toate cele 13 ilustrații distincte, iar o eroare nu trebuie să producă plăți, facturi sau emailuri duplicate.
+V1 este complet când părintele poate configura albumul pe telefon, poate vedea coperta personalizată înainte de plată, poate plăti aceeași comandă, poate închide pagina în timpul procesării și primește ulterior două PDF-uri coerente și descărcabile în siguranță. Personajul trebuie să rămână recognoscibil în copertă și în toate cele 13 ilustrații distincte, iar o eroare nu trebuie să producă plăți, facturi sau emailuri duplicate.
 
 Ediția tipărită nu face parte din Definition of Done. Ea rămâne vizibilă ca direcție viitoare și va primi un plan separat după testarea a minimum trei tipografii și a unor mostre fizice.
 

@@ -23,7 +23,7 @@ const faqs = [
   },
   {
     question: "Pot modifica ceva înainte de PDF?",
-    answer: "Da. Poți ajusta alegerile și crea o variantă nouă. În cazul poveștii, poți edita textul înainte de descărcare și poți regenera coperta.",
+    answer: "Da. Pentru Albumul Meu Magic vezi coperta personalizată înainte de plată, cu un watermark discret. Dacă schimbi alegerile, creezi un preview nou, iar coperta confirmată devine reperul vizual al personajului în album. Pentru Povestea de Seară poți edita textul înainte de descărcare și poți regenera coperta.",
   },
   {
     question: "Pot printa materialele?",

@@ -5,6 +5,10 @@ import type { GenerationMode, StoryLength, TelemetryProduct } from "@/lib/teleme
 type ClientEvent =
   | "site_visited"
   | "story_preview_started"
+  | "album_sample_page_viewed"
+  | "album_sample_audio_played"
+  | "album_sample_expanded"
+  | "album_sample_cta_clicked"
   | "product_started"
   | "generation_completed"
   | "pdf_render_started"
@@ -29,6 +33,7 @@ type ClientTelemetryFields = {
   wordCount?: number;
   storyLength?: StoryLength;
   durationMs?: number;
+  samplePage?: number;
 };
 
 function postTelemetry(payload: Record<string, unknown>) {
@@ -57,6 +62,7 @@ export function trackEvent(event: ClientEvent, fields: ClientTelemetryFields = {
     wordCount: fields.wordCount,
     storyLength: fields.storyLength,
     durationMs: fields.durationMs,
+    samplePage: fields.samplePage,
   });
 }
 

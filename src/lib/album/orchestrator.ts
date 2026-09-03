@@ -160,7 +160,8 @@ export async function createAlbumOrderOutput({
     const startedAt = Date.now();
     let plan: AlbumPlan;
     try {
-      plan = await generateAlbumPlan(configuration.generation);
+      const generatedPlan = await generateAlbumPlan(configuration.generation);
+      plan = output.previewTitle ? { ...generatedPlan, title: output.previewTitle } : generatedPlan;
       logTelemetry("pmm_album_stage_completed", { product: "album", result: "success", durationMs: Date.now() - startedAt, albumStage: "plan", aiProvider: "vertex", model: plan.textModel });
     } catch (error) {
       logTelemetry("pmm_album_stage_failed", { product: "album", result: "error", durationMs: Date.now() - startedAt, albumStage: "plan", errorCode: "ai_error" });

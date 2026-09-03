@@ -101,6 +101,7 @@ export type AlbumProgressStage = "planning" | "cover" | "scenes" | "activity" | 
 
 export type AlbumOrderOutput = {
   kind: "illustrated-album";
+  previewTitle?: string;
   plan?: AlbumPlan;
   assets: {
     characterReference?: string;

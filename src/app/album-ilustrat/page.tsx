@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import AlbumCreator, { AlbumPrintTeaser } from "@/components/AlbumCreator";
+import AlbumFlipbook from "@/components/AlbumFlipbook";
 import Footer from "@/components/Footer";
 import LumiGuideLoader from "@/components/LumiGuideLoader";
 
@@ -27,7 +28,14 @@ export default function IllustratedAlbumPage() {
           </div>
         </div>
       </section>
-      <section className="px-0 sm:px-6"><div className="mx-auto max-w-7xl"><AlbumCreator /></div></section>
+      <AlbumFlipbook />
+      <section id="configureaza-albumul" className="scroll-mt-20 px-0 py-12 sm:px-6 md:py-20">
+        <div className="mx-auto mb-8 max-w-7xl px-5 sm:px-0">
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-brand-purple">Acum este rândul poveștii voastre</p>
+          <h2 className="mt-3 max-w-3xl font-serif text-3xl leading-tight text-brand-navy sm:text-4xl">Construiește aventura copilului tău.</h2>
+        </div>
+        <div className="mx-auto max-w-7xl"><AlbumCreator /></div>
+      </section>
       <AlbumPrintTeaser />
       <Footer />
       <LumiGuideLoader />

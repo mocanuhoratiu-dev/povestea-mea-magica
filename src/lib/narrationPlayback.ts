@@ -3,6 +3,11 @@
 export type NarrationKind = "story" | "lumi";
 type NarrationPhase = "idle" | "loading" | "playing";
 type NarrationState = { owner: string | null; phase: NarrationPhase };
+type StaticNarrationCallbacks = {
+  onEnded?: () => void;
+  onError?: () => void;
+  onProgress?: (progress: number) => void;
+};
 
 let state: NarrationState = { owner: null, phase: "idle" };
 let activeAudio: HTMLAudioElement | null = null;
@@ -16,7 +21,12 @@ function publish(nextState: NarrationState) {
 }
 
 function releaseAudio() {
-  activeAudio?.pause();
+  if (activeAudio) {
+    activeAudio.onended = null;
+    activeAudio.onerror = null;
+    activeAudio.ontimeupdate = null;
+    activeAudio.pause();
+  }
   activeAudio = null;
   if (activeUrl) URL.revokeObjectURL(activeUrl);
   activeUrl = null;
@@ -87,6 +97,48 @@ export async function playNarration(owner: string, text: string, kind: Narration
     if (version === requestVersion) {
       releaseAudio();
       publish({ owner: null, phase: "idle" });
+    }
+    throw error;
+  }
+}
+
+/** Plays a pre-generated track through the same global channel used by Lumi. */
+export async function playStaticNarration(owner: string, source: string, callbacks: StaticNarrationCallbacks = {}) {
+  stopCurrentNarration();
+  const version = requestVersion;
+  publish({ owner, phase: "loading" });
+
+  try {
+    const audio = new Audio(source);
+    activeAudio = audio;
+    audio.ontimeupdate = () => {
+      if (version !== requestVersion || !Number.isFinite(audio.duration) || audio.duration <= 0) return;
+      callbacks.onProgress?.(Math.min(1, audio.currentTime / audio.duration));
+    };
+    audio.onended = () => {
+      if (version !== requestVersion) return;
+      releaseAudio();
+      publish({ owner: null, phase: "idle" });
+      callbacks.onEnded?.();
+    };
+    audio.onerror = () => {
+      if (version !== requestVersion) return;
+      releaseAudio();
+      publish({ owner: null, phase: "idle" });
+      callbacks.onError?.();
+    };
+    await audio.play();
+    if (version !== requestVersion) {
+      releaseAudio();
+      return false;
+    }
+    publish({ owner, phase: "playing" });
+    return true;
+  } catch (error) {
+    if (version === requestVersion) {
+      releaseAudio();
+      publish({ owner: null, phase: "idle" });
+      callbacks.onError?.();
     }
     throw error;
   }
