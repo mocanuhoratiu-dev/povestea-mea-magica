@@ -323,8 +323,9 @@ export function createOrderDeliveryUrl(order: StoredOrder, token: string, baseUr
   const query = `order=${encodeURIComponent(order.id)}&token=${encodeURIComponent(token)}`;
   if (order.product === "bundle") return `${baseUrl}/pachet/livrare?${query}`;
   if (order.product === "album") return `${baseUrl}/povestea-magica/livrare?${query}`;
-  const anchor = order.product === "story" ? "creator" : order.product === "monster" ? "monster-away" : "emergency-kit";
-  return `${baseUrl}/?${query}#${anchor}`;
+  if (order.product === "monster") return `${baseUrl}/scutul-de-noapte?${query}#monster-away`;
+  if (order.product === "emergency") return `${baseUrl}/trusa-de-rabdare?${query}#emergency-kit`;
+  return `${baseUrl}/?${query}#creator`;
 }
 
 export function isValidDeliveryToken(orderId: string, token: string) {
