@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import sharp from "sharp";
 import { createAlbumBudget, reserveAlbumBudgetCall } from "../src/lib/album/budget.ts";
+import { isUsableLineArtStatistics } from "../src/lib/album/qualityMetrics.ts";
 import { sanitizeAlbumReferencePhoto } from "../src/lib/album/referencePhoto.ts";
 
 test("album budget stops generation before the configured hard limit is exceeded", () => {
@@ -27,4 +28,12 @@ test("reference photos are normalized and stripped into a bounded JPEG", async (
 test("reference photos below the identity threshold are rejected", async () => {
   const source = await sharp({ create: { width: 120, height: 120, channels: 3, background: "white" } }).png().toBuffer();
   await assert.rejects(() => sanitizeAlbumReferencePhoto(`data:image/png;base64,${source.toString("base64")}`), /prea mică/);
+});
+
+test("album coloring pages accept useful black-and-white line art", () => {
+  assert.equal(isUsableLineArtStatistics({ average: 242, contrast: 38, inkCoverage: 0.08 }), true);
+});
+
+test("album coloring pages still reject a blank white image", () => {
+  assert.equal(isUsableLineArtStatistics({ average: 255, contrast: 0, inkCoverage: 0 }), false);
 });

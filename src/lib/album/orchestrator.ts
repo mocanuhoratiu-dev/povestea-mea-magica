@@ -27,7 +27,7 @@ function wait(milliseconds: number) {
 function isRetryableImageError(error: unknown) {
   if (error instanceof AlbumImageQualityError) return true;
   const message = error instanceof Error ? error.message : String(error);
-  return /429|RESOURCE_EXHAUSTED|503|UNAVAILABLE|timeout|timpul de răspuns/i.test(message);
+  return /429|RESOURCE_EXHAUSTED|503|UNAVAILABLE|timeout|timpul de răspuns|image_(?:low_resolution|bad_aspect_ratio|flat_or_blank)/i.test(message);
 }
 
 function isBudgetLimitError(error: unknown) {

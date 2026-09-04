@@ -1,6 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import sharp from "sharp";
 import { readBoundedDuration, withTimeout } from "@/lib/aiTimeout";
+import { isUsableLineArtStatistics } from "@/lib/album/qualityMetrics";
 import type { AlbumQualityResult } from "@/lib/album/types";
 
 const QUALITY_SCHEMA = {
@@ -53,7 +54,7 @@ function targetRatio(value: AlbumQualityInput["expectedAspectRatio"]) {
   return 3 / 2;
 }
 
-async function deterministicCheck(candidateDataUrl: string, expectedAspectRatio: AlbumQualityInput["expectedAspectRatio"]) {
+async function deterministicCheck(candidateDataUrl: string, expectedAspectRatio: AlbumQualityInput["expectedAspectRatio"], allowLineArt = false) {
   const candidate = parseDataUrl(candidateDataUrl);
   const image = sharp(candidate.buffer);
   const [metadata, statistics] = await Promise.all([image.metadata(), image.stats()]);
@@ -64,7 +65,13 @@ async function deterministicCheck(candidateDataUrl: string, expectedAspectRatio:
   if (ratioDifference > 0.28) throw new Error("image_bad_aspect_ratio");
   const average = statistics.channels.slice(0, 3).reduce((sum, channel) => sum + channel.mean, 0) / 3;
   const contrast = statistics.channels.slice(0, 3).reduce((sum, channel) => sum + channel.stdev, 0) / 3;
-  if (average < 18 || average > 247 || contrast < 12 || statistics.entropy < 3.2) {
+  if (allowLineArt) {
+    const pixels = await image.clone().grayscale().resize({ width: 512, withoutEnlargement: true }).raw().toBuffer();
+    const inkCoverage = pixels.reduce((total, pixel) => total + (pixel < 245 ? 1 : 0), 0) / pixels.length;
+    if (!isUsableLineArtStatistics({ average, contrast, inkCoverage })) {
+      throw new Error("image_flat_or_blank");
+    }
+  } else if (average < 18 || average > 247 || contrast < 12 || statistics.entropy < 3.2) {
     throw new Error("image_flat_or_blank");
   }
   return { candidate, technicalScore: Math.round(Math.min(100, 72 + contrast / 2 + statistics.entropy * 1.5)) };
@@ -75,7 +82,7 @@ export function isAlbumAiQualityEnabled() {
 }
 
 export async function evaluateAlbumImage(input: AlbumQualityInput): Promise<AlbumQualityResult> {
-  const deterministic = await deterministicCheck(input.candidateDataUrl, input.expectedAspectRatio);
+  const deterministic = await deterministicCheck(input.candidateDataUrl, input.expectedAspectRatio, input.asset === "album-coloring");
   const fallback: AlbumQualityResult = {
     asset: input.asset,
     mode: "deterministic",
