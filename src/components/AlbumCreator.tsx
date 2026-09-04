@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, BookHeart, Camera, Check, Clock3, Download, Eye, Mail, Palette, Printer, RefreshCw, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookHeart, Camera, Check, Clock3, Download, Eye, LoaderCircle, Mail, Palette, Printer, RefreshCw, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
 import DigitalPurchaseConsent from "@/components/DigitalPurchaseConsent";
 import { albumWorldFromLumi } from "@/lib/album/presentation";
 import { albumArtStyleOptions, albumCompanionOptions, albumLessonOptions, albumMoodOptions, albumWorldOptions, type AlbumConfiguration } from "@/lib/album/types";
@@ -11,6 +11,7 @@ import { beginPreparedOrderCheckout } from "@/lib/clientOrderCheckout";
 import { trackEvent } from "@/lib/clientTelemetry";
 import { commerce } from "@/lib/siteMode";
 import { prepareReferencePhoto } from "@/lib/album/clientReferencePhoto";
+import AlbumPreviewFlipbook, { type AlbumPreviewPage } from "@/components/AlbumPreviewFlipbook";
 
 const steps = ["Copilul", "Aventura", "Mesajul vostru", "Preview"];
 const colors = [
@@ -31,7 +32,21 @@ type AlbumPreviewState = {
   title: string;
   configurationFingerprint: string;
   qualityChecked: boolean;
+  statusUrl?: string;
+  pages: AlbumPreviewPage[];
+  ready: boolean;
 };
+
+function readPreviewPages(value: unknown): AlbumPreviewPage[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item) => {
+    if (!item || typeof item !== "object") return [];
+    const page = item as Record<string, unknown>;
+    if (!["cover", "story"].includes(String(page.kind)) || typeof page.imageUrl !== "string" || typeof page.title !== "string" || typeof page.text !== "string") return [];
+    const layout = ["cinematic", "image-left", "image-right"].includes(String(page.layout)) ? page.layout as AlbumPreviewPage["layout"] : undefined;
+    return [{ kind: page.kind as AlbumPreviewPage["kind"], imageUrl: page.imageUrl, eyebrow: typeof page.eyebrow === "string" ? page.eyebrow : "Povestea Magică", title: page.title, text: page.text, ...(layout ? { layout } : {}) }];
+  }).slice(0, 3);
+}
 
 function readStoredPreview(value: unknown): AlbumPreviewState | null {
   if (!value || typeof value !== "object") return null;
@@ -39,6 +54,7 @@ function readStoredPreview(value: unknown): AlbumPreviewState | null {
   if (
     typeof preview.orderId !== "string"
     || typeof preview.imageUrl !== "string"
+    || typeof preview.statusUrl !== "string"
     || typeof preview.title !== "string"
     || typeof preview.configurationFingerprint !== "string"
   ) return null;
@@ -48,6 +64,9 @@ function readStoredPreview(value: unknown): AlbumPreviewState | null {
     title: preview.title,
     configurationFingerprint: preview.configurationFingerprint,
     qualityChecked: preview.qualityChecked === true,
+    statusUrl: preview.statusUrl,
+    pages: readPreviewPages(preview.pages),
+    ready: preview.ready === true,
   };
 }
 
@@ -185,8 +204,8 @@ export default function AlbumCreator() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ configuration: albumConfiguration, ...(referencePhoto ? { referenceImageDataUrl: referencePhoto, photoConsent: photoConsent === true } : {}) }),
       });
-      const result = await response.json() as { orderId?: string; previewUrl?: string; title?: string; qualityChecked?: boolean; error?: string };
-      if (!response.ok || !result.orderId || !result.previewUrl || !result.title) {
+      const result = await response.json() as { orderId?: string; previewUrl?: string; statusUrl?: string; title?: string; qualityChecked?: boolean; error?: string };
+      if (!response.ok || !result.orderId || !result.previewUrl || !result.statusUrl || !result.title) {
         throw new Error(result.error || "Preview-ul nu a putut fi creat acum.");
       }
       const nextPreview: AlbumPreviewState = {
@@ -195,16 +214,73 @@ export default function AlbumCreator() {
         title: result.title,
         configurationFingerprint,
         qualityChecked: result.qualityChecked === true,
+        statusUrl: result.statusUrl,
+        pages: [{ kind: "cover", imageUrl: result.previewUrl, eyebrow: "Povestea Magică", title: result.title, text: `O aventură creată pentru ${name.trim()}` }],
+        ready: false,
       };
       setPreview(nextPreview);
       persistDraft(nextPreview);
-      setNotice("Preview-ul este gata. Aceasta va fi coperta și referința vizuală a personajului în întreaga poveste.");
+      setNotice("Coperta este gata. Pregătim acum două pagini reale din poveste, pe care le vei putea răsfoi înainte de plată.");
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Preview-ul nu a putut fi creat acum.");
     } finally {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!activePreview?.statusUrl || activePreview.ready) return;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let attempts = 0;
+    const poll = async () => {
+      attempts += 1;
+      try {
+        const response = await fetch(activePreview.statusUrl as string, { cache: "no-store" });
+        const result = await response.json() as { status?: string; pages?: unknown; title?: string; qualityChecked?: boolean; progress?: number; total?: number; error?: string };
+        if (cancelled) return;
+        if (result.status === "ready") {
+          const pages = readPreviewPages(result.pages);
+          if (pages.length !== 3) throw new Error("Preview-ul nu conține toate paginile.");
+          const nextPreview: AlbumPreviewState = {
+            ...activePreview,
+            title: result.title || activePreview.title,
+            qualityChecked: result.qualityChecked === true,
+            pages,
+            ready: true,
+          };
+          setPreview(nextPreview);
+          setNotice("Mostra este gata. Răsfoiește coperta și cele două pagini; exact aceste imagini vor intra în carte după plată.");
+          try {
+            window.sessionStorage.setItem(albumDraftKey, JSON.stringify({
+              ...albumConfiguration.generation,
+              dedication: albumConfiguration.dedication,
+              dedicationFrom: albumConfiguration.dedicationFrom,
+              preview: nextPreview,
+            }));
+          } catch {
+            // Preview remains usable if browser storage is disabled.
+          }
+          return;
+        }
+        if (result.status === "failed") throw new Error(result.error || "Preview-ul interior nu a putut fi creat.");
+        setNotice(`Construim paginile de interior ${Math.max(0, result.progress || 0)} din ${Math.max(2, result.total || 2)}. Poți rămâne pe această pagină.`);
+      } catch (error) {
+        if (cancelled) return;
+        if (attempts >= 100) {
+          setPreview(null);
+          setNotice(error instanceof Error ? error.message : "Preview-ul nu a putut fi verificat.");
+          return;
+        }
+      }
+      timer = setTimeout(poll, 4_000);
+    };
+    timer = setTimeout(poll, 1_500);
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
+  }, [activePreview, albumConfiguration]);
 
   useEffect(() => {
     const lessonMap: Record<string, string> = {
@@ -431,7 +507,7 @@ export default function AlbumCreator() {
                 </div>
                 {activePreview ? (
                   <div className="mt-7">
-                    <div className="relative isolate overflow-hidden border border-brand-gold/70 bg-brand-navy shadow-[0_18px_45px_rgba(9,20,45,.18)]">
+                    {activePreview.ready && activePreview.pages.length === 3 ? <AlbumPreviewFlipbook pages={activePreview.pages} childName={name} /> : <div className="relative isolate overflow-hidden border border-brand-gold/70 bg-brand-navy shadow-[0_18px_45px_rgba(9,20,45,.18)]">
                       <Image
                         unoptimized
                         src={activePreview.imageUrl}
@@ -451,16 +527,16 @@ export default function AlbumCreator() {
                         <p className="mt-2 font-serif text-[clamp(1.25rem,4vw,2.45rem)] leading-[1.02]">{activePreview.title}</p>
                       </div>
                       <span className="pointer-events-none absolute bottom-[7%] right-[5%] rotate-[-7deg] border-2 border-white/65 px-3 py-1 text-xs font-black uppercase tracking-[0.22em] text-white/75 sm:text-base">Preview</span>
-                    </div>
+                    </div>}
                     <div className="flex gap-3 border-x border-b border-brand-gold/40 bg-brand-gold/10 p-4">
-                      <Check className="mt-0.5 shrink-0 text-brand-purple" size={20} />
-                      <div><p className="text-xs font-bold leading-relaxed text-brand-navy/70">Coperta finală nu va avea watermark. Personajul de aici devine referința vizuală pentru toate cele 13 scene.{activePreview.qualityChecked ? " Coperta a trecut controlul tehnic și editorial automat." : ""}</p><button type="button" onClick={() => { setPreview(null); setHasConsent(false); }} className="mt-3 inline-flex min-h-9 items-center gap-2 border-b border-brand-purple text-[11px] font-black text-brand-purple"><RefreshCw size={14} /> Încearcă altă copertă</button></div>
+                      {activePreview.ready ? <Check className="mt-0.5 shrink-0 text-brand-purple" size={20} /> : <LoaderCircle className="mt-0.5 shrink-0 animate-spin text-brand-purple" size={20} />}
+                      <div><p className="text-xs font-bold leading-relaxed text-brand-navy/70">{activePreview.ready ? `Mostra nu va avea watermark în produsul final. Coperta și cele două scene devin referința vizuală pentru restul cărții.${activePreview.qualityChecked ? " Toate cele trei imagini au trecut controlul automat." : ""}` : "Coperta fixează personajul. Motorul editorial scrie acum firul poveștii și creează două pagini distincte pentru verificare."}</p><button type="button" onClick={() => { setPreview(null); setHasConsent(false); }} className="mt-3 inline-flex min-h-9 items-center gap-2 border-b border-brand-purple text-[11px] font-black text-brand-purple"><RefreshCw size={14} /> Încearcă altă variantă</button></div>
                     </div>
                   </div>
                 ) : (
                   <div className="mt-7 border border-brand-purple/25 bg-brand-purple/[0.06] p-5 sm:flex sm:items-center sm:gap-5">
                     <span className="grid h-12 w-12 shrink-0 place-items-center bg-brand-purple text-white"><Eye size={24} /></span>
-                    <div className="mt-4 sm:mt-0"><p className="font-black text-brand-navy">{preview ? "Alegerile s-au schimbat" : "Un preview inclus înainte de checkout"}</p><p className="mt-1 text-xs font-semibold leading-relaxed text-brand-navy/60">{preview ? "Creează un preview nou pentru a vedea personajul actualizat înainte de plată." : "Durează aproximativ un minut. Imaginea este privată, are watermark în preview și rămâne disponibilă 24 de ore."}</p></div>
+                    <div className="mt-4 sm:mt-0"><p className="font-black text-brand-navy">{preview ? "Alegerile s-au schimbat" : "O mostră reală înainte de checkout"}</p><p className="mt-1 text-xs font-semibold leading-relaxed text-brand-navy/60">{preview ? "Creează o mostră nouă pentru a vedea personajul și paginile actualizate înainte de plată." : "Primești coperta și două pagini interioare private, cu watermark. Durează câteva minute și rămân disponibile 24 de ore."}</p></div>
                   </div>
                 )}
                 <div className="mt-7 flex items-end justify-between border-y border-brand-navy/15 py-5"><div><p className="text-xs font-black uppercase tracking-[0.12em] text-brand-navy/45">Preț final</p><p className="mt-1 font-nunito text-4xl font-black text-brand-purple">{commerce.prices.illustratedAlbum}</p></div><p className="max-w-[210px] text-right text-xs font-bold leading-relaxed text-brand-navy/55">Include personajul vizual, coperta premium, 13 scene 2K și caietul de activități.</p></div>
@@ -472,7 +548,7 @@ export default function AlbumCreator() {
           {notice && <p role="alert" className="mb-5 border-l-4 border-brand-purple bg-brand-purple/8 px-4 py-3 text-sm font-bold text-brand-navy">{notice}</p>}
           <div className="mb-20 flex items-center justify-between gap-3 border-t border-brand-navy/12 pt-6 sm:mb-0">
             <button type="button" onClick={() => setStep((current) => Math.max(0, current - 1))} disabled={step === 0 || isLoading} className="inline-flex min-h-12 items-center gap-2 px-2 text-sm font-black text-brand-navy disabled:opacity-25"><ArrowLeft size={17} /> Înapoi</button>
-            {step < 3 ? <button type="submit" className="inline-flex min-h-12 items-center gap-2 bg-brand-navy px-6 text-sm font-black text-brand-cream transition hover:bg-brand-purple">Continuă <ArrowRight size={17} /></button> : <button type="submit" disabled={isLoading || Boolean(activePreview && !commerce.acceptsPayments)} className="inline-flex min-h-14 items-center gap-2 bg-brand-purple px-6 text-sm font-black text-white transition hover:bg-brand-navy disabled:cursor-not-allowed disabled:opacity-45">{isLoading ? (activePreview ? "Deschidem plata..." : "Creăm preview-ul...") : (activePreview ? "Continuă către plată" : "Vezi preview-ul personalizat")} <Sparkles size={18} /></button>}
+            {step < 3 ? <button type="submit" className="inline-flex min-h-12 items-center gap-2 bg-brand-navy px-6 text-sm font-black text-brand-cream transition hover:bg-brand-purple">Continuă <ArrowRight size={17} /></button> : <button type="submit" disabled={isLoading || Boolean(activePreview && (!activePreview.ready || !commerce.acceptsPayments))} className="inline-flex min-h-14 items-center gap-2 bg-brand-purple px-6 text-sm font-black text-white transition hover:bg-brand-navy disabled:cursor-not-allowed disabled:opacity-45">{isLoading ? (activePreview ? "Deschidem plata..." : "Creăm coperta...") : activePreview ? (activePreview.ready ? "Continuă către plată" : "Pregătim paginile...") : "Vezi mostra personalizată"} <Sparkles size={18} /></button>}
           </div>
         </div>
 

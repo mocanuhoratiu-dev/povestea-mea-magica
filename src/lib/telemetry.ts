@@ -18,7 +18,7 @@ type TelemetryFields = {
   errorCode?: "ai_error" | "configuration" | "invalid_request" | "rate_limited" | "render_error" | "image_duplicate" | "image_low_resolution" | "image_quality_rejected" | "budget_limit" | "unknown";
   aiProvider?: "gemini" | "vertex";
   model?: string;
-  albumStage?: "plan" | "cover" | "scene" | "coloring" | "render" | "audio" | "delivery";
+  albumStage?: "plan" | "cover" | "preview" | "scene" | "coloring" | "render" | "audio" | "delivery";
   samplePage?: number;
   estimatedCostMicros?: number;
   identityScore?: number;

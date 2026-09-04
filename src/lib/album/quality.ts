@@ -112,7 +112,7 @@ export async function evaluateAlbumImage(input: AlbumQualityInput): Promise<Albu
       ...(reference ? [{ inlineData: { mimeType: reference.mimeType, data: reference.data } }, { text: "IMAGE 1 is the authoritative character reference." }] : []),
       { inlineData: { mimeType: deterministic.candidate.mimeType, data: deterministic.candidate.data } },
       {
-        text: `IMAGE ${reference ? "2" : "1"} is the candidate illustration for ${input.asset}. Evaluate it as a premium children's picture-book editor. Check character identity and age consistency${reference ? " against IMAGE 1" : " from the requested description"}, scene relevance, composition, malformed anatomy, duplicate characters, accidental words or watermarks, and child safety. Requested scene: ${input.prompt.slice(0, 2_400)}. Return strict JSON only.`,
+        text: `IMAGE ${reference ? "2" : "1"} is the candidate illustration for ${input.asset}. Evaluate it as a premium children's picture-book editor. Check character identity and apparent-age consistency${reference ? " against IMAGE 1" : " from the requested description"}, exact hairstyle and outfit continuity, separation of siblings or secondary characters, companion continuity, recurring prop colors, safety gear in movement scenes, scene relevance, composition, malformed anatomy, duplicate characters, commercial logos, accidental words or watermarks, and child safety. Any readable brand, logo, watermark or accidental text means hasText=true. Requested scene: ${input.prompt.slice(0, 2_400)}. Return strict JSON only.`,
       },
     ];
     const response = await withTimeout(client.models.generateContent({

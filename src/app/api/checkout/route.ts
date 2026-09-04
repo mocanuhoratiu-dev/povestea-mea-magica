@@ -5,10 +5,23 @@ import { checkRateLimit, requestExceedsBodyLimit } from "@/lib/requestProtection
 import { commerce, siteUrl } from "@/lib/siteMode";
 import { getStripe, isStripeConfigured } from "@/lib/stripe";
 import { logTelemetry } from "@/lib/telemetry";
+import { readAlbumOutput } from "@/lib/album/schema";
+import { readBundleOutput } from "@/lib/bundle";
+import { isAlbumPreviewReady } from "@/lib/album/previewState";
 
 export const runtime = "nodejs";
 
 const checkoutUnavailable = "Platile online nu sunt active momentan.";
+
+function hasFinishedAlbumPreview(order: NonNullable<Awaited<ReturnType<typeof getOrder>>>) {
+  if (order.product === "album") {
+    return isAlbumPreviewReady(readAlbumOutput(order.output));
+  }
+  if (order.productId === "complete-bundle") {
+    return isAlbumPreviewReady(readAlbumOutput(readBundleOutput(order.output).find((item) => item.product === "album")?.output));
+  }
+  return true;
+}
 
 export async function POST(request: Request) {
   if (requestExceedsBodyLimit(request, 2_000)) {
@@ -46,6 +59,9 @@ export async function POST(request: Request) {
   const order = await getOrder(orderId);
   if (!order || order.productId !== productId || !["draft", "pending_payment"].includes(order.status)) {
     return NextResponse.json({ error: "Comanda nu mai este disponibila. Reincepe personalizarea." }, { status: 409 });
+  }
+  if (!hasFinishedAlbumPreview(order)) {
+    return NextResponse.json({ error: "Cele două pagini de preview sunt încă în lucru. Plata se deschide imediat ce le poți răsfoi." }, { status: 409 });
   }
 
   const product = checkoutCatalog[productId];

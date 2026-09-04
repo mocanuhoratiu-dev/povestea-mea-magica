@@ -1,7 +1,7 @@
 import { generateAlbumPlan } from "@/lib/album/generation";
 import { renderAlbumDocuments } from "@/lib/album/renderer";
 import { readAlbumOutput } from "@/lib/album/schema";
-import type { AlbumConfiguration, AlbumOrderOutput, AlbumPlan, AlbumQualityResult } from "@/lib/album/types";
+import type { AlbumConfiguration, AlbumOrderOutput, AlbumQualityResult } from "@/lib/album/types";
 import { readOrderCover, readOrderFile, saveOrderCover, saveOrderFile } from "@/lib/orders";
 import { logTelemetry } from "@/lib/telemetry";
 import { generateVertexAlbumIllustration } from "@/lib/vertexImage";
@@ -12,6 +12,8 @@ import { synthesizeRomanianSpeech } from "@/lib/googleTextToSpeech";
 
 type Checkpoint = (output: AlbumOrderOutput) => Promise<void>;
 type VisualFingerprint = Uint8Array;
+const ALBUM_SCENE_COUNT = 13;
+const ALBUM_PREVIEW_SCENE_COUNT = 2;
 
 class AlbumImageQualityError extends Error {
   constructor(public readonly code: "image_duplicate" | "image_low_resolution" | "image_quality_rejected", message: string) {
@@ -72,8 +74,8 @@ async function inspectGeneratedImage(imageDataUrl: string, avoidFingerprints: Vi
 function initialOutput(): AlbumOrderOutput {
   return {
     kind: "illustrated-album",
-    assets: { scenes: Array.from({ length: 13 }, () => "") },
-    progress: { stage: "planning", current: 0, total: 13 },
+    assets: { scenes: Array.from({ length: ALBUM_SCENE_COUNT }, () => "") },
+    progress: { stage: "planning", current: 0, total: ALBUM_SCENE_COUNT },
     imageModels: [],
     quality: [],
     budget: createAlbumBudget(),
@@ -169,6 +171,120 @@ function readBoundedInteger(value: string | undefined, fallback: number, min: nu
   return Number.isFinite(parsed) ? Math.min(max, Math.max(min, Math.round(parsed))) : fallback;
 }
 
+async function generatePlanWithTelemetry(
+  configuration: AlbumConfiguration,
+  previewTitle: string | undefined,
+  beforeAttempt: () => Promise<void>,
+) {
+  const startedAt = Date.now();
+  try {
+    const generatedPlan = await generateAlbumPlan(configuration.generation, { beforeAttempt });
+    const plan = previewTitle ? { ...generatedPlan, title: previewTitle } : generatedPlan;
+    logTelemetry("pmm_album_stage_completed", {
+      product: "album",
+      result: "success",
+      durationMs: Date.now() - startedAt,
+      albumStage: "plan",
+      aiProvider: "vertex",
+      model: plan.textModel,
+    });
+    logTelemetry("pmm_story_text_completed", {
+      product: "album",
+      result: "success",
+      generationMode: "ai",
+      pageCount: ALBUM_SCENE_COUNT,
+      wordCount: plan.scenes.reduce((total, scene) => total + scene.text.split(/\s+/).filter(Boolean).length, 0),
+      aiProvider: "vertex",
+      model: plan.textModel,
+    });
+    return plan;
+  } catch (error) {
+    logTelemetry("pmm_album_stage_failed", {
+      product: "album",
+      result: "error",
+      durationMs: Date.now() - startedAt,
+      albumStage: "plan",
+      errorCode: "ai_error",
+    });
+    throw error;
+  }
+}
+
+/**
+ * Builds two real interior pages before checkout. The same plan and images are
+ * reused by the paid worker, so preview cost becomes part of the final book.
+ */
+export async function createAlbumPreviewScenes({
+  orderId,
+  configuration,
+  existing,
+  checkpoint,
+}: {
+  orderId: string;
+  configuration: AlbumConfiguration;
+  existing?: Record<string, unknown>;
+  checkpoint: Checkpoint;
+}) {
+  let output = readAlbumOutput(existing);
+  if (!output?.assets.cover) throw new Error("Coperta aprobată lipsește din preview.");
+
+  const reserve = async (kind: AlbumBudgetCall) => {
+    output = { ...output as AlbumOrderOutput, budget: reserveAlbumBudgetCall((output as AlbumOrderOutput).budget, kind) };
+    await checkpoint(output);
+  };
+  const beforeImageCall = () => reserve("image");
+  const beforeQualityCall = async () => {
+    if (isAlbumAiQualityEnabled()) await reserve("quality");
+  };
+  const addQuality = (result: AlbumQualityResult) => [
+    ...(output as AlbumOrderOutput).quality.filter((item) => item.asset !== result.asset),
+    result,
+  ];
+
+  if (!output.plan) {
+    const plan = await generatePlanWithTelemetry(configuration, output.previewTitle, () => reserve("text"));
+    output = { ...output, plan, progress: { stage: "scenes", current: 0, total: ALBUM_SCENE_COUNT } };
+    await checkpoint(output);
+  }
+
+  const coverObjectName = output.assets.cover;
+  const plan = output.plan;
+  if (!coverObjectName || !plan) throw new Error("Preview-ul nu are coperta și planul necesare.");
+  const reference = await readOrderCover(coverObjectName);
+  const fingerprints: VisualFingerprint[] = [];
+  for (let index = 0; index < ALBUM_PREVIEW_SCENE_COUNT; index += 1) {
+    if (output.assets.scenes[index]) {
+      fingerprints.push(await createVisualFingerprint((await readOrderFile(output.assets.scenes[index])).buffer));
+      continue;
+    }
+    const generated = await generateAndStoreImage({
+      orderId,
+      basename: `album-scene-${String(index + 1).padStart(2, "0")}`,
+      prompt: plan.scenes[index].imagePrompt,
+      reference,
+      stage: "scene",
+      attempt: index + 1,
+      aspectRatio: "3:2",
+      avoidFingerprints: fingerprints,
+      beforeCall: beforeImageCall,
+      beforeQualityCall,
+    });
+    const scenes: string[] = [...output.assets.scenes];
+    scenes[index] = generated.objectName;
+    output = {
+      ...output,
+      assets: { ...output.assets, scenes },
+      imageModels: withModel(output, generated.model),
+      quality: addQuality(generated.quality),
+      progress: { stage: "scenes", current: scenes.filter(Boolean).length, total: ALBUM_SCENE_COUNT },
+    };
+    fingerprints.push(generated.fingerprint);
+    await checkpoint(output);
+  }
+
+  return output;
+}
+
 export async function createAlbumOrderOutput({
   orderId,
   configuration,
@@ -195,27 +311,9 @@ export async function createAlbumOrderOutput({
   ];
 
   if (!output.plan) {
-    const startedAt = Date.now();
-    let plan: AlbumPlan;
-    try {
-      const generatedPlan = await generateAlbumPlan(configuration.generation, { beforeAttempt: () => reserve("text") });
-      plan = output.previewTitle ? { ...generatedPlan, title: output.previewTitle } : generatedPlan;
-      logTelemetry("pmm_album_stage_completed", { product: "album", result: "success", durationMs: Date.now() - startedAt, albumStage: "plan", aiProvider: "vertex", model: plan.textModel });
-    } catch (error) {
-      logTelemetry("pmm_album_stage_failed", { product: "album", result: "error", durationMs: Date.now() - startedAt, albumStage: "plan", errorCode: "ai_error" });
-      throw error;
-    }
-    output = { ...output, plan, progress: { stage: "cover", current: 0, total: 13 } };
+    const plan = await generatePlanWithTelemetry(configuration, output.previewTitle, () => reserve("text"));
+    output = { ...output, plan, progress: { stage: "cover", current: 0, total: ALBUM_SCENE_COUNT } };
     await checkpoint(output);
-    logTelemetry("pmm_story_text_completed", {
-      product: "album",
-      result: "success",
-      generationMode: "ai",
-      pageCount: 13,
-      wordCount: plan.scenes.reduce((total, scene) => total + scene.text.split(/\s+/).filter(Boolean).length, 0),
-      aiProvider: "vertex",
-      model: plan.textModel,
-    });
   }
 
   const plan = output.plan;
@@ -250,7 +348,7 @@ export async function createAlbumOrderOutput({
       assets: { ...output.assets, cover: cover.objectName },
       imageModels: withModel(output, cover.model),
       quality: addQuality(cover.quality),
-      progress: { stage: "scenes", current: output.assets.scenes.filter(Boolean).length, total: 13 },
+      progress: { stage: "scenes", current: output.assets.scenes.filter(Boolean).length, total: ALBUM_SCENE_COUNT },
     };
     await checkpoint(output);
   }
@@ -261,7 +359,7 @@ export async function createAlbumOrderOutput({
   const sceneFingerprints = await Promise.all(
     output.assets.scenes.filter(Boolean).map(async (objectName) => createVisualFingerprint((await readOrderFile(objectName)).buffer)),
   );
-  for (let index = 0; index < 13; index += 1) {
+  for (let index = 0; index < ALBUM_SCENE_COUNT; index += 1) {
     if (output.assets.scenes[index]) continue;
     const generated = await generateAndStoreImage({
       orderId,
@@ -282,17 +380,17 @@ export async function createAlbumOrderOutput({
       assets: { ...output.assets, scenes },
       imageModels: withModel(output, generated.model),
       quality: addQuality(generated.quality),
-      progress: { stage: "scenes", current: scenes.filter(Boolean).length, total: 13 },
+      progress: { stage: "scenes", current: scenes.filter(Boolean).length, total: ALBUM_SCENE_COUNT },
     };
     sceneFingerprints.push(generated.fingerprint);
     await checkpoint(output);
-    if (pacingMs > 0 && index < 12) await wait(pacingMs);
+    if (pacingMs > 0 && index < ALBUM_SCENE_COUNT - 1) await wait(pacingMs);
   }
 
   if (!output.assets.coloring) {
     output = {
       ...output,
-      progress: { stage: "activity", current: 13, total: 13 },
+      progress: { stage: "activity", current: ALBUM_SCENE_COUNT, total: ALBUM_SCENE_COUNT },
     };
     await checkpoint(output);
     if (pacingMs > 0) await wait(pacingMs);
@@ -311,7 +409,7 @@ export async function createAlbumOrderOutput({
       assets: { ...output.assets, coloring: coloring.objectName },
       imageModels: withModel(output, coloring.model),
       quality: addQuality(coloring.quality),
-      progress: { stage: "activity", current: 13, total: 13 },
+      progress: { stage: "activity", current: ALBUM_SCENE_COUNT, total: ALBUM_SCENE_COUNT },
     };
     await checkpoint(output);
   }
@@ -335,7 +433,7 @@ export async function createAlbumOrderOutput({
       assets: { ...output.assets, differences: differences.objectName },
       imageModels: withModel(output, differences.model),
       quality: addQuality(differences.quality),
-      progress: { stage: "rendering", current: 13, total: 13 },
+      progress: { stage: "rendering", current: ALBUM_SCENE_COUNT, total: ALBUM_SCENE_COUNT },
     };
     await checkpoint(output);
   }
@@ -367,7 +465,7 @@ export async function createAlbumOrderOutput({
       output = {
         ...output,
         documents: { storybook, activityBooklet },
-        progress: { stage: "delivery", current: 13, total: 13 },
+        progress: { stage: "delivery", current: ALBUM_SCENE_COUNT, total: ALBUM_SCENE_COUNT },
       };
       await checkpoint(output);
       logTelemetry("pmm_pdf_render_completed", { product: "album", result: "success", durationMs: Date.now() - startedAt, pageCount: 21 });

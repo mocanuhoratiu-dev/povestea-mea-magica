@@ -132,7 +132,7 @@ Configurarea are patru pași:
 1. **Copilul** - nume, vârstă și aspect.
 2. **Aventura** - lume, companion, lecție, atmosferă și stil vizual.
 3. **Mesajul vostru** - ideea poveștii, detaliu personal și dedicație.
-4. **Preview** - copertă personalizată cu watermark, urmată de consimțământ și plată.
+4. **Preview** - copertă și două pagini interioare reale, răsfoibile și protejate cu watermark, urmate de consimțământ și plată.
 
 Pe mobil, fiecare pas ocupă ecranul, are un singur CTA principal și păstrează datele la revenirea în pasul anterior. Lumi nu acoperă formularul și nu modifică alegerile fără confirmare.
 
@@ -156,12 +156,12 @@ Pagina interoghează starea comenzii printr-un endpoint protejat și poate fi î
 
 1. Configurația este validată și salvată într-o comandă draft.
 2. Coperta premium este generată la rezoluție 2K, salvată privat și afișată cu watermark printr-un link temporar.
-3. Coperta văzută de client devine referința vizuală a personajului; schimbarea alegerilor cere un preview nou.
-4. Stripe Checkout încasează plata pe aceeași comandă.
-5. Webhook-ul marchează comanda drept plătită, iar Cloud Tasks pornește procesarea asincronă.
-6. Modelul de text produce planul structurat al albumului și păstrează titlul din preview.
+3. O sarcină asincronă creează planul complet și primele două ilustrații interioare, folosind coperta drept Character Lock.
+4. Clientul răsfoiește coperta și cele două pagini interioare înainte de a putea deschide plata; schimbarea alegerilor cere o mostră nouă.
+5. Stripe Checkout încasează plata pe aceeași comandă.
+6. Webhook-ul marchează comanda drept plătită, iar Cloud Tasks continuă procesarea asincronă de la asseturile deja generate.
 7. Story Bible V3 fixează premisa, arcul, regulile lumii, motivul recurent și limbajul vizual.
-8. Cele 13 ilustrații sunt generate la rezoluție 2K folosind coperta drept Character Lock, dar cu acțiuni și compoziții distincte.
+8. Cele 11 ilustrații rămase sunt generate la rezoluție 2K folosind aceeași copertă drept Character Lock, dar cu acțiuni și compoziții distincte.
 9. Fiecare imagine trece prin verificări de rezoluție, proporții, contrast, relevanță, identitate, text accidental și siguranță.
 10. Fiecare asset este salvat imediat în Cloud Storage, iar bugetul este actualizat înainte de fiecare apel AI.
 11. Rendererul construiește separat cartea ilustrată și caietul de activități A5 landscape.
@@ -490,7 +490,7 @@ Produsul este public. Următoarele praguri sunt urmărite ca obiective operațio
 
 ## 14. Definition of Done
 
-V3 este complet când părintele poate configura albumul pe telefon, poate folosi o descriere sau o fotografie autorizată, poate vedea coperta personalizată înainte de plată, poate plăti aceeași comandă, poate închide pagina în timpul procesării și primește ulterior un flipbook privat, narațiune și două PDF-uri coerente. Personajul trebuie să rămână recognoscibil în copertă și în toate cele 13 ilustrații distincte, fiecare imagine trebuie să treacă verificarea automată, costul trebuie să rămână sub plafon, iar o eroare nu trebuie să producă plăți, facturi sau emailuri duplicate.
+V3 este complet când părintele poate configura albumul pe telefon, poate folosi o descriere sau o fotografie autorizată, poate răsfoi coperta și două pagini interioare reale înainte de plată, poate plăti aceeași comandă, poate închide pagina în timpul procesării și primește ulterior un flipbook privat, narațiune și două PDF-uri coerente. Personajul trebuie să rămână recognoscibil în copertă și în toate cele 13 ilustrații distincte, fiecare imagine trebuie să treacă verificarea automată, costul trebuie să rămână sub plafon, iar o eroare nu trebuie să producă plăți, facturi sau emailuri duplicate. Asseturile aprobate în mostră sunt reutilizate în cartea livrată.
 
 Ediția tipărită nu face parte din Definition of Done. Ea rămâne vizibilă ca direcție viitoare și va primi un plan separat după testarea a minimum trei tipografii și a unor mostre fizice.
 

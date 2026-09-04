@@ -64,9 +64,14 @@ async function prepareColoringImage(buffer: Buffer) {
 }
 
 async function prepareActivityCoverImage(buffer: Buffer) {
+  const width = 2100;
+  const height = 1480;
+  const veil = Buffer.from(`<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="v" x1="0" x2="1"><stop offset="0" stop-color="#07182c" stop-opacity="0.96"/><stop offset="0.42" stop-color="#07182c" stop-opacity="0.76"/><stop offset="0.72" stop-color="#07182c" stop-opacity="0.08"/></linearGradient></defs><rect width="100%" height="100%" fill="url(#v)"/></svg>`);
   const jpeg = await sharp(buffer)
-    .resize(980, 1480, { fit: "cover", position: "attention" })
-    .jpeg({ quality: 88, progressive: true })
+    .resize(width, height, { fit: "cover", position: "attention" })
+    .composite([{ input: veil }])
+    .sharpen({ sigma: 0.55 })
+    .jpeg({ quality: 90, progressive: true })
     .toBuffer();
   return toDataUrl(jpeg, "image/jpeg");
 }
@@ -79,16 +84,24 @@ async function prepareDifferenceImages(buffer: Buffer) {
     .sharpen({ sigma: 0.55 })
     .jpeg({ quality: 88, progressive: true })
     .toBuffer();
-  const additions = Buffer.from(`<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-    <g fill="#f3d77b" stroke="#07182c" stroke-width="8" stroke-linejoin="round">
-      <path d="M168 138 L181 170 L216 173 L189 195 L197 230 L168 211 L138 230 L147 195 L120 173 L155 170 Z"/>
-      <path d="M930 135 C875 155 873 237 934 250 C906 218 916 172 958 151 C950 143 941 138 930 135 Z"/>
-      <path d="M226 690 L244 729 L287 734 L255 764 L264 807 L226 786 L188 807 L197 764 L165 734 L208 729 Z"/>
-      <circle cx="1010" cy="650" r="31" fill="none" stroke="#f3d77b" stroke-width="18"/>
-      <path d="M635 270 C651 242 696 246 705 278 C713 309 678 337 635 371 C591 337 557 309 565 278 C574 246 619 242 635 270 Z"/>
-    </g>
-  </svg>`);
-  const changed = await sharp(base).composite([{ input: additions }]).jpeg({ quality: 88, progressive: true }).toBuffer();
+  const variations = [
+    { left: 80, top: 80, size: 150, hue: 78 },
+    { left: 970, top: 90, size: 145, hue: 145 },
+    { left: 70, top: 390, size: 150, hue: 215 },
+    { left: 970, top: 410, size: 150, hue: 285 },
+    { left: 520, top: 690, size: 155, hue: 120 },
+  ];
+  const patches = await Promise.all(variations.map(async ({ left, top, size, hue }) => {
+    const mask = Buffer.from(`<svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg"><defs><filter id="soft"><feGaussianBlur stdDeviation="8"/></filter></defs><circle cx="${size / 2}" cy="${size / 2}" r="${size * 0.4}" fill="white" filter="url(#soft)"/></svg>`);
+    const patch = await sharp(base)
+      .extract({ left, top, width: size, height: size })
+      .modulate({ saturation: 1.45, hue })
+      .composite([{ input: mask, blend: "dest-in" }])
+      .png()
+      .toBuffer();
+    return { input: patch, left, top };
+  }));
+  const changed = await sharp(base).composite(patches).jpeg({ quality: 89, progressive: true }).toBuffer();
   return { original: toDataUrl(base, "image/jpeg"), changed: toDataUrl(changed, "image/jpeg") };
 }
 
@@ -316,16 +329,17 @@ function drawActivityHeader(doc: jsPDF, eyebrow: string, title: string, subtitle
   doc.rect(0, 0, PAGE_W, 29, "F");
   drawSpark(doc, 11, 10, 2.2);
   doc.setFont("Liberation", "bold");
-  doc.setFontSize(6.5);
+  doc.setFontSize(5.8);
   doc.setTextColor(GOLD);
-  doc.text(eyebrow.toLocaleUpperCase("ro-RO"), 17, 11);
-  fitSingleLine(doc, title, 122, title.length > 36 ? 15 : 17, 11.5);
+  fitSingleLine(doc, eyebrow.toLocaleUpperCase("ro-RO"), 118, 5.8, 4.8);
+  doc.text(eyebrow.toLocaleUpperCase("ro-RO"), 17, 10.5, { align: "left" });
+  fitSingleLine(doc, title, 132, title.length > 36 ? 14 : 16, 10.8);
   doc.setTextColor(CREAM);
-  doc.text(title, 10, 22);
+  doc.text(title, 10, 23, { align: "left" });
   doc.setFont("Liberation", "italic");
-  fitSingleLine(doc, subtitle, 72, 7.2, 5.4);
+  fitSingleLine(doc, subtitle, 57, 6.8, 5.2);
   doc.setTextColor(GOLD_LIGHT);
-  doc.text(subtitle, PAGE_W - 10, 20, { align: "right" });
+  doc.text(subtitle, PAGE_W - 10, 21.5, { align: "right" });
 }
 
 function seededRandom(seed: number) {
@@ -364,28 +378,27 @@ function buildMaze(cols: number, rows: number) {
 }
 
 function drawActivityCover(doc: jsPDF, config: AlbumConfiguration, cover: string, logo: string) {
-  doc.addImage(cover, "JPEG", 112, 0, 98, PAGE_H, undefined, "MEDIUM");
-  doc.setFillColor(NAVY);
-  doc.rect(0, 0, 114, PAGE_H, "F");
-  doc.setFillColor(GOLD);
-  doc.rect(112, 0, 2, PAGE_H, "F");
-  drawSpark(doc, 18, 24, 2.4, GOLD_LIGHT);
+  doc.addImage(cover, "JPEG", 0, 0, PAGE_W, PAGE_H, undefined, "MEDIUM");
+  drawSpark(doc, 16, 18, 2.4, GOLD_LIGHT);
+  doc.setDrawColor(GOLD);
+  doc.setLineWidth(0.45);
+  doc.line(22, 18, 52, 18);
   doc.setFont("Liberation", "bold");
   doc.setTextColor(GOLD);
   doc.setFontSize(6.5);
-  doc.text("CAIET DE ACTIVITĂȚI INCLUS", 24, 26);
+  doc.text("CAIET DE ACTIVITĂȚI INCLUS", 15, 29);
   doc.setTextColor(CREAM);
   doc.setFontSize(22);
-  doc.text("Trei misiuni", 17, 49);
+  doc.text("Trei misiuni", 15, 52);
   fitSingleLine(doc, `pentru ${config.generation.name}`, 82, 22, 13);
-  doc.text(`pentru ${config.generation.name}`, 17, 61);
+  doc.text(`pentru ${config.generation.name}`, 15, 65);
   doc.setDrawColor(GOLD);
-  doc.line(17, 76, 54, 76);
+  doc.line(15, 79, 50, 79);
   doc.setFont("Liberation", "italic");
   doc.setFontSize(8.2);
   doc.setTextColor(GOLD_LIGHT);
-  doc.text(["Colorat · Labirint", "Găsește diferențele"], 17, 86, { lineHeightFactor: 1.35 });
-  drawLogo(doc, logo, 17, 113, 16);
+  doc.text(["Colorat · Labirint", "Găsește diferențele"], 15, 89, { lineHeightFactor: 1.35 });
+  drawLogo(doc, logo, 15, 117, 16);
 }
 
 function drawColoringPage(doc: jsPDF, coloring: string) {
@@ -397,7 +410,7 @@ function drawColoringPage(doc: jsPDF, coloring: string) {
 }
 
 function drawMazePage(doc: jsPDF, companion: string) {
-  drawActivityHeader(doc, "Misiunea 2 · Curaj", "Găsește drumul spre lumină", `Ajută ${companionInSentence(companion)}`);
+  drawActivityHeader(doc, "Misiunea 2 · Curaj", "Găsește drumul spre lumină", `Ajută ${companionInSentence(companion)} să ajungă la felinar`);
   const cols = 12;
   const rows = 6;
   const maze = buildMaze(cols, rows);
@@ -407,8 +420,11 @@ function drawMazePage(doc: jsPDF, companion: string) {
   const height = PAGE_H - 51;
   const cw = width / cols;
   const ch = height / rows;
+  doc.setDrawColor(GOLD);
+  doc.setLineWidth(0.35);
+  doc.roundedRect(x0 - 2, y0 - 2, width + 4, height + 4, 2, 2, "S");
   doc.setDrawColor(NAVY_SOFT);
-  doc.setLineWidth(0.55);
+  doc.setLineWidth(0.5);
   for (let row = 0; row < rows; row += 1) {
     for (let col = 0; col < cols; col += 1) {
       const left = x0 + col * cw;
@@ -423,11 +439,22 @@ function drawMazePage(doc: jsPDF, companion: string) {
   doc.setFillColor(CREAM);
   doc.rect(x0, y0, 0.8, ch, "F");
   doc.rect(x0 + width - 0.8, y0 + height - ch, 0.8, ch, "F");
-  drawSpark(doc, x0 + cw / 2, y0 + ch / 2, 2.2);
-  doc.setFillColor(NAVY);
-  doc.rect(x0 + width - cw * 0.72, y0 + height - ch * 0.78, cw * 0.44, ch * 0.44, "F");
   doc.setFillColor(GOLD);
-  doc.circle(x0 + width - cw * 0.5, y0 + height - ch * 0.25, 1.8, "F");
+  doc.circle(x0 + cw / 2, y0 + ch / 2, 4.1, "F");
+  drawSpark(doc, x0 + cw / 2, y0 + ch / 2, 2.1, NAVY);
+  const finishX = x0 + width - cw * 0.5;
+  const finishY = y0 + height - ch * 0.5;
+  doc.setDrawColor(NAVY);
+  doc.setLineWidth(0.65);
+  doc.roundedRect(finishX - 3.3, finishY - 3.6, 6.6, 7.2, 1.2, 1.2, "S");
+  doc.line(finishX - 2.3, finishY - 4.6, finishX + 2.3, finishY - 4.6);
+  doc.setFillColor(GOLD);
+  doc.circle(finishX, finishY, 1.7, "F");
+  doc.setFont("Liberation", "bold");
+  doc.setFontSize(5.2);
+  doc.setTextColor(BLUE);
+  doc.text("START", x0 + 1, y0 - 4.5);
+  doc.text("LUMINĂ", x0 + width - 1, y0 + height + 6, { align: "right" });
   drawPageNumber(doc, 2);
 }
 
@@ -452,7 +479,7 @@ function drawDifferencesPage(doc: jsPDF, images: { original: string; changed: st
   doc.setFont("Liberation", "italic");
   doc.setFontSize(7.2);
   doc.setTextColor(INK);
-  doc.text("Ai găsit toate licăririle magice? Încercuiește-le în imaginea B.", PAGE_W / 2, 136, { align: "center" });
+  doc.text("Caută cinci schimbări de culoare și încercuiește-le în imaginea B.", PAGE_W / 2, 136, { align: "center" });
   drawPageNumber(doc, 3);
 }
 

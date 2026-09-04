@@ -99,8 +99,11 @@ async function generateVertexImage({
           {
             text: [
               "Use the attached image only as the authoritative character-design reference.",
-              "Preserve the child's face, age, skin tone, hairstyle, hair color, outfit palette and the companion's design exactly; do not redesign them.",
+              "Preserve the child's face, apparent age, skin tone, exact hairstyle and length, hair color, eye color, body proportions, outfit palette and every recurring accessory from the reference; do not redesign them.",
+              "Preserve the companion's species, colors, proportions and accessories exactly. Never merge the child with a sibling, friend or companion and never duplicate a character.",
+              "If the scene continues an action with a bicycle or another moving object, preserve the same object color and child-safety equipment shown in the reference or requested by the family.",
               "Create a new composition and action for this page, without copying the reference background or pose.",
+              "Do not reproduce any brand name, trademark, logo, decal, label or printed marking visible in the reference.",
               cleanPrompt,
             ].join(" "),
           },

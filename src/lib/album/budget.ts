@@ -14,10 +14,10 @@ export function createAlbumBudget(existing?: AlbumBudget): AlbumBudget {
     imageCalls: 0,
     qualityCalls: 0,
     maxTextCalls: bounded(process.env.ALBUM_MAX_TEXT_CALLS, 2, 1, 4),
-    maxImageCalls: bounded(process.env.ALBUM_MAX_IMAGE_CALLS, 28, 16, 40),
-    maxQualityCalls: bounded(process.env.ALBUM_MAX_QC_CALLS, 28, 0, 40),
+    maxImageCalls: bounded(process.env.ALBUM_MAX_IMAGE_CALLS, 36, 16, 44),
+    maxQualityCalls: bounded(process.env.ALBUM_MAX_QC_CALLS, 36, 0, 44),
     estimatedCostMicros: 0,
-    maxEstimatedCostMicros: bounded(process.env.ALBUM_MAX_ESTIMATED_COST_MICROS, 1_500_000, 200_000, 5_000_000),
+    maxEstimatedCostMicros: bounded(process.env.ALBUM_MAX_ESTIMATED_COST_MICROS, 2_200_000, 200_000, 5_000_000),
   };
 }
 

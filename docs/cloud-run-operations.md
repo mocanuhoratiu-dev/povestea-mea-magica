@@ -75,7 +75,7 @@ Din același folder:
 bash scripts/deploy-cloud-run.sh
 ```
 
-Scriptul construiește aplicația, actualizează atât serviciul direct, cât și serviciul conectat la domeniul public, trimite tot traficul către noile revizii și verifică `/api/health`. La final trebuie să vezi `ready: true`. Scriptul păstrează fiecare serviciu la maximum trei instanțe și patru cereri simultane pe instanță, pentru a ține costurile AI sub control. Pentru checkout și facturare test rulează `STRIPE_ENABLED=true SMARTBILL_ENABLED=true SMARTBILL_MODE=test ./scripts/deploy-cloud-run.sh`.
+Scriptul construiește aplicația o singură dată, apoi publică aceeași imagine verificată atât în serviciul direct, cât și în serviciul conectat la domeniul public. Trimite tot traficul către noile revizii și verifică `/api/health`; la final trebuie să vezi `ready: true`. Scriptul păstrează fiecare serviciu la maximum trei instanțe și patru cereri simultane pe instanță, pentru a ține costurile AI sub control. Pentru checkout și facturare test rulează `STRIPE_ENABLED=true SMARTBILL_ENABLED=true SMARTBILL_MODE=test ./scripts/deploy-cloud-run.sh`.
 
 ## F. Testul live obligatoriu
 
@@ -89,7 +89,7 @@ Apoi deschide site-ul într-o fereastră incognito și testează:
 
 1. O poveste scurtă.
 2. O poveste lungă.
-3. Coperta personalizată.
+3. Mostra personalizată: coperta și cele două pagini interioare trebuie să poată fi răsfoite înainte de checkout.
 4. Audio pentru poveste și Lumi.
 5. Scutul de Noapte și Trusa de Răbdare.
 6. Descărcarea PDF-urilor.

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { albumPreviewTitle, buildAlbumPreviewPrompt, buildAlbumPreviewRetryPrompt } from "../src/lib/album/previewPrompt.ts";
+import { isAlbumPreviewReady } from "../src/lib/album/previewState.ts";
 
 const input = {
   type: "album" as const,
@@ -70,4 +71,18 @@ test("album preview retry turns editorial feedback into a corrective prompt", ()
   assert.match(retryPrompt, /must become unbranded objects/i);
   assert.match(retryPrompt, /supporting characters explicitly required by the family story may appear/i);
   assert.match(retryPrompt, /No title, no words, no letters, no logo, no watermark/);
+});
+
+test("checkout preview becomes ready only after the cover, plan and two real scenes exist", () => {
+  const base = {
+    kind: "illustrated-album" as const,
+    assets: { cover: "cover.webp", scenes: ["scene-1.webp", ""] },
+    progress: { stage: "scenes" as const, current: 1, total: 13 },
+    imageModels: [],
+    quality: [],
+    budget: { textCalls: 1, imageCalls: 2, qualityCalls: 2, maxTextCalls: 2, maxImageCalls: 36, maxQualityCalls: 36, estimatedCostMicros: 0, maxEstimatedCostMicros: 2_200_000 },
+    plan: { title: "Test", storyBible: {} as never, characterBible: "lock", characterPrompt: "character", coverPrompt: "cover", coloringPrompt: "color", differencesPrompt: "diff", textModel: "test", scenes: [] },
+  };
+  assert.equal(isAlbumPreviewReady(base), false);
+  assert.equal(isAlbumPreviewReady({ ...base, assets: { ...base.assets, scenes: ["scene-1.webp", "scene-2.webp"] } }), true);
 });

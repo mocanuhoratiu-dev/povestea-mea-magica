@@ -343,11 +343,15 @@ export async function enqueueOrderProcessing(orderId: string, siteUrl: string) {
   return enqueueOrderTask(orderId, siteUrl, "process");
 }
 
+export async function enqueueOrderPreview(orderId: string, siteUrl: string) {
+  return enqueueOrderTask(orderId, siteUrl, "preview");
+}
+
 export async function enqueueOrderInvoicing(orderId: string, siteUrl: string) {
   return enqueueOrderTask(orderId, siteUrl, "invoice");
 }
 
-async function enqueueOrderTask(orderId: string, siteUrl: string, taskType: "process" | "invoice") {
+async function enqueueOrderTask(orderId: string, siteUrl: string, taskType: "preview" | "process" | "invoice") {
   const project = projectId();
   const location = process.env.ORDER_TASKS_LOCATION?.trim() || "europe-west3";
   const queue = process.env.ORDER_TASKS_QUEUE?.trim() || "pmm-order-processing";
@@ -360,7 +364,7 @@ async function enqueueOrderTask(orderId: string, siteUrl: string, taskType: "pro
   const response = await fetch(url, {
     method: "POST",
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ task: { name: taskName, dispatchDeadline: taskType === "process" ? "1800s" : "300s", httpRequest: { httpMethod: "POST", url: `${siteUrl}/api/orders/${taskType}`, headers: { "Content-Type": "application/json" }, body: Buffer.from(JSON.stringify({ orderId })).toString("base64"), oidcToken: { serviceAccountEmail, audience: siteUrl } } } }),
+    body: JSON.stringify({ task: { name: taskName, dispatchDeadline: taskType === "invoice" ? "300s" : "1800s", httpRequest: { httpMethod: "POST", url: `${siteUrl}/api/orders/${taskType}`, headers: { "Content-Type": "application/json" }, body: Buffer.from(JSON.stringify({ orderId })).toString("base64"), oidcToken: { serviceAccountEmail, audience: siteUrl } } } }),
   });
   if (response.status === 409) return;
   if (!response.ok) throw new Error(`Cloud Tasks request failed (${response.status}).`);

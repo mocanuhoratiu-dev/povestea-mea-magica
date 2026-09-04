@@ -9,6 +9,7 @@ import type { BundleVariant } from "@/lib/bundle";
 import { beginOrderCheckout, beginPreparedOrderCheckout } from "@/lib/clientOrderCheckout";
 import { trackEvent } from "@/lib/clientTelemetry";
 import { prepareReferencePhoto } from "@/lib/album/clientReferencePhoto";
+import AlbumPreviewFlipbook, { type AlbumPreviewPage } from "@/components/AlbumPreviewFlipbook";
 
 const themes = [
   ["space", "Spațiu"], ["forest", "Pădure fermecată"], ["castle", "Castel din nori"],
@@ -56,7 +57,7 @@ export default function BundleConfigurator({ variant = "family" }: { variant?: B
   const [hasConsent, setHasConsent] = useState(false);
   const [referencePhoto, setReferencePhoto] = useState("");
   const [photoConsent, setPhotoConsent] = useState(false);
-  const [albumPreview, setAlbumPreview] = useState<{ orderId: string; imageUrl: string; title: string; fingerprint: string; qualityChecked: boolean } | null>(null);
+  const [albumPreview, setAlbumPreview] = useState<{ orderId: string; imageUrl: string; statusUrl: string; title: string; fingerprint: string; qualityChecked: boolean; pages: AlbumPreviewPage[]; ready: boolean } | null>(null);
   const [story, setStory] = useState({ name: "", age: "5", theme: "forest", lesson: lessons[0] as string, tone: tones[0] as string, details: "", dedication: "", dedicationFrom: "" });
   const [monsterSameChild, setMonsterSameChild] = useState(true);
   const [monster, setMonster] = useState({ name: "", type: "frica de intuneric", location: "", helper: "", ritual: "" });
@@ -83,6 +84,41 @@ export default function BundleConfigurator({ variant = "family" }: { variant?: B
   const draftKey = includesAlbum ? "pmm-complete-bundle-draft" : "pmm-family-bundle-draft";
   const bundleFingerprint = useMemo(() => JSON.stringify({ story, monsterSameChild, monster, emergencySameChild, emergency, albumSameChild, albumSameDedication, album, photo: Boolean(referencePhoto) }), [album, albumSameChild, albumSameDedication, emergency, emergencySameChild, monster, monsterSameChild, referencePhoto, story]);
   const activeAlbumPreview = albumPreview?.fingerprint === bundleFingerprint ? albumPreview : null;
+
+  useEffect(() => {
+    if (!activeAlbumPreview?.statusUrl || activeAlbumPreview.ready) return;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let attempts = 0;
+    const poll = async () => {
+      attempts += 1;
+      try {
+        const response = await fetch(activeAlbumPreview.statusUrl, { cache: "no-store" });
+        const payload = await response.json() as { status?: string; title?: string; pages?: AlbumPreviewPage[]; qualityChecked?: boolean; progress?: number; error?: string };
+        if (cancelled) return;
+        if (payload.status === "ready" && payload.pages?.length === 3) {
+          setAlbumPreview({ ...activeAlbumPreview, title: payload.title || activeAlbumPreview.title, qualityChecked: payload.qualityChecked === true, pages: payload.pages, ready: true });
+          setError("Mostra albumului este gata. Răsfoiește cele trei pagini înainte de plată.");
+          return;
+        }
+        if (payload.status === "failed") throw new Error(payload.error || "Mostra albumului nu a putut fi creată.");
+        setError(`Pregătim paginile interioare ${Math.max(0, payload.progress || 0)} din 2. Plata se deschide după ce le poți răsfoi.`);
+      } catch (previewError) {
+        if (cancelled) return;
+        if (attempts >= 100) {
+          setAlbumPreview(null);
+          setError(previewError instanceof Error ? previewError.message : "Mostra albumului nu a putut fi verificată.");
+          return;
+        }
+      }
+      timer = setTimeout(poll, 4_000);
+    };
+    timer = setTimeout(poll, 1_500);
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
+  }, [activeAlbumPreview]);
 
   useEffect(() => {
     const restoreTimer = window.setTimeout(() => {
@@ -184,10 +220,11 @@ export default function BundleConfigurator({ variant = "family" }: { variant?: B
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ productId: "complete-bundle", bundleConfiguration: { items: buildItems() }, ...(referencePhoto ? { referenceImageDataUrl: referencePhoto, photoConsent: true } : {}) }),
       });
-      const payload = await response.json() as { orderId?: string; previewUrl?: string; title?: string; qualityChecked?: boolean; error?: string };
-      if (!response.ok || !payload.orderId || !payload.previewUrl || !payload.title) throw new Error(payload.error || "Coperta nu a putut fi creată.");
-      setAlbumPreview({ orderId: payload.orderId, imageUrl: payload.previewUrl, title: payload.title, fingerprint: bundleFingerprint, qualityChecked: payload.qualityChecked === true });
+      const payload = await response.json() as { orderId?: string; previewUrl?: string; statusUrl?: string; title?: string; qualityChecked?: boolean; error?: string };
+      if (!response.ok || !payload.orderId || !payload.previewUrl || !payload.statusUrl || !payload.title) throw new Error(payload.error || "Coperta nu a putut fi creată.");
+      setAlbumPreview({ orderId: payload.orderId, imageUrl: payload.previewUrl, statusUrl: payload.statusUrl, title: payload.title, fingerprint: bundleFingerprint, qualityChecked: payload.qualityChecked === true, pages: [{ kind: "cover", imageUrl: payload.previewUrl, eyebrow: "Povestea Magică", title: payload.title, text: `O aventură creată pentru ${effectiveAlbumName}` }], ready: false });
       setHasConsent(false);
+      setError("Coperta este gata. Pregătim două pagini reale din poveste înainte să deschidem plata.");
     } catch (previewError) {
       setError(previewError instanceof Error ? previewError.message : "Coperta nu a putut fi creată.");
     } finally {
@@ -197,6 +234,7 @@ export default function BundleConfigurator({ variant = "family" }: { variant?: B
 
   async function startCheckout() {
     if (includesAlbum && !activeAlbumPreview) return createCompleteBundlePreview();
+    if (includesAlbum && !activeAlbumPreview?.ready) return setError("Așteaptă câteva momente: cele două pagini de preview sunt încă în lucru.");
     if (!hasConsent) return setError("Confirmă livrarea imediată înainte de plată.");
     setError("");
     setIsLoading(true);
@@ -283,22 +321,23 @@ export default function BundleConfigurator({ variant = "family" }: { variant?: B
       </div>
       <div className="mt-8 flex flex-col gap-4 border-b border-brand-gold/50 bg-brand-gold/12 px-5 py-5 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-black uppercase tracking-[0.12em] text-brand-navy/55">Valoare individuală {includesAlbum ? "126 lei" : "67 lei"}</p><p className="mt-1 font-serif text-2xl text-brand-navy">{includesAlbum ? "Pachetul Complet" : "Pachetul Familiei Magice"}</p>{includesAlbum && <p className="mt-2 text-xs font-bold text-brand-navy/55">Include povestea, cele două kituri, cartea ilustrată și caietul de activități.</p>}</div><p className="font-nunito text-4xl font-black text-brand-purple">{includesAlbum ? "99 lei" : "49 lei"}</p></div>
       {includesAlbum && <div className="mt-7">
-        {activeAlbumPreview ? <div className="overflow-hidden rounded-md border border-brand-gold/60 bg-brand-navy">
-          <div className="relative aspect-[3/2]">
+        {activeAlbumPreview ? <div>
+          {activeAlbumPreview.ready && activeAlbumPreview.pages.length === 3 ? <AlbumPreviewFlipbook pages={activeAlbumPreview.pages} childName={effectiveAlbumName} /> : <div className="overflow-hidden rounded-md border border-brand-gold/60 bg-brand-navy"><div className="relative aspect-[3/2]">
             <Image src={activeAlbumPreview.imageUrl} alt={`Coperta albumului pentru ${effectiveAlbumName}`} fill unoptimized sizes="(max-width: 768px) 100vw, 768px" className="object-cover" onError={() => setAlbumPreview(null)} />
             <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,24,44,.78),rgba(7,24,44,.12)_60%,transparent)]" />
             <div className="absolute inset-y-0 left-0 flex w-[56%] flex-col justify-center p-6 text-brand-cream"><p className="text-[10px] font-black uppercase tracking-[0.15em] text-brand-gold">Preview album</p><p className="mt-2 font-serif text-2xl leading-tight sm:text-3xl">{activeAlbumPreview.title}</p></div>
           </div>
-          <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-xs font-bold text-brand-cream/75"><p className="flex items-center gap-2"><Check size={16} className="text-brand-gold" />Coperta fixează personajul pentru toate scenele{activeAlbumPreview.qualityChecked ? " și a trecut controlul automat" : ""}.</p><button type="button" onClick={() => { setAlbumPreview(null); setHasConsent(false); }} className="inline-flex min-h-9 items-center gap-2 border-b border-brand-gold text-[11px] font-black text-brand-gold"><RefreshCw size={14} /> Altă copertă</button></div>
-        </div> : <div className="flex gap-4 rounded-md border border-brand-purple/25 bg-brand-purple/[0.06] p-5"><Eye size={23} className="shrink-0 text-brand-purple" /><div><p className="font-black text-brand-navy">Vezi coperta înainte de plată</p><p className="mt-1 text-xs font-semibold leading-relaxed text-brand-navy/60">Creăm personajul albumului din alegerile tale. Plata se deschide numai după ce vezi rezultatul.</p></div></div>}
+          <div className="flex items-center gap-3 px-4 py-3 text-xs font-bold text-brand-cream/75"><LoaderCircle size={16} className="animate-spin text-brand-gold" />Scriem povestea și ilustrăm două pagini pentru mostră.</div></div>}
+          <div className="flex flex-wrap items-center justify-between gap-3 border-x border-b border-brand-gold/40 bg-brand-gold/10 px-4 py-3 text-xs font-bold text-brand-navy/70"><p className="flex items-center gap-2">{activeAlbumPreview.ready ? <Check size={16} className="text-brand-purple" /> : <LoaderCircle size={16} className="animate-spin text-brand-purple" />}{activeAlbumPreview.ready ? `Coperta și cele două pagini vor fi refolosite în album${activeAlbumPreview.qualityChecked ? " și au trecut controlul automat" : ""}.` : "Plata rămâne blocată până când mostra este completă."}</p><button type="button" onClick={() => { setAlbumPreview(null); setHasConsent(false); }} className="inline-flex min-h-9 items-center gap-2 border-b border-brand-purple text-[11px] font-black text-brand-purple"><RefreshCw size={14} /> Altă variantă</button></div>
+        </div> : <div className="flex gap-4 rounded-md border border-brand-purple/25 bg-brand-purple/[0.06] p-5"><Eye size={23} className="shrink-0 text-brand-purple" /><div><p className="font-black text-brand-navy">Răsfoiește înainte de plată</p><p className="mt-1 text-xs font-semibold leading-relaxed text-brand-navy/60">Creăm coperta și două pagini reale. Plata se deschide numai după ce vezi rezultatul.</p></div></div>}
       </div>}
-      {(!includesAlbum || activeAlbumPreview) && <div className="mt-7"><DigitalPurchaseConsent checked={hasConsent} onCheckedChange={setHasConsent} productLabel={includesAlbum ? "Pachetul Complet" : "Pachetul Familiei Magice"} /></div>}
+      {(!includesAlbum || activeAlbumPreview?.ready) && <div className="mt-7"><DigitalPurchaseConsent checked={hasConsent} onCheckedChange={setHasConsent} productLabel={includesAlbum ? "Pachetul Complet" : "Pachetul Familiei Magice"} /></div>}
       </div>}
 
       {error && <p role="alert" className="mt-6 rounded-md border border-red-300 bg-red-50 px-4 py-3 text-sm font-bold text-red-700">{error}</p>}
       <div className="mb-20 mt-8 flex items-center justify-between gap-4 border-t border-brand-navy/12 pt-6 sm:mb-0">
         {step > 0 ? <button type="button" onClick={() => { setError(""); goToStep(step - 1); }} className="inline-flex min-h-12 items-center gap-2 rounded-md border border-brand-navy/20 px-5 text-sm font-black text-brand-navy"><ArrowLeft size={18} /> Înapoi</button> : <span />}
-        {step < lastStep ? <button type="button" onClick={nextStep} className="inline-flex min-h-12 items-center gap-2 rounded-md bg-brand-navy px-6 text-sm font-black text-brand-cream transition-colors hover:bg-brand-purple">Continuă <ArrowRight size={18} /></button> : <button type="button" onClick={startCheckout} disabled={isLoading} className="inline-flex min-h-12 items-center gap-2 rounded-md bg-brand-purple px-6 text-sm font-black text-white transition-colors hover:bg-brand-navy disabled:cursor-wait disabled:opacity-70">{isLoading ? <><LoaderCircle className="animate-spin" size={18} /> {includesAlbum && !activeAlbumPreview ? "Creăm coperta" : "Se deschide plata"}</> : <><Sparkles size={18} /> {includesAlbum && !activeAlbumPreview ? "Vezi coperta albumului" : "Continuă către plată"}</>}</button>}
+        {step < lastStep ? <button type="button" onClick={nextStep} className="inline-flex min-h-12 items-center gap-2 rounded-md bg-brand-navy px-6 text-sm font-black text-brand-cream transition-colors hover:bg-brand-purple">Continuă <ArrowRight size={18} /></button> : <button type="button" onClick={startCheckout} disabled={isLoading || Boolean(includesAlbum && activeAlbumPreview && !activeAlbumPreview.ready)} className="inline-flex min-h-12 items-center gap-2 rounded-md bg-brand-purple px-6 text-sm font-black text-white transition-colors hover:bg-brand-navy disabled:cursor-wait disabled:opacity-70">{isLoading ? <><LoaderCircle className="animate-spin" size={18} /> {includesAlbum && !activeAlbumPreview ? "Creăm coperta" : "Se deschide plata"}</> : <><Sparkles size={18} /> {includesAlbum && !activeAlbumPreview ? "Vezi mostra albumului" : includesAlbum && !activeAlbumPreview?.ready ? "Pregătim paginile" : "Continuă către plată"}</>}</button>}
       </div>
     </div>
   </div></section>;
