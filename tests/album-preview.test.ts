@@ -38,6 +38,8 @@ test("album preview reserves editorial space and forbids generated typography", 
   const prompt = buildAlbumPreviewPrompt(input, "Biblioteca poveștilor vii");
   assert.match(prompt, /upper-left third/i);
   assert.match(prompt, /No title, no words, no letters, no logo, no watermark/i);
+  assert.match(prompt, /named commercial product as visual context only/i);
+  assert.match(prompt, /Supporting animals or characters explicitly required by the family story idea may appear/i);
   assert.match(prompt, /authoritative visual reference/i);
 });
 
@@ -65,5 +67,7 @@ test("album preview retry turns editorial feedback into a corrective prompt", ()
   });
   assert.match(retryPrompt, /ORIGINAL PROMPT/);
   assert.match(retryPrompt, /bicycle is missing/i);
+  assert.match(retryPrompt, /must become unbranded objects/i);
+  assert.match(retryPrompt, /supporting characters explicitly required by the family story may appear/i);
   assert.match(retryPrompt, /No title, no words, no letters, no logo, no watermark/);
 });

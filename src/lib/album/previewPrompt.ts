@@ -22,7 +22,7 @@ export function buildAlbumPreviewRetryPrompt(prompt: string, quality: AlbumQuali
   const feedback = quality.notes.length > 0
     ? quality.notes.join("; ")
     : "strengthen scene relevance, composition and character consistency";
-  return `${prompt}\n\nEDITORIAL RETRY. The previous candidate was rejected. Correct these issues: ${feedback}. Preserve every requested child, companion, world, color, object and story detail. Show exactly the requested characters, with clean anatomy and a polished premium picture-book composition. No title, no words, no letters, no logo, no watermark.`;
+  return `${prompt}\n\nEDITORIAL RETRY. The previous candidate was rejected. Correct these issues: ${feedback}. Preserve every requested child, companion, world, color, object appearance and story detail, but never reproduce a commercial brand name, trademark, logo, decal, label or printed marking. Named products are visual references only and must become unbranded objects. Keep the hero and selected companion singular and consistent; supporting characters explicitly required by the family story may appear once and remain visually secondary. Use clean anatomy and a polished premium picture-book composition. No title, no words, no letters, no logo, no watermark.`;
 }
 
 function visualDirection(style: string) {
@@ -48,9 +48,10 @@ export function buildAlbumPreviewPrompt(input: AlbumGenerationInput, worldLabel:
     `World and setting: ${worldLabel}. Emotional direction: ${input.lesson}. Mood: ${input.mood}.`,
     input.storyContext ? `Family story idea to express visually: ${input.storyContext}.` : "Show the beginning of an original magical adventure with a clear visual mystery.",
     input.personalDetail ? `Include this recognizable personal detail naturally: ${input.personalDetail}.` : "",
+    "Treat every named commercial product as visual context only. Preserve the requested object type, proportions and color, but remove all brand names, trademarks, logos, decals, labels and printed markings from it.",
     `${visualDirection(input.artStyle)}. Dynamic narrative moment, sweeping movement, rich foreground-midground-background depth, expressive face, memorable silhouette and bookstore-quality art direction.`,
     "Keep the child and companion fully readable and large enough to become the authoritative visual reference for every later scene.",
     "Keep the upper-left third atmospheric and visually quiet for editorial title typography added later by the renderer.",
-    `${input.secondaryCharacterName ? "Exactly two distinct children and one magical companion." : "Exactly one child and one magical companion."} No additional people, no title, no words, no letters, no logo, no watermark, no border, no frame, no collage.`,
+    `${input.secondaryCharacterName ? "Show exactly the two distinct requested children, each once." : "Show the child hero exactly once."} Show the selected magical companion exactly once. Supporting animals or characters explicitly required by the family story idea may appear once, remain visually secondary and must not duplicate the hero or companion. No unrelated people or characters, no title, no words, no letters, no logo, no watermark, no trademark, no border, no frame, no collage.`,
   ].filter(Boolean).join(" ");
 }
