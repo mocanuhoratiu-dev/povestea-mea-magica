@@ -18,8 +18,12 @@ FROM base AS runner
 ENV NODE_ENV=production
 ENV PORT=8080
 ENV HOSTNAME=0.0.0.0
+RUN apk add --no-cache fontconfig \
+  && mkdir -p /usr/share/fonts/truetype/liberation
 COPY --from=builder /app/public ./public
+COPY --from=builder /app/public/fonts/LiberationSans-Bold.ttf /usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
+RUN fc-cache -f
 EXPOSE 8080
 CMD ["node", "server.js"]
