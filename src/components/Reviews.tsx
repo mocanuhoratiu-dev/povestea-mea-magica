@@ -11,7 +11,7 @@ const benefits = [
   },
   {
     title: "Un format ușor de păstrat",
-    text: "Fiecare material este gândit pentru A4, pentru citit pe ecran și pentru serile în care vrei să îl scoți din nou din sertar.",
+    text: "Fiecare material este gândit pentru A4 sau A5 landscape, pentru citit pe ecran și pentru momentele în care vrei să îl scoți din nou din sertar.",
     icon: FileCheck2,
   },
   {

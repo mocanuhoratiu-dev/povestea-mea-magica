@@ -1,35 +1,35 @@
 "use client";
 
-import { ArrowRight, BookHeart, Check, Gift, Sparkles } from "lucide-react";
+import { ArrowRight, BookHeart, Check, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { commerce } from "@/lib/siteMode";
 
 const products = [
   {
-    name: "Poveste PDF",
-    price: "de la 19 lei",
-    description: "Alege o aventură scurtă de 5-7 minute sau una lungă de 12-15 minute, personalizată cu nume, lume, lecție și detalii despre copil.",
-    href: "#creator",
-    cta: "Creează povestea",
+    name: "Povestea Magică",
+    price: commerce.prices.illustratedAlbum,
+    description: "O carte ilustrată premium în care personajul, lumea și aventura sunt construite în jurul copilului.",
+    href: "/povestea-magica",
+    cta: "Creează Povestea Magică",
     accent: "border-brand-purple",
     badge: "Cel mai iubit",
-    features: ["Scurtă: 2 pagini · Lungă: 4", "Copertă, dedicație și text editabil", "Descărcare locală"],
+    features: ["16 pagini A5 landscape", "Preview înainte de plată", "Audio și caiet de activități"],
   },
   {
-    name: "Scut Magic",
+    name: "Scutul de Noapte",
     price: "19 lei",
     description: "Kit printabil pentru frici de noapte, cu certificat, ritual și etichete de spray magic.",
-    href: "#monster-away",
+    href: "/scutul-de-noapte",
     cta: "Creează scutul",
     accent: "border-brand-gold",
     badge: "Pentru seară",
-    features: ["Certificat oficial", "Rețetă simbolică", "Etichete pentru flacon"],
+    features: ["6 pagini personalizate", "Plan pentru părinte", "Calendar pentru 7 seri"],
   },
   {
     name: "Trusa de Răbdare",
     price: "19 lei",
     description: "Activități rapide pentru restaurant, drum, doctor, casă, aeroport sau stat la coadă.",
-    href: "#emergency-kit",
+    href: "/trusa-de-rabdare",
     cta: "Creează trusa",
     accent: "border-orange-400",
     badge: "Practic",
@@ -100,14 +100,10 @@ export default function Pricing() {
             </motion.article>
           ))}
         </div>
-        <div className="mt-8 grid gap-px bg-brand-gold/60 lg:grid-cols-2">
-          <article className="grid gap-6 bg-brand-navy px-6 py-8 text-brand-cream sm:grid-cols-[auto_1fr]">
-            <span className="grid h-14 w-14 place-items-center rounded-md bg-brand-gold text-brand-navy"><Gift size={26} /></span>
-            <div><p className="text-xs font-black uppercase tracking-[0.14em] text-brand-gold">Economisești 18 lei</p><h3 className="mt-2 font-serif text-3xl">Pachetul Familiei Magice</h3><p className="mt-2 text-sm font-semibold leading-relaxed text-brand-cream/70">Poveste lungă, Scut de Noapte și Trusă de Răbdare.</p><div className="mt-5 flex flex-wrap items-center justify-between gap-4"><p className="font-nunito text-4xl font-black text-brand-gold">49 lei</p><a href="/pachet" className="inline-flex min-h-11 items-center gap-2 rounded-md bg-brand-purple px-5 text-sm font-black text-white">Alege pachetul <ArrowRight size={16} /></a></div></div>
-          </article>
+        <div className="mt-8">
           <article className="grid gap-6 bg-brand-purple px-6 py-8 text-white sm:grid-cols-[auto_1fr]">
             <span className="grid h-14 w-14 place-items-center rounded-md bg-brand-gold text-brand-navy"><BookHeart size={26} /></span>
-            <div><p className="text-xs font-black uppercase tracking-[0.14em] text-brand-gold">Economisești 27 lei</p><h3 className="mt-2 font-serif text-3xl">Pachetul Complet</h3><p className="mt-2 text-sm font-semibold leading-relaxed text-white/75">Cele trei materiale, cartea ilustrată și caietul de activități.</p><div className="mt-5 flex flex-wrap items-center justify-between gap-4"><p className="font-nunito text-4xl font-black text-brand-gold">99 lei</p><a href="/pachet-complet" className="inline-flex min-h-11 items-center gap-2 rounded-md bg-brand-gold px-5 text-sm font-black text-brand-navy">Alege tot <ArrowRight size={16} /></a></div></div>
+            <div><p className="text-xs font-black uppercase tracking-[0.14em] text-brand-gold">Economisești 18 lei</p><h3 className="mt-2 font-serif text-3xl">Pachetul Complet</h3><p className="mt-2 text-sm font-semibold leading-relaxed text-white/75">Povestea Magică, Scutul de Noapte și Trusa de Răbdare. Patru PDF-uri personalizate, o singură plată.</p><div className="mt-5 flex flex-wrap items-center justify-between gap-4"><p className="font-nunito text-4xl font-black text-brand-gold">{commerce.prices.completeBundle}</p><a href="/pachet-complet" className="inline-flex min-h-11 items-center gap-2 rounded-md bg-brand-gold px-5 text-sm font-black text-brand-navy">Alege pachetul <ArrowRight size={16} /></a></div></div>
           </article>
         </div>
       </div>

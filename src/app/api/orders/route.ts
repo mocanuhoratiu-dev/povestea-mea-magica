@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     if (bundleVariant) {
       const bundle = readBundleConfiguration(clean, bundleVariant);
       if (!bundle) {
-        return NextResponse.json({ error: bundleVariant === "complete" ? "Pachetul trebuie să conțină toate cele patru produse personalizate." : "Pachetul trebuie să conțină toate cele trei produse personalizate." }, { status: 400 });
+        return NextResponse.json({ error: "Pachetul trebuie să conțină toate cele trei produse personalizate." }, { status: 400 });
       }
       const album = bundle.find((item) => item.product === "album");
       if (bundleVariant === "complete" && (!album || !readAlbumConfiguration(album.configuration))) {

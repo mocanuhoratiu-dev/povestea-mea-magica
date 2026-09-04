@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 const steps = [
   { number: "01", title: "Alegi produsul", text: "Începi cu Povestea Magică, Scutul de Noapte sau Trusa de Răbdare. Poți răsfoi pagini reale înainte să alegi.", icon: ListChecks },
   { number: "02", title: "Construiești împreună cu Lumi", text: "Lumi te conduce prin întrebările care contează. Pentru Povestea Magică poți descrie personajul sau poți adăuga opțional o fotografie de referință; nu ai nevoie de cont.", icon: Wand2 },
-  { number: "03", title: "Verifici și îl folosiți", text: "Vezi coperta Poveștii Magice înainte de plată. După generare o poți răsfoi și asculta online, apoi descarci cartea și caietul de activități ca PDF.", icon: Download },
+  { number: "03", title: "Verifici și îl folosiți", text: "Răsfoiești coperta și două pagini interioare înainte de plată. După generare poți deschide și asculta cartea online, apoi descarci povestea și caietul de activități ca PDF.", icon: Download },
 ];
 
 export default function HowItWorksPage() {

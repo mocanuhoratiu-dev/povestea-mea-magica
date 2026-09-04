@@ -6,6 +6,7 @@ const publicPages = [
   "/despre",
   "/modele",
   "/preturi",
+  "/pachet-complet",
   "/povestea-magica",
   "/scutul-de-noapte",
   "/trusa-de-rabdare",

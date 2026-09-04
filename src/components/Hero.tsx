@@ -8,8 +8,8 @@ export default function Hero() {
   return (
     <section id="home-hero" className="relative isolate min-h-[680px] overflow-hidden bg-brand-navy px-5 pb-16 pt-24 text-brand-cream sm:px-6 md:min-h-[720px] lg:min-h-[760px] lg:pt-28">
       <Image
-        src="/examples/album/aventura.webp"
-        alt="O pagină ilustrată din Povestea Magică"
+        src="/examples/album/hero-v2.webp"
+        alt="O fetiță urmând o potecă de stele în Povestea Magică"
         fill
         priority
         sizes="100vw"

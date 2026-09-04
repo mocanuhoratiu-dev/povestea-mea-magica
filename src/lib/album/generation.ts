@@ -150,6 +150,7 @@ function parsePlan(text: string, input: AlbumGenerationInput, model: string): Al
     `${input.hairStyle} ${input.hairColor} hair, ${input.eyeColor} eyes, ${input.skinTone} skin tone.`,
     `Signature outfit: ${input.outfit}. Favorite color accent: ${input.favoriteColor}.`,
     input.appearanceDetail ? `Distinctive visual details: ${input.appearanceDetail}.` : "",
+    input.personalDetail ? `Recurring personal object or visual signature: ${input.personalDetail}. Keep its type, shape, color, construction and safety accessories identical whenever it appears.` : "",
     `The companion is always ${input.companion.toLocaleLowerCase("ro-RO")}, with the same colors, proportions and accessories.`,
     input.secondaryCharacterName ? `A secondary human character named ${input.secondaryCharacterName}, the child's ${input.secondaryCharacterRole}, appears when the story calls for them. Their immutable appearance is: ${input.secondaryCharacterAppearance || "age-appropriate features selected by the family"}. Never merge this person with the main child or add another child.` : "",
     "Keep the child's face, hairstyle, eye color, outfit, proportions and apparent age identical on every page.",
@@ -164,6 +165,7 @@ function parsePlan(text: string, input: AlbumGenerationInput, model: string): Al
     `${input.eyeColor} eyes`,
     `signature outfit: ${input.outfit}`,
     input.appearanceDetail || "natural age-appropriate facial features",
+    input.personalDetail ? `recurring personal detail: ${input.personalDetail}` : "no additional recurring personal object",
   ];
   const storyBible: AlbumStoryBible = {
     version: 3,
@@ -270,7 +272,7 @@ Date confirmate de părinte:
 
 Construiește apoi o aventură completă în EXACT 13 scene. Fiecare scenă are 28-40 de cuvinte și avansează acțiunea. Totalul trebuie să fie 400-500 de cuvinte. Scrie aerisit, cu propoziții clare, ușor de citit cu voce tare și fără formulări tehnice sau metafore greoaie. Numele copilului, lumea, companionul, culoarea preferată și detaliul personal trebuie să influențeze evenimente reale, nu să apară ca o listă. Lecția se arată prin alegeri și acțiuni, fără morală rigidă. Finalul este luminos și include o despărțire sau o întoarcere acasă.
 
-Respectă ideea părintelui atunci când este oferită, dar transform-o într-o poveste coerentă, sigură și potrivită vârstei. Pentru fiecare scenă scrie un rol editorial scurt, note de continuitate și un prompt vizual în engleză, cu o acțiune, un decor și o stare vizuală specifice acelui moment. Nu repeta aceeași imagine, poziție a corpului sau același fundal. Păstrează același copil și același companion în toate imaginile. Dacă există un personaj secundar, păstrează-i numele, relația și aspectul, folosește-l numai când ajută povestea și nu îl confunda niciodată cu eroul principal. Nu adăuga alți copii. Textul va fi randat separat de imagine, deci nu include text sau titluri în ilustrație.
+Respectă ideea părintelui atunci când este oferită, dar transform-o într-o poveste coerentă, sigură și potrivită vârstei. Pentru fiecare scenă scrie un rol editorial scurt, note de continuitate și un prompt vizual în engleză, cu o acțiune, un decor și o stare vizuală specifice acelui moment. Notele de continuitate trebuie să repete explicit aspectul exact al fiecărui obiect recurent, culoarea lui și echipamentul de siguranță asociat în toate scenele în care apare. Nu repeta aceeași imagine, poziție a corpului sau același fundal. Păstrează același copil și același companion în toate imaginile. Dacă există un personaj secundar, păstrează-i numele, relația și aspectul, folosește-l numai când ajută povestea și nu îl confunda niciodată cu eroul principal. Nu adăuga alți copii. Textul va fi randat separat de imagine, deci nu include text sau titluri în ilustrație.
 
 Scrie și două prompturi separate pentru activități: coloringPrompt pentru o scenă de colorat și differencesPrompt pentru o scenă de observație. Ambele trebuie să folosească lumea, companionul și un moment recognoscibil din poveste, fără a copia o ilustrație de poveste.
 

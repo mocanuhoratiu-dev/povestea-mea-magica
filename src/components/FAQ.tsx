@@ -11,7 +11,7 @@ const faqs = [
   },
   {
     question: "Ce primesc?",
-    answer: "Povestea Magică include o carte ilustrată de 16 pagini și un caiet separat de 5 pagini, cu colorat, labirint și joc de diferențe. Scutul și Trusa sunt PDF-uri personalizate, pregătite pentru print și folosire împreună cu copilul.",
+    answer: "Povestea Magică include o carte ilustrată de 16 pagini și un caiet separat de 5 pagini, cu colorat, labirint și joc de diferențe. Scutul de Noapte are 6 pagini, iar Trusa de Răbdare are 7 pagini, toate personalizate și pregătite pentru print.",
   },
   {
     question: "Este personalizat cu adevărat?",
@@ -23,7 +23,7 @@ const faqs = [
   },
   {
     question: "Pot modifica ceva înainte de PDF?",
-    answer: "Da. Pentru Povestea Magică vezi coperta personalizată înainte de plată, cu un watermark discret. Dacă schimbi alegerile, poți crea un preview nou. Coperta confirmată devine reperul vizual al personajului în întreaga carte.",
+    answer: "Da. Pentru Povestea Magică răsfoiești înainte de plată coperta și două pagini interioare personalizate, cu watermark discret. Dacă schimbi alegerile, poți crea un preview nou. Coperta confirmată devine reperul vizual al personajului în întreaga carte.",
   },
   {
     question: "Pot printa materialele?",
@@ -31,7 +31,7 @@ const faqs = [
   },
   {
     question: "Care sunt prețurile?",
-    answer: "Povestea Magică costă 59 lei. Scutul de Noapte și Trusa de Răbdare costă câte 19 lei. Prețul final este afișat înainte de plata securizată.",
+    answer: "Povestea Magică costă 59 lei. Scutul de Noapte și Trusa de Răbdare costă câte 19 lei. Pachetul Complet le include pe toate la 79 lei, în loc de 97 lei. Prețul final este afișat înainte de plata securizată.",
   },
   {
     question: "Sunt materialele un sfat medical sau terapeutic?",

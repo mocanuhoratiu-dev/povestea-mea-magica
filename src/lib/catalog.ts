@@ -59,8 +59,8 @@ export const checkoutCatalog: Record<CheckoutProductId, CheckoutProduct> = {
   "complete-bundle": {
     id: "complete-bundle",
     name: "Pachetul Complet Povestea Mea Magică",
-    description: "Poveste lungă, Scut de Noapte, Trusă de Răbdare, carte ilustrată și caiet de activități.",
-    amount: 9900,
+    description: "Povestea Magică ilustrată, caiet de activități, Scut de Noapte și Trusă de Răbdare.",
+    amount: 7900,
     currency: "ron",
   },
   "illustrated-album-digital": {

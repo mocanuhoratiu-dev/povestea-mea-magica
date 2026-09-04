@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Utensils, Car, Stethoscope, CloudRain, Sparkles, Download, Plane, Clock3 } from "lucide-react";
+import { Utensils, Car, Stethoscope, CloudRain, Sparkles, Download, Plane, Clock3, Hourglass, Search, PencilLine, BadgeCheck } from "lucide-react";
 import BrandMark from "./BrandMark";
 import MagicalLoader from "./MagicalLoader";
 import FeedbackInvite from "./FeedbackInvite";
@@ -35,33 +35,34 @@ const EMERGENCY_STYLES = `
 
 .ek-page {
   width: 794px; height: 1123px;
-  background-color: #fff9ee;
+  background: linear-gradient(145deg, #f7f0df 0%, #fffaf0 48%, #f1e7d2 100%);
   position: relative; overflow: hidden;
   font-family: 'Nunito', sans-serif;
   box-sizing: border-box;
   border: 1px solid #eee;
 }
 .ek-border {
-  position: absolute; inset: 20px;
-  border: 2px solid #24324f; border-radius: 2px;
-  background-color: white;
+  position: absolute; inset: 24px;
+  border: 1px solid rgba(36,50,79,.45); border-radius: 2px;
+  background-color: rgba(255,255,255,.92);
   box-sizing: border-box;
   padding: 34px 42px;
 }
 .ek-header {
-  text-align: center; margin: 0 0 30px;
+  text-align: center; margin: -34px -42px 30px; padding: 30px 38px 25px;
+  background: #24324f; border-bottom: 5px solid #e5b84f;
 }
 .ek-activity-kicker {
-  color: #8052a0; font-size: 14px; font-weight: 900;
+  color: #e5b84f; font-size: 12px; font-weight: 900;
   letter-spacing: 3px; text-transform: uppercase; margin-bottom: 8px;
 }
 .ek-title {
   font-family: 'Nunito', sans-serif; font-size: 38px; font-weight: 900;
-  color: #24324f; text-transform: uppercase; letter-spacing: 2px;
+  color: #fff9ee; text-transform: uppercase; letter-spacing: 2px;
   overflow-wrap: anywhere;
 }
 .ek-subtitle {
-  font-family: 'Caveat', cursive; font-size: 29px; color: #2d3436; margin-top: 8px;
+  font-family: 'Caveat', cursive; font-size: 29px; color: #d9c8e7; margin-top: 8px;
 }
 .ek-section {
   margin: 0;
@@ -156,8 +157,8 @@ const EMERGENCY_STYLES = `
 .ek-diploma-title { font-size: 28px; font-weight: 900; color: #24324f; }
 .ek-page::after {
   content: 'Povestea Mea Magică · Trusa de Răbdare';
-  position: absolute; bottom: 8px; left: 0; right: 0;
-  color: #8052a0; font-size: 10px; font-weight: 900;
+  position: absolute; bottom: 9px; left: 0; right: 0;
+  color: #24324f; font-size: 9px; font-weight: 900;
   letter-spacing: 1.4px; text-align: center; text-transform: uppercase;
 }
 .ek-diploma-name { font-size: 36px; font-weight: 900; color: #2d3436; font-family: 'Caveat', cursive; margin: 10px 0; }
@@ -448,7 +449,7 @@ function mergeEmergencyKit(generated: Partial<EmergencyKitData>, fallback: Emerg
 
 export default function EmergencyKit() {
   const [name, setName] = useState("");
-  const [age, setAge] = useState("1");
+  const [age, setAge] = useState("4");
   const [selectedContext, setSelectedContext] = useState(contexts[0].id);
   const [isLoading, setIsLoading] = useState(false);
   const [showResult, setShowResult] = useState(false);
@@ -493,7 +494,7 @@ export default function EmergencyKit() {
         if (!delivery || delivery.product !== "emergency" || !delivery.output) return;
         const generation = delivery.configuration?.generation as Record<string, unknown> | undefined;
         const deliveredName = typeof generation?.name === "string" ? generation.name : "";
-        const deliveredAge = typeof generation?.age === "string" ? generation.age : "1";
+        const deliveredAge = typeof generation?.age === "string" ? generation.age : "4";
         const deliveredContext = typeof generation?.context === "string" && contexts.some((context) => context.id === generation.context) ? generation.context : contexts[0].id;
         const deliveredInterest = typeof generation?.interest === "string" ? generation.interest : "";
         const deliveredDuration = typeof generation?.duration === "string" ? generation.duration : durationOptions[1].id;
@@ -558,13 +559,13 @@ export default function EmergencyKit() {
         trackEvent("generation_completed", { product: "emergency", generationMode: "ai", pageCount: 7 });
       } else {
         setEkData(fallback);
-        setResultNote("Am pregătit o variantă personalizată de rezervă, ca să nu vă ținem pe loc. Poți genera din nou pentru o altă variantă de activități.");
+        setResultNote("Materialul este gata. Poți genera din nou oricând pentru o altă variantă de activități.");
         trackEvent("generation_completed", { product: "emergency", generationMode: "template", pageCount: 7 });
       }
     } catch (error) {
       console.error("Nu am putut genera trusa cu AI:", error);
       setEkData(fallback);
-      setResultNote("Am pregătit o variantă personalizată de rezervă, ca să nu vă ținem pe loc. Poți genera din nou pentru o altă variantă de activități.");
+      setResultNote("Materialul este gata. Poți genera din nou oricând pentru o altă variantă de activități.");
       trackEvent("generation_completed", { product: "emergency", generationMode: "template", pageCount: 7 });
     } finally {
       setIsLoading(false);
@@ -616,7 +617,7 @@ export default function EmergencyKit() {
     trackEvent("pdf_render_started", { product: "emergency" });
     try {
       const pdf = await renderEmergencyPdf();
-      pdf.save(`Trusa_Urgenta_${name.trim()}.pdf`);
+      pdf.save(`Trusa_de_Rabdare_${name.trim()}.pdf`);
       trackEvent("pdf_render_completed", { product: "emergency", durationMs: Date.now() - renderStartedAt });
       trackEvent("pdf_downloaded", { product: "emergency", pageCount: document.querySelectorAll('[id^="ek-page-"]').length });
       setShowQuickRating(true);
@@ -642,7 +643,7 @@ export default function EmergencyKit() {
             Trusa de <span className="text-brand-orange">Răbdare</span>
           </h2>
           <p className="mt-4 text-brand-navy/60 text-lg max-w-xl mx-auto">
-            Misiuni mici pentru drum, restaurant, medic sau orice moment în care timpul pare să treacă mai greu.
+            Șapte pagini de misiuni personalizate pentru drum, restaurant, medic sau orice moment în care timpul pare să treacă mai greu.
           </p>
         </div>
 
@@ -669,7 +670,7 @@ export default function EmergencyKit() {
                   Ce vârstă are?
                 </label>
                 <input
-                  type="number" value={age} onChange={e => setAge(e.target.value)} min="1" max="10"
+                  type="number" value={age} onChange={e => setAge(e.target.value)} min="2" max="10"
                   className="min-h-14 w-full border border-brand-navy/20 bg-brand-cream px-5 py-4 text-lg font-bold text-brand-navy outline-none transition focus:border-brand-purple focus:ring-2 focus:ring-brand-purple/15"
                 />
               </div>
@@ -742,6 +743,23 @@ export default function EmergencyKit() {
               </div>
               </div>
             </details>
+
+            <div className="border-y border-brand-navy/15 bg-brand-cream px-4 py-5 md:px-6">
+              <p className="mb-4 text-xs font-black uppercase tracking-[0.18em] text-brand-navy/55">În trusa lui {name.trim() || "celui mic"}</p>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                {[
+                  { icon: Search, title: "Observă", copy: "Radar și ghicitoare" },
+                  { icon: PencilLine, title: "Creează", copy: "Desen și poveste" },
+                  { icon: Hourglass, title: "Exersează", copy: "Misiune de răbdare" },
+                  { icon: BadgeCheck, title: "Încheie", copy: "Quiz, răspunsuri, diplomă" },
+                ].map(({ icon: Icon, title, copy }) => (
+                  <div key={title} className="flex min-h-20 items-center gap-3 border-l-2 border-brand-gold bg-white px-3 py-3">
+                    <Icon size={19} className="shrink-0 text-brand-purple" />
+                    <span><strong className="block text-sm text-brand-navy">{title}</strong><span className="text-xs font-semibold text-brand-navy/50">{copy}</span></span>
+                  </div>
+                ))}
+              </div>
+            </div>
 
             {commerce.acceptsPayments && (
               <DigitalPurchaseConsent
@@ -959,7 +977,7 @@ export default function EmergencyKit() {
                 ✕
               </button>
               <div className="min-h-0 overflow-y-auto overscroll-contain p-5 pb-7 pr-4 text-center sm:p-8 sm:pr-6 md:p-10 md:pr-8">
-                <div className="text-7xl mb-6 block">🚨</div>
+                <div className="mx-auto mb-6 grid h-20 w-20 place-items-center border border-brand-gold bg-brand-navy text-brand-gold"><Hourglass size={38} /></div>
                 <h3 className="font-nunito font-black text-3xl text-brand-navy mb-3">Trusa este pregătită!</h3>
                 <p className="text-gray-600 font-medium mb-8">
                   {name} are activități create pentru <strong>{contexts.find(c => c.id === selectedContext)?.label}</strong>. Trusa are <strong>7 pagini A4</strong>: radar, desen, misiune de răbdare, poveste, adevărat/fals, răspunsuri pentru părinte și diplomă.
@@ -972,7 +990,7 @@ export default function EmergencyKit() {
                 >
                   <Download size={22} /> Descarcă Trusa PDF
                 </motion.button>
-                <EmailDelivery product="emergency" filename={`Trusa_Urgenta_${name.trim() || "Erou"}.pdf`} childName={name} createPdf={createEmergencyPdfBlob} />
+                <EmailDelivery product="emergency" filename={`Trusa_de_Rabdare_${name.trim() || "Erou"}.pdf`} childName={name} createPdf={createEmergencyPdfBlob} />
                 {showQuickRating && <QuickRating product="emergency" />}
                 <FeedbackInvite product="emergency" compact />
               </div>

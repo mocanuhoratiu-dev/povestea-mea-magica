@@ -300,7 +300,11 @@ export default function AlbumCreator() {
       if (typeof detail.age === "string") setAge(detail.age);
       if (typeof detail.hairStyle === "string") setHairStyle(detail.hairStyle);
       if (typeof detail.hairColor === "string") setHairColor(detail.hairColor);
+      if (typeof detail.eyeColor === "string") setEyeColor(detail.eyeColor);
+      if (typeof detail.skinTone === "string") setSkinTone(detail.skinTone);
+      if (typeof detail.outfit === "string") setOutfit(detail.outfit.slice(0, 100));
       if (typeof detail.appearanceDetail === "string") setAppearanceDetail(detail.appearanceDetail.slice(0, 240));
+      if (typeof detail.favoriteColor === "string") setFavoriteColor(detail.favoriteColor);
       if (typeof detail.world === "string" && albumWorldOptions.some((option) => option.id === detail.world)) setWorld(detail.world);
       if (typeof detail.customWorld === "string") setCustomWorld(detail.customWorld.slice(0, 280));
       if (typeof detail.companion === "string" && albumCompanionOptions.includes(detail.companion as (typeof albumCompanionOptions)[number])) setCompanion(detail.companion);
@@ -308,6 +312,8 @@ export default function AlbumCreator() {
       if (typeof detail.secondaryCharacterRole === "string") setSecondaryCharacterRole(detail.secondaryCharacterRole.slice(0, 60));
       if (typeof detail.secondaryCharacterAppearance === "string") setSecondaryCharacterAppearance(detail.secondaryCharacterAppearance.slice(0, 180));
       if (typeof detail.lesson === "string" && albumLessonOptions.includes(detail.lesson as (typeof albumLessonOptions)[number])) setLesson(detail.lesson);
+      if (typeof detail.mood === "string" && albumMoodOptions.includes(detail.mood as (typeof albumMoodOptions)[number])) setMood(detail.mood);
+      if (typeof detail.artStyle === "string" && albumArtStyleOptions.includes(detail.artStyle as (typeof albumArtStyleOptions)[number])) setArtStyle(detail.artStyle);
       if (typeof detail.storyContext === "string") setStoryContext(detail.storyContext.slice(0, 700));
       if (typeof detail.personalDetail === "string") setPersonalDetail(detail.personalDetail.slice(0, 240));
       if (typeof detail.dedication === "string") setDedication(detail.dedication.slice(0, 320));

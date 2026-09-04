@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BookHeart, ShieldCheck, TimerReset } from "lucide-react";
+import { ArrowRight, BookHeart, PackageCheck, ShieldCheck, TimerReset } from "lucide-react";
 import CommercialPage from "@/components/CommercialPage";
 import { commerce, siteCopy } from "@/lib/siteMode";
 
@@ -32,6 +32,11 @@ export default function PricingPage() {
             </article>;
           })}
         </div>
+        <article className="mx-auto mt-12 grid max-w-5xl gap-7 bg-brand-navy px-7 py-9 text-brand-cream md:grid-cols-[auto_1fr_auto] md:items-center md:px-10">
+          <PackageCheck className="text-brand-gold" size={36} />
+          <div><p className="text-xs font-black uppercase tracking-[0.14em] text-brand-gold">Pachetul Complet · economisești 18 lei</p><h2 className="mt-2 font-serif text-3xl">Toate cele trei produse, într-o singură comandă</h2><p className="mt-3 max-w-2xl text-sm font-semibold leading-relaxed text-brand-cream/70">Primești cartea ilustrată, caietul de activități, Scutul de Noapte și Trusa de Răbdare. Fiecare poate fi personalizat separat.</p></div>
+          <div className="md:text-right"><p className="font-nunito text-4xl font-black text-brand-gold">{commerce.prices.completeBundle}</p><Link href="/pachet-complet" className="mt-4 inline-flex min-h-11 items-center gap-2 bg-brand-gold px-5 text-sm font-black text-brand-navy">Alege pachetul<ArrowRight size={16} /></Link></div>
+        </article>
       </section>
     </CommercialPage>
   );

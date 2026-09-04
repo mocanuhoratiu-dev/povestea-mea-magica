@@ -6,7 +6,7 @@ import { ArrowLeft, ArrowRight, Check, LoaderCircle, RotateCcw, Sparkles, Square
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import * as THREE from "three";
-import { albumCompanionOptions, albumLessonOptions, albumWorldOptions } from "@/lib/album/types";
+import { albumArtStyleOptions, albumCompanionOptions, albumLessonOptions, albumMoodOptions, albumWorldOptions } from "@/lib/album/types";
 import { trackEvent } from "@/lib/clientTelemetry";
 import { playNarration, stopNarration as stopSharedNarration, subscribeToNarration } from "@/lib/narrationPlayback";
 
@@ -18,7 +18,11 @@ type LumiDraft = {
   age: string;
   hairStyle: string;
   hairColor: string;
+  eyeColor: string;
+  skinTone: string;
+  outfit: string;
   appearanceDetail: string;
+  favoriteColor: string;
   world: string;
   customWorld: string;
   companion: string;
@@ -26,6 +30,8 @@ type LumiDraft = {
   secondaryCharacterRole: string;
   secondaryCharacterAppearance: string;
   lesson: string;
+  mood: string;
+  artStyle: string;
   storyContext: string;
   personalDetail: string;
   dedication: string;
@@ -37,7 +43,11 @@ const initialDraft: LumiDraft = {
   age: "5",
   hairStyle: "ondulat până la umeri",
   hairColor: "șaten",
+  eyeColor: "căprui",
+  skinTone: "deschisă",
+  outfit: "pulover moale și pantaloni comozi",
   appearanceDetail: "",
+  favoriteColor: "mov ametist",
   world: albumWorldOptions[0].id,
   customWorld: "",
   companion: albumCompanionOptions[0],
@@ -45,6 +55,8 @@ const initialDraft: LumiDraft = {
   secondaryCharacterRole: "",
   secondaryCharacterAppearance: "",
   lesson: albumLessonOptions[0],
+  mood: albumMoodOptions[0],
+  artStyle: albumArtStyleOptions[0],
   storyContext: "",
   personalDetail: "",
   dedication: "",
@@ -54,10 +66,10 @@ const initialDraft: LumiDraft = {
 const prompts = [
   "Bună, sunt Lumi. Sunt aici să te ajut să creăm Povestea Magică a copilului tău. Începem cu cel mai important detaliu: cum îl cheamă?",
   "Ce vârstă are? Voi potrivi ritmul, vocabularul și lungimea scenelor pentru el.",
-  "Cum arată eroul nostru? Alegem reperele pe care le vom păstra de la copertă până la ultima pagină.",
-  "În ce lume ar vrea să intre? Poți alege una sau poți inventa un loc care există doar în imaginația voastră.",
+  "Cum arată eroul nostru? Fixăm chipul și ținuta pe care le păstrăm de la copertă până la ultima pagină.",
+  "În ce lume intră și ce culoare o face să pară a lui? Poți alege un loc sau inventa unul nou.",
   "Cine merge alături de el? Poate avea un companion magic și, opțional, o persoană dragă în poveste.",
-  "Ce ai vrea să descopere în această aventură? Lecția va apărea prin fapte, fără o morală rigidă.",
+  "Ce descoperă în aventură și cum vrei să arate cartea? Alegem sensul, atmosfera și stilul ilustrațiilor.",
   "Dă-mi un detaliu pe care copilul îl va recunoaște imediat. Poți descrie și propria idee pentru aventură.",
   "Ultimul strop de magie: vrei să lăsăm o dedicație din partea familiei?",
 ] as const;
@@ -175,11 +187,12 @@ export default function LumiGuide() {
 
   const summaryRows = [
     ["Erou", `${draft.name}, ${draft.age} ani`],
-    ["Aspect", `${draft.hairStyle}, păr ${draft.hairColor}${draft.appearanceDetail ? `, ${draft.appearanceDetail}` : ""}`],
+    ["Aspect", `${draft.hairStyle}, păr ${draft.hairColor}, ochi ${draft.eyeColor}, ${draft.outfit}${draft.appearanceDetail ? `, ${draft.appearanceDetail}` : ""}`],
     ["Lume", draft.world === "custom" ? draft.customWorld : albumWorldOptions.find((option) => option.id === draft.world)?.label || "Lume magică"],
     ["Companion", draft.companion],
     ...(draft.secondaryCharacterName ? [["Alături de", `${draft.secondaryCharacterName}, ${draft.secondaryCharacterRole}`]] : []),
     ["Descoperă", draft.lesson],
+    ["Stil", `${draft.mood} · ${draft.artStyle}`],
   ];
 
   return (
@@ -207,10 +220,10 @@ export default function LumiGuide() {
               <div className="mt-5">
                 {step === 0 && <label className={labelClass}>Prenumele copilului<input autoFocus className={inputClass} value={draft.name} onChange={(event) => update("name", event.target.value.slice(0, 40))} placeholder="Exemplu: Erica" onKeyDown={(event) => { if (event.key === "Enter") next(); }} /></label>}
                 {step === 1 && <div className="grid grid-cols-3 gap-2">{Array.from({ length: 9 }, (_, index) => String(index + 2)).map((age) => <button key={age} type="button" onClick={() => update("age", age)} className={choiceClass(draft.age === age)}>{age} ani</button>)}</div>}
-                {step === 2 && <div className="space-y-4"><div className="grid grid-cols-2 gap-3"><label className={labelClass}>Coafura<select className={inputClass} value={draft.hairStyle} onChange={(event) => update("hairStyle", event.target.value)}><option>scurt și drept</option><option>ondulat până la umeri</option><option>lung și drept</option><option>creț</option><option>două împletituri</option></select></label><label className={labelClass}>Culoarea părului<select className={inputClass} value={draft.hairColor} onChange={(event) => update("hairColor", event.target.value)}><option>șaten</option><option>blond</option><option>brunet</option><option>roșcat</option><option>negru</option></select></label></div><label className={labelClass}>Semne distinctive, opțional<textarea className={`${inputClass} min-h-20 resize-y`} value={draft.appearanceDetail} onChange={(event) => update("appearanceDetail", event.target.value.slice(0, 240))} placeholder="Pistrui, ochelari, accesoriul preferat..." /></label><p className="text-xs font-semibold leading-relaxed text-brand-navy/55">Fotografia poate fi adăugată în configurator după ce Lumi așază alegerile.</p></div>}
-                {step === 3 && <div className="grid gap-2 sm:grid-cols-2">{albumWorldOptions.map((option) => <button key={option.id} type="button" onClick={() => update("world", option.id)} className={choiceClass(draft.world === option.id)}>{option.label}</button>)}{draft.world === "custom" && <label className={`${labelClass} sm:col-span-2`}>Descrie lumea<textarea autoFocus className={`${inputClass} min-h-24 resize-y`} value={draft.customWorld} onChange={(event) => update("customWorld", event.target.value.slice(0, 280))} placeholder="O lume roz a zânelor, cu poduri din flori și stele care cântă..." /></label>}</div>}
+                {step === 2 && <div className="space-y-4"><div className="grid grid-cols-2 gap-3"><label className={labelClass}>Coafura<select className={inputClass} value={draft.hairStyle} onChange={(event) => update("hairStyle", event.target.value)}><option>scurt și drept</option><option>ondulat până la umeri</option><option>lung și drept</option><option>creț</option><option>două împletituri</option></select></label><label className={labelClass}>Culoarea părului<select className={inputClass} value={draft.hairColor} onChange={(event) => update("hairColor", event.target.value)}><option>șaten</option><option>blond</option><option>brunet</option><option>roșcat</option><option>negru</option></select></label><label className={labelClass}>Ochii<select className={inputClass} value={draft.eyeColor} onChange={(event) => update("eyeColor", event.target.value)}><option>căprui</option><option>albaștri</option><option>verzi</option><option>cenușii</option><option>negri</option></select></label><label className={labelClass}>Nuanța pielii<select className={inputClass} value={draft.skinTone} onChange={(event) => update("skinTone", event.target.value)}><option>deschisă</option><option>medie</option><option>măslinie</option><option>închisă</option></select></label></div><label className={labelClass}>Ținuta<input className={inputClass} value={draft.outfit} onChange={(event) => update("outfit", event.target.value.slice(0, 100))} placeholder="Rochie galbenă și cizme mov" /></label><label className={labelClass}>Semne distinctive, opțional<textarea className={`${inputClass} min-h-20 resize-y`} value={draft.appearanceDetail} onChange={(event) => update("appearanceDetail", event.target.value.slice(0, 240))} placeholder="Pistrui, ochelari, accesoriul preferat..." /></label><p className="text-xs font-semibold leading-relaxed text-brand-navy/55">Fotografia poate fi adăugată în configurator după ce Lumi așază alegerile.</p></div>}
+                {step === 3 && <div><div className="grid gap-2 sm:grid-cols-2">{albumWorldOptions.map((option) => <button key={option.id} type="button" onClick={() => update("world", option.id)} className={choiceClass(draft.world === option.id)}>{option.label}</button>)}{draft.world === "custom" && <label className={`${labelClass} sm:col-span-2`}>Descrie lumea<textarea autoFocus className={`${inputClass} min-h-24 resize-y`} value={draft.customWorld} onChange={(event) => update("customWorld", event.target.value.slice(0, 280))} placeholder="O lume roz a zânelor, cu poduri din flori și stele care cântă..." /></label>}</div><label className={`${labelClass} mt-4`}>Culoarea preferată<select className={inputClass} value={draft.favoriteColor} onChange={(event) => update("favoriteColor", event.target.value)}><option>mov ametist</option><option>albastru ceresc</option><option>verde smarald</option><option>roz zmeură</option><option>galben solar</option></select></label></div>}
                 {step === 4 && <div className="space-y-4"><label className={labelClass}>Companion magic<select className={inputClass} value={draft.companion} onChange={(event) => update("companion", event.target.value)}>{albumCompanionOptions.map((option) => <option key={option}>{option}</option>)}</select></label><div className="border-t border-brand-navy/10 pt-4"><p className="text-xs font-black text-brand-navy">Adăugăm și o persoană dragă? <span className="font-semibold text-brand-navy/50">Opțional</span></p><div className="mt-3 grid gap-3 sm:grid-cols-2"><label className={labelClass}>Prenume<input className={inputClass} value={draft.secondaryCharacterName} onChange={(event) => update("secondaryCharacterName", event.target.value.slice(0, 40))} placeholder="Exemplu: Eva" /></label><label className={labelClass}>Relația<input className={inputClass} value={draft.secondaryCharacterRole} onChange={(event) => update("secondaryCharacterRole", event.target.value.slice(0, 60))} placeholder="sora mai mare" /></label></div><label className={`${labelClass} mt-3`}>Cum arată?<input className={inputClass} value={draft.secondaryCharacterAppearance} onChange={(event) => update("secondaryCharacterAppearance", event.target.value.slice(0, 180))} placeholder="blondă, cu părul creț și rochie albastră" /></label></div></div>}
-                {step === 5 && <div className="grid gap-2">{albumLessonOptions.map((option) => <button key={option} type="button" onClick={() => update("lesson", option)} className={choiceClass(draft.lesson === option)}>{option}</button>)}</div>}
+                {step === 5 && <div className="space-y-4"><div className="grid gap-2">{albumLessonOptions.map((option) => <button key={option} type="button" onClick={() => update("lesson", option)} className={choiceClass(draft.lesson === option)}>{option}</button>)}</div><div className="grid grid-cols-2 gap-3 border-t border-brand-navy/10 pt-4"><label className={labelClass}>Atmosfera<select className={inputClass} value={draft.mood} onChange={(event) => update("mood", event.target.value)}>{albumMoodOptions.map((option) => <option key={option}>{option}</option>)}</select></label><label className={labelClass}>Stilul<select className={inputClass} value={draft.artStyle} onChange={(event) => update("artStyle", event.target.value)}>{albumArtStyleOptions.map((option) => <option key={option}>{option}</option>)}</select></label></div></div>}
                 {step === 6 && <div className="space-y-4"><label className={labelClass}>Ideea aventurii, opțional<textarea className={`${inputClass} min-h-28 resize-y`} value={draft.storyContext} onChange={(event) => update("storyContext", event.target.value.slice(0, 700))} placeholder="Lasă povestea liberă sau spune ce ți-ai imaginat..." /></label><label className={labelClass}>Un detaliu pe care îl va recunoaște<textarea className={`${inputClass} min-h-20 resize-y`} value={draft.personalDetail} onChange={(event) => update("personalDetail", event.target.value.slice(0, 240))} placeholder="Iubește clătitele cu afine și poartă un rucsac cu stele..." /></label></div>}
                 {step === 7 && <div className="space-y-4"><label className={labelClass}>Dedicație<textarea className={`${inputClass} min-h-28 resize-y`} value={draft.dedication} onChange={(event) => update("dedication", event.target.value.slice(0, 320))} placeholder={`Pentru ${draft.name || "micuțul nostru"}, cu drag...`} /></label><label className={labelClass}>Semnătura familiei<input className={inputClass} value={draft.dedicationFrom} onChange={(event) => update("dedicationFrom", event.target.value.slice(0, 80))} placeholder="Cu drag, Mama și Tata" /></label></div>}
                 {step === totalSteps && <div className="divide-y divide-brand-navy/10 border-y border-brand-navy/12">{summaryRows.map(([label, value]) => <div key={label} className="grid grid-cols-[86px_1fr] gap-3 py-3 text-xs"><span className="font-black text-brand-navy/45">{label}</span><span className="font-bold leading-relaxed text-brand-navy">{value}</span></div>)}</div>}

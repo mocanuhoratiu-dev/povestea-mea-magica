@@ -24,7 +24,7 @@ export const runtime = "nodejs";
 
 function previewLimit() {
   const configured = Number.parseInt(process.env.ALBUM_PREVIEW_RATE_LIMIT_MAX || "", 10);
-  return Number.isFinite(configured) ? Math.min(5, Math.max(1, configured)) : 2;
+  return Number.isFinite(configured) ? Math.min(8, Math.max(1, configured)) : 4;
 }
 
 async function addPreviewWatermark(image: Buffer) {

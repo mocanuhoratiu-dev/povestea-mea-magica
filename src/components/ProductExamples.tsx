@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, BookHeart, Check, MoonStar, TimerReset } from "lucide-react";
+import { ArrowRight, BookHeart, Check, MoonStar, PackageCheck, TimerReset } from "lucide-react";
 import { commerce } from "@/lib/siteMode";
 
 const products = [
@@ -23,7 +23,7 @@ const products = [
     eyebrow: "Pentru nopțile cu emoții",
     title: "Scutul de Noapte",
     description: "Un ritual blând și personalizat care îi oferă copilului cuvinte, pași și repere familiare înainte de somn.",
-    features: ["Ritual adaptat fricii", "Formulă de curaj", "Certificat și card pentru noptieră"],
+    features: ["6 pagini A4 personalizate", "Plan practic pentru părinte", "Calendar pentru 7 seri"],
     image: "/examples/scut-contact.png",
     href: "/scutul-de-noapte",
     cta: "Construiește Scutul",
@@ -35,7 +35,7 @@ const products = [
     eyebrow: "Pentru timpul de așteptare",
     title: "Trusa de Răbdare",
     description: "Un caiet printabil cu misiuni potrivite locului, vârstei și lucrurilor care îl captivează pe copil.",
-    features: ["Activități pentru contextul ales", "Mai multe ritmuri și durate", "Pagini clare, economice la print"],
+    features: ["7 pagini A4 personalizate", "Misiuni pentru contextul ales", "Diplomă și răspunsuri pentru părinte"],
     image: "/examples/trusa-contact.png",
     href: "/trusa-de-rabdare",
     cta: "Pregătește Trusa",
@@ -81,6 +81,11 @@ export default function ProductExamples() {
               </motion.article>
             );
           })}
+        </div>
+        <div className="grid gap-7 border-y border-brand-gold/55 bg-brand-navy px-7 py-9 text-brand-cream md:grid-cols-[auto_1fr_auto] md:items-center md:px-10">
+          <PackageCheck size={36} className="text-brand-gold" />
+          <div><p className="text-xs font-black uppercase tracking-[0.15em] text-brand-gold">Pachetul Complet</p><h3 className="mt-2 font-serif text-3xl">Toate cele trei produse, personalizate separat</h3><p className="mt-3 max-w-2xl text-sm font-semibold leading-relaxed text-brand-cream/70">Patru PDF-uri pentru poveste, joacă, seară și așteptare. Valoare individuală 97 lei.</p></div>
+          <div className="md:text-right"><p className="font-nunito text-4xl font-black text-brand-gold">{commerce.prices.completeBundle}</p><Link href="/pachet-complet" className="mt-4 inline-flex min-h-11 items-center gap-2 bg-brand-gold px-5 text-sm font-black text-brand-navy transition-colors hover:bg-brand-cream">Alege pachetul<ArrowRight size={16} /></Link></div>
         </div>
       </div>
     </section>

@@ -5,7 +5,7 @@ import { BookOpen, Eye, Sparkles } from "lucide-react";
 
 const steps = [
   { icon: Sparkles, title: "Îi povestești lui Lumi", description: "Numele, vârsta, chipul, lumea și micile detalii ale copilului devin baza aventurii.", number: "01" },
-  { icon: Eye, title: "Vezi eroul înainte de plată", description: "Primești un preview personalizat al copertei și poți schimba alegerile înainte să comanzi.", number: "02" },
+  { icon: Eye, title: "Vezi eroul înainte de plată", description: "Răsfoiești coperta și două pagini interioare personalizate, apoi poți schimba alegerile înainte să comanzi.", number: "02" },
   { icon: BookOpen, title: "Primești povestea completă", description: "Cartea, audio-ul și activitățile ajung pe email, pregătite pentru citit pe ecran sau print.", number: "03" },
 ];
 

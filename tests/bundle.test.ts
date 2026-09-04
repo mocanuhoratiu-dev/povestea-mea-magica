@@ -9,7 +9,7 @@ function item(product: "story" | "monster" | "emergency" | "album") {
 }
 
 const familyConfiguration = { items: [item("story"), item("monster"), item("emergency")] };
-const completeConfiguration = { items: [...familyConfiguration.items, item("album")] };
+const completeConfiguration = { items: [item("album"), item("monster"), item("emergency")] };
 
 test("bundle product ids resolve to distinct variants", () => {
   assert.equal(bundleVariantForProductId("family-bundle"), "family");
@@ -22,15 +22,16 @@ test("family bundle accepts exactly the three family materials", () => {
   assert.equal(readBundleConfiguration(completeConfiguration, "family"), null);
 });
 
-test("complete bundle requires all four configured products", () => {
-  assert.equal(readBundleConfiguration(completeConfiguration, "complete")?.length, 4);
+test("complete bundle requires the three current products", () => {
+  assert.equal(readBundleConfiguration(completeConfiguration, "complete")?.length, 3);
   assert.equal(readBundleConfiguration(familyConfiguration, "complete"), null);
-  assert.equal(readBundleConfiguration({ items: [item("story"), item("monster"), item("emergency"), item("emergency")] }, "complete"), null);
+  assert.equal(readBundleConfiguration({ items: [item("album"), item("monster"), item("monster")] }, "complete"), null);
 });
 
 test("complete bundle has the approved price and delivery copy", () => {
   assert.equal(checkoutCatalog["family-bundle"].amount, 4_900);
-  assert.equal(checkoutCatalog["complete-bundle"].amount, 9_900);
-  assert.match(productEmailCopy.complete_bundle.message, /cartea ilustrată/i);
+  assert.equal(checkoutCatalog["complete-bundle"].amount, 7_900);
+  assert.match(productEmailCopy.complete_bundle.message, /patru PDF-uri/i);
+  assert.doesNotMatch(productEmailCopy.complete_bundle.message, /cinci/i);
   assert.equal(createReadyEmailSubject("complete_bundle"), "Pachetul Complet Povestea Mea Magică este gata");
 });

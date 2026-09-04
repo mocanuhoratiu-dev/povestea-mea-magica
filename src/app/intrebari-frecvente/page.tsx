@@ -10,13 +10,13 @@ export const metadata: Metadata = {
 };
 
 const questions = [
-  ["Ce primesc?", "Povestea Magică include o carte ilustrată de 16 pagini și un caiet separat de 5 pagini, cu colorat, labirint și găsește diferențele. Scutul de Noapte și Trusa de Răbdare sunt PDF-uri personalizate, pregătite pentru print și folosire imediată."],
+  ["Ce primesc?", "Povestea Magică include o carte ilustrată de 16 pagini și un caiet separat de 5 pagini, cu colorat, labirint și găsește diferențele. Scutul de Noapte are 6 pagini, iar Trusa de Răbdare are 7 pagini, toate personalizate și pregătite pentru print."],
   ["Este personalizat cu adevărat?", "Da. Alegerile despre copil, aspect, lume, personaje, lecție și context schimbă povestea și ilustrațiile. Povestea Magică folosește un plan narativ și o fișă vizuală pentru coerență, iar personajul poate fi construit din descriere sau cu ajutorul unei fotografii opționale."],
   ["Cât durează?", "Scutul și Trusa sunt gata, de regulă, în mai puțin de un minut. Povestea Magică poate dura 6-10 minute, deoarece personajul, coperta, cele 13 scene și activitățile sunt create și verificate separat."],
-  ["Pot modifica ceva înainte de PDF?", "Da. Pentru Povestea Magică vezi coperta personalizată înainte de plată, cu un watermark discret. Dacă schimbi alegerile sau fotografia, creezi un preview nou. Coperta confirmată devine reperul vizual al personajului în întreaga carte."],
+  ["Pot modifica ceva înainte de PDF?", "Da. Pentru Povestea Magică răsfoiești înainte de plată coperta și două pagini interioare personalizate, cu watermark discret. Dacă schimbi alegerile sau fotografia, creezi un preview nou. Coperta confirmată devine reperul vizual al personajului în întreaga carte."],
   ["Cum este folosită fotografia copilului?", "Fotografia este opțională și necesită confirmarea părintelui sau a reprezentantului legal. Este redimensionată, curățată de metadate și folosită privat pentru personaj; nu apare ca fotografie în carte, nu ajunge la Stripe și este programată pentru ștergere automată împreună cu materialele comenzii."],
   ["Pot printa materialele?", "Da. Povestea Magică și caietul de activități folosesc format A5 landscape. Scutul și Trusa sunt pregătite pentru A4. Toate pot fi tipărite acasă sau la un centru de print."],
-  ["Care sunt prețurile?", "Povestea Magică costă 59 lei. Scutul de Noapte și Trusa de Răbdare costă câte 19 lei. Prețul final este afișat înainte de plata securizată."],
+  ["Care sunt prețurile?", "Povestea Magică costă 59 lei. Scutul de Noapte și Trusa de Răbdare costă câte 19 lei. Pachetul Complet le include pe toate la 79 lei, în loc de 97 lei. Prețul final este afișat înainte de plata securizată."],
   ["Sunt materialele un sfat medical sau terapeutic?", "Nu. Sunt povești, activități și ritualuri de joacă. Dacă o teamă sau o situație este intensă ori persistă, cel mai potrivit este să discuți cu un specialist."],
 ];
 

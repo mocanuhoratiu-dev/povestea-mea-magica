@@ -32,6 +32,8 @@ interface MonsterKitContent {
   miniSeals?: string[];
 }
 
+const MONSTER_PAGE_COUNT = 6;
+
 const monsters: Monster[] = [
   { id: 'umbrele noptii',        label: 'Umbrele Nopții',       icon: '🌑' },
   { id: 'monstrul de sub pat',   label: 'Monstrul de sub Pat',  icon: '🛌' },
@@ -576,17 +578,17 @@ export default function MonsterKit() {
 
       if (response.ok && payload.success && payload.data) {
         setGeneratedContent(mergeMonsterKitContent(payload.data, fallback));
-        trackEvent('generation_completed', { product: 'monster', generationMode: 'ai', pageCount: 4 });
+        trackEvent('generation_completed', { product: 'monster', generationMode: 'ai', pageCount: MONSTER_PAGE_COUNT });
       } else {
         setGeneratedContent(fallback);
-        setResultNote("Am pregătit o variantă personalizată de rezervă, ca să nu vă ținem pe loc. Poți genera din nou pentru o altă formulare.");
-        trackEvent('generation_completed', { product: 'monster', generationMode: 'template', pageCount: 4 });
+        setResultNote("Materialul este gata. Poți genera din nou oricând pentru o altă formulare.");
+        trackEvent('generation_completed', { product: 'monster', generationMode: 'template', pageCount: MONSTER_PAGE_COUNT });
       }
     } catch (error) {
       console.error('Nu am putut genera kitul cu AI:', error);
       setGeneratedContent(fallback);
-      setResultNote("Am pregătit o variantă personalizată de rezervă, ca să nu vă ținem pe loc. Poți genera din nou pentru o altă formulare.");
-      trackEvent('generation_completed', { product: 'monster', generationMode: 'template', pageCount: 4 });
+      setResultNote("Materialul este gata. Poți genera din nou oricând pentru o altă formulare.");
+      trackEvent('generation_completed', { product: 'monster', generationMode: 'template', pageCount: MONSTER_PAGE_COUNT });
     } finally {
       setIsGenerating(false);
       setShowResult(true);
@@ -602,7 +604,7 @@ export default function MonsterKit() {
       const W           = pdf.internal.pageSize.getWidth();
       const H           = pdf.internal.pageSize.getHeight();
 
-      for (let i = 1; i <= 4; i++) {
+      for (let i = 1; i <= MONSTER_PAGE_COUNT; i++) {
         const el = document.getElementById(`mk-page-${i}`);
         if (!el) continue;
         el.style.display = 'block';
@@ -616,7 +618,7 @@ export default function MonsterKit() {
         } finally {
           el.style.display = 'none';
         }
-        if (i < 4) pdf.addPage();
+        if (i < MONSTER_PAGE_COUNT) pdf.addPage();
       }
       return pdf;
   };
@@ -631,7 +633,7 @@ export default function MonsterKit() {
       const pdf = await renderMonsterPdf();
       pdf.save(`Kit_Magic_${name.trim()}.pdf`);
       trackEvent('pdf_render_completed', { product: 'monster', durationMs: Date.now() - renderStartedAt });
-      trackEvent('pdf_downloaded', { product: 'monster', pageCount: 4 });
+      trackEvent('pdf_downloaded', { product: 'monster', pageCount: MONSTER_PAGE_COUNT });
       setShowQuickRating(true);
     } catch (error) {
       trackEvent('pdf_render_failed', { product: 'monster', durationMs: Date.now() - renderStartedAt });
@@ -677,7 +679,7 @@ export default function MonsterKit() {
             Scutul <span className="text-brand-gold">de Noapte</span>
           </h2>
           <p className="mt-4 text-brand-cream/70 text-lg max-w-xl mx-auto">
-            Un ritual blând de seară, cu certificat, formulă de curaj, etichete și un card pentru noptieră.
+            Un ritual blând de șase pagini, cu plan pentru părinte, certificat, formulă de curaj și calendar pentru șapte seri.
           </p>
         </div>
 
@@ -771,10 +773,10 @@ export default function MonsterKit() {
               </p>
               <div className="grid grid-cols-1 gap-3 text-left sm:grid-cols-2 md:gap-4 md:text-center">
                 {[
+                  { icon: '🫶', label: 'Plan pentru părinte', desc: 'Cum răspunzi calm, în trei pași' },
                   { icon: '📜', label: 'Certificat Oficial', desc: 'Clauze adaptate fricii alese' },
-                  { icon: '🧪', label: 'Rețeta Spray',       desc: 'Pași adaptați camerei copilului' },
-                  { icon: '🏷️', label: 'Etichete Flacon',   desc: 'Instrucțiuni pentru ritualul ales' },
-                  { icon: '✦', label: 'Card de Noptieră',    desc: 'Fraza de curaj pentru fiecare seară' },
+                  { icon: '🧪', label: 'Rețetă și etichete',  desc: 'Ritual simbolic, pregătit în siguranță' },
+                  { icon: '✦', label: 'Card + calendar',      desc: 'Șapte seri în care curajul devine rutină' },
                 ].map(item => (
                   <div key={item.label} className="flex items-center gap-3 md:flex-col md:gap-2">
                     <span className="text-2xl md:text-3xl">{item.icon}</span>
@@ -819,6 +821,8 @@ export default function MonsterKit() {
         <Page2Recipe content={kitContent} />
         <Page3Labels name={name} bottleLabel={bottleLabel} content={kitContent} />
         <Page4NightCard name={name} monsterLabel={monsterLabel} fearLocation={fearLocation || activeDefaults.location} calmingHelper={calmingHelper || activeDefaults.helper} bedtimeRitual={bedtimeRitual || activeDefaults.ritual} spell={kitContent.spell} />
+        <Page5ParentPlan name={name} monsterLabel={monsterLabel} fearLocation={fearLocation || activeDefaults.location} calmingHelper={calmingHelper || activeDefaults.helper} bedtimeRitual={bedtimeRitual || activeDefaults.ritual} />
+        <Page6SevenNightTracker name={name} calmingHelper={calmingHelper || activeDefaults.helper} bedtimeRitual={bedtimeRitual || activeDefaults.ritual} />
       </div>
 
       {/* Result modal */}
@@ -846,10 +850,10 @@ export default function MonsterKit() {
                 <p className="text-brand-navy/60 font-medium mb-2">
                   Certificatul lui <span className="text-brand-purple font-black">{name}</span> e gata de printat.
                 </p>
-                <p className="text-brand-navy/40 text-sm mb-8">4 pagini A4 · Adaptat pentru {monsterLabel.toLocaleLowerCase('ro-RO')} · Gata de printat</p>
+                <p className="text-brand-navy/40 text-sm mb-8">6 pagini A4 · Adaptat pentru {monsterLabel.toLocaleLowerCase('ro-RO')} · Gata de printat</p>
                 {resultNote && <p className="mb-6 border border-brand-gold/45 bg-brand-gold/10 px-4 py-3 text-left text-sm font-semibold leading-relaxed text-brand-navy/70">{resultNote}</p>}
                 <div className="mb-8 grid grid-cols-2 gap-3 text-sm">
-                  {['Certificat', 'Rețetă', 'Etichete', 'Card de noptieră'].map(item => (
+                  {['Plan pentru părinte', 'Certificat', 'Rețetă și etichete', 'Card de noptieră', 'Calendar 7 seri', 'Ritual personalizat'].map(item => (
                     <div key={item} className="bg-brand-navy/5 rounded-2xl py-3 px-2 font-bold text-brand-navy/70">{item}</div>
                   ))}
                 </div>
@@ -1123,6 +1127,130 @@ function Page4NightCard({
           </p>
         </div>
         <p className="mk-validity" style={{ marginTop: 28 }}>Ritual simbolic de joacă · folosit împreună cu un adult</p>
+      </div>
+    </div>
+  );
+}
+
+function Page5ParentPlan({
+  name,
+  monsterLabel,
+  fearLocation,
+  calmingHelper,
+  bedtimeRitual,
+}: {
+  name: string;
+  monsterLabel: string;
+  fearLocation: string;
+  calmingHelper: string;
+  bedtimeRitual: string;
+}) {
+  const heroName = cleanPlainText(name, "copilul tău", 28);
+  const place = cleanPlainText(fearLocation, "camera copilului", 52);
+  const helper = cleanPlainText(calmingHelper, "o îmbrățișare", 50);
+  const ritual = cleanPlainText(bedtimeRitual, "trei respirații lente", 60);
+  const plan = [
+    {
+      number: "01",
+      title: "Ascultă înainte să explici",
+      copy: `Spune-i lui ${heroName}: „Te cred. Sunt aici cu tine.” Nu minimaliza teama și nu o transforma într-o glumă.`,
+    },
+    {
+      number: "02",
+      title: "Numiți împreună ce este real",
+      copy: `Priviți calm spre ${place}. Observați forma, lumina sau sunetul, apoi numiți trei lucruri obișnuite din cameră.`,
+    },
+    {
+      number: "03",
+      title: "Încheiați mereu la fel",
+      copy: `Folosiți ${helper}, apoi continuați cu ${ritual}. Repetiția blândă ajută corpul să recunoască momentul de liniște.`,
+    },
+  ];
+
+  return (
+    <div id="mk-page-5" className="mk-page mk-page-parchment" style={{ display: "none" }}>
+      <div className="mk-border-outer mk-border-dark" />
+      <div className="mk-border-inner mk-border-inner-dark" />
+      {(["tl", "tr", "bl", "br"] as const).map((pos) => <CornerSVG key={pos} pos={pos} dark />)}
+      <div className="mk-content mk-parent-content">
+        <p className="mk-ministry mk-ministry-dark">Povestea Mea Magică · Scutul de Noapte</p>
+        <p className="mk-parent-kicker">Pagina adultului</p>
+        <h1 className="mk-parent-title">CUM ÎL ÎNSOȚIM PE {heroName.toLocaleUpperCase("ro-RO")}</h1>
+        <p className="mk-parent-lead">Un plan scurt pentru serile în care {monsterLabel.toLocaleLowerCase("ro-RO")} pare mai puternică decât de obicei.</p>
+
+        <div className="mk-parent-plan">
+          {plan.map((item) => (
+            <div key={item.number} className="mk-parent-step">
+              <div className="mk-parent-step-number">{item.number}</div>
+              <div>
+                <h2>{item.title}</h2>
+                <p>{item.copy}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mk-parent-phrase">
+          <span>Fraza de revenire</span>
+          <p>„Teama poate sta puțin lângă noi. Nu trebuie să plece imediat. Facem pasul nostru mic și rămân aici cu tine.”</p>
+        </div>
+
+        <p className="mk-parent-note">Scutul de Noapte este un instrument de joc și conectare, nu înlocuiește sprijinul medical sau psihologic. Dacă teama persistă, se intensifică ori afectează somnul familiei, cere sfatul unui specialist.</p>
+      </div>
+    </div>
+  );
+}
+
+function Page6SevenNightTracker({
+  name,
+  calmingHelper,
+  bedtimeRitual,
+}: {
+  name: string;
+  calmingHelper: string;
+  bedtimeRitual: string;
+}) {
+  const heroName = cleanPlainText(name, "micul erou", 28);
+  const helper = cleanPlainText(calmingHelper, "o îmbrățișare", 48);
+  const ritual = cleanPlainText(bedtimeRitual, "trei respirații lente", 56);
+
+  return (
+    <div id="mk-page-6" className="mk-page" style={{ display: "none" }}>
+      <div className="mk-bg" />
+      <div className="mk-border-outer" />
+      <div className="mk-border-inner" />
+      {(["tl", "tr", "bl", "br"] as const).map((pos) => <CornerSVG key={pos} pos={pos} />)}
+      <div className="mk-content mk-tracker-content">
+        <p className="mk-ministry">Povestea Mea Magică · Scutul de Noapte</p>
+        <p className="mk-tracker-kicker">O săptămână de pași mici</p>
+        <h1 className="mk-title" style={{ fontSize: 30 }}>CALENDARUL CURAJULUI</h1>
+        <p className="mk-subtitle">Șapte seri pentru {heroName}</p>
+        <Divider stars={3} />
+
+        <div className="mk-tracker-ritual">
+          <div><span>Pasul care mă ajută</span><strong>{helper}</strong></div>
+          <div><span>Ritualul nostru</span><strong>{ritual}</strong></div>
+        </div>
+
+        <div className="mk-tracker-table">
+          <div className="mk-tracker-row mk-tracker-head">
+            <span>Seara</span><span>Am numit teama</span><span>Am făcut ritualul</span><span>Cum m-am simțit</span>
+          </div>
+          {Array.from({ length: 7 }, (_, index) => (
+            <div key={index} className="mk-tracker-row">
+              <strong>{index + 1}</strong>
+              <span className="mk-tracker-check">□</span>
+              <span className="mk-tracker-check">□</span>
+              <span className="mk-tracker-moods">☾ &nbsp; ◡ &nbsp; ★</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="mk-tracker-finish">
+          <span>După șapte seri</span>
+          <p>Nu măsurăm dacă teama a dispărut. Observăm dacă {heroName} a putut să o numească, să ceară ajutor și să facă ritualul împreună cu un adult.</p>
+        </div>
+        <p className="mk-validity">Bifați fără presiune · fiecare seară poate arăta diferit</p>
       </div>
     </div>
   );
@@ -1507,4 +1635,59 @@ const CERT_STYLES = `
   color: rgba(138,110,47,0.5); text-align: center;
   letter-spacing: 0.16em; margin-top: auto; padding-top: 18px;
 }
+
+/* PAGE 5: Parent plan */
+.mk-parent-content { color: #24324f; padding: 62px 76px 48px; }
+.mk-parent-kicker, .mk-tracker-kicker {
+  margin: 28px 0 10px; color: #8052a0; font-family: 'Cinzel', serif;
+  font-size: 9px; font-weight: 700; letter-spacing: .28em; text-align: center; text-transform: uppercase;
+}
+.mk-parent-title {
+  margin: 0 auto; max-width: 590px; color: #24324f; font-family: 'Cinzel', serif;
+  font-size: 29px; line-height: 1.25; text-align: center; overflow-wrap: anywhere;
+}
+.mk-parent-lead {
+  margin: 18px auto 30px; max-width: 560px; color: #59627a; font-size: 18px;
+  line-height: 1.5; text-align: center;
+}
+.mk-parent-plan { display: grid; gap: 15px; }
+.mk-parent-step {
+  display: grid; grid-template-columns: 58px 1fr; gap: 18px; align-items: start;
+  border: 1px solid rgba(128,82,160,.2); border-left: 5px solid #8052a0;
+  background: rgba(255,255,255,.55); padding: 20px 22px;
+}
+.mk-parent-step-number {
+  color: #c19a34; font-family: 'Cinzel', serif; font-size: 21px; font-weight: 700;
+  border-right: 1px solid rgba(193,154,52,.35); min-height: 62px; padding-top: 4px;
+}
+.mk-parent-step h2 { margin: 0 0 7px; color: #24324f; font-family: 'Cinzel', serif; font-size: 15px; letter-spacing: .04em; }
+.mk-parent-step p { margin: 0; color: #4d556b; font-size: 15px; line-height: 1.5; }
+.mk-parent-phrase {
+  margin-top: 24px; border: 1px solid rgba(193,154,52,.5); background: #24324f;
+  padding: 20px 28px; text-align: center;
+}
+.mk-parent-phrase span { color: #e5b84f; font-family: 'Cinzel', serif; font-size: 8px; font-weight: 700; letter-spacing: .24em; text-transform: uppercase; }
+.mk-parent-phrase p { margin: 10px 0 0; color: #f8eed4; font-size: 17px; font-style: italic; line-height: 1.45; }
+.mk-parent-note { margin: auto 18px 0; color: #747b8c; font-size: 11px; line-height: 1.45; text-align: center; }
+
+/* PAGE 6: Seven-night tracker */
+.mk-tracker-content { align-items: stretch; padding: 58px 64px 42px; }
+.mk-tracker-kicker { color: #c9a84c; margin-top: 22px; }
+.mk-tracker-ritual { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 20px 0; }
+.mk-tracker-ritual div { border: 1px solid rgba(201,168,76,.35); background: rgba(255,255,255,.035); padding: 15px 18px; }
+.mk-tracker-ritual span { display: block; color: #c9a84c; font-family: 'Cinzel', serif; font-size: 7px; letter-spacing: .18em; text-transform: uppercase; }
+.mk-tracker-ritual strong { display: block; margin-top: 8px; color: #f4e4c1; font-size: 14px; font-weight: 500; line-height: 1.3; overflow-wrap: anywhere; }
+.mk-tracker-table { border: 1px solid rgba(201,168,76,.35); }
+.mk-tracker-row { display: grid; grid-template-columns: 72px 1fr 1fr 1.15fr; min-height: 63px; border-bottom: 1px solid rgba(201,168,76,.22); align-items: center; text-align: center; }
+.mk-tracker-row:last-child { border-bottom: 0; }
+.mk-tracker-row > * { min-height: 63px; box-sizing: border-box; display: grid; place-items: center; border-right: 1px solid rgba(201,168,76,.22); padding: 8px; }
+.mk-tracker-row > *:last-child { border-right: 0; }
+.mk-tracker-head { min-height: 52px; background: rgba(201,168,76,.1); color: #c9a84c; font-family: 'Cinzel', serif; font-size: 7px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.mk-tracker-head > * { min-height: 52px; }
+.mk-tracker-row strong { color: #f4e4c1; font-family: 'Cinzel', serif; font-size: 17px; }
+.mk-tracker-check { color: #d4c5e8; font-size: 28px; }
+.mk-tracker-moods { color: #c9a84c; font-size: 19px; letter-spacing: 2px; }
+.mk-tracker-finish { margin-top: 20px; border-left: 4px solid #c9a84c; background: rgba(201,168,76,.07); padding: 17px 20px; }
+.mk-tracker-finish span { color: #c9a84c; font-family: 'Cinzel', serif; font-size: 8px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; }
+.mk-tracker-finish p { margin: 7px 0 0; color: #d4c5e8; font-size: 14px; line-height: 1.45; }
 `;

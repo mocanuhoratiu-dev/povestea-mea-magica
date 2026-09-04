@@ -126,6 +126,37 @@ async function prepareBundleOrder(order: StoredOrder, secret: string) {
     nextItem,
   ];
 
+  const pendingSimpleItems = configuredItems.filter((item) =>
+    item.product !== "album" && !completedItems.some((completed) => completed.product === item.product),
+  );
+  if (pendingSimpleItems.length > 0) {
+    const preparedOrderId = prepared.id;
+    const generatedItems = await Promise.allSettled(pendingSimpleItems.map(async (item) => {
+      const generated = await generateMaterial({
+        orderId: preparedOrderId,
+        product: item.product as Exclude<OrderProduct, "bundle" | "album">,
+        configuration: item.configuration,
+        secret,
+        coverBasename: `${item.product}-cover`,
+      });
+      return {
+        product: item.product,
+        output: generated.output,
+        ...(generated.coverObjectName ? { coverObjectName: generated.coverObjectName } : {}),
+      } as BundleOutputItem;
+    }));
+
+    for (const result of generatedItems) {
+      if (result.status === "fulfilled") completedItems = upsertItem(result.value);
+    }
+    const checkpoint = await setOrderStatus(prepared, "processing", { output: { items: completedItems } });
+    if (!checkpoint) throw new Error("Pachetul nu a putut salva materialele generate.");
+    prepared = checkpoint;
+
+    const failed = generatedItems.find((result): result is PromiseRejectedResult => result.status === "rejected");
+    if (failed) throw failed.reason;
+  }
+
   for (const item of configuredItems) {
     const existing = completedItems.find((completed) => completed.product === item.product);
     if (item.product === "album") {
@@ -145,13 +176,7 @@ async function prepareBundleOrder(order: StoredOrder, secret: string) {
       });
       continue;
     }
-    if (existing) continue;
-    const generated = await generateMaterial({ orderId: prepared.id, product: item.product, configuration: item.configuration, secret, coverBasename: `${item.product}-cover` });
-    const completed: BundleOutputItem = { product: item.product, output: generated.output, ...(generated.coverObjectName ? { coverObjectName: generated.coverObjectName } : {}) };
-    completedItems = upsertItem(completed);
-    const checkpoint = await setOrderStatus(prepared, "processing", { output: { items: completedItems } });
-    if (!checkpoint) throw new Error(`Pachetul nu a putut salva materialul ${item.product}.`);
-    prepared = checkpoint;
+    if (!existing) throw new Error(`Materialul ${item.product} nu a fost salvat în pachet.`);
   }
 
   return ensureDeliveryExpiry(prepared);

@@ -1,6 +1,6 @@
 export const familyBundleProducts = ["story", "monster", "emergency"] as const;
-export const completeBundleProducts = ["story", "monster", "emergency", "album"] as const;
-export const bundleProducts = completeBundleProducts;
+export const completeBundleProducts = ["album", "monster", "emergency"] as const;
+export const bundleProducts = ["story", "monster", "emergency", "album"] as const;
 
 export type BundleProduct = (typeof bundleProducts)[number];
 export type BundleVariant = "family" | "complete";
@@ -36,9 +36,11 @@ function isBundleProduct(value: unknown): value is BundleProduct {
 
 export function readBundleConfiguration(value: unknown, variant?: BundleVariant): BundleConfigurationItem[] | null {
   if (!isRecord(value) || !Array.isArray(value.items)) return null;
-  const inferredVariant = value.items.length === completeBundleProducts.length
+  const rawProducts = new Set(value.items.flatMap((item) => isRecord(item) && typeof item.product === "string" ? [item.product] : []));
+  const matchesProducts = (products: readonly string[]) => rawProducts.size === products.length && products.every((product) => rawProducts.has(product));
+  const inferredVariant = matchesProducts(completeBundleProducts)
     ? "complete"
-    : value.items.length === familyBundleProducts.length
+    : matchesProducts(familyBundleProducts)
       ? "family"
       : null;
   const resolvedVariant = variant || inferredVariant;

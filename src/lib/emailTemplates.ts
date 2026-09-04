@@ -39,10 +39,10 @@ export const productEmailCopy: Record<TransactionalEmailProduct, ProductEmailCop
   },
   complete_bundle: {
     name: "Pachetul Complet",
-    eyebrow: "Cinci materiale, o lume întreagă",
+    eyebrow: "Trei experiențe, o lume întreagă",
     title: "Pachetul vostru complet este gata",
     subject: "Pachetul Complet Povestea Mea Magică este gata",
-    message: "Povestea, cele două kituri, cartea ilustrată și caietul de activități vă așteaptă în aceeași livrare.",
+    message: "Povestea Magică, Scutul de Noapte și Trusa de Răbdare vă așteaptă în aceeași livrare, cu patru PDF-uri pregătite pentru voi.",
   },
   album: {
     name: "Povestea Magică",
@@ -88,7 +88,7 @@ export function createReadyEmailHtml({
   const markUrl = `${siteUrl}/icon.png`;
   const hasSecureLink = deliveryMode === "secure-link" && Boolean(deliveryUrl);
   const calloutTitle = hasSecureLink
-    ? product === "bundle" ? "Cele trei materiale sunt pregătite." : product === "complete_bundle" ? "Toate cele cinci materiale sunt pregătite." : product === "album" ? "Cele două documente sunt pregătite." : "Materialul este pregătit."
+    ? product === "bundle" ? "Cele trei materiale sunt pregătite." : product === "complete_bundle" ? "Toate cele patru PDF-uri sunt pregătite." : product === "album" ? "Cele două documente sunt pregătite." : "Materialul este pregătit."
     : "PDF-ul este atașat acestui email.";
   const calloutMessage = hasSecureLink
     ? "Linkul personal este valabil 30 de zile. De acolo poți deschide și descărca PDF-ul."
