@@ -67,7 +67,8 @@ export default function BundleConfigurator({ variant = "family" }: { variant?: B
   const [album, setAlbum] = useState({
     name: "", age: "5", hairStyle: "ondulat până la umeri", hairColor: "șaten", eyeColor: "căprui", skinTone: "deschisă",
     outfit: "pulover moale și pantaloni comozi", appearanceDetail: "",
-    favoriteColor: "mov ametist", world: albumWorldOptions[0].id as string, companion: albumCompanionOptions[0] as string,
+    favoriteColor: "mov ametist", world: albumWorldOptions[0].id as string, customWorld: "", companion: albumCompanionOptions[0] as string,
+    secondaryCharacterName: "", secondaryCharacterRole: "", secondaryCharacterAppearance: "",
     lesson: albumLessonOptions[0] as string, mood: albumMoodOptions[0] as string, artStyle: albumArtStyleOptions[0] as string,
     personalDetail: "", storyContext: "", dedication: "", dedicationFrom: "",
   });
@@ -142,7 +143,7 @@ export default function BundleConfigurator({ variant = "family" }: { variant?: B
       { icon: ShieldCheck, title: "Scutul de Noapte", name: effectiveMonsterName, detail: monsters.find(([id]) => id === monster.type)?.[1] || "Ritual de noapte" },
       { icon: TimerReset, title: "Trusa de Răbdare", name: effectiveEmergencyName, detail: contexts.find(([id]) => id === emergency.context)?.[1] || "Moment de așteptare" },
     ];
-    if (includesAlbum) items.push({ icon: BookHeart, title: "Albumul Meu Magic", name: effectiveAlbumName, detail: albumWorldOptions.find((option) => option.id === album.world)?.label || "Lume magică" });
+    if (includesAlbum) items.push({ icon: BookHeart, title: "Povestea Magică", name: effectiveAlbumName, detail: albumWorldOptions.find((option) => option.id === album.world)?.label || "Lume magică" });
     return items;
   }, [album.world, effectiveAlbumName, effectiveEmergencyName, effectiveMonsterName, emergency.context, includesAlbum, monster.type, story]);
 
@@ -167,7 +168,7 @@ export default function BundleConfigurator({ variant = "family" }: { variant?: B
       { product: "emergency", configuration: { generation: { type: "emergency", name: effectiveEmergencyName.trim(), age: effectiveEmergencyAge, context: emergency.context, interest: emergency.interest.trim(), duration: emergency.duration, activityMode: emergency.activityMode } } },
     ];
     if (includesAlbum) items.push({ product: "album", configuration: {
-      generation: { type: "album", name: effectiveAlbumName.trim(), age: effectiveAlbumAge, hairStyle: album.hairStyle, hairColor: album.hairColor, eyeColor: album.eyeColor, skinTone: album.skinTone, outfit: album.outfit.trim(), appearanceDetail: album.appearanceDetail.trim(), favoriteColor: album.favoriteColor, world: album.world, companion: album.companion, lesson: album.lesson, mood: album.mood, artStyle: album.artStyle, personalDetail: album.personalDetail.trim(), storyContext: album.storyContext.trim(), referenceMode: referencePhoto ? "photo" : "description" },
+      generation: { type: "album", name: effectiveAlbumName.trim(), age: effectiveAlbumAge, hairStyle: album.hairStyle, hairColor: album.hairColor, eyeColor: album.eyeColor, skinTone: album.skinTone, outfit: album.outfit.trim(), appearanceDetail: album.appearanceDetail.trim(), favoriteColor: album.favoriteColor, world: album.world, customWorld: album.customWorld, companion: album.companion, secondaryCharacterName: album.secondaryCharacterName, secondaryCharacterRole: album.secondaryCharacterRole, secondaryCharacterAppearance: album.secondaryCharacterAppearance, lesson: album.lesson, mood: album.mood, artStyle: album.artStyle, personalDetail: album.personalDetail.trim(), storyContext: album.storyContext.trim(), referenceMode: referencePhoto ? "photo" : "description" },
       dedication: effectiveAlbumDedication.trim(), dedicationFrom: effectiveAlbumDedicationFrom.trim(),
     } });
     return items;
@@ -249,7 +250,7 @@ export default function BundleConfigurator({ variant = "family" }: { variant?: B
         <label className={labelClass}>Tipul activităților<select className={inputClass} value={emergency.activityMode} onChange={(event) => setEmergency({ ...emergency, activityMode: event.target.value })}><option value="liniștite">Liniștite</option><option value="cu mișcare mică">Cu mișcare mică</option><option value="mix">Mix</option></select></label>
       </div></div>}
 
-      {includesAlbum && step === 3 && <div><p className="text-xs font-black uppercase tracking-[0.15em] text-brand-purple">4 din 5 · Albumul Meu Magic</p><h2 className="mt-3 font-serif text-4xl text-brand-navy">Copilul devine eroul fiecărei ilustrații</h2><p className="mt-3 text-sm font-semibold leading-relaxed text-brand-navy/60">Definim personajul, stilul vizual și aventura înainte de a crea cele 13 scene 2K.</p><div className="mt-8 grid gap-5 sm:grid-cols-2">
+      {includesAlbum && step === 3 && <div><p className="text-xs font-black uppercase tracking-[0.15em] text-brand-purple">4 din 5 · Povestea Magică</p><h2 className="mt-3 font-serif text-4xl text-brand-navy">Copilul devine eroul fiecărei ilustrații</h2><p className="mt-3 text-sm font-semibold leading-relaxed text-brand-navy/60">Definim personajul, stilul vizual și aventura înainte de a crea cele 13 scene 2K.</p><div className="mt-8 grid gap-5 sm:grid-cols-2">
         <div className="sm:col-span-2"><ChildReuse checked={albumSameChild} onChange={setAlbumSameChild} name={story.name} /></div>
         {!albumSameChild && <><label className={labelClass}>Numele copilului<input className={inputClass} value={album.name} maxLength={40} onChange={(event) => setAlbum({ ...album, name: event.target.value })} /></label><label className={labelClass}>Vârsta<select className={inputClass} value={album.age} onChange={(event) => setAlbum({ ...album, age: event.target.value })}>{Array.from({ length: 9 }, (_, index) => index + 2).map((value) => <option key={value} value={value}>{value} ani</option>)}</select></label></>}
         <label className={labelClass}>Coafura<select className={inputClass} value={album.hairStyle} onChange={(event) => setAlbum({ ...album, hairStyle: event.target.value })}><option>scurt și drept</option><option>ondulat până la umeri</option><option>lung și drept</option><option>creț</option><option>două împletituri</option></select></label>

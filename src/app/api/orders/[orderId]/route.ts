@@ -51,9 +51,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ orde
 
   if (order.product === "album") {
     const album = readAlbumOutput(order.output);
-    if (!album) return NextResponse.json({ error: "Albumul nu este complet." }, { status: 409 });
+    if (!album) return NextResponse.json({ error: "Povestea Magică nu este completă." }, { status: 409 });
     const payload = albumDeliveryPayload({ album, configuration: order.configuration, orderId, token });
-    return payload ? NextResponse.json(payload) : NextResponse.json({ error: "Albumul nu este complet." }, { status: 409 });
+    return payload ? NextResponse.json(payload) : NextResponse.json({ error: "Povestea Magică nu este completă." }, { status: 409 });
   }
 
   const requestedItem = new URL(request.url).searchParams.get("item");
@@ -78,9 +78,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ orde
     if (!configured || !generated) return NextResponse.json({ error: "Materialul nu este pregatit." }, { status: 404 });
     if (generated.product === "album") {
       const album = readAlbumOutput(generated.output);
-      if (!album) return NextResponse.json({ error: "Albumul nu este complet." }, { status: 409 });
+      if (!album) return NextResponse.json({ error: "Povestea Magică nu este completă." }, { status: 409 });
       const payload = albumDeliveryPayload({ album, configuration: configured.configuration, orderId, token, item: "album" });
-      return payload ? NextResponse.json(payload) : NextResponse.json({ error: "Albumul nu este complet." }, { status: 409 });
+      return payload ? NextResponse.json(payload) : NextResponse.json({ error: "Povestea Magică nu este completă." }, { status: 409 });
     }
     const coverImageDataUrl = generated.coverObjectName ? await readOrderCover(generated.coverObjectName) : "";
     return NextResponse.json({ product: generated.product, configuration: configured.configuration, output: generated.output, coverImageDataUrl });

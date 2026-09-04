@@ -93,7 +93,7 @@ export default function PersonalizedAlbumFlipbook({ pages, audioUrl, title, qual
           >
             {page.kind === "cover" && <>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={page.imageUrl} alt="Coperta albumului" className="absolute inset-0 h-full w-full object-cover" />
+              <img src={page.imageUrl} alt="Coperta Poveștii Magice" className="absolute inset-0 h-full w-full object-cover" />
               <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,24,44,.9),rgba(7,24,44,.3)_52%,transparent_76%)]" />
               <div className="absolute inset-y-0 left-0 flex w-[58%] flex-col justify-center p-[7cqw] text-brand-cream">
                 <p className="text-[1.25cqw] font-black uppercase tracking-[0.16em] text-brand-gold">{page.eyebrow}</p>
@@ -123,13 +123,13 @@ export default function PersonalizedAlbumFlipbook({ pages, audioUrl, title, qual
 
   return <section className="mb-9 border-y border-brand-navy/15 bg-brand-navy px-4 py-7 text-brand-cream sm:px-7 sm:py-9">
     <div className="mx-auto max-w-5xl">
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[0.15em] text-brand-gold">Albumul vostru digital</p><p className="mt-1 text-sm font-semibold text-brand-cream/65">Răsfoiește înainte de descărcare</p></div>{qualitySummary.checked > 0 && <p className="inline-flex items-center gap-2 text-xs font-bold text-brand-cream/70"><ShieldCheck size={16} className="text-brand-gold" /> {qualitySummary.accepted}/{qualitySummary.checked} imagini verificate</p>}</div>
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[0.15em] text-brand-gold">Povestea voastră digitală</p><p className="mt-1 text-sm font-semibold text-brand-cream/65">Răsfoiește înainte de descărcare</p></div>{qualitySummary.checked > 0 && <p className="inline-flex items-center gap-2 text-xs font-bold text-brand-cream/70"><ShieldCheck size={16} className="text-brand-gold" /> {qualitySummary.accepted}/{qualitySummary.checked} imagini verificate</p>}</div>
       {pageView()}
       <div className="mt-4 grid grid-cols-[auto_1fr_auto] items-center gap-3">
         <button type="button" onClick={() => goTo(activeIndex - 1, -1)} disabled={activeIndex === 0} aria-label="Pagina anterioară" className="grid h-11 w-11 place-items-center border border-white/20 disabled:opacity-25"><ChevronLeft /></button>
         <div className="flex items-center justify-center gap-2">
           {audioUrl && <button type="button" onClick={toggleAudio} className="inline-flex min-h-11 items-center gap-2 bg-brand-gold px-4 text-xs font-black text-brand-navy">{audioPhase === "playing" ? <Pause size={16} /> : <Play size={16} fill="currentColor" />} {audioPhase === "loading" ? "Pregătim vocea" : audioPhase === "playing" ? "Oprește" : "Ascultă"}</button>}
-          <button type="button" onClick={() => setExpanded(true)} className="grid h-11 w-11 place-items-center border border-white/20" aria-label="Mărește albumul"><Expand size={17} /></button>
+          <button type="button" onClick={() => setExpanded(true)} className="grid h-11 w-11 place-items-center border border-white/20" aria-label="Mărește povestea"><Expand size={17} /></button>
           <span className="ml-2 text-xs font-black tabular-nums">{activeIndex + 1} / {pages.length}</span>
         </div>
         <button type="button" onClick={() => goTo(activeIndex + 1, 1)} disabled={activeIndex === pages.length - 1} aria-label="Pagina următoare" className="grid h-11 w-11 place-items-center border border-white/20 disabled:opacity-25"><ChevronRight /></button>
@@ -137,7 +137,7 @@ export default function PersonalizedAlbumFlipbook({ pages, audioUrl, title, qual
       {audioUrl && <div className="mt-3 h-1 bg-white/10"><div className="h-full bg-brand-gold transition-[width]" style={{ width: `${audioProgress * 100}%` }} /></div>}
     </div>
     <AnimatePresence>{expanded && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[20000] flex flex-col bg-[#07182c]/96 p-3 backdrop-blur-md sm:p-5" role="dialog" aria-modal="true" aria-label={`${title}, pagina ${activeIndex + 1}`}>
-      <div className="mx-auto flex w-full max-w-[1400px] items-center justify-between border-b border-white/15 pb-3"><div><p className="text-[10px] font-black uppercase tracking-[0.16em] text-brand-gold">{page.eyebrow}</p><p className="mt-1 font-serif text-lg text-white sm:text-2xl">{page.title}</p></div><button type="button" onClick={() => setExpanded(false)} aria-label="Închide albumul mărit" className="grid h-11 w-11 place-items-center border border-white/25"><X /></button></div>
+      <div className="mx-auto flex w-full max-w-[1400px] items-center justify-between border-b border-white/15 pb-3"><div><p className="text-[10px] font-black uppercase tracking-[0.16em] text-brand-gold">{page.eyebrow}</p><p className="mt-1 font-serif text-lg text-white sm:text-2xl">{page.title}</p></div><button type="button" onClick={() => setExpanded(false)} aria-label="Închide povestea mărită" className="grid h-11 w-11 place-items-center border border-white/25"><X /></button></div>
       <div className="flex min-h-0 flex-1 items-center justify-center py-4"><div className="w-[min(96vw,calc((100dvh-9rem)*1.419))] max-w-[1400px]">{pageView(true)}</div></div>
     </motion.div>}</AnimatePresence>
   </section>;

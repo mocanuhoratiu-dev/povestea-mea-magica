@@ -13,9 +13,9 @@ type DeliveryItem = {
 
 const productPresentation: Record<BundleProduct, { title: string; description: string; anchor: string; icon: typeof BookOpen }> = {
   story: { title: "Povestea lungă", description: "Copertă, dedicație și patru pagini de aventură", anchor: "creator", icon: BookOpen },
-  monster: { title: "Scutul de Noapte", description: "Certificat, ritual și etichete pentru seară", anchor: "monster-away", icon: ShieldCheck },
+  monster: { title: "Scutul de Noapte", description: "Certificat, ritual, etichete și card pentru noptieră", anchor: "monster-away", icon: ShieldCheck },
   emergency: { title: "Trusa de Răbdare", description: "Misiuni și activități pentru momentul ales", anchor: "emergency-kit", icon: TimerReset },
-  album: { title: "Albumul Meu Magic", description: "Carte ilustrată de 16 pagini și caiet separat de activități", anchor: "album", icon: BookHeart },
+  album: { title: "Povestea Magică", description: "Carte ilustrată de 16 pagini și caiet separat de activități", anchor: "album", icon: BookHeart },
 };
 
 function childName(item: DeliveryItem) {
@@ -64,7 +64,7 @@ function BundleAlbumDelivery({ item, order, token }: { item: DeliveryItem; order
         <span className="grid h-12 w-12 place-items-center rounded-md bg-brand-navy text-brand-gold"><BookHeart size={23} /></span>
         <div>
           <p className="text-xs font-black uppercase tracking-[0.12em] text-brand-purple">Pentru {delivery?.childName || childName(item)}</p>
-          <h2 className="mt-2 font-serif text-3xl text-brand-navy">{delivery?.title || "Albumul Meu Magic"}</h2>
+          <h2 className="mt-2 font-serif text-3xl text-brand-navy">{delivery?.title || "Povestea Magică"}</h2>
           <p className="mt-2 text-sm font-semibold leading-relaxed text-brand-navy/65">Carte ilustrată de 16 pagini, narațiune și caiet separat de activități.</p>
         </div>
       </div>

@@ -65,8 +65,8 @@ export const checkoutCatalog: Record<CheckoutProductId, CheckoutProduct> = {
   },
   "illustrated-album-digital": {
     id: "illustrated-album-digital",
-    name: "Albumul Meu Magic - Digital",
-    description: "Carte ilustrată personalizată și caiet separat de activități, în format A5 landscape.",
+    name: "Povestea Magică - Digital",
+    description: "Poveste ilustrată personalizată și caiet separat de activități, în format A5 landscape.",
     amount: 5900,
     currency: "ron",
   },

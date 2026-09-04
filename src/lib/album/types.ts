@@ -9,6 +9,7 @@ export const albumWorldOptions = [
   { id: "garden", label: "Grădina lucrurilor mici" },
   { id: "aurora", label: "Ținutul aurorei boreale" },
   { id: "inventions", label: "Atelierul invențiilor magice" },
+  { id: "custom", label: "O lume inventată de voi" },
 ] as const;
 
 export const albumLessonOptions = [
@@ -66,7 +67,11 @@ export type AlbumGenerationInput = {
   appearanceDetail: string;
   favoriteColor: string;
   world: string;
+  customWorld: string;
   companion: string;
+  secondaryCharacterName: string;
+  secondaryCharacterRole: string;
+  secondaryCharacterAppearance: string;
   lesson: string;
   mood: string;
   artStyle: string;

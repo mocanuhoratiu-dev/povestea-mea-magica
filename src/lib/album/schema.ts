@@ -51,7 +51,11 @@ export function readAlbumConfiguration(value: unknown): AlbumConfiguration | nul
     appearanceDetail: clean(raw.appearanceDetail, 240),
     favoriteColor: clean(raw.favoriteColor, 36),
     world: clean(raw.world, 32),
+    customWorld: clean(raw.customWorld, 280),
     companion: clean(raw.companion, 80),
+    secondaryCharacterName: clean(raw.secondaryCharacterName, 40),
+    secondaryCharacterRole: clean(raw.secondaryCharacterRole, 60),
+    secondaryCharacterAppearance: clean(raw.secondaryCharacterAppearance, 180),
     lesson: clean(raw.lesson, 80),
     mood: clean(raw.mood, 60) || albumMoodOptions[0],
     artStyle: clean(raw.artStyle, 80) || albumArtStyleOptions[0],
@@ -63,6 +67,8 @@ export function readAlbumConfiguration(value: unknown): AlbumConfiguration | nul
   if (!generation.name || !/^(?:[2-9]|10)$/.test(generation.age)) return null;
   if (!generation.hairStyle || !generation.hairColor || !generation.skinTone || !generation.favoriteColor) return null;
   if (!optionExists(albumWorldOptions, generation.world)) return null;
+  if (generation.world === "custom" && !generation.customWorld) return null;
+  if (generation.secondaryCharacterName && !generation.secondaryCharacterRole) return null;
   if (!albumCompanionOptions.includes(generation.companion as (typeof albumCompanionOptions)[number])) return null;
   if (!albumLessonOptions.includes(generation.lesson as (typeof albumLessonOptions)[number])) return null;
   if (!albumMoodOptions.includes(generation.mood as (typeof albumMoodOptions)[number])) return null;
@@ -242,6 +248,7 @@ export function readAlbumOutput(value: unknown): AlbumOrderOutput | null {
   };
 }
 
-export function albumWorldLabel(world: string) {
+export function albumWorldLabel(world: string, customWorld = "") {
+  if (world === "custom" && customWorld.trim()) return customWorld.trim();
   return albumWorldOptions.find((option) => option.id === world)?.label || "o lume magică";
 }

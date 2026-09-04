@@ -76,7 +76,7 @@ export default function AboutPage() {
           </div>
           <div className="space-y-7 text-lg font-medium leading-relaxed text-brand-navy/70">
             <p>Fiecare produs are o structură proprie: povestea are o aventură și o dedicație, Scutul de Noapte are un ritual simbolic, iar Trusa de Răbdare are activități legate de contextul ales.</p>
-            <p>Poți vedea exemplele înainte de a începe și poți ajusta povestea înainte de descărcarea PDF-ului. Albumul poate fi creat din descriere sau, opțional, cu o fotografie folosită privat ca reper vizual. Materialele generate nu sunt păstrate într-o bibliotecă de conturi.</p>
+            <p>Poți vedea exemplele înainte de a începe și poți ajusta povestea înainte de descărcarea PDF-ului. Povestea Magică poate fi creată din descriere sau, opțional, cu o fotografie folosită privat ca reper vizual. Materialele generate nu sunt păstrate într-o bibliotecă de conturi.</p>
             <p>Păstrăm promisiunea simplă: conținut cald, clar și potrivit pentru timpul petrecut în familie.</p>
           </div>
         </div>

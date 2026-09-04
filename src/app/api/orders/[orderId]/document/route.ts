@@ -36,7 +36,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ orde
   const name = generation && typeof generation === "object" && !Array.isArray(generation)
     ? safeFilename(String((generation as Record<string, unknown>).name || "copil"))
     : "copil";
-  const filename = requestedFile === "storybook" ? `albumul-meu-magic-${name}.pdf` : requestedFile === "activities" ? `caietul-magic-${name}.pdf` : `povestea-${name}.mp3`;
+  const filename = requestedFile === "storybook" ? `povestea-magica-${name}.pdf` : requestedFile === "activities" ? `caietul-magic-${name}.pdf` : `povestea-${name}.mp3`;
   const isAudio = requestedFile === "narration";
 
   return new NextResponse(new Uint8Array(file.buffer), {

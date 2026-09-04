@@ -52,7 +52,7 @@ export async function POST(request: Request) {
   const stripe = getStripe();
   if (!stripe) return NextResponse.json({ error: checkoutUnavailable }, { status: 503 });
   const cancelUrl = productId === "illustrated-album-digital"
-    ? `${siteUrl}/album-ilustrat?plata=anulata`
+    ? `${siteUrl}/povestea-magica?plata=anulata`
     : productId === "complete-bundle"
       ? `${siteUrl}/pachet-complet?plata=anulata`
     : productId === "family-bundle"

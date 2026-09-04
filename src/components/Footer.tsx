@@ -14,18 +14,15 @@ export default function Footer() {
               <BrandMark className="h-11 w-11" tone="paper" title="Povestea Mea Magică" />
               <span className="font-serif text-2xl leading-none">Povestea Mea <span className="text-brand-gold italic">Magică</span></span>
             </Link>
-            <p className="mt-6 max-w-md text-base font-medium leading-relaxed text-brand-cream/70">Magie practică pentru serile liniștite, curajul de mâine și timpul care trece mai ușor.</p>
+            <p className="mt-6 max-w-md text-base font-medium leading-relaxed text-brand-cream/70">Povești ilustrate și ritualuri create cu grijă pentru copilul și momentele familiei tale.</p>
           </div>
           <div>
             <h4 className="text-xs font-black uppercase tracking-[0.16em] text-brand-gold">Materiale</h4>
             <ul className="mt-5 space-y-3 text-sm font-semibold text-brand-cream/70">
-              <li><Link href="/#creator" className="transition-colors hover:text-brand-gold">Povestea de Seară</Link></li>
-              <li><Link href="/album-ilustrat" className="transition-colors hover:text-brand-gold">Albumul Meu Magic</Link></li>
-              <li><Link href="/#monster-away" className="transition-colors hover:text-brand-gold">Scutul de Noapte</Link></li>
-              <li><Link href="/#emergency-kit" className="transition-colors hover:text-brand-gold">Trusa de Răbdare</Link></li>
-              <li><Link href="/pachet" className="transition-colors hover:text-brand-gold">Pachetul Familiei</Link></li>
-              <li><Link href="/pachet-complet" className="transition-colors hover:text-brand-gold">Pachetul Complet</Link></li>
-              <li><Link href="/modele" className="transition-colors hover:text-brand-gold">Modele PDF</Link></li>
+              <li><Link href="/povestea-magica" className="transition-colors hover:text-brand-gold">Povestea Magică</Link></li>
+              <li><Link href="/scutul-de-noapte" className="transition-colors hover:text-brand-gold">Scutul de Noapte</Link></li>
+              <li><Link href="/trusa-de-rabdare" className="transition-colors hover:text-brand-gold">Trusa de Răbdare</Link></li>
+              <li><Link href="/modele" className="transition-colors hover:text-brand-gold">Răsfoiește modelele</Link></li>
               <li><Link href="/preturi" className="transition-colors hover:text-brand-gold">Prețuri</Link></li>
               <li><Link href="/cum-functioneaza" className="transition-colors hover:text-brand-gold">Cum funcționează</Link></li>
               <li><Link href="/despre" className="transition-colors hover:text-brand-gold">Despre proiect</Link></li>

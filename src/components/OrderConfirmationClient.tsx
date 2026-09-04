@@ -21,7 +21,7 @@ const productNames: Record<OrderProduct, string> = {
   monster: "Scutul de Noapte",
   emergency: "Trusa de Răbdare",
   bundle: "Pachetul Familiei Magice",
-  album: "Albumul Meu Magic",
+  album: "Povestea Magică",
 };
 
 function activePresentation(status?: CheckoutStatus) {

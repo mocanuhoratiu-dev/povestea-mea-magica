@@ -5,19 +5,16 @@ import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import BrandMark from "@/components/BrandMark";
-import { siteCopy } from "@/lib/siteMode";
 
 export default function Navbar() {
   const [isLumiOpen, setIsLumiOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navigationItems = [
-    { label: "Povestea de seară", href: "/#creator" },
-    { label: "Album ilustrat", href: "/album-ilustrat" },
-    { label: "Scutul de noapte", href: "/#monster-away" },
-    { label: "Trusa de răbdare", href: "/#emergency-kit" },
-    { label: "Pachete", href: "/preturi" },
-    { label: "Modele", href: "/modele" },
+    { label: "Povestea Magică", href: "/povestea-magica" },
+    { label: "Scutul de Noapte", href: "/scutul-de-noapte" },
+    { label: "Trusa de Răbdare", href: "/trusa-de-rabdare" },
+    { label: "Cum funcționează", href: "/cum-functioneaza" },
     { label: "Despre", href: "/despre" },
   ];
 
@@ -102,10 +99,10 @@ export default function Navbar() {
         </div>
 
           <Link
-          href="/#alege-materialul"
+          href="/povestea-magica#configureaza-albumul"
           className="bg-brand-navy px-4 py-2.5 text-sm font-black text-brand-cream transition-colors hover:bg-brand-purple active:scale-95 md:px-5"
         >
-          {siteCopy.navCta}
+          Creează povestea
           </Link>
         </div>
       </motion.nav>

@@ -18,15 +18,15 @@ const nunito = Nunito({
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "Povestea Mea Magică | Magie practică pentru copilărie",
-  description: "Povești de seară, ritualuri de noapte și activități personalizate pentru momentele mici ale copilăriei.",
+  title: "Povestea Mea Magică | Copilul tău devine eroul poveștii",
+  description: "Povești ilustrate premium, ritualuri de noapte și activități personalizate pentru copilul tău.",
   openGraph: {
     type: "website",
     locale: "ro_RO",
     url: "/",
     siteName: "Povestea Mea Magică",
-    title: "Povestea Mea Magică | Magie practică pentru copilărie",
-    description: "Povești de seară, ritualuri de noapte și activități personalizate pentru copilul tău.",
+    title: "Povestea Mea Magică | Copilul tău devine eroul poveștii",
+    description: "Creează o poveste ilustrată premium în care copilul tău este eroul fiecărei pagini.",
     images: [
       {
         url: "/hero-storybook.jpg",
@@ -38,8 +38,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Povestea Mea Magică | Magie practică pentru copilărie",
-    description: "Povești de seară, ritualuri de noapte și activități personalizate pentru copilul tău.",
+    title: "Povestea Mea Magică | Copilul tău devine eroul poveștii",
+    description: "Creează o poveste ilustrată premium în care copilul tău este eroul fiecărei pagini.",
     images: ["/hero-storybook.jpg"],
   },
 };
@@ -50,7 +50,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ro" className={`scroll-smooth ${quicksand.variable} ${nunito.variable}`}>
+    <html lang="ro" data-scroll-behavior="smooth" className={`scroll-smooth ${quicksand.variable} ${nunito.variable}`}>
       <body className="antialiased font-nunito bg-brand-cream">
         <UsageTelemetry />
         <Navbar />

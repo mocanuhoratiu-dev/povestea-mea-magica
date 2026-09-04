@@ -7,31 +7,31 @@ import { ChevronDown } from "lucide-react";
 const faqs = [
   {
     question: "Cum aleg materialul potrivit?",
-    answer: "Începe cu momentul pe care îl aveți acum: Povestea de Seară pentru conectare, Scutul de Noapte pentru un ritual de curaj și Trusa de Răbdare pentru așteptări. Pentru o experiență vizuală mai bogată, alege Albumul Meu Magic.",
+    answer: "Povestea Magică este cartea ilustrată în care copilul devine eroul aventurii. Scutul de Noapte construiește un ritual blând în jurul unei temeri, iar Trusa de Răbdare aduce activități pentru drum, restaurant, medic sau alte așteptări.",
   },
   {
     question: "Ce primesc?",
-    answer: "Primești unul sau două PDF-uri personalizate, pregătite pentru citit ori print. Albumul include o carte ilustrată de 16 pagini și un caiet separat de 5 pagini, cu colorat, labirint și joc de diferențe. Povestea de Seară are 2 sau 4 pagini de aventură, iar kiturile includ ritualurile și activitățile descrise înainte de comandă.",
+    answer: "Povestea Magică include o carte ilustrată de 16 pagini și un caiet separat de 5 pagini, cu colorat, labirint și joc de diferențe. Scutul și Trusa sunt PDF-uri personalizate, pregătite pentru print și folosire împreună cu copilul.",
   },
   {
     question: "Este personalizat cu adevărat?",
-    answer: "Da. Numele, vârsta, lumea, lecția și detaliile pe care le alegi schimbă felul în care arată povestea sau misiunile. Pentru poveste poți adăuga și o dedicație de la familie.",
+    answer: "Da. Numele, vârsta, aspectul, lumea, personajele apropiate și ideea familiei schimbă atât firul poveștii, cât și imaginile. Poți porni de la o descriere sau de la o fotografie și poți adăuga o dedicație personală.",
   },
   {
     question: "Cât durează?",
-    answer: "Materialele scurte sunt gata, de obicei, în mai puțin de un minut. Albumul ilustrat poate dura 6-10 minute, deoarece personajul, coperta, cele 13 scene și imaginile pentru activități sunt create separat la rezoluție mare.",
+    answer: "Scutul și Trusa sunt gata, de regulă, în mai puțin de un minut. Povestea Magică poate dura 6-10 minute, deoarece personajul, coperta, cele 13 scene și activitățile sunt create și verificate separat.",
   },
   {
     question: "Pot modifica ceva înainte de PDF?",
-    answer: "Da. Pentru Albumul Meu Magic vezi coperta personalizată înainte de plată, cu un watermark discret. Dacă schimbi alegerile, creezi un preview nou, iar coperta confirmată devine reperul vizual al personajului în album. Pentru Povestea de Seară poți edita textul înainte de descărcare și poți regenera coperta.",
+    answer: "Da. Pentru Povestea Magică vezi coperta personalizată înainte de plată, cu un watermark discret. Dacă schimbi alegerile, poți crea un preview nou. Coperta confirmată devine reperul vizual al personajului în întreaga carte.",
   },
   {
     question: "Pot printa materialele?",
-    answer: "Da. Poveștile și kiturile sunt gândite pentru A4. Albumul și caietul lui de activități folosesc format A5 landscape și pot fi tipărite acasă sau la un centru de print.",
+    answer: "Da. Povestea Magică și caietul de activități folosesc format A5 landscape. Scutul și Trusa sunt pregătite pentru A4. Toate pot fi tipărite acasă sau la un centru de print.",
   },
   {
     question: "Care sunt prețurile?",
-    answer: "Povestea scurtă costă 19 lei, cea lungă 29 lei, iar fiecare kit costă 19 lei. Pachetul Familiei Magice costă 49 lei, iar Albumul Meu Magic costă 59 lei. Pachetul Complet costă 99 lei și le reunește pe toate în cinci PDF-uri.",
+    answer: "Povestea Magică costă 59 lei. Scutul de Noapte și Trusa de Răbdare costă câte 19 lei. Prețul final este afișat înainte de plata securizată.",
   },
   {
     question: "Sunt materialele un sfat medical sau terapeutic?",

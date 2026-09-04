@@ -6,14 +6,12 @@ import { Utensils, Car, Stethoscope, CloudRain, Sparkles, Download, Plane, Clock
 import BrandMark from "./BrandMark";
 import MagicalLoader from "./MagicalLoader";
 import FeedbackInvite from "./FeedbackInvite";
-import LumiMomentCheck from "./LumiMomentCheck";
 import QuickRating from "./QuickRating";
 import EmailDelivery from "./EmailDelivery";
 import DigitalPurchaseConsent from "./DigitalPurchaseConsent";
 import { trackEvent } from "@/lib/clientTelemetry";
 import { commerce } from "@/lib/siteMode";
 import { beginOrderCheckout } from "@/lib/clientOrderCheckout";
-import { useMobileProductVisibility } from "@/lib/mobileProductFlow";
 import MobileFlowSteps from "./MobileFlowSteps";
 
 type TrueFalseItem = {
@@ -45,7 +43,7 @@ const EMERGENCY_STYLES = `
 }
 .ek-border {
   position: absolute; inset: 20px;
-  border: 4px dashed #d88b4a; border-radius: 8px;
+  border: 2px solid #24324f; border-radius: 2px;
   background-color: white;
   box-sizing: border-box;
   padding: 34px 42px;
@@ -54,12 +52,12 @@ const EMERGENCY_STYLES = `
   text-align: center; margin: 0 0 30px;
 }
 .ek-activity-kicker {
-  color: #d88b4a; font-size: 14px; font-weight: 900;
+  color: #8052a0; font-size: 14px; font-weight: 900;
   letter-spacing: 3px; text-transform: uppercase; margin-bottom: 8px;
 }
 .ek-title {
   font-family: 'Nunito', sans-serif; font-size: 38px; font-weight: 900;
-  color: #d88b4a; text-transform: uppercase; letter-spacing: 2px;
+  color: #24324f; text-transform: uppercase; letter-spacing: 2px;
   overflow-wrap: anywhere;
 }
 .ek-subtitle {
@@ -69,8 +67,8 @@ const EMERGENCY_STYLES = `
   margin: 0;
 }
 .ek-section-title {
-  font-size: 24px; font-weight: 900; color: #d88b4a;
-  border-bottom: 2px solid #d88b4a; padding-bottom: 9px; margin-bottom: 18px;
+  font-size: 24px; font-weight: 900; color: #8052a0;
+  border-bottom: 2px solid #e5b84f; padding-bottom: 9px; margin-bottom: 18px;
   display: flex; align-items: center; gap: 10px;
 }
 .ek-activity-instruction {
@@ -83,15 +81,15 @@ const EMERGENCY_STYLES = `
 .ek-radar-item {
   display: flex; align-items: center; gap: 15px;
   min-height: 78px; box-sizing: border-box;
-  background: #fff9f0; padding: 13px; border-radius: 12px; border: 2px solid #ffeaa7;
+  background: #fff9ee; padding: 13px; border-radius: 4px; border: 1px solid #e5b84f;
   font-size: 17px; font-weight: 700; color: #2d3436;
   overflow-wrap: anywhere;
 }
 .ek-checkbox {
-  flex: 0 0 28px; width: 28px; height: 28px; border: 3px solid #d88b4a; border-radius: 8px; background: white;
+  flex: 0 0 28px; width: 28px; height: 28px; border: 2px solid #8052a0; border-radius: 3px; background: white;
 }
 .ek-riddle-box {
-  background: #d88b4a15; padding: 22px; border-radius: 8px; border-left: 6px solid #d88b4a;
+  background: #8052a012; padding: 22px; border-radius: 3px; border-left: 6px solid #8052a0;
   font-size: 20px; font-weight: 700; line-height: 1.45; color: #2d3436; font-style: italic; text-align: center;
   overflow-wrap: anywhere;
 }
@@ -101,15 +99,15 @@ const EMERGENCY_STYLES = `
   overflow-wrap: anywhere;
 }
 .ek-drawing-box {
-  border: 3px dashed #d88b4a; height: 490px; border-radius: 8px;
+  border: 2px dashed #8052a0; height: 490px; border-radius: 3px;
   margin-top: 20px; background: #fafafa;
 }
 .ek-patience-page {
   height: 100%; display: flex; flex-direction: column;
 }
 .ek-patience-card {
-  margin: 0 30px; padding: 32px 34px; border-radius: 24px;
-  background: #fff9f0; border: 3px solid #ffe0af; text-align: center;
+  margin: 0 30px; padding: 32px 34px; border-radius: 4px;
+  background: #fff9ee; border: 2px solid #e5b84f; text-align: center;
 }
 .ek-patience-box {
   text-align: center; font-size: 21px; line-height: 1.5; font-weight: 700; color: #2d3436;
@@ -119,9 +117,9 @@ const EMERGENCY_STYLES = `
   margin: 18px 0 0; color: #636e72; font-size: 17px; font-weight: 700; line-height: 1.45;
 }
 .ek-patience-lines { margin: 20px 54px 0; flex: 1; }
-.ek-patience-line { height: 52px; border-bottom: 2px dashed #f4be7d; }
+.ek-patience-line { height: 52px; border-bottom: 2px dashed #b99ace; }
 .ek-story-starter {
-  background: #f0f9ff; border-left: 6px solid #74b9ff; border-radius: 12px;
+  background: #5b93af12; border-left: 6px solid #5b93af; border-radius: 3px;
   padding: 14px 18px; margin-bottom: 13px;
   font-size: 17px; line-height: 1.38; font-weight: 700; color: #2d3436;
   overflow-wrap: anywhere;
@@ -130,21 +128,21 @@ const EMERGENCY_STYLES = `
   margin-top: 8px; border-bottom: 2px dashed #b2bec3; height: 23px;
 }
 .ek-tf-item {
-  background: #fdf0ff; border-radius: 12px; padding: 15px 18px; margin-bottom: 12px;
-  border-left: 6px solid #a29bfe;
+  background: #8052a010; border-radius: 3px; padding: 15px 18px; margin-bottom: 12px;
+  border-left: 6px solid #8052a0;
 }
 .ek-tf-q { font-size: 17px; line-height: 1.38; font-weight: 700; color: #2d3436; overflow-wrap: anywhere; }
 .ek-tf-btns { display: flex; gap: 12px; margin-top: 10px; }
 .ek-tf-btn {
-  flex: 1; padding: 8px; border-radius: 10px; border: 3px solid #a29bfe;
-  font-size: 15px; font-weight: 900; color: #a29bfe; text-align: center;
+  flex: 1; padding: 8px; border-radius: 3px; border: 2px solid #8052a0;
+  font-size: 15px; font-weight: 900; color: #8052a0; text-align: center;
 }
 .ek-answer-item {
-  background: #fdf0ff; border-radius: 16px; padding: 17px 20px; margin-bottom: 14px;
-  border-left: 8px solid #a29bfe;
+  background: #8052a010; border-radius: 3px; padding: 17px 20px; margin-bottom: 14px;
+  border-left: 8px solid #8052a0;
 }
 .ek-answer-label {
-  display: inline-block; background: #a29bfe; color: white; border-radius: 999px;
+  display: inline-block; background: #8052a0; color: white; border-radius: 3px;
   padding: 6px 14px; font-size: 14px; font-weight: 900; margin-bottom: 10px;
 }
 .ek-answer-text {
@@ -152,14 +150,14 @@ const EMERGENCY_STYLES = `
   overflow-wrap: anywhere;
 }
 .ek-diploma {
-  margin: 30px 60px; text-align: center; border: 4px double #d88b4a;
-  border-radius: 20px; padding: 30px; background: #fff9f0;
+  margin: 30px 60px; text-align: center; border: 4px double #24324f;
+  border-radius: 3px; padding: 30px; background: #fff9ee;
 }
-.ek-diploma-title { font-size: 28px; font-weight: 900; color: #d88b4a; }
+.ek-diploma-title { font-size: 28px; font-weight: 900; color: #24324f; }
 .ek-page::after {
   content: 'Povestea Mea Magică · Trusa de Răbdare';
   position: absolute; bottom: 8px; left: 0; right: 0;
-  color: #d88b4a; font-size: 10px; font-weight: 900;
+  color: #8052a0; font-size: 10px; font-weight: 900;
   letter-spacing: 1.4px; text-align: center; text-transform: uppercase;
 }
 .ek-diploma-name { font-size: 36px; font-weight: 900; color: #2d3436; font-family: 'Caveat', cursive; margin: 10px 0; }
@@ -449,7 +447,6 @@ function mergeEmergencyKit(generated: Partial<EmergencyKitData>, fallback: Emerg
 }
 
 export default function EmergencyKit() {
-  const isMobileEmergencySelected = useMobileProductVisibility("emergency");
   const [name, setName] = useState("");
   const [age, setAge] = useState("1");
   const [selectedContext, setSelectedContext] = useState(contexts[0].id);
@@ -633,7 +630,7 @@ export default function EmergencyKit() {
   };
 
   return (
-    <section id="emergency-kit" className={`relative scroll-mt-16 overflow-hidden bg-brand-cream px-4 py-14 md:scroll-mt-24 md:py-32 ${isMobileEmergencySelected ? "" : "max-md:hidden"}`}>
+    <section id="emergency-kit" className="relative scroll-mt-16 overflow-hidden bg-brand-cream px-4 py-14 md:scroll-mt-24 md:py-24">
       <MagicalLoader isVisible={isLoading} />
 
       <div className="max-w-4xl mx-auto relative z-10">
@@ -664,7 +661,7 @@ export default function EmergencyKit() {
                 </label>
                 <input
                   type="text" value={name} onChange={e => setName(e.target.value)} placeholder="ex: Sofia"
-                  className="w-full bg-gray-50 border-4 border-gray-100 focus:border-orange-400 rounded-2xl px-6 py-4 text-brand-navy font-bold text-xl outline-none transition-all"
+                  className="min-h-14 w-full border border-brand-navy/20 bg-brand-cream px-5 py-4 text-lg font-bold text-brand-navy outline-none transition focus:border-brand-purple focus:ring-2 focus:ring-brand-purple/15"
                 />
               </div>
               <div>
@@ -673,7 +670,7 @@ export default function EmergencyKit() {
                 </label>
                 <input
                   type="number" value={age} onChange={e => setAge(e.target.value)} min="1" max="10"
-                  className="w-full bg-gray-50 border-4 border-gray-100 focus:border-orange-400 rounded-2xl px-6 py-4 text-brand-navy font-bold text-xl outline-none transition-all"
+                  className="min-h-14 w-full border border-brand-navy/20 bg-brand-cream px-5 py-4 text-lg font-bold text-brand-navy outline-none transition focus:border-brand-purple focus:ring-2 focus:ring-brand-purple/15"
                 />
               </div>
             </div>
@@ -685,16 +682,16 @@ export default function EmergencyKit() {
               <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-6">
                 {contexts.map(c => (
                   <button key={c.id} type="button" onClick={() => setSelectedContext(c.id)}
-                    className={`flex flex-col items-center gap-2 rounded-2xl border-4 p-3 transition-all duration-200 md:gap-3 md:p-5 ${
+                    className={`flex min-h-28 flex-col items-center justify-center gap-2 border p-3 transition-all duration-200 md:gap-3 md:p-5 ${
                       selectedContext === c.id
-                        ? 'border-brand-orange bg-brand-orange/10 scale-105 shadow-lg'
-                        : 'border-gray-100 bg-white hover:border-brand-orange/30'
+                        ? 'border-brand-purple bg-brand-purple text-white shadow-lg'
+                        : 'border-brand-navy/10 bg-white hover:border-brand-purple/40'
                     }`}
                   >
-                    <span className={`p-3 rounded-full ${selectedContext === c.id ? 'bg-brand-orange text-white' : 'bg-gray-100 text-gray-500'}`}>
+                    <span className={`grid h-11 w-11 place-items-center ${selectedContext === c.id ? 'bg-white/15 text-white' : 'bg-brand-navy/5 text-brand-navy/55'}`}>
                       {c.icon}
                     </span>
-                    <span className="text-sm font-black text-brand-navy text-center">{c.label}</span>
+                    <span className={`text-center text-sm font-black ${selectedContext === c.id ? 'text-white' : 'text-brand-navy'}`}>{c.label}</span>
                   </button>
                 ))}
               </div>
@@ -712,7 +709,7 @@ export default function EmergencyKit() {
                   value={interest}
                   onChange={e => setInterest(e.target.value)}
                   placeholder="dinozauri, pisici, mașini..."
-                  className="w-full bg-gray-50 border-4 border-gray-100 focus:border-orange-400 rounded-2xl px-5 py-4 text-brand-navy font-bold text-base outline-none transition-all"
+                  className="min-h-12 w-full border border-brand-navy/20 bg-brand-cream px-4 py-3 font-bold text-brand-navy outline-none transition focus:border-brand-purple"
                 />
               </div>
               <div>
@@ -722,7 +719,7 @@ export default function EmergencyKit() {
                 <select
                   value={duration}
                   onChange={e => setDuration(e.target.value)}
-                  className="w-full bg-gray-50 border-4 border-gray-100 focus:border-orange-400 rounded-2xl px-5 py-4 text-brand-navy font-bold text-base outline-none transition-all appearance-none"
+                  className="min-h-12 w-full appearance-none border border-brand-navy/20 bg-brand-cream px-4 py-3 font-bold text-brand-navy outline-none transition focus:border-brand-purple"
                 >
                   {durationOptions.map(option => (
                     <option key={option.id} value={option.id}>{option.label}</option>
@@ -736,7 +733,7 @@ export default function EmergencyKit() {
                 <select
                   value={activityMode}
                   onChange={e => setActivityMode(e.target.value)}
-                  className="w-full bg-gray-50 border-4 border-gray-100 focus:border-orange-400 rounded-2xl px-5 py-4 text-brand-navy font-bold text-base outline-none transition-all appearance-none"
+                  className="min-h-12 w-full appearance-none border border-brand-navy/20 bg-brand-cream px-4 py-3 font-bold text-brand-navy outline-none transition focus:border-brand-purple"
                 >
                   {activityModes.map(mode => (
                     <option key={mode.id} value={mode.id}>{mode.label}</option>
@@ -761,7 +758,7 @@ export default function EmergencyKit() {
             <motion.button
               type="submit" disabled={!name.trim()}
               whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-              className="flex w-full items-center justify-center gap-3 bg-brand-orange py-6 text-xl font-black text-white shadow-xl transition-colors hover:bg-brand-navy disabled:cursor-not-allowed disabled:opacity-30 md:text-2xl"
+              className="flex w-full items-center justify-center gap-3 border-b-4 border-brand-gold bg-brand-navy py-5 text-lg font-black text-brand-cream shadow-xl transition-colors hover:bg-brand-purple disabled:cursor-not-allowed disabled:opacity-30 md:text-xl"
             >
               <Sparkles size={28} /> {commerce.acceptsPayments ? "Continuă către plată" : "Pregătește trusa"}
             </motion.button>
@@ -796,7 +793,7 @@ export default function EmergencyKit() {
               </div>
 
               <div className="ek-section ek-riddle-section">
-                <div className="ek-section-title">✨ Ghicitoarea Locului</div>
+                <div className="ek-section-title">Ghicitoarea Locului</div>
                 <div className="ek-riddle-box">
                   {ekData.riddle}
                 </div>
@@ -814,7 +811,7 @@ export default function EmergencyKit() {
               </div>
 
               <div className="ek-section">
-                <div className="ek-section-title">🎨 Provocarea Desenatorului</div>
+                <div className="ek-section-title">Provocarea Desenatorului</div>
                 <p className="ek-drawing-copy">{ekData.drawing}</p>
                 <div className="ek-drawing-box"></div>
               </div>
@@ -854,7 +851,7 @@ export default function EmergencyKit() {
               </div>
 
               <div className="ek-section">
-                <div className="ek-section-title">📖 Continuă Povestea!</div>
+                <div className="ek-section-title">Continuă Povestea</div>
                 <p style={{fontSize: 16, color: '#777', fontWeight: 700, margin: '0 0 18px'}}>Alege un început magic și spune ce se întâmplă mai departe.</p>
                 {ekData.story_starters?.map((s: string, idx: number) => (
                   <div key={idx} className="ek-story-starter">
@@ -877,7 +874,7 @@ export default function EmergencyKit() {
               </div>
 
               <div className="ek-section">
-                <div className="ek-section-title">🧠 Adevărat sau Fals?</div>
+                <div className="ek-section-title">Adevărat sau Fals?</div>
                 <p style={{fontSize: 16, color: '#777', fontWeight: 700, margin: '0 0 18px'}}>Încercuiește răspunsul tău. Răspunsurile sunt pe pagina următoare, pentru părinte.</p>
                 {ekData.true_or_false?.map((item, idx) => (
                   <div key={idx} className="ek-tf-item">
@@ -902,7 +899,7 @@ export default function EmergencyKit() {
               </div>
 
               <div className="ek-section">
-                <div className="ek-section-title">✅ Cheia provocării</div>
+                <div className="ek-section-title">Cheia provocării</div>
                 <p style={{fontSize: 16, color: '#777', fontWeight: 700, margin: '0 0 20px'}}>Folosește pagina aceasta doar după ce copilul a încercuit răspunsurile.</p>
                 {ekData.true_or_false?.map((item, idx) => {
                   const answer = parseTrueFalseAnswer(item.a);
@@ -921,15 +918,15 @@ export default function EmergencyKit() {
           <div id="ek-page-6" className="ek-page">
             <div className="ek-border" style={{display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
               <div style={{textAlign: 'center', padding: '40px 30px', width: '100%', boxSizing: 'border-box'}}>
-                <div style={{fontSize: 72, marginBottom: 24}}>🏅</div>
-                <div style={{fontSize: 16, color: '#d88b4a', fontWeight: 900, letterSpacing: 4, textTransform: 'uppercase', marginBottom: 20}}>Povestea Mea Magică · Trusa de Răbdare</div>
-                <div style={{fontSize: 44, fontWeight: 900, color: '#d88b4a', fontFamily: 'Nunito, sans-serif', borderBottom: '3px solid #d88b4a', paddingBottom: 16, marginBottom: 16}}>DIPLOMĂ DE RĂBDARE</div>
+                <div style={{fontSize: 62, color: '#e5b84f', marginBottom: 24}}>✦</div>
+                <div style={{fontSize: 16, color: '#8052a0', fontWeight: 900, letterSpacing: 4, textTransform: 'uppercase', marginBottom: 20}}>Povestea Mea Magică · Trusa de Răbdare</div>
+                <div style={{fontSize: 44, fontWeight: 900, color: '#24324f', fontFamily: 'Nunito, sans-serif', borderBottom: '3px solid #e5b84f', paddingBottom: 16, marginBottom: 16}}>DIPLOMĂ DE RĂBDARE</div>
                 <div style={{fontSize: 22, color: '#636e72', fontWeight: 600, marginBottom: 20}}>Se acordă agentului special</div>
                 <div style={{fontFamily: 'Caveat, cursive', fontSize: 64, fontWeight: 900, color: '#2d3436', marginBottom: 20, overflowWrap: 'anywhere'}}>{cleanText(name, "Agentul Special", 28)}</div>
                 <div style={{fontSize: 20, color: '#636e72', fontWeight: 600, marginBottom: 40, lineHeight: 1.6}}>
                   pentru finalizarea cu brio a tuturor misiunilor secrete<br/>și demonstrarea unui curaj excepțional!
                 </div>
-                <div style={{fontSize: 48, letterSpacing: 12}}>⭐⭐⭐</div>
+                <div style={{fontSize: 42, color: '#e5b84f', letterSpacing: 12}}>✦ ✦ ✦</div>
                 <div style={{marginTop: 50, display: 'flex', justifyContent: 'space-around', width: '100%'}}>
                   <div style={{textAlign: 'center'}}>
                     <div style={{borderTop: '2px solid #636e72', width: 180, marginBottom: 8}}></div>
@@ -977,7 +974,6 @@ export default function EmergencyKit() {
                 </motion.button>
                 <EmailDelivery product="emergency" filename={`Trusa_Urgenta_${name.trim() || "Erou"}.pdf`} childName={name} createPdf={createEmergencyPdfBlob} />
                 {showQuickRating && <QuickRating product="emergency" />}
-                <LumiMomentCheck product="emergency" />
                 <FeedbackInvite product="emergency" compact />
               </div>
             </motion.div>

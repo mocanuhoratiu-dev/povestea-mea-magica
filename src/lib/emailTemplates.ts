@@ -45,10 +45,10 @@ export const productEmailCopy: Record<TransactionalEmailProduct, ProductEmailCop
     message: "Povestea, cele două kituri, cartea ilustrată și caietul de activități vă așteaptă în aceeași livrare.",
   },
   album: {
-    name: "Albumul Meu Magic",
+    name: "Povestea Magică",
     eyebrow: "O lume întreagă a prins culoare",
     title: "Albumul vostru ilustrat este gata",
-    subject: "Albumul Meu Magic este gata",
+    subject: "Povestea Magică este gata",
     message: "Cartea ilustrată și caietul de activități sunt pregătite. Din linkul privat poți răsfoi albumul, asculta povestea și descărca ambele PDF-uri.",
   },
 };

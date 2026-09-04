@@ -125,7 +125,7 @@ export default function AlbumFlipbook() {
     <div
       className={`relative mx-auto w-full outline-none ${isExpanded ? "max-w-none" : "max-w-[1120px]"}`}
       role="group"
-      aria-label={`Album demonstrativ, pagina ${activeIndex + 1} din ${albumSamplePages.length}`}
+      aria-label={`Poveste demonstrativă, pagina ${activeIndex + 1} din ${albumSamplePages.length}`}
       tabIndex={0}
       onKeyDown={(event) => {
         if (event.key === "ArrowLeft") goPrevious();
@@ -179,7 +179,7 @@ export default function AlbumFlipbook() {
               setExpanded(true);
               trackEvent("album_sample_expanded", { product: "album", samplePage: activeIndex + 1 });
             }}
-            aria-label="Mărește albumul"
+            aria-label="Mărește povestea"
             className="absolute right-3 top-3 grid h-10 w-10 place-items-center border border-white/30 bg-brand-navy/80 text-white shadow-lg backdrop-blur-sm transition hover:bg-brand-purple sm:right-4 sm:top-4"
           >
             <Maximize2 size={18} />
@@ -194,9 +194,9 @@ export default function AlbumFlipbook() {
       <div className="mx-auto max-w-7xl">
         <div className="grid gap-7 lg:grid-cols-[minmax(0,.72fr)_minmax(460px,1.28fr)] lg:items-end lg:gap-14">
           <div className="max-w-xl">
-            <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-brand-gold"><Sparkles size={16} /> Un album adevărat, pagină cu pagină</div>
-            <h2 id="album-sample-title" className="mt-4 font-serif text-4xl leading-tight sm:text-5xl">Intră în povestea Evei.</h2>
-            <p className="mt-5 text-base font-semibold leading-relaxed text-brand-cream/72 sm:text-lg">Răsfoiește toate cele 16 pagini ale albumului demonstrativ. Fiecare comandă primește o aventură nouă, construită din alegerile familiei.</p>
+            <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-brand-gold"><Sparkles size={16} /> O carte adevărată, pagină cu pagină</div>
+            <h2 id="album-sample-title" className="mt-4 font-serif text-4xl leading-tight sm:text-5xl">Intră în Povestea Magică a Evei.</h2>
+            <p className="mt-5 text-base font-semibold leading-relaxed text-brand-cream/72 sm:text-lg">Răsfoiește toate cele 16 pagini ale poveștii demonstrative. Fiecare comandă primește o aventură nouă, construită din alegerile familiei.</p>
             <div className="mt-7 flex flex-wrap gap-x-6 gap-y-3 text-sm font-bold text-brand-cream/72">
               <span className="inline-flex items-center gap-2"><BookOpen size={17} className="text-brand-gold" /> 16 pagini A5 landscape</span>
               <span className="inline-flex items-center gap-2"><Volume2 size={17} className="text-brand-gold" /> Narațiune în română</span>
@@ -239,8 +239,8 @@ export default function AlbumFlipbook() {
               ))}
             </div>
             <div className="mt-8 flex flex-col items-start justify-between gap-5 border-t border-white/12 pt-7 sm:flex-row sm:items-center">
-              <p className="max-w-2xl text-sm font-semibold leading-relaxed text-brand-cream/65">Acesta este un exemplu complet. Povestea, personajul, lumea și ilustrațiile albumului vostru vor fi create separat pentru copilul vostru.</p>
-              <Link href="#configureaza-albumul" onClick={() => trackEvent("album_sample_cta_clicked", { product: "album", samplePage: activeIndex + 1 })} className="inline-flex min-h-12 shrink-0 items-center gap-2 bg-brand-cream px-6 text-sm font-black text-brand-navy transition hover:bg-brand-gold">Creează albumul <ChevronRight size={18} /></Link>
+              <p className="max-w-2xl text-sm font-semibold leading-relaxed text-brand-cream/65">Acesta este un exemplu complet. Povestea, personajul, lumea și ilustrațiile cărții voastre vor fi create separat pentru copilul vostru.</p>
+              <Link href="/povestea-magica#configureaza-albumul" onClick={() => trackEvent("album_sample_cta_clicked", { product: "album", samplePage: activeIndex + 1 })} className="inline-flex min-h-12 shrink-0 items-center gap-2 bg-brand-cream px-6 text-sm font-black text-brand-navy transition hover:bg-brand-gold">Creează povestea <ChevronRight size={18} /></Link>
             </div>
           </div>
         </div>
@@ -255,12 +255,12 @@ export default function AlbumFlipbook() {
             className="fixed inset-0 z-[20000] flex flex-col bg-[#0b1428]/96 p-3 backdrop-blur-md sm:p-5"
             role="dialog"
             aria-modal="true"
-            aria-label={`Albumul Evei, pagina ${activeIndex + 1} din ${albumSamplePages.length}`}
+            aria-label={`Povestea Evei, pagina ${activeIndex + 1} din ${albumSamplePages.length}`}
             onClick={() => setExpanded(false)}
           >
             <div className="mx-auto flex w-full max-w-[1400px] items-center justify-between border-b border-white/15 pb-3" onClick={(event) => event.stopPropagation()}>
               <div><p className="text-[10px] font-black uppercase tracking-[0.16em] text-brand-gold">{page.eyebrow}</p><p className="mt-1 font-serif text-lg text-white sm:text-2xl">{page.title}</p></div>
-              <button type="button" onClick={() => setExpanded(false)} aria-label="Închide albumul mărit" className="grid h-11 w-11 place-items-center border border-white/25 text-white transition hover:bg-white/10"><X size={21} /></button>
+              <button type="button" onClick={() => setExpanded(false)} aria-label="Închide povestea mărită" className="grid h-11 w-11 place-items-center border border-white/25 text-white transition hover:bg-white/10"><X size={21} /></button>
             </div>
             <div className="flex min-h-0 flex-1 items-center justify-center py-4" onClick={(event) => event.stopPropagation()}>
               <div className="w-[min(96vw,calc((100dvh-9rem)*1.419))] max-w-[1400px]">{book(true)}</div>

@@ -94,9 +94,9 @@ async function prepareSingleOrder(order: StoredOrder, secret: string) {
 
 async function prepareAlbumOrder(order: StoredOrder) {
   const configuration = readAlbumConfiguration(order.configuration);
-  if (!configuration) throw new Error("Configurația albumului este invalidă.");
+  if (!configuration) throw new Error("Configurația Poveștii Magice este invalidă.");
   let prepared = order.status === "paid" ? await setOrderStatus(order, "processing") : order;
-  if (!prepared) throw new Error("Albumul nu a putut fi blocat pentru procesare.");
+  if (!prepared) throw new Error("Povestea Magică nu a putut fi pregătită pentru procesare.");
 
   await createAlbumOrderOutput({
     orderId: prepared.id,
@@ -104,7 +104,7 @@ async function prepareAlbumOrder(order: StoredOrder) {
     existing: prepared.output,
     checkpoint: async (output) => {
       const saved = await setOrderStatus(prepared as StoredOrder, "processing", { output });
-      if (!saved) throw new Error("Progresul albumului nu a putut fi salvat.");
+      if (!saved) throw new Error("Progresul Poveștii Magice nu a putut fi salvat.");
       prepared = saved;
     },
   });

@@ -6,14 +6,12 @@ import { ShieldCheck, Download, Sparkles, Star } from 'lucide-react';
 import BrandMark from './BrandMark';
 import MagicalLoader from './MagicalLoader';
 import FeedbackInvite from './FeedbackInvite';
-import LumiMomentCheck from './LumiMomentCheck';
 import QuickRating from './QuickRating';
 import EmailDelivery from './EmailDelivery';
 import DigitalPurchaseConsent from './DigitalPurchaseConsent';
 import { trackEvent } from "@/lib/clientTelemetry";
 import { commerce } from "@/lib/siteMode";
 import { beginOrderCheckout } from "@/lib/clientOrderCheckout";
-import { useMobileProductVisibility } from "@/lib/mobileProductFlow";
 import MobileFlowSteps from "./MobileFlowSteps";
 
 /* ─── Types ─────────────────────────────────────── */
@@ -469,7 +467,6 @@ function addSearchableTextLayer(pdf: PdfInstance, text: string, pageWidth: numbe
    MAIN COMPONENT
 ══════════════════════════════════════════════════ */
 export default function MonsterKit() {
-  const isMobileMonsterSelected = useMobileProductVisibility("monster");
   const [name,        setName]        = useState('');
   const [monsterType, setMonsterType] = useState(monsters[0].id);
   const [showResult,  setShowResult]  = useState(false);
@@ -579,17 +576,17 @@ export default function MonsterKit() {
 
       if (response.ok && payload.success && payload.data) {
         setGeneratedContent(mergeMonsterKitContent(payload.data, fallback));
-        trackEvent('generation_completed', { product: 'monster', generationMode: 'ai', pageCount: 3 });
+        trackEvent('generation_completed', { product: 'monster', generationMode: 'ai', pageCount: 4 });
       } else {
         setGeneratedContent(fallback);
         setResultNote("Am pregătit o variantă personalizată de rezervă, ca să nu vă ținem pe loc. Poți genera din nou pentru o altă formulare.");
-        trackEvent('generation_completed', { product: 'monster', generationMode: 'template', pageCount: 3 });
+        trackEvent('generation_completed', { product: 'monster', generationMode: 'template', pageCount: 4 });
       }
     } catch (error) {
       console.error('Nu am putut genera kitul cu AI:', error);
       setGeneratedContent(fallback);
       setResultNote("Am pregătit o variantă personalizată de rezervă, ca să nu vă ținem pe loc. Poți genera din nou pentru o altă formulare.");
-      trackEvent('generation_completed', { product: 'monster', generationMode: 'template', pageCount: 3 });
+      trackEvent('generation_completed', { product: 'monster', generationMode: 'template', pageCount: 4 });
     } finally {
       setIsGenerating(false);
       setShowResult(true);
@@ -605,7 +602,7 @@ export default function MonsterKit() {
       const W           = pdf.internal.pageSize.getWidth();
       const H           = pdf.internal.pageSize.getHeight();
 
-      for (let i = 1; i <= 3; i++) {
+      for (let i = 1; i <= 4; i++) {
         const el = document.getElementById(`mk-page-${i}`);
         if (!el) continue;
         el.style.display = 'block';
@@ -619,7 +616,7 @@ export default function MonsterKit() {
         } finally {
           el.style.display = 'none';
         }
-        if (i < 3) pdf.addPage();
+        if (i < 4) pdf.addPage();
       }
       return pdf;
   };
@@ -634,7 +631,7 @@ export default function MonsterKit() {
       const pdf = await renderMonsterPdf();
       pdf.save(`Kit_Magic_${name.trim()}.pdf`);
       trackEvent('pdf_render_completed', { product: 'monster', durationMs: Date.now() - renderStartedAt });
-      trackEvent('pdf_downloaded', { product: 'monster', pageCount: 3 });
+      trackEvent('pdf_downloaded', { product: 'monster', pageCount: 4 });
       setShowQuickRating(true);
     } catch (error) {
       trackEvent('pdf_render_failed', { product: 'monster', durationMs: Date.now() - renderStartedAt });
@@ -659,7 +656,7 @@ export default function MonsterKit() {
   const kitContent = generatedContent || fallbackContent;
 
   return (
-    <section id="monster-away" className={`scroll-mt-16 py-14 md:scroll-mt-24 md:py-32 bg-brand-navy relative overflow-hidden px-4 ${isMobileMonsterSelected ? "" : "max-md:hidden"}`}>
+    <section id="monster-away" className="relative scroll-mt-16 overflow-hidden bg-brand-navy px-4 py-14 md:scroll-mt-24 md:py-24">
       <MagicalLoader isVisible={isGenerating || isDownloading} />
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-20">
@@ -680,7 +677,7 @@ export default function MonsterKit() {
             Scutul <span className="text-brand-gold">de Noapte</span>
           </h2>
           <p className="mt-4 text-brand-cream/70 text-lg max-w-xl mx-auto">
-            Un ritual blând de seară, cu certificat, rețetă simbolică și etichete pentru flacon.
+            Un ritual blând de seară, cu certificat, formulă de curaj, etichete și un card pentru noptieră.
           </p>
         </div>
 
@@ -696,30 +693,30 @@ export default function MonsterKit() {
 
             <div>
               <label className="block font-nunito font-black text-brand-navy text-lg mb-3 uppercase tracking-wider">
-                Cui îi aparține curajul? 🦸
+                Cui îi aparține curajul?
               </label>
               <input
                 type="text" value={name} onChange={e => setName(e.target.value)}
                 placeholder="ex: Sofia, Alexandru, Ioana…"
-                className="w-full bg-white border-4 border-brand-navy/10 focus:border-brand-purple rounded-2xl px-6 py-4 text-brand-navy font-bold text-xl outline-none transition-all shadow-inner"
+                className="min-h-14 w-full border border-brand-navy/20 bg-white px-5 py-4 text-lg font-bold text-brand-navy outline-none transition focus:border-brand-purple focus:ring-2 focus:ring-brand-purple/15"
               />
             </div>
 
             <div>
               <label className="block font-nunito font-black text-brand-navy text-lg mb-4 uppercase tracking-wider">
-                Ce monstru trebuie să plece? 👻
+                Ce teamă transformăm în curaj?
               </label>
               <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
                 {monsters.map(m => (
                   <button key={m.id} type="button" onClick={() => setMonsterType(m.id)}
-                    className={`flex flex-col items-center gap-2 rounded-2xl border-4 p-3 transition-all duration-200 md:gap-3 md:p-5 ${
+                    className={`flex min-h-28 flex-col items-center justify-center gap-2 border p-3 transition-all duration-200 md:gap-3 md:p-5 ${
                       monsterType === m.id
-                        ? 'border-brand-purple bg-brand-purple/10 scale-105 shadow-lg shadow-brand-purple/20'
+                        ? 'border-brand-purple bg-brand-purple shadow-lg shadow-brand-purple/20'
                         : 'border-brand-navy/10 bg-white/60 hover:border-brand-purple/40'
                     }`}
                   >
                     <span className="text-3xl md:text-4xl">{m.icon}</span>
-                    <span className="text-xs font-black text-brand-navy uppercase tracking-wide text-center leading-tight">{m.label}</span>
+                    <span className={`text-center text-xs font-black uppercase tracking-wide leading-tight ${monsterType === m.id ? 'text-white' : 'text-brand-navy'}`}>{m.label}</span>
                   </button>
                 ))}
               </div>
@@ -737,7 +734,7 @@ export default function MonsterKit() {
                   value={fearLocation}
                   onChange={e => setFearLocation(e.target.value)}
                   placeholder={activeDefaults.location}
-                  className="w-full bg-white border-4 border-brand-navy/10 focus:border-brand-purple rounded-2xl px-5 py-4 text-brand-navy font-bold text-base outline-none transition-all shadow-inner"
+                  className="min-h-12 w-full border border-brand-navy/20 bg-white px-4 py-3 font-bold text-brand-navy outline-none transition focus:border-brand-purple"
                 />
               </div>
               <div>
@@ -749,7 +746,7 @@ export default function MonsterKit() {
                   value={calmingHelper}
                   onChange={e => setCalmingHelper(e.target.value)}
                   placeholder={activeDefaults.helper}
-                  className="w-full bg-white border-4 border-brand-navy/10 focus:border-brand-purple rounded-2xl px-5 py-4 text-brand-navy font-bold text-base outline-none transition-all shadow-inner"
+                  className="min-h-12 w-full border border-brand-navy/20 bg-white px-4 py-3 font-bold text-brand-navy outline-none transition focus:border-brand-purple"
                 />
               </div>
               <div>
@@ -761,22 +758,23 @@ export default function MonsterKit() {
                   value={bedtimeRitual}
                   onChange={e => setBedtimeRitual(e.target.value)}
                   placeholder={activeDefaults.ritual}
-                  className="w-full bg-white border-4 border-brand-navy/10 focus:border-brand-purple rounded-2xl px-5 py-4 text-brand-navy font-bold text-base outline-none transition-all shadow-inner"
+                  className="min-h-12 w-full border border-brand-navy/20 bg-white px-4 py-3 font-bold text-brand-navy outline-none transition focus:border-brand-purple"
                 />
               </div>
               </div>
             </details>
 
             {/* PDF contents */}
-            <div className="border-2 border-dashed border-brand-navy/10 bg-brand-navy/5 p-4 md:rounded-2xl md:p-6">
+            <div className="border-y border-brand-navy/12 bg-brand-navy/5 p-4 md:p-6">
               <p className="font-bold text-brand-navy/60 text-sm uppercase tracking-wider mb-4 flex items-center gap-2">
                 <Sparkles size={14} /> Ce primești în PDF
               </p>
-              <div className="grid grid-cols-1 gap-3 text-left md:grid-cols-3 md:gap-4 md:text-center">
+              <div className="grid grid-cols-1 gap-3 text-left sm:grid-cols-2 md:gap-4 md:text-center">
                 {[
                   { icon: '📜', label: 'Certificat Oficial', desc: 'Clauze adaptate fricii alese' },
                   { icon: '🧪', label: 'Rețeta Spray',       desc: 'Pași adaptați camerei copilului' },
                   { icon: '🏷️', label: 'Etichete Flacon',   desc: 'Instrucțiuni pentru ritualul ales' },
+                  { icon: '✦', label: 'Card de Noptieră',    desc: 'Fraza de curaj pentru fiecare seară' },
                 ].map(item => (
                   <div key={item.label} className="flex items-center gap-3 md:flex-col md:gap-2">
                     <span className="text-2xl md:text-3xl">{item.icon}</span>
@@ -787,7 +785,7 @@ export default function MonsterKit() {
               </div>
             </div>
 
-            <p className="rounded-2xl bg-brand-gold/15 border border-brand-gold/30 px-5 py-4 text-sm font-bold leading-relaxed text-brand-navy/65">
+            <p className="border-l-4 border-brand-gold bg-brand-gold/15 px-5 py-4 text-sm font-bold leading-relaxed text-brand-navy/65">
               Notă pentru adult: spray-ul magic este un ritual simbolic de joacă. Prepară-l doar cu ingrediente alimentare inofensive, pulverizează în aer sau lângă obiecte, niciodată pe piele, față, ochi, pernă sau animale.
             </p>
 
@@ -806,7 +804,7 @@ export default function MonsterKit() {
             <motion.button
               type="submit" disabled={!name.trim() || isGenerating}
               whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-              className="w-full bg-brand-navy text-brand-cream py-6 rounded-2xl font-black text-xl md:text-2xl shadow-2xl border-b-8 border-brand-gold disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-3 transition-all"
+              className="flex w-full items-center justify-center gap-3 border-b-4 border-brand-gold bg-brand-navy py-5 text-lg font-black text-brand-cream shadow-xl transition hover:bg-brand-purple disabled:cursor-not-allowed disabled:opacity-30 md:text-xl"
             >
               <ShieldCheck size={28} /> {isGenerating ? 'Pregătim magia...' : commerce.acceptsPayments ? 'Continuă către plată' : 'Generează kitul'}
             </motion.button>
@@ -820,6 +818,7 @@ export default function MonsterKit() {
         <Page1Certificate name={name} monsterTarget={monsterTarget} content={kitContent} />
         <Page2Recipe content={kitContent} />
         <Page3Labels name={name} bottleLabel={bottleLabel} content={kitContent} />
+        <Page4NightCard name={name} monsterLabel={monsterLabel} fearLocation={fearLocation || activeDefaults.location} calmingHelper={calmingHelper || activeDefaults.helper} bedtimeRitual={bedtimeRitual || activeDefaults.ritual} spell={kitContent.spell} />
       </div>
 
       {/* Result modal */}
@@ -847,10 +846,10 @@ export default function MonsterKit() {
                 <p className="text-brand-navy/60 font-medium mb-2">
                   Certificatul lui <span className="text-brand-purple font-black">{name}</span> e gata de printat.
                 </p>
-                <p className="text-brand-navy/40 text-sm mb-8">3 pagini A4 · Adaptat pentru {monsterLabel.toLocaleLowerCase('ro-RO')} · Gata de înrămat</p>
+                <p className="text-brand-navy/40 text-sm mb-8">4 pagini A4 · Adaptat pentru {monsterLabel.toLocaleLowerCase('ro-RO')} · Gata de printat</p>
                 {resultNote && <p className="mb-6 border border-brand-gold/45 bg-brand-gold/10 px-4 py-3 text-left text-sm font-semibold leading-relaxed text-brand-navy/70">{resultNote}</p>}
-                <div className="grid grid-cols-3 gap-3 mb-8 text-sm">
-                  {['📜 Certificat', '🧪 Rețetă Spray', '🏷️ Etichete'].map(item => (
+                <div className="mb-8 grid grid-cols-2 gap-3 text-sm">
+                  {['Certificat', 'Rețetă', 'Etichete', 'Card de noptieră'].map(item => (
                     <div key={item} className="bg-brand-navy/5 rounded-2xl py-3 px-2 font-bold text-brand-navy/70">{item}</div>
                   ))}
                 </div>
@@ -864,7 +863,6 @@ export default function MonsterKit() {
                 </motion.button>
                 <EmailDelivery product="monster" filename={`Kit_Magic_${name.trim() || 'Erou'}.pdf`} childName={name} createPdf={createMonsterPdfBlob} />
                 {showQuickRating && <QuickRating product="monster" />}
-                <LumiMomentCheck product="monster" />
                 <FeedbackInvite product="monster" compact />
               </div>
             </motion.div>
@@ -1064,6 +1062,67 @@ function Page3Labels({ name, bottleLabel, content }: { name: string; bottleLabel
         <p className="mk-page3-note">
           Sus: Etichetă principală flacon &nbsp;·&nbsp; Jos stânga: Sigiliu rotund &nbsp;·&nbsp; Jos dreapta: Etichetă cu instrucțiuni
         </p>
+      </div>
+    </div>
+  );
+}
+
+function Page4NightCard({
+  name,
+  monsterLabel,
+  fearLocation,
+  calmingHelper,
+  bedtimeRitual,
+  spell,
+}: {
+  name: string;
+  monsterLabel: string;
+  fearLocation: string;
+  calmingHelper: string;
+  bedtimeRitual: string;
+  spell: string;
+}) {
+  const heroName = cleanPlainText(name, "Micul erou", 28);
+  const place = cleanPlainText(fearLocation, "camera mea", 50);
+  const helper = cleanPlainText(calmingHelper, "o îmbrățișare", 46);
+  const ritual = cleanPlainText(bedtimeRitual, "trei respirații lente", 54);
+
+  return (
+    <div id="mk-page-4" className="mk-page" style={{ display: "none" }}>
+      <div className="mk-bg" />
+      <div className="mk-border-outer" />
+      <div className="mk-border-inner" />
+      {(["tl", "tr", "bl", "br"] as const).map((pos) => <CornerSVG key={pos} pos={pos} />)}
+      <div className="mk-content" style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <p className="mk-ministry">Povestea Mea Magică · Scutul de Noapte</p>
+        <h1 className="mk-title" style={{ fontSize: 31 }}>CARDUL MEU DE CURAJ</h1>
+        <p className="mk-subtitle">Pentru noptiera lui {heroName}</p>
+        <Divider stars={3} />
+
+        <div style={{ width: 600, marginTop: 28, padding: "54px 56px", border: "2px dashed rgba(201,168,76,.75)", background: "rgba(255,255,255,.035)", boxSizing: "border-box", textAlign: "center" }}>
+          <p style={{ margin: 0, color: "#c9a84c", fontFamily: "Cinzel, serif", fontSize: 13, fontWeight: 700, letterSpacing: 2.4, textTransform: "uppercase" }}>În seara aceasta</p>
+          <p style={{ margin: "20px 0 0", color: "#f4e4c1", fontSize: 25, lineHeight: 1.35 }}>
+            {heroName}, la {place}, poți privi {monsterLabel.toLocaleLowerCase("ro-RO")} și poți spune: „Știu ce ești. Eu sunt în siguranță.”
+          </p>
+          <div style={{ height: 1, width: 160, background: "#c9a84c", margin: "30px auto" }} />
+          <p style={{ margin: 0, color: "#c9a84c", fontFamily: "Cinzel, serif", fontSize: 12, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Cei trei pași</p>
+          <div style={{ marginTop: 18, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+            {["Privesc și numesc", helper, ritual].map((item, index) => (
+              <div key={item} style={{ minHeight: 105, border: "1px solid rgba(201,168,76,.45)", padding: "18px 12px", boxSizing: "border-box" }}>
+                <span style={{ display: "grid", width: 28, height: 28, margin: "0 auto 11px", placeItems: "center", border: "1px solid #c9a84c", borderRadius: "50%", color: "#c9a84c", fontFamily: "Cinzel, serif", fontSize: 12 }}>{index + 1}</span>
+                <span style={{ color: "#f4e4c1", fontSize: 15, lineHeight: 1.25 }}>{item}</span>
+              </div>
+            ))}
+          </div>
+          <p style={{ margin: "34px 0 0", whiteSpace: "pre-line", color: "#f4e4c1", fontSize: 21, fontStyle: "italic", lineHeight: 1.42 }}>„{spell}”</p>
+        </div>
+
+        <div style={{ width: 600, marginTop: 34, borderTop: "1px solid rgba(201,168,76,.38)", paddingTop: 20 }}>
+          <p style={{ margin: 0, color: "rgba(244,228,193,.72)", fontSize: 15, lineHeight: 1.45, textAlign: "center" }}>
+            Decupați cardul pe linia punctată și păstrați-l aproape de pat. Citiți-l calm, fără să minimalizați teama, apoi lăsați copilul să aleagă pasul care îl ajută cel mai mult.
+          </p>
+        </div>
+        <p className="mk-validity" style={{ marginTop: 28 }}>Ritual simbolic de joacă · folosit împreună cu un adult</p>
       </div>
     </div>
   );

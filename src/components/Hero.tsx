@@ -2,75 +2,64 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { ArrowDown, ArrowRight, Eye, Sparkles } from "lucide-react";
-import InstantStoryPreview from "@/components/InstantStoryPreview";
-import LanternSignature from "@/components/LanternSignature";
-import { siteCopy } from "@/lib/siteMode";
+import { ArrowDown, ArrowRight, BookOpen, ShieldCheck, Sparkles } from "lucide-react";
 
 export default function Hero() {
   return (
-    <section id="home-hero" className="relative isolate min-h-[620px] overflow-hidden bg-brand-navy px-5 pb-12 pt-24 text-brand-cream sm:px-6 md:min-h-[600px] md:pb-10 lg:min-h-[640px] lg:pb-12 lg:pt-28">
+    <section id="home-hero" className="relative isolate min-h-[680px] overflow-hidden bg-brand-navy px-5 pb-16 pt-24 text-brand-cream sm:px-6 md:min-h-[720px] lg:min-h-[760px] lg:pt-28">
       <Image
-        src="/hero-storybook.jpg"
-        alt="Un copil cu o lanternă alături de un dragon blând, într-o pădure de noapte"
+        src="/examples/album/aventura.webp"
+        alt="O pagină ilustrată din Povestea Magică"
         fill
         priority
         sizes="100vw"
-        className="object-cover object-[58%_50%] opacity-65 sm:object-[64%_50%]"
+        className="object-cover object-[62%_50%] opacity-75 sm:object-center"
       />
       <div className="absolute inset-0 bg-brand-navy/65" />
-      <div className="relative mx-auto grid min-h-[500px] max-w-7xl items-center gap-8 py-5 md:min-h-[460px] lg:min-h-[540px] lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,.74fr)] lg:gap-16 lg:py-8">
+      <div className="relative mx-auto flex min-h-[560px] max-w-7xl items-center py-8 md:min-h-[610px] lg:min-h-[640px]">
         <motion.div
           initial={{ y: 28, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.7, ease: "easeOut" }}
-          className="max-w-2xl text-center lg:text-left"
+          className="max-w-3xl text-center lg:text-left"
         >
-          <div className="mb-6 flex items-center justify-center gap-3 lg:mb-7 lg:justify-start">
-            <LanternSignature size="sm" className="shrink-0" tone="paper" label="Lanterna Magică" />
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.16em] text-brand-gold">Povestea Mea Magică</p>
-              <p className="mt-1 text-sm font-semibold text-brand-cream/75">{siteCopy.heroBadge}</p>
-            </div>
-          </div>
-          <h1 className="mx-auto max-w-2xl font-nunito text-[2.75rem] font-black leading-[1.03] tracking-normal text-brand-cream sm:text-5xl md:text-7xl lg:mx-0">
-            Momente mici.<br /><span className="text-brand-gold">Magie pe bune.</span>
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-brand-gold">O carte creată pentru un singur copil</p>
+          <h1 className="mx-auto mt-5 max-w-3xl font-nunito text-[3.15rem] font-black leading-[1.01] tracking-normal text-brand-cream sm:text-6xl md:text-8xl lg:mx-0">
+            Povestea<br /><span className="text-brand-gold">Magică</span>
           </h1>
-          <p className="mx-auto mt-5 max-w-xl text-base font-medium leading-relaxed text-brand-cream/90 sm:mt-6 sm:text-lg md:text-xl lg:mx-0">
-            Povești de seară, ritualuri pentru nopțile cu emoții și misiuni pentru timpul de așteptare. Făcute pentru momentul vostru.
+          <p className="mx-auto mt-6 max-w-2xl text-base font-semibold leading-relaxed text-brand-cream/90 sm:text-lg md:text-xl lg:mx-0">
+            Copilul tău devine eroul unei aventuri ilustrate, create din chipul, lumea și micile detalii pe care doar familia voastră le cunoaște.
           </p>
-          <p className="mx-auto mt-5 hidden max-w-xl border-y border-brand-gold/70 bg-brand-navy/30 px-4 py-3 text-sm font-bold leading-relaxed text-brand-cream/85 md:block lg:mx-0 lg:border-y-0 lg:border-l-2">{siteCopy.paymentNotice}</p>
-          <div className="mt-7 flex flex-col gap-3 sm:mt-9 sm:flex-row lg:justify-start">
+          <div className="mx-auto mt-7 flex max-w-xl flex-wrap justify-center gap-x-6 gap-y-3 border-y border-white/20 py-4 text-xs font-black text-brand-cream/85 lg:mx-0 lg:justify-start">
+            <span className="inline-flex items-center gap-2"><BookOpen size={16} className="text-brand-gold" /> 16 pagini ilustrate</span>
+            <span className="inline-flex items-center gap-2"><ShieldCheck size={16} className="text-brand-gold" /> Preview înainte de plată</span>
+          </div>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row lg:justify-start">
             <motion.a
-              href="#alege-materialul"
+              href="/povestea-magica#configureaza-albumul"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               className="inline-flex w-full items-center justify-center gap-3 bg-brand-gold px-7 py-4 text-base font-black text-brand-navy shadow-[0_12px_30px_rgba(0,0,0,0.2)] transition-colors hover:bg-brand-cream sm:w-auto"
             >
-              {siteCopy.heroCta} <ArrowRight size={19} />
+              Creează Povestea Magică <ArrowRight size={19} />
             </motion.a>
             <a
-              href="/modele"
-              className="hidden w-full items-center justify-center gap-3 border border-brand-cream/50 px-7 py-4 text-base font-black text-brand-cream transition-colors hover:border-brand-gold hover:text-brand-gold sm:w-auto md:inline-flex"
+              href="#album-sample-title"
+              className="inline-flex w-full items-center justify-center gap-3 border border-brand-cream/50 px-7 py-4 text-base font-black text-brand-cream transition-colors hover:border-brand-gold hover:text-brand-gold sm:w-auto"
             >
-              <Eye size={19} /> Vezi modelele
+              <BookOpen size={19} /> Răsfoiește povestea
             </a>
           </div>
           <button
             type="button"
             onClick={() => window.dispatchEvent(new CustomEvent("pmm:lumi-open"))}
-            className="mx-auto mt-5 inline-flex items-center gap-2 border-b border-brand-gold/70 pb-1 text-sm font-black text-brand-cream transition-colors hover:border-brand-cream hover:text-brand-gold md:hidden"
+            className="mx-auto mt-6 inline-flex items-center gap-2 border-b border-brand-gold/70 pb-1 text-sm font-black text-brand-cream transition-colors hover:border-brand-cream hover:text-brand-gold lg:mx-0"
           >
-            <Sparkles size={15} className="text-brand-gold" /> Nu știi de unde să începi? Întreab-o pe Lumi
+            <Sparkles size={15} className="text-brand-gold" /> Creează povestea împreună cu Lumi
           </button>
         </motion.div>
-        <motion.div initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.12, ease: "easeOut" }} className="mx-auto hidden w-full max-w-[320px] justify-self-center sm:max-w-md lg:mr-0 lg:block lg:max-w-md lg:justify-self-end">
-          <InstantStoryPreview />
-        </motion.div>
-        <a href="#alege-materialul" className="absolute bottom-0 hidden items-center gap-2 text-sm font-bold text-brand-cream/75 transition-colors hover:text-brand-gold md:inline-flex">
-          Descoperă materialele <ArrowDown size={16} />
-        </a>
       </div>
+      <a href="#album-sample-title" className="absolute bottom-5 left-1/2 inline-flex -translate-x-1/2 items-center gap-2 text-xs font-black uppercase tracking-[0.12em] text-brand-cream/75 transition-colors hover:text-brand-gold">Privește înăuntru <ArrowDown size={15} /></a>
     </section>
   );
 }

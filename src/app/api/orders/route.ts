@@ -38,11 +38,11 @@ export async function POST(request: Request) {
       }
       const album = bundle.find((item) => item.product === "album");
       if (bundleVariant === "complete" && (!album || !readAlbumConfiguration(album.configuration))) {
-        return NextResponse.json({ error: "Verifică toate detaliile albumului din pachet înainte de plată." }, { status: 400 });
+        return NextResponse.json({ error: "Verifică toate detaliile Poveștii Magice din pachet înainte de plată." }, { status: 400 });
       }
     }
     if (productId === "illustrated-album-digital" && !readAlbumConfiguration(clean)) {
-      return NextResponse.json({ error: "Verifică toate detaliile albumului înainte de plată." }, { status: 400 });
+      return NextResponse.json({ error: "Verifică toate detaliile Poveștii Magice înainte de plată." }, { status: 400 });
     }
     const order = await createOrder(productId, clean);
     return NextResponse.json({ orderId: order.id });

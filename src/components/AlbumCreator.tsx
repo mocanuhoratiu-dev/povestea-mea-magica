@@ -63,7 +63,11 @@ export default function AlbumCreator() {
   const [appearanceDetail, setAppearanceDetail] = useState("");
   const [favoriteColor, setFavoriteColor] = useState(colors[0].value);
   const [world, setWorld] = useState<string>(albumWorldOptions[0].id);
+  const [customWorld, setCustomWorld] = useState("");
   const [companion, setCompanion] = useState<string>(albumCompanionOptions[0]);
+  const [secondaryCharacterName, setSecondaryCharacterName] = useState("");
+  const [secondaryCharacterRole, setSecondaryCharacterRole] = useState("");
+  const [secondaryCharacterAppearance, setSecondaryCharacterAppearance] = useState("");
   const [lesson, setLesson] = useState<string>(albumLessonOptions[0]);
   const [mood, setMood] = useState<string>(albumMoodOptions[0]);
   const [artStyle, setArtStyle] = useState<string>(albumArtStyleOptions[0]);
@@ -78,7 +82,7 @@ export default function AlbumCreator() {
   const [referencePhoto, setReferencePhoto] = useState("");
   const [photoConsent, setPhotoConsent] = useState(false);
 
-  const worldLabel = useMemo(() => albumWorldOptions.find((option) => option.id === world)?.label || "Lume magică", [world]);
+  const worldLabel = useMemo(() => world === "custom" && customWorld.trim() ? customWorld.trim() : albumWorldOptions.find((option) => option.id === world)?.label || "Lume magică", [world, customWorld]);
   const albumConfiguration = useMemo<AlbumConfiguration>(() => ({
     generation: {
       type: "album",
@@ -92,7 +96,11 @@ export default function AlbumCreator() {
       appearanceDetail: appearanceDetail.trim(),
       favoriteColor,
       world,
+      customWorld: customWorld.trim(),
       companion,
+      secondaryCharacterName: secondaryCharacterName.trim(),
+      secondaryCharacterRole: secondaryCharacterRole.trim(),
+      secondaryCharacterAppearance: secondaryCharacterAppearance.trim(),
       lesson,
       mood,
       artStyle,
@@ -102,10 +110,14 @@ export default function AlbumCreator() {
     },
     dedication: dedication.trim(),
     dedicationFrom: dedicationFrom.trim(),
-  }), [name, age, hairStyle, hairColor, eyeColor, skinTone, outfit, appearanceDetail, favoriteColor, world, companion, lesson, mood, artStyle, personalDetail, storyContext, dedication, dedicationFrom, referencePhoto]);
+  }), [name, age, hairStyle, hairColor, eyeColor, skinTone, outfit, appearanceDetail, favoriteColor, world, customWorld, companion, secondaryCharacterName, secondaryCharacterRole, secondaryCharacterAppearance, lesson, mood, artStyle, personalDetail, storyContext, dedication, dedicationFrom, referencePhoto]);
   const configurationFingerprint = useMemo(() => JSON.stringify(albumConfiguration), [albumConfiguration]);
   const activePreview = preview?.configurationFingerprint === configurationFingerprint ? preview : null;
-  const canContinue = step === 0 ? Boolean(name.trim() && age && hairStyle && hairColor && eyeColor && skinTone && outfit.trim() && (!referencePhoto || photoConsent)) : true;
+  const canContinue = step === 0
+    ? Boolean(name.trim() && age && hairStyle && hairColor && eyeColor && skinTone && outfit.trim() && (!referencePhoto || photoConsent))
+    : step === 1
+      ? Boolean((world !== "custom" || customWorld.trim()) && (!secondaryCharacterName.trim() || secondaryCharacterRole.trim()))
+      : true;
 
   useEffect(() => {
     const restoreTimer = window.setTimeout(() => {
@@ -123,7 +135,11 @@ export default function AlbumCreator() {
           if (typeof draft.appearanceDetail === "string") setAppearanceDetail(draft.appearanceDetail.slice(0, 240));
           if (typeof draft.favoriteColor === "string") setFavoriteColor(draft.favoriteColor);
           if (typeof draft.world === "string" && albumWorldOptions.some((option) => option.id === draft.world)) setWorld(draft.world);
+          if (typeof draft.customWorld === "string") setCustomWorld(draft.customWorld.slice(0, 280));
           if (typeof draft.companion === "string" && albumCompanionOptions.includes(draft.companion as (typeof albumCompanionOptions)[number])) setCompanion(draft.companion);
+          if (typeof draft.secondaryCharacterName === "string") setSecondaryCharacterName(draft.secondaryCharacterName.slice(0, 40));
+          if (typeof draft.secondaryCharacterRole === "string") setSecondaryCharacterRole(draft.secondaryCharacterRole.slice(0, 60));
+          if (typeof draft.secondaryCharacterAppearance === "string") setSecondaryCharacterAppearance(draft.secondaryCharacterAppearance.slice(0, 180));
           if (typeof draft.lesson === "string" && albumLessonOptions.includes(draft.lesson as (typeof albumLessonOptions)[number])) setLesson(draft.lesson);
           if (typeof draft.mood === "string" && albumMoodOptions.includes(draft.mood as (typeof albumMoodOptions)[number])) setMood(draft.mood);
           if (typeof draft.artStyle === "string" && albumArtStyleOptions.includes(draft.artStyle as (typeof albumArtStyleOptions)[number])) setArtStyle(draft.artStyle);
@@ -136,7 +152,7 @@ export default function AlbumCreator() {
           setStep(3);
         }
         if (new URLSearchParams(window.location.search).get("plata") === "anulata") {
-          setNotice("Plata nu a fost finalizată. Alegerile albumului sunt păstrate și le poți verifica înainte să încerci din nou.");
+          setNotice("Plata nu a fost finalizată. Alegerile poveștii sunt păstrate și le poți verifica înainte să încerci din nou.");
         }
       } catch {
         // Browser storage is optional; the configurator remains fully usable without it.
@@ -182,7 +198,7 @@ export default function AlbumCreator() {
       };
       setPreview(nextPreview);
       persistDraft(nextPreview);
-      setNotice("Preview-ul este gata. Aceasta va fi coperta și referința vizuală a personajului în album.");
+      setNotice("Preview-ul este gata. Aceasta va fi coperta și referința vizuală a personajului în întreaga poveste.");
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Preview-ul nu a putut fi creat acum.");
     } finally {
@@ -204,9 +220,26 @@ export default function AlbumCreator() {
         const recommendedWorld = albumWorldFromLumi(detail.theme);
         if (recommendedWorld) setWorld(recommendedWorld);
       }
+      if (typeof detail.name === "string") setName(detail.name.slice(0, 40));
+      if (typeof detail.age === "string") setAge(detail.age);
+      if (typeof detail.hairStyle === "string") setHairStyle(detail.hairStyle);
+      if (typeof detail.hairColor === "string") setHairColor(detail.hairColor);
+      if (typeof detail.appearanceDetail === "string") setAppearanceDetail(detail.appearanceDetail.slice(0, 240));
+      if (typeof detail.world === "string" && albumWorldOptions.some((option) => option.id === detail.world)) setWorld(detail.world);
+      if (typeof detail.customWorld === "string") setCustomWorld(detail.customWorld.slice(0, 280));
+      if (typeof detail.companion === "string" && albumCompanionOptions.includes(detail.companion as (typeof albumCompanionOptions)[number])) setCompanion(detail.companion);
+      if (typeof detail.secondaryCharacterName === "string") setSecondaryCharacterName(detail.secondaryCharacterName.slice(0, 40));
+      if (typeof detail.secondaryCharacterRole === "string") setSecondaryCharacterRole(detail.secondaryCharacterRole.slice(0, 60));
+      if (typeof detail.secondaryCharacterAppearance === "string") setSecondaryCharacterAppearance(detail.secondaryCharacterAppearance.slice(0, 180));
+      if (typeof detail.lesson === "string" && albumLessonOptions.includes(detail.lesson as (typeof albumLessonOptions)[number])) setLesson(detail.lesson);
+      if (typeof detail.storyContext === "string") setStoryContext(detail.storyContext.slice(0, 700));
+      if (typeof detail.personalDetail === "string") setPersonalDetail(detail.personalDetail.slice(0, 240));
+      if (typeof detail.dedication === "string") setDedication(detail.dedication.slice(0, 320));
+      if (typeof detail.dedicationFrom === "string") setDedicationFrom(detail.dedicationFrom.slice(0, 80));
       if (typeof detail.lesson === "string" && lessonMap[detail.lesson]) setLesson(lessonMap[detail.lesson]);
       if (typeof detail.storyDetail === "string" && detail.storyDetail.trim()) setPersonalDetail(detail.storyDetail.trim().slice(0, 180));
-      setNotice("Am aplicat în album lumea și tema discutate cu Lumi. Tu completezi datele copilului.");
+      setStep(3);
+      setNotice("Lumi a așezat toate alegerile în poveste. Verifică rezumatul și creează preview-ul.");
     };
     window.addEventListener("pmm:lumi-album-choice", applyChoice);
     const rememberedChoice = window.sessionStorage.getItem("pmm-lumi-album-choice");
@@ -223,7 +256,14 @@ export default function AlbumCreator() {
 
   const goNext = () => {
     if (!canContinue) {
-      setNotice(referencePhoto && !photoConsent ? "Confirmă permisiunea pentru folosirea fotografiei sau elimin-o." : "Completează numele și aspectul copilului pentru a continua.");
+      const message = step === 1
+        ? world === "custom" && !customWorld.trim()
+          ? "Descrie lumea inventată pentru a continua."
+          : "Spune-ne cine este personajul apropiat care intră în poveste."
+        : referencePhoto && !photoConsent
+          ? "Confirmă permisiunea pentru folosirea fotografiei sau elimin-o."
+          : "Completează numele și aspectul copilului pentru a continua.";
+      setNotice(message);
       return;
     }
     setNotice("");
@@ -255,7 +295,7 @@ export default function AlbumCreator() {
       return;
     }
     if (!commerce.acceptsPayments) {
-      setNotice("Comenzile pentru album se deschid odată cu activarea plăților.");
+      setNotice("Comenzile pentru Povestea Magică se deschid odată cu activarea plăților.");
       return;
     }
     if (!hasConsent) {
@@ -312,7 +352,7 @@ export default function AlbumCreator() {
                       <span className="grid h-11 w-11 shrink-0 place-items-center bg-brand-navy text-brand-gold"><Camera size={21} /></span>
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-black text-brand-navy">Fotografie de referință, opțional</p>
-                        <p className="mt-1 text-xs font-semibold leading-relaxed text-brand-navy/60">Ajută la păstrarea trăsăturilor copilului. Nu este afișată în album, nu ajunge la procesatorul de plăți și este folosită numai pentru comanda aceasta.</p>
+                        <p className="mt-1 text-xs font-semibold leading-relaxed text-brand-navy/60">Ajută la păstrarea trăsăturilor copilului. Nu este afișată ca fotografie în poveste, nu ajunge la procesatorul de plăți și este folosită numai pentru comanda aceasta.</p>
                       </div>
                     </div>
                     {referencePhoto ? (
@@ -323,7 +363,7 @@ export default function AlbumCreator() {
                         <div>
                           <label className="flex cursor-pointer items-start gap-3 text-xs font-bold leading-relaxed text-brand-navy/75">
                             <input type="checkbox" checked={photoConsent} onChange={(event) => setPhotoConsent(event.target.checked)} className="mt-0.5 h-4 w-4 accent-brand-purple" />
-                            Confirm că sunt părintele/reprezentantul legal sau am permisiunea de a folosi această fotografie pentru generarea albumului.
+                            Confirm că sunt părintele/reprezentantul legal sau am permisiunea de a folosi această fotografie pentru generarea poveștii.
                           </label>
                           <button type="button" onClick={() => { setReferencePhoto(""); setPhotoConsent(false); setPreview(null); }} className="mt-3 inline-flex min-h-10 items-center gap-2 text-xs font-black text-brand-purple"><Trash2 size={15} /> Elimină fotografia</button>
                         </div>
@@ -334,7 +374,7 @@ export default function AlbumCreator() {
                         <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(event) => { void chooseReferencePhoto(event.target.files?.[0]); event.currentTarget.value = ""; }} />
                       </label>
                     )}
-                    <div className="mt-4 flex gap-2 border-t border-brand-navy/10 pt-4 text-[11px] font-semibold leading-relaxed text-brand-navy/55"><ShieldCheck size={17} className="shrink-0 text-brand-purple" />Fișierul este redimensionat înainte de încărcare și curățat din nou pe server. Poți crea albumul și numai din descriere.</div>
+                    <div className="mt-4 flex gap-2 border-t border-brand-navy/10 pt-4 text-[11px] font-semibold leading-relaxed text-brand-navy/55"><ShieldCheck size={17} className="shrink-0 text-brand-purple" />Fișierul este redimensionat înainte de încărcare și curățat din nou pe server. Poți crea povestea și numai din descriere.</div>
                   </div>
                 </div>
               </fieldset>
@@ -349,12 +389,14 @@ export default function AlbumCreator() {
                   <div className="mt-3 grid gap-2 sm:grid-cols-2">
                     {albumWorldOptions.map((option) => <button key={option.id} type="button" onClick={() => setWorld(option.id)} className={`min-h-12 border px-4 py-3 text-left text-sm font-black ${world === option.id ? "border-brand-purple bg-brand-purple text-white" : "border-brand-navy/15 bg-brand-cream text-brand-navy"}`}>{option.label}</button>)}
                   </div>
+                  {world === "custom" && <label className={`${labelClass} mt-4`}>Descrie lumea inventată<textarea className={`${inputClass} min-h-24 resize-y`} value={customWorld} onChange={(event) => setCustomWorld(event.target.value)} maxLength={280} placeholder="O lume roz a zânelor, cu poduri din flori și stele care cântă..." /></label>}
                 </div>
                 <div className="mt-6 grid gap-5 sm:grid-cols-2">
                   <label className={labelClass}>Companion<select className={inputClass} value={companion} onChange={(event) => setCompanion(event.target.value)}>{albumCompanionOptions.map((option) => <option key={option}>{option}</option>)}</select></label>
                   <label className={labelClass}>Ce descoperim împreună<select className={inputClass} value={lesson} onChange={(event) => setLesson(event.target.value)}>{albumLessonOptions.map((option) => <option key={option}>{option}</option>)}</select></label>
                   <label className={labelClass}>Atmosfera poveștii<select className={inputClass} value={mood} onChange={(event) => setMood(event.target.value)}>{albumMoodOptions.map((option) => <option key={option}>{option}</option>)}</select></label>
                   <label className={labelClass}>Stilul ilustrațiilor<select className={inputClass} value={artStyle} onChange={(event) => setArtStyle(event.target.value)}>{albumArtStyleOptions.map((option) => <option key={option}>{option}</option>)}</select></label>
+                  <div className="border-t border-brand-navy/12 pt-5 sm:col-span-2"><p className="text-sm font-black text-brand-navy">O persoană dragă în poveste <span className="font-semibold text-brand-navy/45">opțional</span></p><p className="mt-1 text-xs font-semibold text-brand-navy/55">Poate fi un frate, o soră, un părinte sau un prieten. Îl păstrăm separat și recognoscibil.</p><div className="mt-4 grid gap-5 sm:grid-cols-2"><label className={labelClass}>Prenume<input className={inputClass} value={secondaryCharacterName} onChange={(event) => setSecondaryCharacterName(event.target.value)} maxLength={40} placeholder="Exemplu: Eva" /></label><label className={labelClass}>Relația cu copilul<input className={inputClass} value={secondaryCharacterRole} onChange={(event) => setSecondaryCharacterRole(event.target.value)} maxLength={60} placeholder="sora mai mare" /></label></div><label className={`${labelClass} mt-5`}>Cum arată?<input className={inputClass} value={secondaryCharacterAppearance} onChange={(event) => setSecondaryCharacterAppearance(event.target.value)} maxLength={180} placeholder="blondă, cu părul creț și o rochie albastră" /></label></div>
                 </div>
                 <div className="mt-6">
                   <p className={labelClass}>Culoarea preferată</p>
@@ -365,7 +407,7 @@ export default function AlbumCreator() {
 
             {step === 2 && (
               <fieldset>
-                <legend className="font-serif text-3xl text-brand-navy sm:text-4xl">Puneți o bucățică din familie în album</legend>
+                <legend className="font-serif text-3xl text-brand-navy sm:text-4xl">Puneți o bucățică din familie în poveste</legend>
                 <p className="mt-3 max-w-xl text-sm font-semibold leading-relaxed text-brand-navy/60">Poți lăsa autorul să creeze liber sau poți descrie chiar tu ideea aventurii. Dedicația rămâne pe pagina ei.</p>
                 <div className="mt-8 space-y-6">
                   <label className={labelClass}>Cum ai vrea să fie povestea?<textarea className={`${inputClass} min-h-32 resize-y`} value={storyContext} onChange={(event) => setStoryContext(event.target.value)} maxLength={700} placeholder="Exemplu: Eva găsește o ușă mică în biblioteca bunicii și ajunge într-un oraș unde poveștile și-au pierdut finalurile. Vreau să le ajute să le găsească." /><span className="mt-1 block text-right text-[10px] text-brand-navy/40">{storyContext.length}/700</span></label>
@@ -379,9 +421,9 @@ export default function AlbumCreator() {
             {step === 3 && (
               <div>
                 <h2 className="font-serif text-3xl text-brand-navy sm:text-4xl">Vezi personajul înainte de plată</h2>
-                <p className="mt-3 max-w-xl text-sm font-semibold leading-relaxed text-brand-navy/60">Creăm o copertă personalizată din alegerile tale{referencePhoto ? " și fotografia de referință" : ""}. După ce o vezi, aceeași imagine fixează chipul, ținuta și atmosfera în întregul album.</p>
+                <p className="mt-3 max-w-xl text-sm font-semibold leading-relaxed text-brand-navy/60">Creăm o copertă personalizată din alegerile tale{referencePhoto ? " și fotografia de referință" : ""}. După ce o vezi, aceeași imagine fixează chipul, ținuta și atmosfera în întreaga carte.</p>
                 <div className="mt-8 divide-y divide-brand-navy/12 border-y border-brand-navy/15 text-sm">
-                  {[['Pentru', `${name}, ${age} ani`], ['Referință', referencePhoto ? 'Fotografie + descriere' : 'Descriere'], ['Lume', worldLabel], ['Companion', companion], ['Temă', lesson], ['Atmosferă', mood], ['Stil', artStyle], ['Culoare', favoriteColor]].map(([label, value]) => <div key={label} className="grid grid-cols-[110px_1fr] gap-4 py-3"><span className="font-black text-brand-navy/45">{label}</span><span className="font-bold text-brand-navy">{value}</span></div>)}
+                  {[['Pentru', `${name}, ${age} ani`], ['Referință', referencePhoto ? 'Fotografie + descriere' : 'Descriere'], ['Lume', worldLabel], ['Companion', companion], ...(secondaryCharacterName ? [['Alături de', `${secondaryCharacterName}, ${secondaryCharacterRole}`]] : []), ['Temă', lesson], ['Atmosferă', mood], ['Stil', artStyle], ['Culoare', favoriteColor]].map(([label, value]) => <div key={label} className="grid grid-cols-[110px_1fr] gap-4 py-3"><span className="font-black text-brand-navy/45">{label}</span><span className="font-bold text-brand-navy">{value}</span></div>)}
                 </div>
                 <div className="mt-7 grid gap-3 sm:grid-cols-2">
                   <div className="border border-brand-gold/60 bg-brand-gold/10 p-4"><BookHeart className="text-brand-purple" size={22} /><p className="mt-3 font-black text-brand-navy">Cartea ilustrată</p><p className="mt-1 text-xs font-semibold text-brand-navy/60">16 pagini, ilustrații 2K și layout pentru print</p></div>
@@ -405,7 +447,7 @@ export default function AlbumCreator() {
                       />
                       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(8,19,43,.58)_0%,rgba(8,19,43,.18)_42%,transparent_68%)]" />
                       <div className="pointer-events-none absolute left-[6%] top-[10%] max-w-[46%] text-brand-cream [text-shadow:0_2px_16px_rgba(4,12,30,.75)]">
-                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-brand-gold sm:text-[11px]">Albumul Meu Magic</p>
+                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-brand-gold sm:text-[11px]">Povestea Magică</p>
                         <p className="mt-2 font-serif text-[clamp(1.25rem,4vw,2.45rem)] leading-[1.02]">{activePreview.title}</p>
                       </div>
                       <span className="pointer-events-none absolute bottom-[7%] right-[5%] rotate-[-7deg] border-2 border-white/65 px-3 py-1 text-xs font-black uppercase tracking-[0.22em] text-white/75 sm:text-base">Preview</span>
@@ -422,7 +464,7 @@ export default function AlbumCreator() {
                   </div>
                 )}
                 <div className="mt-7 flex items-end justify-between border-y border-brand-navy/15 py-5"><div><p className="text-xs font-black uppercase tracking-[0.12em] text-brand-navy/45">Preț final</p><p className="mt-1 font-nunito text-4xl font-black text-brand-purple">{commerce.prices.illustratedAlbum}</p></div><p className="max-w-[210px] text-right text-xs font-bold leading-relaxed text-brand-navy/55">Include personajul vizual, coperta premium, 13 scene 2K și caietul de activități.</p></div>
-                {activePreview && commerce.acceptsPayments && <div className="mt-6"><DigitalPurchaseConsent checked={hasConsent} onCheckedChange={setHasConsent} productLabel="Albumul Meu Magic - Digital" /></div>}
+                {activePreview && commerce.acceptsPayments && <div className="mt-6"><DigitalPurchaseConsent checked={hasConsent} onCheckedChange={setHasConsent} productLabel="Povestea Magică - Digital" /></div>}
               </div>
             )}
           </div>
@@ -436,12 +478,12 @@ export default function AlbumCreator() {
 
         <aside className="border-t border-brand-navy/15 bg-brand-navy px-5 py-9 text-brand-cream sm:px-8 lg:border-l lg:border-t-0 lg:px-10 lg:py-12">
           <p className="text-xs font-black uppercase tracking-[0.15em] text-brand-gold">Vezi ce primești</p>
-          <div className="mt-5 overflow-hidden border border-brand-gold/50"><Image src="/examples/album/coperta.webp" alt="Coperta modelului Albumul Meu Magic" width={960} height={676} priority className="h-auto w-full" /></div>
+          <div className="mt-5 overflow-hidden border border-brand-gold/50"><Image src="/examples/album/coperta.webp" alt="Coperta modelului Povestea Magică" width={960} height={676} priority className="h-auto w-full" /></div>
           <div className="mt-3 grid grid-cols-2 gap-2"><Image src="/examples/album/aventura.webp" alt="Pagină ilustrată" width={480} height={338} className="aspect-[1.42] w-full object-cover" /><Image src="/examples/album/colorat.webp" alt="Pagină de colorat" width={480} height={338} className="aspect-[1.42] w-full object-cover" /><Image src="/examples/album/labirint.webp" alt="Pagină cu labirint" width={480} height={338} className="aspect-[1.42] w-full object-cover" /><Image src="/examples/album/diferente.webp" alt="Pagină cu joc de diferențe" width={480} height={338} className="aspect-[1.42] w-full object-cover" /></div>
-          <p className="mt-5 font-serif text-2xl">O carte construită ca un album adevărat.</p>
+          <p className="mt-5 font-serif text-2xl">O poveste construită ca o carte adevărată.</p>
           <ul className="mt-5 space-y-3 text-sm font-semibold text-brand-cream/75">{["Personaj construit din descriere sau fotografie", "Fiecare ilustrație trece prin control de calitate", "Textul nu acoperă imaginile", "Caiet separat cu 3 activități", "Flipbook privat, audio și PDF-uri A5 landscape"].map((item) => <li key={item} className="flex gap-3"><Check size={17} className="mt-0.5 shrink-0 text-brand-gold" />{item}</li>)}</ul>
           <div className="mt-8 grid grid-cols-3 border-y border-brand-cream/15 py-5 text-center"><div><Clock3 className="mx-auto text-brand-gold" size={19} /><p className="mt-2 text-[10px] font-black">6-10 minute</p></div><div><Mail className="mx-auto text-brand-gold" size={19} /><p className="mt-2 text-[10px] font-black">Primești email</p></div><div><Download className="mx-auto text-brand-gold" size={19} /><p className="mt-2 text-[10px] font-black">2 PDF-uri</p></div></div>
-          <Link href="/modele#albumul-meu-magic" className="mt-7 inline-flex items-center gap-2 border-b border-brand-gold pb-1 text-sm font-black text-brand-gold">Vezi paginile modelului <ArrowRight size={16} /></Link>
+          <Link href="/modele#povestea-magica" className="mt-7 inline-flex items-center gap-2 border-b border-brand-gold pb-1 text-sm font-black text-brand-gold">Vezi paginile modelului <ArrowRight size={16} /></Link>
         </aside>
       </div>
     </form>

@@ -12,12 +12,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ orde
   if (!isValidDeliveryToken(orderId, token)) return NextResponse.json({ error: "Linkul nu este valid sau a expirat." }, { status: 403 });
 
   const order = await getOrder(orderId);
-  if (!order || order.status !== "delivered") return NextResponse.json({ error: "Albumul nu este pregătit." }, { status: 404 });
+  if (!order || order.status !== "delivered") return NextResponse.json({ error: "Povestea Magică nu este pregătită." }, { status: 404 });
   const bundleAlbum = order.product === "bundle" && url.searchParams.get("item") === "album"
     ? readBundleOutput(order.output).find((item) => item.product === "album")
     : null;
   const album = order.product === "album" ? readAlbumOutput(order.output) : readAlbumOutput(bundleAlbum?.output);
-  if (!album) return NextResponse.json({ error: "Albumul nu este disponibil." }, { status: 404 });
+  if (!album) return NextResponse.json({ error: "Povestea Magică nu este disponibilă." }, { status: 404 });
 
   const requested = url.searchParams.get("asset") || "";
   const sceneMatch = /^scene-(\d{1,2})$/.exec(requested);

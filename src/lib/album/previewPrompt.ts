@@ -14,6 +14,7 @@ const titleDirections: Record<string, string> = {
 };
 
 export function albumPreviewTitle(input: AlbumGenerationInput) {
+  if (input.world === "custom" && input.customWorld) return `${input.name} în lumea sa magică`;
   return `${input.name} și ${titleDirections[input.world] || "aventura magică"}`;
 }
 
@@ -36,12 +37,13 @@ export function buildAlbumPreviewPrompt(input: AlbumGenerationInput, worldLabel:
     `Signature outfit: ${input.outfit}. Favorite color accent: ${input.favoriteColor}.`,
     input.appearanceDetail ? `Distinctive visible details: ${input.appearanceDetail}.` : "",
     `The same child is the unmistakable hero, accompanied by ${input.companion.toLocaleLowerCase("ro-RO")}.`,
+    input.secondaryCharacterName ? `A second, clearly distinct child character is ${input.secondaryCharacterName}, the hero's ${input.secondaryCharacterRole}, with this immutable appearance: ${input.secondaryCharacterAppearance || "age-appropriate appearance defined by the family"}. Keep both children visually separate and recognizable.` : "",
     `World and setting: ${worldLabel}. Emotional direction: ${input.lesson}. Mood: ${input.mood}.`,
     input.storyContext ? `Family story idea to express visually: ${input.storyContext}.` : "Show the beginning of an original magical adventure with a clear visual mystery.",
     input.personalDetail ? `Include this recognizable personal detail naturally: ${input.personalDetail}.` : "",
     `${visualDirection(input.artStyle)}. Dynamic narrative moment, sweeping movement, rich foreground-midground-background depth, expressive face, memorable silhouette and bookstore-quality art direction.`,
     "Keep the child and companion fully readable and large enough to become the authoritative visual reference for every later scene.",
     "Keep the upper-left third atmospheric and visually quiet for editorial title typography added later by the renderer.",
-    "Exactly one child and one companion. No title, no words, no letters, no logo, no watermark, no border, no frame, no collage.",
+    `${input.secondaryCharacterName ? "Exactly two distinct children and one magical companion." : "Exactly one child and one magical companion."} No additional people, no title, no words, no letters, no logo, no watermark, no border, no frame, no collage.`,
   ].filter(Boolean).join(" ");
 }

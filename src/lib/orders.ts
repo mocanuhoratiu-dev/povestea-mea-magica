@@ -322,7 +322,7 @@ export function createDeliveryTokenForExpiry(orderId: string, expiresAt: string)
 export function createOrderDeliveryUrl(order: StoredOrder, token: string, baseUrl: string) {
   const query = `order=${encodeURIComponent(order.id)}&token=${encodeURIComponent(token)}`;
   if (order.product === "bundle") return `${baseUrl}/pachet/livrare?${query}`;
-  if (order.product === "album") return `${baseUrl}/album-ilustrat/livrare?${query}`;
+  if (order.product === "album") return `${baseUrl}/povestea-magica/livrare?${query}`;
   const anchor = order.product === "story" ? "creator" : order.product === "monster" ? "monster-away" : "emergency-kit";
   return `${baseUrl}/?${query}#${anchor}`;
 }

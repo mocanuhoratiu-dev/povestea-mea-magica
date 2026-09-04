@@ -74,7 +74,7 @@ export default function AlbumDeliveryClient() {
     return (
       <div className="border-y border-brand-navy/15 bg-white px-6 py-14 text-center">
         <LoaderCircle className="mx-auto animate-spin text-brand-purple" size={30} />
-        <h2 className="mt-5 font-serif text-3xl text-brand-navy">Albumul este în lucru</h2>
+        <h2 className="mt-5 font-serif text-3xl text-brand-navy">Povestea Magică este în lucru</h2>
         <p className="mx-auto mt-3 max-w-xl text-sm font-semibold leading-relaxed text-brand-navy/65">Creăm fiecare ilustrație separat și pregătim cele două documente. Pagina se actualizează singură când sunt gata.</p>
       </div>
     );
@@ -83,7 +83,7 @@ export default function AlbumDeliveryClient() {
   if (status === "error" || !delivery) {
     return (
       <div className="border-y border-red-300 bg-red-50 px-6 py-10 text-center">
-        <p className="text-sm font-bold leading-relaxed text-red-700">Linkul nu este valid, a expirat sau albumul nu este încă pregătit.</p>
+        <p className="text-sm font-bold leading-relaxed text-red-700">Linkul nu este valid, a expirat sau Povestea Magică nu este încă pregătită.</p>
         <button type="button" onClick={() => { setStatus("loading"); setAttempt((current) => current + 1); }} className="mt-5 inline-flex min-h-11 items-center gap-2 border border-red-300 px-4 text-sm font-black text-red-700">
           <RefreshCw size={16} /> Verifică din nou
         </button>

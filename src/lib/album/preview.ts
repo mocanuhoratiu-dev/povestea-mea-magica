@@ -17,7 +17,7 @@ function decodePreview(imageDataUrl: string) {
 export async function generateAlbumPreview(orderId: string, configuration: AlbumConfiguration, options: { referenceImageDataUrl?: string; sourceReference?: string } = {}) {
   const prompt = buildAlbumPreviewPrompt(
     configuration.generation,
-    albumWorldLabel(configuration.generation.world),
+    albumWorldLabel(configuration.generation.world, configuration.generation.customWorld),
   );
   const previewTitle = albumPreviewTitle(configuration.generation);
   let budget = createAlbumBudget();

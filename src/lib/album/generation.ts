@@ -151,6 +151,7 @@ function parsePlan(text: string, input: AlbumGenerationInput, model: string): Al
     `Signature outfit: ${input.outfit}. Favorite color accent: ${input.favoriteColor}.`,
     input.appearanceDetail ? `Distinctive visual details: ${input.appearanceDetail}.` : "",
     `The companion is always ${input.companion.toLocaleLowerCase("ro-RO")}, with the same colors, proportions and accessories.`,
+    input.secondaryCharacterName ? `A secondary human character named ${input.secondaryCharacterName}, the child's ${input.secondaryCharacterRole}, appears when the story calls for them. Their immutable appearance is: ${input.secondaryCharacterAppearance || "age-appropriate features selected by the family"}. Never merge this person with the main child or add another child.` : "",
     "Keep the child's face, hairstyle, eye color, outfit, proportions and apparent age identical on every page.",
   ].filter(Boolean).join(" ");
   const visualStyle = artDirection(input.artStyle);
@@ -184,15 +185,15 @@ function parsePlan(text: string, input: AlbumGenerationInput, model: string): Al
       canonicalDescription: characterBible,
       immutableTraits,
       outfitPalette: `${input.outfit}; recurring ${input.favoriteColor} accent`,
-      companionDescription: `${input.companion}, always with identical colors, proportions and accessories`,
+      companionDescription: `${input.companion}, always with identical colors, proportions and accessories${input.secondaryCharacterName ? `; ${input.secondaryCharacterName}, ${input.secondaryCharacterRole}, always with this appearance: ${input.secondaryCharacterAppearance || "the confirmed family description"}` : ""}`,
       anchorAsset: "cover",
     },
     visualLanguage: {
-      palette: clean(rawVisualLanguage.palette, 220) || `${input.favoriteColor} accent balanced with colors natural to ${albumWorldLabel(input.world)}`,
+      palette: clean(rawVisualLanguage.palette, 220) || `${input.favoriteColor} accent balanced with colors natural to ${albumWorldLabel(input.world, input.customWorld)}`,
       lighting: clean(rawVisualLanguage.lighting, 220) || input.mood,
       texture: clean(rawVisualLanguage.texture, 220) || visualStyle,
       compositionRules: cleanList(rawVisualLanguage.compositionRules, 6, 180),
-      forbidden: ["generated text or letters", "duplicate child", "different outfit", "generic stock fantasy", "photoreal adult proportions", "framing devices or collages"],
+      forbidden: ["generated text or letters", "duplicate child", "different outfit", "generic stock fantasy", "photoreal adult proportions", "framing devices or collages", "extra unrequested children", "merged character identities"],
     },
   };
   if (!storyBible.premise || !storyBible.childRole || storyBible.worldRules.length < 3 || !storyBible.arc.opening || !storyBible.arc.resolution) {
@@ -237,7 +238,7 @@ function parsePlan(text: string, input: AlbumGenerationInput, model: string): Al
     title: clean(parsed.title, 100) || `${input.name} și aventura magică`,
     storyBible,
     characterBible,
-    characterPrompt: `${characterBible} ${visualStyle}. Create a clean full-body character-design reference showing the child and companion standing together, both fully visible, neutral warm studio background, simple relaxed pose, clear face and outfit details, no scenery, no action, no duplicate figures, no text, no letters, no labels, no frame, no collage.`,
+    characterPrompt: `${characterBible} ${visualStyle}. Create a clean full-body character-design reference showing the main child, companion${input.secondaryCharacterName ? ` and ${input.secondaryCharacterName} as a clearly separate secondary character` : ""}, all fully visible, neutral warm studio background, simple relaxed pose, clear face and outfit details, no scenery, no action, no duplicate figures, no extra characters, no text, no letters, no labels, no frame, no collage.`,
     coverPrompt: `${characterBible} ${clean(parsed.coverPrompt, 900)} ${visualStyle}. Spectacular full-bleed A5 landscape picture-book cover art with a dynamic narrative moment, sweeping movement, rich depth and a memorable silhouette. Place the child and companion in the right half; keep the upper-left third atmospheric and visually quiet for editorial title typography. Premium bookstore cover, emotionally expressive, print-quality detail. No title, no text, no letters, no logo, no border, no frame, no collage, no watermark.`,
     coloringPrompt: `${characterBible} ${clean(parsed.coloringPrompt, 900)} Refined black-and-white coloring-book line art based on a recognizable moment from this exact adventure, balanced 4:3 composition, large closed shapes, varied but uncluttered details, generous white areas, crisp dark outlines, white background, no gray, no shading, no text, no border.`,
     differencesPrompt: `${characterBible} ${clean(parsed.differencesPrompt, 900)} Create one clean, richly detailed but readable storybook observation scene from this exact adventure. ${visualStyle}. Center the child and companion with five clearly separated supporting objects around them. Balanced 4:3 composition, no text, no letters, no frame, no collage, no watermark.`,
@@ -247,7 +248,7 @@ function parsePlan(text: string, input: AlbumGenerationInput, model: string): Al
 }
 
 function buildPrompt(input: AlbumGenerationInput) {
-  const world = albumWorldLabel(input.world);
+  const world = albumWorldLabel(input.world, input.customWorld);
   return `Ești autor și director artistic pentru un album ilustrat premium destinat copiilor. Scrie în română naturală și caldă, potrivită vârstei de ${input.age} ani.
 
 Date confirmate de părinte:
@@ -258,6 +259,7 @@ Date confirmate de părinte:
 - culoare preferată: ${input.favoriteColor};
 - lume: ${world};
 - companion: ${input.companion};
+- personaj secundar: ${input.secondaryCharacterName ? `${input.secondaryCharacterName}, ${input.secondaryCharacterRole}, cu aspectul ${input.secondaryCharacterAppearance || "descris de familie"}` : "nu a fost adăugat"};
 - tema emoțională: ${input.lesson};
 - atmosferă: ${input.mood};
 - stil vizual ales: ${input.artStyle};
@@ -268,7 +270,7 @@ Date confirmate de părinte:
 
 Construiește apoi o aventură completă în EXACT 13 scene. Fiecare scenă are 28-40 de cuvinte și avansează acțiunea. Totalul trebuie să fie 400-500 de cuvinte. Scrie aerisit, cu propoziții clare, ușor de citit cu voce tare și fără formulări tehnice sau metafore greoaie. Numele copilului, lumea, companionul, culoarea preferată și detaliul personal trebuie să influențeze evenimente reale, nu să apară ca o listă. Lecția se arată prin alegeri și acțiuni, fără morală rigidă. Finalul este luminos și include o despărțire sau o întoarcere acasă.
 
-Respectă ideea părintelui atunci când este oferită, dar transform-o într-o poveste coerentă, sigură și potrivită vârstei. Pentru fiecare scenă scrie un rol editorial scurt, note de continuitate și un prompt vizual în engleză, cu o acțiune, un decor și o stare vizuală specifice acelui moment. Nu repeta aceeași imagine, poziție a corpului sau același fundal. Păstrează același copil și același companion în toate imaginile. Textul va fi randat separat de imagine, deci nu include text sau titluri în ilustrație.
+Respectă ideea părintelui atunci când este oferită, dar transform-o într-o poveste coerentă, sigură și potrivită vârstei. Pentru fiecare scenă scrie un rol editorial scurt, note de continuitate și un prompt vizual în engleză, cu o acțiune, un decor și o stare vizuală specifice acelui moment. Nu repeta aceeași imagine, poziție a corpului sau același fundal. Păstrează același copil și același companion în toate imaginile. Dacă există un personaj secundar, păstrează-i numele, relația și aspectul, folosește-l numai când ajută povestea și nu îl confunda niciodată cu eroul principal. Nu adăuga alți copii. Textul va fi randat separat de imagine, deci nu include text sau titluri în ilustrație.
 
 Scrie și două prompturi separate pentru activități: coloringPrompt pentru o scenă de colorat și differencesPrompt pentru o scenă de observație. Ambele trebuie să folosească lumea, companionul și un moment recognoscibil din poveste, fără a copia o ilustrație de poveste.
 

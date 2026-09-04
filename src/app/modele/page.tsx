@@ -1,74 +1,46 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BookHeart, BookOpen, ShieldCheck, TimerReset } from "lucide-react";
+import { ArrowRight, BookHeart, ShieldCheck, TimerReset } from "lucide-react";
 import BrandMark from "@/components/BrandMark";
 import Footer from "@/components/Footer";
-import ProductReader, { type ReaderPage } from "@/components/ProductReader";
+import ProductReader from "@/components/ProductReader";
 
 export const metadata: Metadata = {
   title: "Modele PDF | Povestea Mea Magică",
-  description: "Răsfoiește exemple din poveștile, albumele ilustrate și materialele personalizate Povestea Mea Magică.",
+  description: "Răsfoiește pagini din Povestea Magică, Scutul de Noapte și Trusa de Răbdare.",
   alternates: { canonical: "/modele" },
   openGraph: {
     url: "/modele",
     title: "Modele PDF | Povestea Mea Magică",
-    description: "Răsfoiește exemple din poveștile, albumele ilustrate și materialele personalizate Povestea Mea Magică.",
+    description: "Răsfoiește pagini din Povestea Magică, Scutul de Noapte și Trusa de Răbdare.",
   },
 };
 
 const fullPage = { left: 0, top: 0, width: 100, height: 100 };
 
-const twoByTwoPages: ReaderPage[] = [
-  { title: "Coperta", caption: "Numele și lumea aleasă deschid aventura.", crop: { left: 2.5, top: 2.6, width: 45, height: 44.6 } },
-  { title: "Prima parte", caption: "Primele detalii ale copilului intră firesc în poveste.", crop: { left: 52.5, top: 2.6, width: 45, height: 44.6 } },
-  { title: "Aventura prinde curaj", caption: "Lecția se întâmplă prin acțiune, nu ca o morală pusă la final.", crop: { left: 2.5, top: 52.6, width: 45, height: 44.6 } },
-  { title: "Ultima parte", caption: "Povestea încheie aventura într-un ton liniștit, potrivit pentru seară.", crop: { left: 52.5, top: 52.6, width: 45, height: 44.6 } },
-];
-
 const models = [
   {
-    id: "albumul-meu-magic",
+    id: "povestea-magica",
     orientation: "landscape" as const,
     moment: "Pentru o poveste de păstrat",
-    title: "Albumul Meu Magic",
+    title: "Povestea Magică",
     price: "59 lei",
     pageCount: "16 + 5 pagini A5 landscape",
-    description: "O aventură vizuală premium, cu o imagine nouă pentru fiecare moment și un caiet separat pentru joacă.",
+    description: "O carte ilustrată premium în care copilul devine eroul unei aventuri create pentru el.",
     readerNote: "Modelul arată structura vizuală a produsului: cartea are 13 scene ilustrate distinct, iar activitățile sunt livrate separat, ca să poată fi printate pe hârtie potrivită pentru creioane.",
-    href: "/album-ilustrat",
-    cta: "Creează albumul",
+    href: "/povestea-magica",
+    cta: "Creează povestea",
     accent: "text-brand-gold",
     rule: "bg-brand-gold",
     icon: BookHeart,
-    choices: ["aspectul, ținuta și semnele distinctive", "lumea, companionul, atmosfera și stilul vizual", "propria idee de poveste, un detaliu din familie și dedicația"],
+    choices: ["aspectul, ținuta și semnele distinctive", "lumea, companionul și personajele apropiate", "propria idee de poveste, un detaliu din familie și dedicația"],
     source: "/examples/album/coperta.webp",
     pages: [
       { title: "Coperta", caption: "Copilul și lumea aleasă devin semnalul vizual principal.", crop: fullPage, source: "/examples/album/coperta.webp" },
       { title: "În mijlocul aventurii", caption: "Fiecare scenă are o compoziție proprie și continuă povestea.", crop: fullPage, source: "/examples/album/aventura.webp" },
       { title: "Pagina de colorat", caption: "Caietul separat păstrează spațiu real pentru creioane și joacă.", crop: fullPage, source: "/examples/album/colorat.webp" },
-      { title: "Labirintul", caption: "Activitățile preiau simboluri și misiuni din universul albumului.", crop: fullPage, source: "/examples/album/labirint.webp" },
+      { title: "Labirintul", caption: "Activitățile preiau simboluri și misiuni din universul poveștii.", crop: fullPage, source: "/examples/album/labirint.webp" },
       { title: "Găsește diferențele", caption: "Două imagini din aceeași aventură devin un joc de observație clar și printabil.", crop: fullPage, source: "/examples/album/diferente.webp" },
-    ],
-  },
-  {
-    id: "povestea-de-seara",
-    moment: "Pentru seară",
-    title: "Povestea de Seară",
-    price: "de la 19 lei",
-    pageCount: "Scurtă: 4 · Lungă: 6 pagini",
-    description: "O aventură pentru citit împreună, în ritmul serii voastre. Varianta scurtă are două pagini de poveste, iar cea lungă are patru.",
-    readerNote: "Aici vezi modelul variantei lungi, creată pentru Eva. Povestea scurtă include copertă, dedicație și două pagini de aventură; cea lungă păstrează patru pagini de poveste, construite din alegerile familiei tale.",
-    href: "/#creator",
-    cta: "Creează povestea",
-    accent: "text-brand-purple",
-    rule: "bg-brand-purple",
-    icon: BookOpen,
-    choices: ["numele și vârsta copilului", "lumea, lecția și tonul", "detalii din familie și dedicația"],
-    source: "/examples/poveste-contact.png",
-    pages: [
-      { title: "Coperta", caption: "Numele și lumea aleasă deschid aventura.", crop: fullPage, source: "/examples/story/coperta.png" },
-      { title: "Dedicația", caption: "Mesajul familiei devine prima pagină de păstrat.", crop: fullPage, source: "/examples/story/dedicatie.png" },
-      ...twoByTwoPages.slice(1),
     ],
   },
   {
@@ -76,10 +48,10 @@ const models = [
     moment: "Pentru noapte",
     title: "Scutul de Noapte",
     price: "19 lei",
-    pageCount: "3 pagini printabile",
-    description: "Un ritual simbolic de seară, cu certificat, pași ușor de repetat și etichete pentru flacon.",
-    readerNote: "Fiecare parte are un rol simplu: validați curajul, pregătiți ritualul și lăsați o ancoră vizuală la îndemână.",
-    href: "/#monster-away",
+    pageCount: "4 pagini printabile",
+    description: "Un ritual simbolic de seară, cu certificat, pași ușor de repetat, etichete și un card pentru noptieră.",
+    readerNote: "Fiecare parte are un rol simplu: validați curajul, pregătiți ritualul și păstrați o ancoră vizuală aproape de pat.",
+    href: "/scutul-de-noapte",
     cta: "Creează scutul",
     accent: "text-brand-gold",
     rule: "bg-brand-gold",
@@ -100,7 +72,7 @@ const models = [
     pageCount: "7 pagini A4",
     description: "Activități pentru drum, restaurant, medic sau alte momente în care timpul pare să treacă mai greu.",
     readerNote: "Paginile alternează între observare, desen, joc de cuvinte și o mică reușită de final. Le puteți folosi în orice ordine.",
-    href: "/#emergency-kit",
+    href: "/trusa-de-rabdare",
     cta: "Pregătește trusa",
     accent: "text-brand-orange",
     rule: "bg-brand-orange",
@@ -174,8 +146,8 @@ export default function ModelsPage() {
 
       <section className="mt-24 bg-brand-navy px-6 py-14 text-brand-cream">
         <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-8 md:flex-row md:items-center">
-          <div><p className="text-xs font-black uppercase tracking-[0.16em] text-brand-gold">Materiale pentru momente reale</p><p className="mt-3 font-serif text-4xl">Începe cu momentul de care aveți nevoie.</p><p className="mt-3 max-w-xl font-medium leading-relaxed text-brand-cream/75">Alegi o poveste, un album ilustrat, un ritual de noapte sau activități pentru timpul de așteptare și le personalizezi pentru familia voastră.</p></div>
-          <Link href="/#alege-materialul" className="inline-flex items-center gap-2 bg-brand-gold px-6 py-4 font-black text-brand-navy transition-colors hover:bg-brand-cream">Alege un moment <ArrowRight size={18} /></Link>
+          <div><p className="text-xs font-black uppercase tracking-[0.16em] text-brand-gold">Materiale pentru momente reale</p><p className="mt-3 font-serif text-4xl">Începe cu povestea lor.</p><p className="mt-3 max-w-xl font-medium leading-relaxed text-brand-cream/75">Alegi o carte ilustrată, un ritual de noapte sau activități pentru timpul de așteptare și le personalizezi pentru familia voastră.</p></div>
+          <Link href="/povestea-magica" className="inline-flex items-center gap-2 bg-brand-gold px-6 py-4 font-black text-brand-navy transition-colors hover:bg-brand-cream">Creează Povestea Magică <ArrowRight size={18} /></Link>
         </div>
       </section>
       </main>
