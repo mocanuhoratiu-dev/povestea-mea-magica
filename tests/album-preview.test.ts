@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { albumPreviewTitle, buildAlbumPreviewPrompt } from "../src/lib/album/previewPrompt.ts";
+import { albumPreviewTitle, buildAlbumPreviewPrompt, buildAlbumPreviewRetryPrompt } from "../src/lib/album/previewPrompt.ts";
 
 const input = {
   type: "album" as const,
@@ -49,4 +49,21 @@ test("album preview explicitly treats a parent photo as the identity anchor", ()
 
 test("album preview title remains deterministic for the final renderer", () => {
   assert.equal(albumPreviewTitle(input), "Sofia și biblioteca poveștilor vii");
+});
+
+test("album preview retry turns editorial feedback into a corrective prompt", () => {
+  const retryPrompt = buildAlbumPreviewRetryPrompt("ORIGINAL PROMPT", {
+    asset: "cover-preview-attempt-1",
+    mode: "ai",
+    accepted: false,
+    hardFailure: false,
+    identityScore: 100,
+    storyScore: 44,
+    technicalScore: 80,
+    checkedAt: new Date(0).toISOString(),
+    notes: ["The requested bicycle is missing."],
+  });
+  assert.match(retryPrompt, /ORIGINAL PROMPT/);
+  assert.match(retryPrompt, /bicycle is missing/i);
+  assert.match(retryPrompt, /No title, no words, no letters, no logo, no watermark/);
 });

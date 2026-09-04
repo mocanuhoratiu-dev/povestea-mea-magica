@@ -211,6 +211,7 @@ export function readAlbumOutput(value: unknown): AlbumOrderOutput | null {
         asset: clean(item.asset, 90),
         mode,
         accepted: item.accepted === true,
+        hardFailure: item.hardFailure === true,
         identityScore: Math.max(0, Math.min(100, Number(item.identityScore) || 0)),
         storyScore: Math.max(0, Math.min(100, Number(item.storyScore) || 0)),
         technicalScore: Math.max(0, Math.min(100, Number(item.technicalScore) || 0)),

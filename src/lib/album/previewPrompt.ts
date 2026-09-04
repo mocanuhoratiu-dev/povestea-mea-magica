@@ -1,4 +1,4 @@
-import type { AlbumGenerationInput } from "./types";
+import type { AlbumGenerationInput, AlbumQualityResult } from "./types";
 
 const titleDirections: Record<string, string> = {
   forest: "pădurea luminilor",
@@ -16,6 +16,13 @@ const titleDirections: Record<string, string> = {
 export function albumPreviewTitle(input: AlbumGenerationInput) {
   if (input.world === "custom" && input.customWorld) return `${input.name} în lumea sa magică`;
   return `${input.name} și ${titleDirections[input.world] || "aventura magică"}`;
+}
+
+export function buildAlbumPreviewRetryPrompt(prompt: string, quality: AlbumQualityResult) {
+  const feedback = quality.notes.length > 0
+    ? quality.notes.join("; ")
+    : "strengthen scene relevance, composition and character consistency";
+  return `${prompt}\n\nEDITORIAL RETRY. The previous candidate was rejected. Correct these issues: ${feedback}. Preserve every requested child, companion, world, color, object and story detail. Show exactly the requested characters, with clean anatomy and a polished premium picture-book composition. No title, no words, no letters, no logo, no watermark.`;
 }
 
 function visualDirection(style: string) {

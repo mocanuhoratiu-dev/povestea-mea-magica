@@ -25,6 +25,11 @@ type AlbumQualityInput = {
   expectedAspectRatio: "4:3" | "3:2" | "16:9";
   identityRequired: boolean;
   beforeAiCheck?: () => Promise<void>;
+  thresholds?: {
+    identity?: number;
+    story?: number;
+    technical?: number;
+  };
 };
 
 function parseDataUrl(value: string) {
@@ -75,6 +80,7 @@ export async function evaluateAlbumImage(input: AlbumQualityInput): Promise<Albu
     asset: input.asset,
     mode: "deterministic",
     accepted: true,
+    hardFailure: false,
     identityScore: input.identityRequired ? 70 : 100,
     storyScore: 75,
     technicalScore: deterministic.technicalScore,
@@ -120,12 +126,12 @@ export async function evaluateAlbumImage(input: AlbumQualityInput): Promise<Albu
     const storyScore = score(parsed.storyScore);
     const technicalScore = Math.min(deterministic.technicalScore, score(parsed.technicalScore));
     const notes = Array.isArray(parsed.notes) ? parsed.notes.map((note) => String(note).replace(/\s+/g, " ").trim().slice(0, 180)).filter(Boolean).slice(0, 4) : [];
-    const accepted = parsed.unsafe !== true
-      && parsed.hasText !== true
-      && technicalScore >= 62
-      && storyScore >= 58
-      && (!input.identityRequired || identityScore >= 58);
-    return { asset: input.asset, mode: "ai", accepted, identityScore, storyScore, technicalScore, checkedAt: new Date().toISOString(), notes };
+    const hardFailure = parsed.unsafe === true || parsed.hasText === true;
+    const accepted = !hardFailure
+      && technicalScore >= (input.thresholds?.technical ?? 62)
+      && storyScore >= (input.thresholds?.story ?? 58)
+      && (!input.identityRequired || identityScore >= (input.thresholds?.identity ?? 58));
+    return { asset: input.asset, mode: "ai", accepted, hardFailure, identityScore, storyScore, technicalScore, checkedAt: new Date().toISOString(), notes };
   } catch (error) {
     if (error instanceof Error && error.message.startsWith("album_budget_")) throw error;
     return { ...fallback, notes: [...fallback.notes, "Controlul semantic a fost indisponibil; s-a folosit verificarea tehnică strictă."] };

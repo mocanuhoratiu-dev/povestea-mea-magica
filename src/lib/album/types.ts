@@ -145,6 +145,7 @@ export type AlbumQualityResult = {
   asset: string;
   mode: "ai" | "deterministic";
   accepted: boolean;
+  hardFailure?: boolean;
   identityScore: number;
   storyScore: number;
   technicalScore: number;
