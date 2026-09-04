@@ -4,11 +4,16 @@ import { useEffect, useRef, useState } from "react";
 import { BookHeart, Download, LoaderCircle, Palette, RefreshCw } from "lucide-react";
 import QuickRating from "@/components/QuickRating";
 import { trackEvent } from "@/lib/clientTelemetry";
+import PersonalizedAlbumFlipbook, { type PersonalizedAlbumPage } from "@/components/PersonalizedAlbumFlipbook";
 
 type AlbumDelivery = {
   product: "album";
   childName: string;
   title: string;
+  pages: PersonalizedAlbumPage[];
+  audioUrl?: string;
+  referenceMode: "description" | "photo";
+  qualitySummary: { accepted: number; checked: number };
   documents: Array<{ id: "storybook" | "activities"; label: string; pages: number }>;
 };
 
@@ -48,7 +53,7 @@ export default function AlbumDeliveryClient() {
       }
       if (!response.ok) throw new Error("invalid");
       const payload = await response.json() as AlbumDelivery;
-      if (payload.product !== "album" || payload.documents?.length !== 2) throw new Error("invalid");
+      if (payload.product !== "album" || payload.documents?.length !== 2 || payload.pages?.length !== 16) throw new Error("invalid");
       if (!cancelled) {
         setAccess({ order, token });
         setDelivery(payload);
@@ -92,6 +97,7 @@ export default function AlbumDeliveryClient() {
         <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-gold">Creat pentru {delivery.childName}</p>
         <h2 className="mt-2 font-serif text-2xl sm:text-3xl">{delivery.title}</h2>
       </div>
+      <PersonalizedAlbumFlipbook pages={delivery.pages} audioUrl={delivery.audioUrl} title={delivery.title} qualitySummary={delivery.qualitySummary} />
       <div className="border-y border-brand-navy/15 bg-white">
         {delivery.documents.map((document) => {
           const presentation = documentPresentation[document.id];

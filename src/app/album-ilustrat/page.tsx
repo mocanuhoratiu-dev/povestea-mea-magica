@@ -6,12 +6,12 @@ import LumiGuideLoader from "@/components/LumiGuideLoader";
 
 export const metadata: Metadata = {
   title: "Albumul Meu Magic | Poveste ilustrată personalizată",
-  description: "Creează o carte ilustrată premium A5 landscape, cu 13 scene 2K și un caiet inclus cu trei activități pentru copilul tău.",
+  description: "Creează o carte ilustrată premium A5 landscape, cu personaj consecvent din descriere sau fotografie, 13 scene 2K, audio și un caiet cu activități.",
   alternates: { canonical: "/album-ilustrat" },
   openGraph: {
     url: "/album-ilustrat",
     title: "Albumul Meu Magic | Povestea Mea Magică",
-    description: "13 ilustrații 2K, o poveste construită din ideea familiei și un caiet separat cu trei activități.",
+    description: "13 ilustrații 2K, personaj consecvent, poveste audio și un caiet separat cu trei activități.",
     images: ["/examples/album/coperta.webp"],
   },
 };
@@ -23,7 +23,7 @@ export default function IllustratedAlbumPage() {
         <div className="mx-auto max-w-7xl border-b border-brand-navy/15 pb-9">
           <p className="text-xs font-black uppercase tracking-[0.16em] text-brand-purple">Album ilustrat premium</p>
           <div className="mt-4 grid gap-5 lg:grid-cols-[1fr_auto] lg:items-end">
-            <div><h1 className="max-w-4xl font-nunito text-4xl font-black leading-tight text-brand-navy sm:text-5xl md:text-6xl">Albumul Meu Magic</h1><p className="mt-4 max-w-3xl text-base font-semibold leading-relaxed text-brand-navy/68 sm:text-lg">O carte ilustrată construită în jurul copilului tău: personaj consecvent, 13 scene 2K, text așezat separat de imagine și un caiet inclus cu trei activități.</p></div>
+            <div><h1 className="max-w-4xl font-nunito text-4xl font-black leading-tight text-brand-navy sm:text-5xl md:text-6xl">Albumul Meu Magic</h1><p className="mt-4 max-w-3xl text-base font-semibold leading-relaxed text-brand-navy/68 sm:text-lg">O carte ilustrată construită în jurul copilului tău: personaj consecvent din descriere sau fotografie, 13 scene 2K, pagini cu ritm editorial, audio și un caiet cu trei activități.</p></div>
             <p className="font-nunito text-4xl font-black text-brand-purple">59 lei</p>
           </div>
         </div>

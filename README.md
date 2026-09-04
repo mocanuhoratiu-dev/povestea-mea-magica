@@ -8,7 +8,8 @@ Produs digital Next.js în limba română: povești personalizate pentru copii, 
 - Plăți Stripe: Checkout găzduit, coduri promoționale și webhook semnat pentru livrare asincronă.
 - Livrare email: comenzile plătite sunt generate prin Cloud Tasks și livrate prin Resend cu link privat valabil 30 de zile.
 - Facturare: SmartBill rulează asincron după Stripe, separat de livrarea materialului, cu blocare strictă între mediile test și live.
-- Generare AI: Vertex AI (Gemini) pentru text și Google Cloud Text-to-Speech pentru previzualizarea audio în română.
+- Generare AI: Vertex AI (Gemini) pentru text și imagini, control vizual automat și Google Cloud Text-to-Speech pentru audio în română.
+- Album premium: Story Bible V3, Character Lock din descriere sau fotografie opțională, preview înainte de plată, flipbook privat și două PDF-uri A5 landscape.
 - Observabilitate: evenimente agregate fără conținut personalizat pentru vizite, generări, fallback-uri, erori și descărcări PDF. Vezi [`docs/analytics.md`](docs/analytics.md).
 - Domeniu principal: `https://www.povestea-mea-magica.ro`; domeniul fără `www` și URL-ul Cloud Run se redirecționează aici în producție.
 - PDF: exportul folosește biblioteci incluse în aplicație, fără scripturi externe încărcate în momentul descărcării.
@@ -50,14 +51,14 @@ npm run build
 ## Production Checklist
 
 - Configure production environment variables from `.env.example`.
-- Use a Gemini key with production quota/billing enabled.
+- Confirmă quota și billing Vertex AI pentru modelele text, imagine și control vizual.
 - Verify `/api/health` returns `ready: true` after deploy.
 - Generate real samples on the deployed domain and download all PDFs.
 - Confirm the Resend domain, one-off email delivery and retry/error handling before enabling paid checkout.
 - Confirmă separat o comandă Stripe + SmartBill în test și în live înainte de trafic plătit.
-- Add rate limiting and stricter validation around AI endpoints.
-- Add monitoring/error tracking.
-- Review legal copy after payments, analytics, and data retention are finalized.
+- Verifică regulile Cloudflare WAF/Turnstile și limitele endpointurilor înainte de trafic mare.
+- Urmărește alertele Cloud Run/Vertex și plafonul de cost al albumelor.
+- Verifică periodic ciclul Firestore/Cloud Storage de 24 de ore pentru drafturi și 31 de zile pentru comenzi.
 
 ## Deploy
 

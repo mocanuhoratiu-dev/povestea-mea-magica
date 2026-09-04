@@ -49,7 +49,7 @@ export const productEmailCopy: Record<TransactionalEmailProduct, ProductEmailCop
     eyebrow: "O lume întreagă a prins culoare",
     title: "Albumul vostru ilustrat este gata",
     subject: "Albumul Meu Magic este gata",
-    message: "Cartea ilustrată și caietul de activități sunt pregătite pentru citit, joacă și păstrat împreună.",
+    message: "Cartea ilustrată și caietul de activități sunt pregătite. Din linkul privat poți răsfoi albumul, asculta povestea și descărca ambele PDF-uri.",
   },
 };
 

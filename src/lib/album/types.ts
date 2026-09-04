@@ -51,6 +51,8 @@ export const albumArtStyleOptions = [
 
 export type AlbumPanelPosition = "top-left" | "top-right" | "bottom-left" | "bottom-right" | "bottom";
 export type AlbumPanelTone = "cream" | "navy";
+export type AlbumSceneLayout = "cinematic" | "image-left" | "image-right";
+export type AlbumReferenceMode = "description" | "photo";
 
 export type AlbumGenerationInput = {
   type: "album";
@@ -70,6 +72,7 @@ export type AlbumGenerationInput = {
   artStyle: string;
   personalDetail: string;
   storyContext: string;
+  referenceMode: AlbumReferenceMode;
 };
 
 export type AlbumConfiguration = {
@@ -84,10 +87,46 @@ export type AlbumScene = {
   imagePrompt: string;
   panelPosition: AlbumPanelPosition;
   panelTone: AlbumPanelTone;
+  layout: AlbumSceneLayout;
+  editorialRole: string;
+  continuityNotes: string;
+};
+
+export type AlbumStoryBible = {
+  version: 3;
+  premise: string;
+  childRole: string;
+  emotionalNeed: string;
+  narrativePromise: string;
+  recurringMotif: string;
+  companionRole: string;
+  worldRules: string[];
+  arc: {
+    opening: string;
+    catalyst: string;
+    turningPoint: string;
+    resolution: string;
+  };
+  characterLock: {
+    referenceMode: AlbumReferenceMode;
+    canonicalDescription: string;
+    immutableTraits: string[];
+    outfitPalette: string;
+    companionDescription: string;
+    anchorAsset: "cover";
+  };
+  visualLanguage: {
+    palette: string;
+    lighting: string;
+    texture: string;
+    compositionRules: string[];
+    forbidden: string[];
+  };
 };
 
 export type AlbumPlan = {
   title: string;
+  storyBible: AlbumStoryBible;
   characterBible: string;
   characterPrompt: string;
   coverPrompt: string;
@@ -97,6 +136,28 @@ export type AlbumPlan = {
   textModel: string;
 };
 
+export type AlbumQualityResult = {
+  asset: string;
+  mode: "ai" | "deterministic";
+  accepted: boolean;
+  identityScore: number;
+  storyScore: number;
+  technicalScore: number;
+  checkedAt: string;
+  notes: string[];
+};
+
+export type AlbumBudget = {
+  textCalls: number;
+  imageCalls: number;
+  qualityCalls: number;
+  maxTextCalls: number;
+  maxImageCalls: number;
+  maxQualityCalls: number;
+  estimatedCostMicros: number;
+  maxEstimatedCostMicros: number;
+};
+
 export type AlbumProgressStage = "planning" | "cover" | "scenes" | "activity" | "rendering" | "delivery";
 
 export type AlbumOrderOutput = {
@@ -104,6 +165,7 @@ export type AlbumOrderOutput = {
   previewTitle?: string;
   plan?: AlbumPlan;
   assets: {
+    sourceReference?: string;
     characterReference?: string;
     cover?: string;
     scenes: string[];
@@ -113,7 +175,10 @@ export type AlbumOrderOutput = {
   documents?: {
     storybook: string;
     activityBooklet: string;
+    narration?: string;
   };
+  quality: AlbumQualityResult[];
+  budget: AlbumBudget;
   progress: {
     stage: AlbumProgressStage;
     current: number;

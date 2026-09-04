@@ -11,8 +11,8 @@ export const metadata: Metadata = {
 
 const steps = [
   { number: "01", title: "Alegi un moment", text: "Începi cu o poveste de seară, un ritual de noapte sau o activitate pentru așteptare. Poți vedea modele reale înainte să alegi.", icon: ListChecks },
-  { number: "02", title: "Adaugi doar ce e util", text: "Numele, vârsta, lumea sau contextul ajută materialul să se potrivească familiei voastre. Nu cere fotografii și nu ai nevoie de cont.", icon: Wand2 },
-  { number: "03", title: "Verifici și îl folosiți", text: "Vezi rezultatul, ajustezi ce dorești, apoi îl descarci ca PDF. Pentru poveste poți trimite PDF-ul și pe email.", icon: Download },
+  { number: "02", title: "Adaugi doar ce e util", text: "Numele, vârsta, lumea și contextul ajută materialul să se potrivească familiei voastre. Pentru album poți adăuga opțional o fotografie de referință; nu ai nevoie de cont.", icon: Wand2 },
+  { number: "03", title: "Verifici și îl folosiți", text: "Pentru album vezi personajul înainte de plată. După generare îl poți răsfoi și asculta online, apoi descarci cartea și caietul de activități ca PDF.", icon: Download },
 ];
 
 export default function HowItWorksPage() {

@@ -131,7 +131,7 @@ async function prepareBundleOrder(order: StoredOrder, secret: string) {
     if (item.product === "album") {
       const albumConfiguration = readAlbumConfiguration(item.configuration);
       if (!albumConfiguration) throw new Error("Configuratia albumului din pachet este invalida.");
-      if (readAlbumOutput(existing?.output)?.documents) continue;
+      if (readAlbumOutput(existing?.output)?.documents?.narration) continue;
       await createAlbumOrderOutput({
         orderId: prepared.id,
         configuration: albumConfiguration,
@@ -186,7 +186,14 @@ export async function POST(request: Request) {
     const delivered = await setOrderStatus(prepared, "delivered");
     if (!delivered) throw new Error("Comanda nu a putut fi finalizata.");
     logTelemetry("pmm_order_delivered", { product: delivered.product, result: "success" });
-    if (delivered.product === "album") logTelemetry("pmm_album_stage_completed", { product: "album", result: "success", albumStage: "delivery" });
+    if (delivered.product === "album" || delivered.product === "bundle") {
+      const album = delivered.product === "album"
+        ? readAlbumOutput(delivered.output)
+        : readAlbumOutput(readBundleOutput(delivered.output).find((item) => item.product === "album")?.output);
+      if (album) {
+        logTelemetry("pmm_album_stage_completed", { product: "album", result: "success", albumStage: "delivery", estimatedCostMicros: album.budget.estimatedCostMicros });
+      }
+    }
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Order processing failed", error);

@@ -1,10 +1,10 @@
-# Albumul Meu Magic - plan și status V2 Premium
+# Albumul Meu Magic - specificație și status V3 Premium
 
-**Status la 4 septembrie 2026:** varianta premium include modelul public răsfoibil și preview-ul personalizat al copertei înainte de plată. Linkul privat al preview-ului expiră în 24 de ore; coperta curată este păstrată intern conform ciclului de viață existent, devine coperta finală și referința vizuală pentru scene. Fluxul comercial rămâne bazat pe Stripe, Vertex, Cloud Tasks, email, SmartBill și descărcare securizată.
+**Status la 4 septembrie 2026:** V3 este implementat cap-coadă. Varianta premium include Story Bible, Character Lock din descriere sau fotografie opțională, model public răsfoibil, preview personalizat înainte de plată, control automat de calitate, limite de cost, flipbook privat, audio și două PDF-uri. Linkul preview-ului expiră în 24 de ore; coperta curată devine referința vizuală pentru toate scenele. Fluxul comercial folosește Stripe, Vertex AI, Cloud Tasks, Resend, SmartBill și livrare securizată.
 
 ## 1. Decizia de produs
 
-**Albumul Meu Magic** va fi un produs digital separat, premium, orientat spre ilustrație. Varianta tipărită va fi prezentată pe site ca **„În curând”**, dar nu va putea fi cumpărată în V1.
+**Albumul Meu Magic** este un produs digital separat, premium, orientat spre ilustrație. Varianta tipărită este prezentată pe site ca **„În curând”**, dar nu poate fi cumpărată în V3.
 
 ### Oferta de lansare
 
@@ -23,7 +23,7 @@ Prețul standard de lansare este 59 lei. Reducerile vor fi aplicate numai prin c
 | Povestea de Seară | Lectură personalizată, cu mai mult text | A4 portret | 2 sau 4 pagini de poveste | Copertă personalizată |
 | Albumul Meu Magic | Experiență vizuală și cadou personalizat | A5 landscape | 400-500 de cuvinte | Copertă + 13 ilustrații distincte |
 
-## 2. Contractul V1
+## 2. Contractul V3
 
 ### Structura livrării digitale
 
@@ -76,22 +76,27 @@ Cele două PDF-uri sunt optimizate pentru ecran și print acasă, dar sunt preg�
 10. O idee proprie pentru firul poveștii, de până la 700 de caractere.
 11. Un detaliu personal scurt.
 12. Dedicația și semnătura familiei.
+13. Opțional, o fotografie de referință încărcată numai cu acordul părintelui sau al reprezentantului legal.
 
-Nu cerem genul și nu încărcăm fotografia copilului în V1. Formularul prezintă o descriere clară a personajului înainte de plată.
+Nu cerem genul. Fotografia este redimensionată și curățată de metadate, nu este publică, nu ajunge la Stripe și intră în ciclul automat de ștergere al comenzii. Albumul poate fi creat integral numai din descriere.
 
-## 3. Ce intră și ce nu intră în V1
+## 3. Ce intră și ce nu intră în V3
 
 ### Inclus
 
 - pagină comercială dedicată;
 - model răsfoibil cu pagini din prototip;
 - configurator optimizat pentru mobil;
+- fotografie opțională și acord explicit;
+- Story Bible V3 și Character Lock;
 - plată Stripe înainte de generare;
 - generare asincronă a poveștii și imaginilor;
 - personaj consecvent vizual între scene;
 - două PDF-uri construite pe server;
 - progres real după plată;
-- descărcare securizată și livrare prin email;
+- flipbook privat, audio, descărcare securizată și livrare prin email;
+- control tehnic și semantic al fiecărei imagini;
+- plafon de apeluri și cost estimat per comandă;
 - factură SmartBill;
 - telemetrie și alerte;
 - integrare atentă în recomandările Lumi;
@@ -104,7 +109,6 @@ Nu cerem genul și nu încărcăm fotografia copilului în V1. Formularul prezin
 - integrarea cu o tipografie sau un serviciu print-on-demand;
 - AWB și urmărirea coletului;
 - copertă cartonată;
-- încărcarea fotografiei copilului;
 - editor manual de pagini;
 - regenerarea liberă a ilustrațiilor de către client.
 
@@ -141,9 +145,10 @@ Utilizatorul vede un progres real:
 3. „Ilustrăm scenele 2 din 13”
 4. „Pregătim caietul de activități”
 5. „Așezăm povestea în pagină”
-6. „Albumul este gata”
+6. „Pregătim lectura audio”
+7. „Albumul este gata”
 
-Pagina interoghează starea comenzii printr-un endpoint protejat și poate fi închisă. Emailul este trimis automat când albumul este gata, iar linkul securizat permite descărcarea fără regenerare. Dacă plata este anulată, configuratorul restaurează local alegerile făcute în aceeași sesiune de browser.
+Pagina interoghează starea comenzii printr-un endpoint protejat și poate fi închisă. Emailul este trimis automat când albumul este gata, iar linkul securizat deschide flipbookul, redarea audio și cele două PDF-uri fără regenerare. Dacă plata este anulată, configuratorul restaurează alegerile și reutilizează preview-ul deja plătit de platformă, fără un nou apel AI.
 
 ## 5. Arhitectura de generare
 
@@ -155,10 +160,13 @@ Pagina interoghează starea comenzii printr-un endpoint protejat și poate fi î
 4. Stripe Checkout încasează plata pe aceeași comandă.
 5. Webhook-ul marchează comanda drept plătită, iar Cloud Tasks pornește procesarea asincronă.
 6. Modelul de text produce planul structurat al albumului și păstrează titlul din preview.
-7. Cele 13 ilustrații de poveste sunt generate la rezoluție 2K folosind coperta drept referință, dar cu acțiuni și compoziții distincte.
-8. Fiecare asset este salvat imediat în Cloud Storage.
-9. Rendererul construiește separat cartea ilustrată și caietul de activități A5 landscape.
-10. Comanda este marcată `delivered`, iar clientul primește emailul și linkul securizat.
+7. Story Bible V3 fixează premisa, arcul, regulile lumii, motivul recurent și limbajul vizual.
+8. Cele 13 ilustrații sunt generate la rezoluție 2K folosind coperta drept Character Lock, dar cu acțiuni și compoziții distincte.
+9. Fiecare imagine trece prin verificări de rezoluție, proporții, contrast, relevanță, identitate, text accidental și siguranță.
+10. Fiecare asset este salvat imediat în Cloud Storage, iar bugetul este actualizat înainte de fiecare apel AI.
+11. Rendererul construiește separat cartea ilustrată și caietul de activități A5 landscape.
+12. Text-to-Speech pregătește o singură narațiune audio, reutilizată la fiecare acces.
+13. Comanda este marcată `delivered`, iar clientul primește emailul și linkul securizat.
 
 Generarea imaginilor rulează secvențial, cu pacing controlat pentru quota Vertex. Un retry reia numai asseturile lipsă, fără a regenera tot albumul și fără a dubla factura sau emailul.
 
@@ -167,6 +175,7 @@ Generarea imaginilor rulează secvențial, cu pacing controlat pentru quota Vert
 ```ts
 type AlbumPlan = {
   title: string;
+  storyBible: AlbumStoryBible;
   characterBible: string;
   characterPrompt: string;
   coverPrompt: string;
@@ -176,7 +185,9 @@ type AlbumPlan = {
     heading: string;
     text: string;
     imagePrompt: string;
-    layout: "single" | "spread";
+    layout: "cinematic" | "image-left" | "image-right";
+    editorialRole: string;
+    continuityNotes: string;
     panelPosition:
       | "bottom"
       | "top-left"
@@ -195,7 +206,7 @@ Reguli obligatorii:
 - țintă de 400-500 de cuvinte;
 - fiecare scenă avansează acțiunea;
 - lumea, lecția și detaliul personal influențează evenimentele;
-- `characterBible` și planșa de personaj rămân referințele comune pentru toate imaginile;
+- Story Bible și coperta aprobată rămân referințele comune pentru toate imaginile;
 - fără text, logo sau litere în imagini;
 - textul românesc este aplicat numai de renderer;
 - final optimist, potrivit vârstei, fără morală artificială.
@@ -204,9 +215,11 @@ Reguli obligatorii:
 
 - modelul principal și rezervele rămân configurabile;
 - coperta aprobată în preview este referința vizuală pentru toate scenele;
-- toate ilustrațiile albumului sunt solicitate la rezoluție 2K, în raport 16:9 pentru scene, 3:2 pentru copertă și 4:3 pentru activități;
+- toate ilustrațiile albumului sunt solicitate la rezoluție 2K, în raport 3:2 pentru copertă și scene și 4:3 pentru activități;
 - maximum patru încercări pentru fiecare asset;
 - imaginile prea mici sau aproape identice cu o scenă existentă sunt respinse automat;
+- un evaluator vizual verifică identitatea, relevanța, anatomia, textul accidental și siguranța;
+- apelurile text, imagine și QC au limite separate și un plafon estimat de cost per comandă;
 - checkpoint după fiecare imagine;
 - asseturile sub rezoluția minimă sunt respinse;
 - pentru produsul premium plătit nu livrăm imagini lipsă;
@@ -228,7 +241,7 @@ Avantaje:
 - relivrare fără alte apeluri AI;
 - separarea paginilor de lectură de paginile pe care copilul scrie sau colorează.
 
-În V1 se livrează numai PDF-ul digital. Rendererul păstrează intern regulile de bleed și safe area, astfel încât trecerea la tipar să nu necesite redesenarea paginilor.
+În V3 se livrează flipbookul privat, narațiunea și cele două PDF-uri digitale. Rendererul păstrează intern regulile de bleed și safe area, astfel încât trecerea la tipar să nu necesite redesenarea paginilor.
 
 ## 7. Date și stocare
 
@@ -253,6 +266,7 @@ Structura Cloud Storage:
 
 ```text
 orders/{orderId}/album/cover.jpg
+orders/{orderId}/album/album-parent-reference.jpg
 orders/{orderId}/album/character-reference.jpg
 orders/{orderId}/album/scene-01.jpg
 orders/{orderId}/album/...
@@ -261,6 +275,7 @@ orders/{orderId}/album/activity-coloring.jpg
 orders/{orderId}/album/activity-differences.jpg
 orders/{orderId}/album/storybook.pdf
 orders/{orderId}/album/activity-booklet.pdf
+orders/{orderId}/album/album-narration.mp3
 ```
 
 Firestore păstrează numai manifestul. Numele copilului, dedicația, povestea și prompturile nu sunt trimise în telemetrie.
@@ -325,7 +340,7 @@ Cardul „În curând” este conținut comercial, nu un produs activ în catalo
 - o comandă eșuată nu este marcată livrată;
 - suportul poate relua comanda fără o a doua plată.
 
-Nu colectăm adresă poștală în V1 și nu creăm produse Stripe pentru edițiile fizice.
+Nu colectăm adresă poștală în V3 și nu creăm produse Stripe pentru edițiile fizice.
 
 ## 10. Telemetrie și operare
 
@@ -333,7 +348,7 @@ Nu colectăm adresă poștală în V1 și nu creăm produse Stripe pentru ediți
 
 - `product_started`, `checkout_started` și evenimentele comerciale existente, cu `product=album`;
 - `pmm_story_text_completed`, cu numărul real de cuvinte și modelul folosit;
-- `pmm_album_stage_completed`, pentru plan, copertă, fiecare scenă, pagina de colorat, randare și livrare;
+- `pmm_album_stage_completed`, pentru plan, copertă, fiecare scenă, activități, randare, audio și livrare;
 - `pmm_album_stage_failed`, cu etapa, durata și codul erorii;
 - `pmm_pdf_render_completed` și `pdf_downloaded`, cu `product=album`;
 - feedback-ul existent „A fost util?”, cu `product=album`.
@@ -346,6 +361,7 @@ Nu colectăm adresă poștală în V1 și nu creăm produse Stripe pentru ediți
 - număr mediu de apeluri per album;
 - retry-uri și comenzi `needs_review`;
 - cost Vertex estimat per album;
+- scoruri agregate de identitate, relevanță și calitate tehnică;
 - dimensiune medie PDF;
 - feedback „A fost util?”;
 - interes pentru cardul ediției tipărite.
@@ -411,7 +427,7 @@ Chiar dacă ediția fizică este „În curând”, tipărim intern trei seturi 
 
 Nu cerem copilului să scrie sau să coloreze în cartea cartonată. Acest test confirmă că produsul digital nu trebuie redesenat când activăm pachetul tipărit.
 
-## 12. Plan de execuție
+## 12. Plan de execuție - finalizat
 
 ### Ziua 1 - contracte și cost
 
@@ -474,7 +490,7 @@ Produsul este public. Următoarele praguri sunt urmărite ca obiective operațio
 
 ## 14. Definition of Done
 
-V1 este complet când părintele poate configura albumul pe telefon, poate vedea coperta personalizată înainte de plată, poate plăti aceeași comandă, poate închide pagina în timpul procesării și primește ulterior două PDF-uri coerente și descărcabile în siguranță. Personajul trebuie să rămână recognoscibil în copertă și în toate cele 13 ilustrații distincte, iar o eroare nu trebuie să producă plăți, facturi sau emailuri duplicate.
+V3 este complet când părintele poate configura albumul pe telefon, poate folosi o descriere sau o fotografie autorizată, poate vedea coperta personalizată înainte de plată, poate plăti aceeași comandă, poate închide pagina în timpul procesării și primește ulterior un flipbook privat, narațiune și două PDF-uri coerente. Personajul trebuie să rămână recognoscibil în copertă și în toate cele 13 ilustrații distincte, fiecare imagine trebuie să treacă verificarea automată, costul trebuie să rămână sub plafon, iar o eroare nu trebuie să producă plăți, facturi sau emailuri duplicate.
 
 Ediția tipărită nu face parte din Definition of Done. Ea rămâne vizibilă ca direcție viitoare și va primi un plan separat după testarea a minimum trei tipografii și a unor mostre fizice.
 

@@ -15,11 +15,15 @@ type TelemetryFields = {
   wordCount?: number;
   pageCount?: number;
   storyLength?: StoryLength;
-  errorCode?: "ai_error" | "configuration" | "invalid_request" | "rate_limited" | "render_error" | "image_duplicate" | "image_low_resolution" | "unknown";
+  errorCode?: "ai_error" | "configuration" | "invalid_request" | "rate_limited" | "render_error" | "image_duplicate" | "image_low_resolution" | "image_quality_rejected" | "budget_limit" | "unknown";
   aiProvider?: "gemini" | "vertex";
   model?: string;
-  albumStage?: "plan" | "cover" | "scene" | "coloring" | "render" | "delivery";
+  albumStage?: "plan" | "cover" | "scene" | "coloring" | "render" | "audio" | "delivery";
   samplePage?: number;
+  estimatedCostMicros?: number;
+  identityScore?: number;
+  storyScore?: number;
+  technicalScore?: number;
 };
 
 export type TelemetryEvent =
@@ -95,6 +99,10 @@ export function logTelemetry(event: TelemetryEvent, fields: TelemetryFields = {}
     model: fields.model,
     album_stage: fields.albumStage,
     sample_page: fields.samplePage,
+    estimated_cost_micros: fields.estimatedCostMicros,
+    identity_score: fields.identityScore,
+    story_score: fields.storyScore,
+    technical_score: fields.technicalScore,
   };
 
   // Omit absent keys so log-based metric labels stay clean and predictable.

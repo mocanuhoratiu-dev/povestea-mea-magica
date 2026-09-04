@@ -1,7 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { renderAlbumDocuments } from "../src/lib/album/renderer";
-import type { AlbumConfiguration, AlbumPlan } from "../src/lib/album/types";
+import { renderAlbumDocuments } from "../src/lib/album/renderer.ts";
+import type { AlbumConfiguration, AlbumPlan } from "../src/lib/album/types.ts";
 
 const workspace = path.resolve(process.cwd(), "..");
 const assetsRoot = path.join(workspace, "tmp", "pdfs", "album-premium", "assets");
@@ -60,6 +60,7 @@ const configuration: AlbumConfiguration = {
     artStyle: "Acuarelă cinematografică",
     personalDetail: "Eva păstrează în rucsac o lanternă mică primită de la bunica.",
     storyContext: "Eva ajută o steluță să ducă lumina înapoi la observator.",
+    referenceMode: "description",
   },
   dedication: "Pentru Eva, care găsește o rază de lumină chiar și atunci când drumul pare necunoscut.",
   dedicationFrom: "Cu toată dragostea, Mama și Tata",
@@ -67,6 +68,19 @@ const configuration: AlbumConfiguration = {
 
 const plan: AlbumPlan = {
   title: "Eva și lumina dintre stele",
+  storyBible: {
+    version: 3,
+    premise: "Eva ajută o steluță să ducă lumina înapoi la observator.",
+    childRole: "Păstrătoarea hărții de lumină",
+    emotionalNeed: "Să aibă încredere în alegerile ei.",
+    narrativePromise: "O călătorie luminoasă spre casă.",
+    recurringMotif: "lumina de pe palmă",
+    companionRole: "Steluța arată drumul, dar Eva ia deciziile.",
+    worldRules: ["Lumina deschide porți.", "Ecourile răspund sincerității.", "Stelele se ajută între ele."],
+    arc: { opening: "Steluța apare.", catalyst: "Harta indică observatorul.", turningPoint: "Eva repară podul.", resolution: "Lumina revine acasă." },
+    characterLock: { referenceMode: "description", canonicalDescription: "Eva, 5 ani, păr șaten ondulat și ochi căprui.", immutableTraits: ["păr șaten ondulat", "ochi căprui", "salopetă cărămizie"], outfitPalette: "cărămiziu, crem și bleumarin", companionDescription: "o steluță aurie mică", anchorAsset: "cover" },
+    visualLanguage: { palette: "albastru nocturn, auriu și crem", lighting: "lumină de stele", texture: "acuarelă și guașă", compositionRules: ["profunzime în trei planuri", "acțiuni clare", "perspective variate"], forbidden: ["text în imagini", "personaje duplicate"] },
+  },
   characterBible: "Eva, 5 years old, brown eyes and wavy brown hair, brick-red overalls and a navy star backpack.",
   characterPrompt: "Character reference for Eva and her tiny star companion.",
   coverPrompt: "Eva discovers a tiny living star in a moonlit garden.",
@@ -78,6 +92,9 @@ const plan: AlbumPlan = {
     imagePrompt: `Premium scene ${index + 1}`,
     panelPosition: "bottom",
     panelTone: index % 2 ? "navy" : "cream",
+    layout: (["cinematic", "image-left", "image-right"] as const)[index % 3],
+    editorialRole: `moment narativ ${index + 1}`,
+    continuityNotes: "Eva și steluța păstrează aceleași trăsături și accesorii.",
   })),
   textModel: "sample",
 };

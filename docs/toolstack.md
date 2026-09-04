@@ -29,7 +29,8 @@
 | Gemini 3.5 Flash | Modelul Vertex principal pentru continutul personalizat si conversatia Lumi. |
 | Gemini 3.1 Flash Lite | Model Vertex de rezerva. Daca modelul principal nu raspunde, fiecare produs il incearca inainte de orice fallback local. |
 | Fallback template personalizat | A treia plasa de siguranta. Genereaza continut local, personalizat dupa alegerile familiei, cand modelele AI nu sunt disponibile. |
-| Vertex image model | Genereaza coperta ilustrata a povestii. Pentru indisponibilitate exista un fallback vizual generic, fara datele copilului. |
+| Gemini 3.1 Flash Image | Genereaza copertile si toate ilustratiile Albumului Meu Magic prin Vertex AI. |
+| Evaluator vizual Gemini | Verifica identitatea personajului, relevanta scenei, calitatea tehnica, siguranta si absenta textului accidental. |
 | Google Cloud Text-to-Speech | Previzualizare audio in romana prin service account-ul Cloud Run: Zephyr pentru povesti si Aoede pentru Lumi. |
 
 Ordinea pentru generarea produselor este: **model Vertex principal -> model Vertex de rezerva -> template personalizat**.
@@ -42,6 +43,8 @@ Ordinea pentru generarea produselor este: **model Vertex principal -> model Vert
 | html2canvas (CDN) | Randarea paginilor de produs in canvas, direct in browser. |
 | jsPDF (CDN) | Construirea si descarcarea PDF-urilor A4, direct in browser. |
 | Pollinations | Fallback temporar doar pentru o coperta generica, fara nume, varsta sau detalii libere despre copil. |
+| sharp | Curata si redimensioneaza fotografiile de referinta, inspecteaza imaginile si pregateste asseturile pentru PDF. |
+| jsPDF server-side | Construieste cartea si caietul Albumului Meu Magic in format A5 landscape. |
 
 ## Platforma, securitate si operare
 
@@ -55,12 +58,20 @@ Ordinea pentru generarea produselor este: **model Vertex principal -> model Vert
 | Rate limiting in-memory | Protectie best-effort pentru endpoint-urile de generare, telemetrie si Lumi in perioada de lansare. |
 | Endpoint `/api/health` | Verificare publica a starii de productie si a configuratiei esentiale, fara expunerea secretelor. |
 
-## Optional / neactiv in aceasta etapa
+## Comert si livrare
 
 | Tehnologie | Rol |
 | --- | --- |
-| Stripe | Pregatita pentru etapa de comanda si plata; checkout-ul rămâne dezactivat până la configurarea contului bancar. |
-| Resend | Livrare tranzactionala a PDF-urilor ca atasament email. Se activeaza printr-o cheie stocata in Secret Manager si un domeniu expeditor verificat. |
+| Stripe | Checkout gazduit, coduri promotionale, webhook semnat si pornirea procesarii dupa plata confirmata. |
+| Resend | Email tranzactional cu link privat catre materialele generate. Cheia este pastrata in Secret Manager. |
+| SmartBill | Facturare asincrona dupa plata, separata de livrare si protejata intre modurile test si live. |
+| Firestore | Starea comenzilor, progres, configuratie si manifestul asseturilor. |
+| Cloud Storage | Fotografii private, imagini generate, audio si PDF-uri cu stergere automata dupa 31 de zile. |
+| Cloud Tasks | Procesarea asincrona si reluabila a comenzilor platite. |
+| HMAC delivery tokens | Linkuri private pentru preview, flipbook, audio si PDF-uri. |
+
+## Optional / neactiv in aceasta etapa
+
 | n8n | Pregatit pentru automatizari operationale ulterioare. |
 
 ## Calitate si dezvoltare

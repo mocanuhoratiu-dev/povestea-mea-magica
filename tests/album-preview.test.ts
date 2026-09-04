@@ -20,6 +20,7 @@ const input = {
   artStyle: "Guașă pictată manual",
   personalDetail: "un rucsac cu o stea cusută",
   storyContext: "Sofia caută finalul dispărut al unei povești.",
+  referenceMode: "description" as const,
 };
 
 test("album preview prompt carries the family's visual and story choices", () => {
@@ -34,6 +35,12 @@ test("album preview reserves editorial space and forbids generated typography", 
   assert.match(prompt, /upper-left third/i);
   assert.match(prompt, /No title, no words, no letters, no logo, no watermark/i);
   assert.match(prompt, /authoritative visual reference/i);
+});
+
+test("album preview explicitly treats a parent photo as the identity anchor", () => {
+  const prompt = buildAlbumPreviewPrompt({ ...input, referenceMode: "photo" }, "Biblioteca poveștilor vii");
+  assert.match(prompt, /attached photograph is the authoritative identity reference/i);
+  assert.match(prompt, /recognizable facial structure/i);
 });
 
 test("album preview title remains deterministic for the final renderer", () => {

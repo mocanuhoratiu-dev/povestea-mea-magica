@@ -15,7 +15,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ orde
   const token = url.searchParams.get("token") || "";
   const requestedFile = url.searchParams.get("file");
   if (!isValidDeliveryToken(orderId, token)) return NextResponse.json({ error: "Linkul nu este valid sau a expirat." }, { status: 403 });
-  if (requestedFile !== "storybook" && requestedFile !== "activities") return NextResponse.json({ error: "Document necunoscut." }, { status: 400 });
+  if (requestedFile !== "storybook" && requestedFile !== "activities" && requestedFile !== "narration") return NextResponse.json({ error: "Document necunoscut." }, { status: 400 });
 
   const order = await getOrder(orderId);
   const requestedItem = url.searchParams.get("item");
@@ -29,18 +29,20 @@ export async function GET(request: Request, { params }: { params: Promise<{ orde
     : null;
   if (!order || order.status !== "delivered" || !album?.documents) return NextResponse.json({ error: "Documentul nu este pregătit." }, { status: 404 });
 
-  const objectName = requestedFile === "storybook" ? album.documents.storybook : album.documents.activityBooklet;
+  const objectName = requestedFile === "storybook" ? album.documents.storybook : requestedFile === "activities" ? album.documents.activityBooklet : album.documents.narration;
+  if (!objectName) return NextResponse.json({ error: "Nararea nu este disponibilă pentru acest album." }, { status: 404 });
   const file = await readOrderFile(objectName);
   const generation = order.product === "album" ? order.configuration.generation : bundleAlbumConfiguration?.generation;
   const name = generation && typeof generation === "object" && !Array.isArray(generation)
     ? safeFilename(String((generation as Record<string, unknown>).name || "copil"))
     : "copil";
-  const filename = requestedFile === "storybook" ? `albumul-meu-magic-${name}.pdf` : `caietul-magic-${name}.pdf`;
+  const filename = requestedFile === "storybook" ? `albumul-meu-magic-${name}.pdf` : requestedFile === "activities" ? `caietul-magic-${name}.pdf` : `povestea-${name}.mp3`;
+  const isAudio = requestedFile === "narration";
 
   return new NextResponse(new Uint8Array(file.buffer), {
     headers: {
-      "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="${filename}"`,
+      "Content-Type": isAudio ? "audio/mpeg" : "application/pdf",
+      "Content-Disposition": `${isAudio ? "inline" : "attachment"}; filename="${filename}"`,
       "Cache-Control": "private, no-store",
       "X-Content-Type-Options": "nosniff",
     },

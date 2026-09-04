@@ -5,6 +5,8 @@ import type { AlbumConfiguration, AlbumOrderOutput } from "@/lib/album/types";
 import { saveOrderCover } from "@/lib/orders";
 import { logTelemetry } from "@/lib/telemetry";
 import { generateVertexAlbumIllustration } from "@/lib/vertexImage";
+import { createAlbumBudget, reserveAlbumBudgetCall } from "@/lib/album/budget";
+import { evaluateAlbumImage, isAlbumAiQualityEnabled } from "@/lib/album/quality";
 
 function decodePreview(imageDataUrl: string) {
   const match = /^data:image\/(?:png|jpeg|webp);base64,([a-zA-Z0-9+/=]+)$/.exec(imageDataUrl);
@@ -12,13 +14,16 @@ function decodePreview(imageDataUrl: string) {
   return Buffer.from(match[1], "base64");
 }
 
-export async function generateAlbumPreview(orderId: string, configuration: AlbumConfiguration) {
+export async function generateAlbumPreview(orderId: string, configuration: AlbumConfiguration, options: { referenceImageDataUrl?: string; sourceReference?: string } = {}) {
   const prompt = buildAlbumPreviewPrompt(
     configuration.generation,
     albumWorldLabel(configuration.generation.world),
   );
   const previewTitle = albumPreviewTitle(configuration.generation);
-  const generated = await generateVertexAlbumIllustration(prompt, undefined, "3:2");
+  let budget = createAlbumBudget();
+  const generated = await generateVertexAlbumIllustration(prompt, options.referenceImageDataUrl, "3:2", {
+    beforeAttempt: async () => { budget = reserveAlbumBudgetCall(budget, "image"); },
+  });
   if ("error" in generated) throw new Error(generated.error);
 
   const metadata = await sharp(decodePreview(generated.imageDataUrl)).metadata();
@@ -26,16 +31,30 @@ export async function generateAlbumPreview(orderId: string, configuration: Album
     throw new Error("Preview-ul primit nu are rezoluția necesară pentru album.");
   }
 
+  if (isAlbumAiQualityEnabled()) budget = reserveAlbumBudgetCall(budget, "quality");
+  const quality = await evaluateAlbumImage({
+    asset: "cover-preview",
+    candidateDataUrl: generated.imageDataUrl,
+    referenceDataUrl: options.referenceImageDataUrl,
+    prompt,
+    expectedAspectRatio: "3:2",
+    identityRequired: Boolean(options.referenceImageDataUrl),
+  });
+  if (!quality.accepted) throw new Error("Preview-ul nu a trecut controlul de calitate vizuală.");
+
   const objectName = await saveOrderCover(orderId, generated.imageDataUrl, "album-cover");
   const output: AlbumOrderOutput = {
     kind: "illustrated-album",
     previewTitle,
     assets: {
+      ...(options.sourceReference ? { sourceReference: options.sourceReference } : {}),
       cover: objectName,
       scenes: Array.from({ length: 13 }, () => ""),
     },
     progress: { stage: "planning", current: 0, total: 13 },
     imageModels: [generated.model],
+    quality: [quality],
+    budget,
   };
 
   return { objectName, output, model: generated.model, title: previewTitle };

@@ -31,6 +31,7 @@ function visualDirection(style: string) {
 export function buildAlbumPreviewPrompt(input: AlbumGenerationInput, worldLabel: string) {
   return [
     `Create one spectacular full-bleed A5 landscape cover illustration for a premium personalized children's picture book about ${input.name}, age ${input.age}.`,
+    input.referenceMode === "photo" ? "The attached photograph is the authoritative identity reference. Translate the child's recognizable facial structure, skin tone, hair and apparent age faithfully into the selected illustration style without making the result photorealistic." : "Build the child's identity from the confirmed description and keep it precise.",
     `The child has ${input.hairStyle} ${input.hairColor} hair, ${input.eyeColor} eyes and ${input.skinTone} skin tone.`,
     `Signature outfit: ${input.outfit}. Favorite color accent: ${input.favoriteColor}.`,
     input.appearanceDetail ? `Distinctive visible details: ${input.appearanceDetail}.` : "",

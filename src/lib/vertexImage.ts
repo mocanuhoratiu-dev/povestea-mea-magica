@@ -56,12 +56,14 @@ async function generateVertexImage({
   referenceImageDataUrl,
   timeoutEnvironment,
   imageSize,
+  beforeAttempt,
 }: {
   prompt: string;
   aspectRatio: ImageAspectRatio;
   referenceImageDataUrl?: string;
   timeoutEnvironment: "cover" | "album";
   imageSize: "1K" | "2K";
+  beforeAttempt?: () => Promise<void>;
 }): Promise<CoverGenerationResult> {
   const project = process.env.VERTEX_AI_PROJECT_ID?.trim();
   const cleanPrompt = cleanCoverPrompt(prompt);
@@ -108,6 +110,7 @@ async function generateVertexImage({
 
   for (const model of getImageModels()) {
     try {
+      await beforeAttempt?.();
       const response = await withTimeout(
         client.models.generateContent({
           model,
@@ -158,6 +161,7 @@ export async function generateVertexAlbumIllustration(
   prompt: string,
   referenceImageDataUrl?: string,
   aspectRatio: Exclude<ImageAspectRatio, "1:1"> = "3:2",
+  options: { beforeAttempt?: () => Promise<void> } = {},
 ) {
   return generateVertexImage({
     prompt,
@@ -165,5 +169,6 @@ export async function generateVertexAlbumIllustration(
     referenceImageDataUrl,
     timeoutEnvironment: "album",
     imageSize: "2K",
+    beforeAttempt: options.beforeAttempt,
   });
 }

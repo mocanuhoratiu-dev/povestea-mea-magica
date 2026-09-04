@@ -2,11 +2,10 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { jsPDF } from "jspdf";
 import sharp from "sharp";
-import type { AlbumConfiguration, AlbumPlan } from "@/lib/album/types";
+import type { AlbumConfiguration, AlbumPlan, AlbumSceneLayout } from "@/lib/album/types";
 
 const PAGE_W = 210;
 const PAGE_H = 148;
-const STORY_IMAGE_H = 103;
 const NAVY = "#07182c";
 const NAVY_SOFT = "#102c48";
 const INK = "#14283a";
@@ -40,9 +39,13 @@ async function prepareCoverImage(buffer: Buffer) {
   return toDataUrl(jpeg, "image/jpeg");
 }
 
-async function prepareStoryImage(buffer: Buffer) {
+async function prepareStoryImage(buffer: Buffer, layout: AlbumSceneLayout) {
+  const cinematic = layout === "cinematic";
   const jpeg = await sharp(buffer)
-    .resize(2100, 1030, { fit: "cover", position: "attention" })
+    .resize(cinematic ? 2100 : 1240, cinematic ? 910 : 1480, {
+      fit: "cover",
+      position: cinematic ? "attention" : layout === "image-left" ? "west" : "east",
+    })
     .sharpen({ sigma: 0.55 })
     .jpeg({ quality: 89, progressive: true })
     .toBuffer();
@@ -232,22 +235,36 @@ function drawDedication(doc: jsPDF, config: AlbumConfiguration, logo: string) {
 
 function drawStoryPage(doc: jsPDF, image: string, scene: AlbumPlan["scenes"][number], pageNumber: number, isFinal: boolean) {
   const dark = scene.panelTone === "navy";
-  doc.addImage(image, "JPEG", 0, 0, PAGE_W, STORY_IMAGE_H, undefined, "MEDIUM");
+  const cinematic = scene.layout === "cinematic";
+  const imageW = 124;
+  const panelX = scene.layout === "image-left" ? imageW : 0;
+  const imageX = scene.layout === "image-right" ? PAGE_W - imageW : 0;
+  const panelW = cinematic ? PAGE_W : PAGE_W - imageW;
+  const panelY = cinematic ? 91 : 0;
+  const panelH = cinematic ? PAGE_H - panelY : PAGE_H;
+
+  if (cinematic) doc.addImage(image, "JPEG", 0, 0, PAGE_W, panelY, undefined, "MEDIUM");
+  else doc.addImage(image, "JPEG", imageX, 0, imageW, PAGE_H, undefined, "MEDIUM");
   doc.setFillColor(dark ? NAVY : CREAM);
-  doc.rect(0, STORY_IMAGE_H, PAGE_W, PAGE_H - STORY_IMAGE_H, "F");
+  doc.rect(panelX, panelY, panelW, panelH, "F");
   doc.setFillColor(GOLD);
-  doc.rect(0, STORY_IMAGE_H, PAGE_W, 1.2, "F");
-  drawSpark(doc, 13, 113, 1.7, dark ? GOLD_LIGHT : GOLD);
+  if (cinematic) doc.rect(0, panelY, PAGE_W, 1.2, "F");
+  else doc.rect(scene.layout === "image-left" ? imageW - 1.2 : panelW, 0, 1.2, PAGE_H, "F");
+
+  const textX = cinematic ? 18 : panelX + 11;
+  const headingY = cinematic ? 103 : 31;
+  drawSpark(doc, cinematic ? 13 : panelX + 7, cinematic ? 102 : 18, 1.7, dark ? GOLD_LIGHT : GOLD);
 
   doc.setFont("Liberation", "bold");
   doc.setFontSize(7.4);
   doc.setTextColor(dark ? GOLD_LIGHT : BLUE);
   const heading = scene.heading.toLocaleUpperCase("ro-RO");
-  fitSingleLine(doc, heading, 132, 7.4, 6.2);
-  doc.text(heading, 18, 114.5);
+  fitSingleLine(doc, heading, cinematic ? 132 : panelW - 22, cinematic ? 7.4 : 8.3, 6.2);
+  doc.text(heading, textX, headingY);
 
-  const maxWidth = isFinal ? 150 : 179;
-  let bodySize = 10.8;
+  const maxWidth = cinematic ? (isFinal ? 150 : 178) : panelW - 22;
+  const maxHeight = cinematic ? 26 : (isFinal ? 69 : 82);
+  let bodySize = cinematic ? 10.6 : 10.2;
   let lines: string[] = [];
   let lineHeight = 0;
   doc.setFont("Liberation", "normal");
@@ -256,18 +273,20 @@ function drawStoryPage(doc: jsPDF, image: string, scene: AlbumPlan["scenes"][num
     doc.setFontSize(bodySize);
     lines = doc.splitTextToSize(scene.text, maxWidth) as string[];
     lineHeight = bodySize * 0.3528 * 1.2;
-    if (lines.length * lineHeight <= 20) break;
+    if (lines.length * lineHeight <= maxHeight) break;
     bodySize -= 0.2;
   }
-  if (lines.length * lineHeight > 20) throw new Error(`Textul scenei ${pageNumber} nu încape în zona editorială.`);
-  doc.text(lines, 14, 124.5, { lineHeightFactor: 1.2 });
+  if (lines.length * lineHeight > maxHeight) throw new Error(`Textul scenei ${pageNumber} nu încape în zona editorială.`);
+  doc.text(lines, cinematic ? 14 : textX, cinematic ? 113 : 47, { lineHeightFactor: 1.2 });
 
   if (isFinal) {
     doc.setFont("Liberation", "italic");
     doc.setFontSize(13);
     doc.setTextColor(dark ? GOLD_LIGHT : BLUE);
-    doc.text("Sfârșit", 180, 132.5, { align: "center" });
-    drawSpark(doc, 180, 121, 1.8, dark ? GOLD_LIGHT : GOLD);
+    const endingX = cinematic ? 180 : panelX + panelW / 2;
+    const endingY = cinematic ? 134 : 130;
+    doc.text("Sfârșit", endingX, endingY, { align: "center" });
+    drawSpark(doc, endingX, endingY - 11, 1.8, dark ? GOLD_LIGHT : GOLD);
   }
   drawPageNumber(doc, pageNumber, dark);
 }
@@ -465,7 +484,7 @@ export async function renderAlbumDocuments(config: AlbumConfiguration, plan: Alb
     prepareDifferenceImages(assets.differences),
     readFile(path.join(process.cwd(), "public", "brand-mark.png")).then(prepareLogo),
   ]);
-  const sceneImages = await Promise.all(assets.scenes.map(prepareStoryImage));
+  const sceneImages = await Promise.all(assets.scenes.map((image, index) => prepareStoryImage(image, plan.scenes[index].layout)));
 
   const storybook = await createDocument(`${plan.title} - Album ilustrat`);
   drawCover(storybook, cover, plan.title, config.generation.name, logo);

@@ -9,10 +9,13 @@ import {
   isOrderStoreConfigured,
   isValidDeliveryToken,
   readOrderFile,
+  saveOrderCover,
   setOrderStatus,
 } from "@/lib/orders";
 import { checkRateLimit, requestExceedsBodyLimit } from "@/lib/requestProtection";
 import { logTelemetry } from "@/lib/telemetry";
+import { sanitizeAlbumReferencePhoto } from "@/lib/album/referencePhoto";
+import { readBundleConfiguration, readBundleOutput } from "@/lib/bundle";
 
 export const runtime = "nodejs";
 
@@ -42,7 +45,7 @@ async function addPreviewWatermark(image: Buffer) {
 
 export async function POST(request: Request) {
   const startedAt = Date.now();
-  if (requestExceedsBodyLimit(request, 32_000)) {
+  if (requestExceedsBodyLimit(request, 1_800_000)) {
     return NextResponse.json({ error: "Datele pentru preview sunt prea mari." }, { status: 413 });
   }
 
@@ -64,19 +67,40 @@ export async function POST(request: Request) {
   }
 
   try {
-    const body = await request.json() as { configuration?: unknown };
-    const configuration = readAlbumConfiguration(body.configuration);
+    const body = await request.json() as { productId?: unknown; configuration?: unknown; bundleConfiguration?: unknown; referenceImageDataUrl?: unknown; photoConsent?: unknown };
+    const isCompleteBundle = body.productId === "complete-bundle";
+    const bundle = isCompleteBundle ? readBundleConfiguration(body.bundleConfiguration, "complete") : null;
+    const albumItem = bundle?.find((item) => item.product === "album");
+    const configuration = readAlbumConfiguration(isCompleteBundle ? albumItem?.configuration : body.configuration);
     if (!configuration) {
       logAlbumPreviewFailure(startedAt, "configuration");
       return NextResponse.json({ error: "Verifică detaliile copilului și ale aventurii." }, { status: 400 });
     }
 
-    const order = await createOrder("illustrated-album-digital", configuration as unknown as Record<string, unknown>);
+    const wantsPhoto = configuration.generation.referenceMode === "photo";
+    if (wantsPhoto !== Boolean(body.referenceImageDataUrl)) {
+      return NextResponse.json({ error: "Selectează din nou fotografia sau continuă numai cu descrierea." }, { status: 400 });
+    }
+    if (wantsPhoto && body.photoConsent !== true) {
+      return NextResponse.json({ error: "Este necesară confirmarea permisiunii pentru folosirea fotografiei." }, { status: 400 });
+    }
+    const sanitizedReference = wantsPhoto ? await sanitizeAlbumReferencePhoto(body.referenceImageDataUrl) : null;
+    const consent = { confirmedAt: new Date().toISOString(), policyVersion: "2026-09-04" };
+    const storedAlbumConfiguration = wantsPhoto ? { ...configuration, referencePhotoConsent: consent } : configuration;
+    const storedConfiguration = isCompleteBundle && bundle
+      ? { items: bundle.map((item) => item.product === "album" ? { ...item, configuration: storedAlbumConfiguration } : item) }
+      : storedAlbumConfiguration;
+    const order = await createOrder(isCompleteBundle ? "complete-bundle" : "illustrated-album-digital", storedConfiguration as unknown as Record<string, unknown>);
+    const sourceReference = sanitizedReference ? await saveOrderCover(order.id, sanitizedReference.dataUrl, "album-parent-reference") : undefined;
     logTelemetry("pmm_album_preview_started", { product: "album", result: "success", albumStage: "cover" });
-    const preview = await generateAlbumPreview(order.id, configuration);
-    await setOrderStatus(order, "draft", { output: preview.output, coverObjectName: preview.objectName });
+    const preview = await generateAlbumPreview(order.id, configuration, {
+      referenceImageDataUrl: sanitizedReference?.dataUrl,
+      sourceReference,
+    });
+    const storedOutput = isCompleteBundle ? { items: [{ product: "album", output: preview.output }] } : preview.output;
+    await setOrderStatus(order, "draft", { output: storedOutput, coverObjectName: preview.objectName });
     const token = createDeliveryToken(order.id, 1);
-    const query = new URLSearchParams({ order: order.id, token });
+    const query = new URLSearchParams({ order: order.id, token, ...(isCompleteBundle ? { item: "album" } : {}) });
 
     logTelemetry("pmm_album_preview_completed", {
       product: "album",
@@ -90,6 +114,7 @@ export async function POST(request: Request) {
       orderId: order.id,
       previewUrl: `/api/album-preview?${query.toString()}`,
       title: preview.title,
+      qualityChecked: preview.output.quality.some((result) => result.accepted),
     }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     console.error("Album preview generation failed", error);
@@ -108,7 +133,11 @@ export async function GET(request: Request) {
 
   try {
     const order = await getOrder(orderId);
-    const output = order?.product === "album" ? readAlbumOutput(order.output) : null;
+    const output = order?.product === "album"
+      ? readAlbumOutput(order.output)
+      : order?.product === "bundle" && url.searchParams.get("item") === "album"
+        ? readAlbumOutput(readBundleOutput(order.output).find((item) => item.product === "album")?.output)
+        : null;
     if (!order || !["draft", "pending_payment"].includes(order.status) || !output?.assets.cover) {
       return NextResponse.json({ error: "Preview-ul nu mai este disponibil." }, { status: 404 });
     }

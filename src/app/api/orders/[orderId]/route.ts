@@ -1,9 +1,44 @@
 import { NextResponse } from "next/server";
-import { readAlbumOutput } from "@/lib/album/schema";
+import { readAlbumConfiguration, readAlbumOutput } from "@/lib/album/schema";
+import type { AlbumOrderOutput } from "@/lib/album/types";
 import { bundleProducts, bundleVariantForProductId, readBundleConfiguration, readBundleOutput, type BundleProduct } from "@/lib/bundle";
 import { getOrder, isValidDeliveryToken, readOrderCover } from "@/lib/orders";
 
 export const runtime = "nodejs";
+
+function albumDeliveryPayload({ album, configuration, orderId, token, item }: { album: AlbumOrderOutput; configuration: Record<string, unknown>; orderId: string; token: string; item?: string }) {
+  const config = readAlbumConfiguration(configuration);
+  if (!config || !album.documents || !album.plan) return null;
+  const assetUrl = (asset: string) => {
+    const query = new URLSearchParams({ token, asset, ...(item ? { item } : {}) });
+    return `/api/orders/${encodeURIComponent(orderId)}/asset?${query.toString()}`;
+  };
+  const documentUrl = (file: string) => {
+    const query = new URLSearchParams({ token, file, ...(item ? { item } : {}) });
+    return `/api/orders/${encodeURIComponent(orderId)}/document?${query.toString()}`;
+  };
+  return {
+    product: "album" as const,
+    childName: config.generation.name,
+    title: album.plan.title,
+    referenceMode: album.plan.storyBible.characterLock.referenceMode,
+    qualitySummary: {
+      accepted: album.quality.filter((result) => result.accepted).length,
+      checked: album.quality.length,
+    },
+    pages: [
+      { kind: "cover", eyebrow: "Copertă", title: album.plan.title, text: `O aventură creată pentru ${config.generation.name}`, imageUrl: assetUrl("cover") },
+      { kind: "dedication", eyebrow: "Dedicație", title: `Pentru ${config.generation.name}`, text: config.dedication || `Pentru ${config.generation.name}, cu drag și cu lumină pentru fiecare aventură.`, signature: config.dedicationFrom },
+      ...album.plan.scenes.map((scene, index) => ({ kind: "story", eyebrow: `Pagina ${index + 1}`, title: scene.heading, text: scene.text, imageUrl: assetUrl(`scene-${index}`), layout: scene.layout })),
+      { kind: "back", eyebrow: "Coperta finală", title: "Povestea continuă cu voi", text: "O poveste în care copilul tău contează." },
+    ],
+    documents: [
+      { id: "storybook", label: "Cartea ilustrată", pages: 16 },
+      { id: "activities", label: "Caietul de activități", pages: 5 },
+    ],
+    ...(album.documents.narration ? { audioUrl: documentUrl("narration") } : {}),
+  };
+}
 
 export async function GET(request: Request, { params }: { params: Promise<{ orderId: string }> }) {
   const { orderId } = await params;
@@ -16,20 +51,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ orde
 
   if (order.product === "album") {
     const album = readAlbumOutput(order.output);
-    const generation = order.configuration.generation;
-    const name = generation && typeof generation === "object" && !Array.isArray(generation)
-      ? String((generation as Record<string, unknown>).name || "").slice(0, 40)
-      : "";
-    if (!album?.documents || !album.plan) return NextResponse.json({ error: "Albumul nu este complet." }, { status: 409 });
-    return NextResponse.json({
-      product: "album",
-      childName: name,
-      title: album.plan.title,
-      documents: [
-        { id: "storybook", label: "Cartea ilustrată", pages: 16 },
-        { id: "activities", label: "Caietul de activități", pages: 5 },
-      ],
-    });
+    if (!album) return NextResponse.json({ error: "Albumul nu este complet." }, { status: 409 });
+    const payload = albumDeliveryPayload({ album, configuration: order.configuration, orderId, token });
+    return payload ? NextResponse.json(payload) : NextResponse.json({ error: "Albumul nu este complet." }, { status: 409 });
   }
 
   const requestedItem = new URL(request.url).searchParams.get("item");
@@ -54,20 +78,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ orde
     if (!configured || !generated) return NextResponse.json({ error: "Materialul nu este pregatit." }, { status: 404 });
     if (generated.product === "album") {
       const album = readAlbumOutput(generated.output);
-      const generation = configured.configuration.generation;
-      const name = generation && typeof generation === "object" && !Array.isArray(generation)
-        ? String((generation as Record<string, unknown>).name || "").slice(0, 40)
-        : "";
-      if (!album?.documents || !album.plan) return NextResponse.json({ error: "Albumul nu este complet." }, { status: 409 });
-      return NextResponse.json({
-        product: "album",
-        childName: name,
-        title: album.plan.title,
-        documents: [
-          { id: "storybook", label: "Cartea ilustrată", pages: 16 },
-          { id: "activities", label: "Caietul de activități", pages: 5 },
-        ],
-      });
+      if (!album) return NextResponse.json({ error: "Albumul nu este complet." }, { status: 409 });
+      const payload = albumDeliveryPayload({ album, configuration: configured.configuration, orderId, token, item: "album" });
+      return payload ? NextResponse.json(payload) : NextResponse.json({ error: "Albumul nu este complet." }, { status: 409 });
     }
     const coverImageDataUrl = generated.coverObjectName ? await readOrderCover(generated.coverObjectName) : "";
     return NextResponse.json({ product: generated.product, configuration: configured.configuration, output: generated.output, coverImageDataUrl });
