@@ -39,7 +39,7 @@ async function addPreviewWatermark(image: Buffer) {
         <text x="0" y="0" text-anchor="middle" dominant-baseline="middle"
           font-family="Liberation Sans" font-size="${fontSize}" font-weight="800"
           letter-spacing="${Math.round(fontSize * 0.1)}" fill="#f7eed8"
-          stroke="#07122a" stroke-width="${strokeWidth}" paint-order="stroke">PREVIEW</text>
+          stroke="#07122a" stroke-width="${strokeWidth}" paint-order="stroke">MOSTRĂ</text>
       </g>
     </svg>
   `);
@@ -49,7 +49,7 @@ async function addPreviewWatermark(image: Buffer) {
 export async function POST(request: Request) {
   const startedAt = Date.now();
   if (requestExceedsBodyLimit(request, 1_800_000)) {
-    return NextResponse.json({ error: "Datele pentru preview sunt prea mari." }, { status: 413 });
+    return NextResponse.json({ error: "Datele pentru mostră sunt prea mari." }, { status: 413 });
   }
 
   const limit = checkRateLimit(request, "album-preview", {
@@ -59,14 +59,14 @@ export async function POST(request: Request) {
   if (!limit.allowed) {
     logAlbumPreviewFailure(startedAt, "rate_limited");
     return NextResponse.json(
-      { error: "Ai creat deja preview-urile disponibile astăzi. Poți continua cu unul dintre ele sau poți reveni mâine." },
+      { error: "Ai creat deja mostrele disponibile astăzi. Poți continua cu una dintre ele sau poți reveni mâine." },
       { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } },
     );
   }
 
   if (!isOrderStoreConfigured() || !process.env.VERTEX_AI_PROJECT_ID?.trim()) {
     logAlbumPreviewFailure(startedAt, "configuration");
-    return NextResponse.json({ error: "Preview-ul personalizat nu este disponibil momentan." }, { status: 503 });
+    return NextResponse.json({ error: "Mostra personalizată nu este disponibilă momentan." }, { status: 503 });
   }
 
   try {
@@ -126,7 +126,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Album preview generation failed", error);
     logAlbumPreviewFailure(startedAt, "ai_error");
-    return NextResponse.json({ error: "Preview-ul nu a putut fi creat acum. Încearcă din nou în câteva minute." }, { status: 502 });
+    return NextResponse.json({ error: "Mostra nu a putut fi creată acum. Încearcă din nou în câteva minute." }, { status: 502 });
   }
 }
 
@@ -135,7 +135,7 @@ export async function GET(request: Request) {
   const orderId = url.searchParams.get("order") || "";
   const token = url.searchParams.get("token") || "";
   if (!orderId || !token || !isValidDeliveryToken(orderId, token)) {
-    return NextResponse.json({ error: "Preview-ul nu mai este disponibil." }, { status: 404 });
+    return NextResponse.json({ error: "Mostra nu mai este disponibilă." }, { status: 404 });
   }
 
   try {
@@ -146,12 +146,12 @@ export async function GET(request: Request) {
         ? readAlbumOutput(readBundleOutput(order.output).find((item) => item.product === "album")?.output)
         : null;
     if (!order || !["draft", "pending_payment", "failed"].includes(order.status) || !output?.assets.cover) {
-      return NextResponse.json({ error: "Preview-ul nu mai este disponibil." }, { status: 404 });
+      return NextResponse.json({ error: "Mostra nu mai este disponibilă." }, { status: 404 });
     }
 
     if (url.searchParams.get("view") === "status") {
       if (order.status === "failed") {
-        return NextResponse.json({ status: "failed", error: "Preview-ul interior nu a putut fi finalizat. Poți încerca o copertă nouă." });
+        return NextResponse.json({ status: "failed", error: "Mostra interioară nu a putut fi finalizată. Poți încerca o copertă nouă." });
       }
       const ready = isAlbumPreviewReady(output);
       if (!ready) {
@@ -162,7 +162,7 @@ export async function GET(request: Request) {
         }, { status: 202, headers: { "Cache-Control": "private, no-store, max-age=0" } });
       }
       const plan = output.plan;
-      if (!plan) return NextResponse.json({ error: "Planul preview-ului lipsește." }, { status: 500 });
+      if (!plan) return NextResponse.json({ error: "Planul mostrei lipsește." }, { status: 500 });
       const baseQuery = new URLSearchParams({ order: order.id, token, ...(order.product === "bundle" ? { item: "album" } : {}) });
       const assetUrl = (asset: string) => {
         const assetQuery = new URLSearchParams(baseQuery);
@@ -201,10 +201,10 @@ export async function GET(request: Request) {
       : sceneMatch
         ? output.assets.scenes[Number(sceneMatch[1])]
         : undefined;
-    if (!objectName) return NextResponse.json({ error: "Pagina de preview nu este încă disponibilă." }, { status: 404 });
+    if (!objectName) return NextResponse.json({ error: "Pagina mostrei nu este încă disponibilă." }, { status: 404 });
     const image = await readOrderFile(objectName);
     if (!image.contentType.startsWith("image/")) {
-      return NextResponse.json({ error: "Preview-ul este invalid." }, { status: 500 });
+      return NextResponse.json({ error: "Mostra este invalidă." }, { status: 500 });
     }
     const watermarked = await addPreviewWatermark(image.buffer);
     return new Response(new Uint8Array(watermarked), {
@@ -216,6 +216,6 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error("Album preview delivery failed", error);
-    return NextResponse.json({ error: "Preview-ul nu este disponibil momentan." }, { status: 502 });
+    return NextResponse.json({ error: "Mostra nu este disponibilă momentan." }, { status: 502 });
   }
 }

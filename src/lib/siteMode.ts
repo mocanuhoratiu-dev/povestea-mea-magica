@@ -10,11 +10,8 @@ export const commerce = {
   status: process.env.NEXT_PUBLIC_STRIPE_ENABLED === "true" ? "commerce" as const : "payments_pending" as const,
   acceptsPayments: process.env.NEXT_PUBLIC_STRIPE_ENABLED === "true",
   prices: {
-    storyShort: "19 lei",
-    storyLong: "29 lei",
     nightShield: "19 lei",
     patienceKit: "19 lei",
-    familyBundle: "49 lei",
     completeBundle: "79 lei",
     illustratedAlbum: "59 lei",
   },

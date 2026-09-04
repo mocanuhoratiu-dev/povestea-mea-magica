@@ -1,244 +1,111 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldCheck, Download, Sparkles, Star } from 'lucide-react';
-import BrandMark from './BrandMark';
-import MagicalLoader from './MagicalLoader';
-import FeedbackInvite from './FeedbackInvite';
-import QuickRating from './QuickRating';
-import EmailDelivery from './EmailDelivery';
-import DigitalPurchaseConsent from './DigitalPurchaseConsent';
-import { trackEvent } from "@/lib/clientTelemetry";
-import { commerce } from "@/lib/siteMode";
-import { beginOrderCheckout } from "@/lib/clientOrderCheckout";
+import { AnimatePresence, motion } from "framer-motion";
+import { Award, BedDouble, Download, Headphones, HeartHandshake, Map, MoonStar, Pause, Play, ShieldCheck, Sparkles, Wind, X } from "lucide-react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import DigitalPurchaseConsent from "./DigitalPurchaseConsent";
+import EmailDelivery from "./EmailDelivery";
+import FeedbackInvite from "./FeedbackInvite";
+import MagicalLoader from "./MagicalLoader";
 import MobileFlowSteps from "./MobileFlowSteps";
+import { CLASSIC_SHIELD_STYLES, ClassicShieldPages } from "./NightShieldClassicPages";
+import QuickRating from "./QuickRating";
+import { beginOrderCheckout } from "@/lib/clientOrderCheckout";
+import { trackEvent } from "@/lib/clientTelemetry";
+import { buildNightShieldContent, nightShieldNarration, sanitizeNightShieldContent, type NightShieldContent } from "@/lib/nightShield";
+import { playNarration, stopNarration, subscribeToNarration } from "@/lib/narrationPlayback";
+import { commerce } from "@/lib/siteMode";
 
-/* ─── Types ─────────────────────────────────────── */
-interface Monster { id: string; label: string; icon: string; }
-interface MonsterIngredient { num: string; icon: string; name: string; detail: string; }
-interface MonsterStep { roman: string; l1: string; l2: string; }
-interface MonsterClause { art: string; text: string; }
-interface MonsterSignature { name: string; title: string; }
-interface MonsterKitContent {
-  body: string;
-  ingredients: MonsterIngredient[];
-  steps: MonsterStep[];
-  spell: string;
-  clauses: MonsterClause[];
-  signatures: [MonsterSignature, MonsterSignature];
-  instructionLines: string[];
-  labelIngredients: string;
-  miniSeals?: string[];
-}
+const PAGE_COUNT = 9;
+const AUDIO_OWNER = "night-shield-lumi";
 
-const MONSTER_PAGE_COUNT = 6;
-
-const monsters: Monster[] = [
-  { id: 'umbrele noptii',        label: 'Umbrele Nopții',       icon: '🌑' },
-  { id: 'monstrul de sub pat',   label: 'Monstrul de sub Pat',  icon: '🛌' },
-  { id: 'zgomotele ciudate',     label: 'Zgomotele Ciudate',    icon: '🔊' },
-  { id: 'dulapul scartaitor',    label: 'Dulapul Scârțâitor',   icon: '🚪' },
-  { id: 'frica de intuneric',    label: 'Frica de Întuneric',   icon: '🕯️' },
-  { id: 'vise urate',            label: 'Visele Urâte',         icon: '🌙' },
+const fears = [
+  { id: "frica de intuneric", label: "Întunericul", icon: MoonStar },
+  { id: "umbrele noptii", label: "Umbrele", icon: Sparkles },
+  { id: "monstrul de sub pat", label: "Sub pat", icon: BedDouble },
+  { id: "zgomotele ciudate", label: "Zgomotele", icon: Wind },
+  { id: "dulapul scartaitor", label: "Dulapul", icon: ShieldCheck },
+  { id: "vise urate", label: "Visele urâte", icon: MoonStar },
 ];
 
-const MONSTER_KITS: Record<string, MonsterKitContent> = {
-  'umbrele noptii': {
-    body: "camera acestui copil este protejată de un <em>scut invizibil</em> țesut din <em>praf de stele</em>, lumină de lună plină și <em>râsete de spiriduși veseli</em>. Nicio umbră nu are dreptul să se miște fără permisiune.",
-    ingredients: [
-      { num: '1', icon: '💧', name: 'Apă', detail: 'Apă de Lună Plină' },
-      { num: '2', icon: '🍋', name: 'Zeamă de lămâie', detail: 'Esență de Lămâie-Soare' },
-      { num: '3', icon: '🧂', name: 'Un praf de sare', detail: 'Cristale de Curaj' }
-    ],
-    steps: [
-      { roman: 'I', l1: 'Amestecă apa cu lămâia-soare,', l2: 'agitând flaconul spre fereastră.' },
-      { roman: 'II', l1: 'Adaugă sarea-curaj în timp ce zâmbești,', l2: 'umbrele se tem de lumină blândă.' }
-    ],
-    spell: "Umbre mici și umbre mari, plecați voi în alte zări! Lumina mea e scutul bun, noaptea-i albă de acum!",
-    clauses: [
-      { art: 'Art. I', text: 'Umbrele sunt obligate să rămână lipite de pereți și să nu inventeze forme noi după stingerea luminii.' },
-      { art: 'Art. II', text: 'Colțurile camerei primesc lumină imaginară de lună până când devin locuri obișnuite și cuminți.' },
-      { art: 'Art. III', text: 'Orice pată întunecată se declară simplă umbră de mobilă, fără puteri de speriat.' },
-      { art: 'Art. IV', text: 'Curajul copilului aprinde scutul ori de câte ori respiră încet și cere o îmbrățișare.' },
-    ],
-    signatures: [
-      { name: 'Selena Clar-de-Lună', title: 'Inspectoarea Umbrelor Cuminți' },
-      { name: 'Licuricius al III-lea', title: 'Paznicul Luminilor de Veghe' },
-    ],
-    instructionLines: [
-      '1.  Agită flaconul de 7 ori',
-      '2.  Rostește descântecul spre colțuri',
-      '3.  Pulverizează lângă perdele și pereți',
-      '4.  Aprinde lumina de veghe pentru o clipă',
-      '5.  Respiră încet și dormi liniștit/ă!  ✓',
-    ],
-    labelIngredients: 'Apă de lună · Lămâie-soare · Cristale de curaj'
-  },
-  'monstrul de sub pat': {
-    body: "podeaua acestei camere este acoperită de o <em>plasă magică</em> de nepătruns. Nicio creatură cu picioare mari sau intenții de gâdilat nu poate trece de marginea patului.",
-    ingredients: [
-      { num: '1', icon: '💧', name: 'Apă', detail: 'Râu de Somn Liniștit' },
-      { num: '2', icon: '🍬', name: 'Un vârf de zahăr', detail: 'Firimituri de Curaj' },
-      { num: '3', icon: '🌿', name: 'Un praf de scorțișoară', detail: 'Pulbere de Dragon Somnoros' }
-    ],
-    steps: [
-      { roman: 'I', l1: 'Pulverizează generos sub pat,', l2: 'insistând în colțurile întunecate.' },
-      { roman: 'II', l1: 'Pune flaconul pe noptieră ca pază,', l2: 'dragonul va veghea toată noaptea.' }
-    ],
-    spell: "Sub patul meu e liniște, niciun monstru nu mai mișcă! Dormi acum, somn pufos, patul meu e cel mai faimos!",
-    clauses: [
-      { art: 'Art. I', text: 'Spațiul de sub pat se declară zonă verificată, aerisită și rezervată doar prafului obișnuit.' },
-      { art: 'Art. II', text: 'Nicio creatură imaginară nu poate trece de marginea pilotei fără permis de somn blând.' },
-      { art: 'Art. III', text: 'Orice foșnet de sub pat este reclasificat drept sunet de cearșaf, jucărie sau papuc uitat.' },
-      { art: 'Art. IV', text: 'Curajul copilului are prioritate absolută când flaconul stă de pază pe noptieră.' },
-    ],
-    signatures: [
-      { name: 'Mag. Umberto din Tărâmul de Jos', title: 'Comandantul Gardienilor de sub Pat' },
-      { name: 'Dorma Puf-de-Pernă', title: 'Zâna Paturilor Liniștite' },
-    ],
-    instructionLines: [
-      '1.  Agită flaconul de 7 ori',
-      '2.  Rostește descântecul lângă pat',
-      '3.  Pulverizează de 3 ori sub pat',
-      '4.  Așază flaconul pe noptieră',
-      '5.  Învelește-te și dormi liniștit/ă!  ✓',
-    ],
-    labelIngredients: 'Râu de somn · Firimituri de curaj · Pulbere somnoroasă'
-  },
-  'zgomotele ciudate': {
-    body: "urechile acestui erou sunt protejate de un <em>filtru de armonie</em>. Orice scârțâit sau pocnet este captat și transformat automat în <em>torcăit de pisică</em> sau susur de izvor.",
-    ingredients: [
-      { num: '1', icon: '💧', name: 'Apă', detail: 'Lac de Liniște' },
-      { num: '2', icon: '🍯', name: 'O picătură de miere', detail: 'Miere Mută' },
-      { num: '3', icon: '🧂', name: 'Un praf de sare', detail: 'Praf de Ecou Adormit' }
-    ],
-    steps: [
-      { roman: 'I', l1: 'Toarnă mierea imaginară în apă,', l2: 'ascultând cum se așterne liniștea.' },
-      { roman: 'II', l1: 'Pulverizează spre sursa sunetului,', l2: 'zâmbind la fiecare pocnet.' }
-    ],
-    spell: "Zgomote ce mă speriați, în torcăit vă transformați! Liniștea e prietena mea, noaptea-i lină ca o stea!",
-    clauses: [
-      { art: 'Art. I', text: 'Pocnetele, foșnetele și scârțâiturile sunt traduse automat în sunete normale ale casei.' },
-      { art: 'Art. II', text: 'Urechile copilului primesc filtru de liniște pentru a asculta doar respirația și povestea serii.' },
-      { art: 'Art. III', text: 'Orice zgomot nou trebuie să se prezinte politicos ca țeavă, parchet, vânt sau frigider.' },
-      { art: 'Art. IV', text: 'Curajul copilului crește de fiecare dată când observă sunetul și îl lasă să treacă.' },
-    ],
-    signatures: [
-      { name: 'Armonel Fără-Ecou', title: 'Dirijorul Zgomotelor Cuminți' },
-      { name: 'Mira Șoaptă-Bună', title: 'Zâna Urechilor Liniștite' },
-    ],
-    instructionLines: [
-      '1.  Agită flaconul de 5 ori',
-      '2.  Rostește descântecul în șoaptă',
-      '3.  Pulverizează spre ușă sau fereastră',
-      '4.  Ascultă trei respirații lente',
-      '5.  Lasă sunetele să treacă ușor!  ✓',
-    ],
-    labelIngredients: 'Lac de liniște · Miere mută · Praf de ecou adormit'
-  },
-  'dulapul scartaitor': {
-    body: "ușile acestui dulap sunt <em>sigilate cu magicele balamale de vis</em>. Interiorul este acum un <em>tărâm al ordinii și păcii</em>, unde hainele dorm liniștite și nicio ușă nu îndrăznește să se miște.",
-    ingredients: [
-      { num: '1', icon: '💧', name: 'Apă', detail: 'Picături de Pace' },
-      { num: '2', icon: '🍋', name: 'Zeamă de lămâie', detail: 'Lumină Galbenă de Curaj' },
-      { num: '3', icon: '🍬', name: 'Un vârf de zahăr', detail: 'Cristale pentru Uși Cuminți' }
-    ],
-    steps: [
-      { roman: 'I', l1: 'Unge imaginar balamalele dulapului,', l2: 'șoptind cuvinte de somn ușor.' },
-      { roman: 'II', l1: 'Pulverizează pe uși în formă de X,', l2: 'creând un sigiliu de aur.' }
-    ],
-    spell: "Uși de dulap, stați cuminți, nu mai speriați părinți! Hainele dorm, eu dorm bine, liniștea e lângă mine!",
-    clauses: [
-      { art: 'Art. I', text: 'Dulapul se declară bibliotecă de haine adormite, fără drept de scârțâit dramatic după ora de culcare.' },
-      { art: 'Art. II', text: 'Ușile și balamalele sunt invitate să stea cuminți până dimineața.' },
-      { art: 'Art. III', text: 'Orice umbră din dulap este reclasificată drept haină, pijama sau pătură împăturită.' },
-      { art: 'Art. IV', text: 'Curajul copilului sigilează dulapul printr-un zâmbet mic și un ritual de noapte făcut în tihnă.' },
-    ],
-    signatures: [
-      { name: 'Balaminus Trosc-Cuminte', title: 'Maestrul Dulapurilor Tăcute' },
-      { name: 'Cloșeta de Catifea', title: 'Zâna Hainelor Adormite' },
-    ],
-    instructionLines: [
-      '1.  Agită flaconul de 7 ori',
-      '2.  Rostește descântecul spre dulap',
-      '3.  Pulverizează pe uși în formă de X',
-      '4.  Spune hainelor noapte bună',
-      '5.  Închide ochii și dormi liniștit/ă!  ✓',
-    ],
-    labelIngredients: 'Picături de pace · Lumină galbenă · Cristale pentru uși cuminți'
-  },
-  'frica de intuneric': {
-    body: "întunericul din această cameră este transformat într-o <em>pătură de noapte blândă</em>. Nicio umbră nu are voie să pară mai mare decât este, iar fiecare colț primește o picătură de lumină curajoasă.",
-    ingredients: [
-      { num: '1', icon: '💧', name: 'Apă', detail: 'Apă de Stea Liniștită' },
-      { num: '2', icon: '🍯', name: 'O picătură de miere', detail: 'Miere de Gând Bun' },
-      { num: '3', icon: '🧂', name: 'Un praf de sare', detail: 'Cristale de Lumină Mică' }
-    ],
-    steps: [
-      { roman: 'I', l1: 'Agită flaconul lângă lumina de veghe,', l2: 'ca noaptea să devină prietenoasă.' },
-      { roman: 'II', l1: 'Pulverizează spre colțurile camerei,', l2: 'rostind cuvinte de curaj blând.' }
-    ],
-    spell: "Noapte bună, noapte lină, în cameră aprind lumină! Întuneric, fii cuminte, somnul bun vine-nainte!",
-    clauses: [
-      { art: 'Art. I', text: 'Întunericul este declarat pătură de somn, nu loc de speriat sau inventat griji.' },
-      { art: 'Art. II', text: 'Colțurile camerei primesc pază de lumină mică până dimineața.' },
-      { art: 'Art. III', text: 'Orice formă neclară trebuie să se prezinte drept mobilă, perdea sau jucărie.' },
-      { art: 'Art. IV', text: 'Curajul copilului crește cu fiecare respirație lentă și fiecare gând bun.' },
-    ],
-    signatures: [
-      { name: 'Luminel de Veghe', title: 'Paznicul Nopților Blânde' },
-      { name: 'Stela Somn-Ușor', title: 'Zâna Colțurilor Luminate' },
-    ],
-    instructionLines: [
-      '1.  Agită flaconul de 6 ori',
-      '2.  Rostește descântecul lângă pat',
-      '3.  Pulverizează spre colțuri',
-      '4.  Aprinde lumina de veghe pentru o clipă',
-      '5.  Respiră încet și lasă noaptea să fie blândă!  ✓',
-    ],
-    labelIngredients: 'Apă de stea · Miere de gând bun · Cristale de lumină'
-  },
-  'vise urate': {
-    body: "visele acestei nopți sunt filtrate printr-un <em>nor de povești bune</em>. Orice vis încurcat trebuie să treacă prin poarta curajului și să se transforme într-o aventură mică, sigură și luminoasă.",
-    ingredients: [
-      { num: '1', icon: '💧', name: 'Apă', detail: 'Rouă de Vis Bun' },
-      { num: '2', icon: '🍋', name: 'Zeamă de lămâie', detail: 'Rază Galbenă de Dimineață' },
-      { num: '3', icon: '🍬', name: 'Un vârf de zahăr', detail: 'Pulbere de Nor Pufos' }
-    ],
-    steps: [
-      { roman: 'I', l1: 'Amestecă ingredientele în liniște,', l2: 'imaginând un nor moale deasupra pernei.' },
-      { roman: 'II', l1: 'Pulverizează lângă pernă, nu pe pernă,', l2: 'și invită doar visele bune să intre.' }
-    ],
-    spell: "Vise rele, rătăciți, în nori pufoși vă risipiți! Vine somnul bun și clar, cu lumină-n buzunar!",
-    clauses: [
-      { art: 'Art. I', text: 'Visele urâte sunt obligate să se micșoreze până devin povești fără putere de speriat.' },
-      { art: 'Art. II', text: 'Perna primește pază de nor pufos și gânduri bune până dimineața.' },
-      { art: 'Art. III', text: 'Orice imagine neplăcută trebuie să se transforme într-o scenă sigură, amuzantă sau luminoasă.' },
-      { art: 'Art. IV', text: 'Copilul poate cere ajutor, apă, îmbrățișare sau o poveste scurtă ori de câte ori are nevoie.' },
-    ],
-    signatures: [
-      { name: 'Noris Puf-de-Vis', title: 'Filtratorul Viselor Încurcate' },
-      { name: 'Mira Dimineață-Bună', title: 'Zâna Gândurilor Luminoase' },
-    ],
-    instructionLines: [
-      '1.  Agită flaconul de 5 ori',
-      '2.  Rostește descântecul în șoaptă',
-      '3.  Pulverizează lângă pat, nu pe pernă',
-      '4.  Alege un gând bun pentru vis',
-      '5.  Închide ochii și lasă norul pufos să vegheze!  ✓',
-    ],
-    labelIngredients: 'Rouă de vis bun · Rază de dimineață · Nor pufos'
-  }
+const defaults: Record<string, { location: string; helper: string; ritual: string }> = {
+  "frica de intuneric": { location: "colțurile camerei", helper: "lumina de veghe", ritual: "o îmbrățișare și trei respirații lente" },
+  "umbrele noptii": { location: "perdeaua și colțul de lângă ușă", helper: "lanterna mică", ritual: "numim împreună trei lucruri cunoscute" },
+  "monstrul de sub pat": { location: "spațiul de sub pat", helper: "jucăria preferată", ritual: "verificăm o dată împreună și spunem noapte bună" },
+  "zgomotele ciudate": { location: "ușa, fereastra și pereții", helper: "vocea calmă a părintelui", ritual: "ascultăm și numim trei sunete obișnuite" },
+  "dulapul scartaitor": { location: "ușile dulapului", helper: "pătura preferată", ritual: "spunem noapte bună hainelor" },
+  "vise urate": { location: "patul și noptiera", helper: "o poveste cu final bun", ritual: "alegem un gând liniștit pentru vis" },
 };
 
-const backgroundStars = Array.from({ length: 24 }, (_, i) => ({
-  id: i,
-  top: `${(i * 29 + 13) % 100}%`,
-  left: `${(i * 47 + 5) % 100}%`,
-  opacity: ((i * 17) % 60) / 100 + 0.2,
-  size: (i * 5) % 8 + 4,
-}));
+type ClassicShieldKit = {
+  target: string;
+  order: string;
+  ingredients: { name: string; detail: string }[];
+  spell: string;
+};
+
+const classicShieldKits: Record<string, ClassicShieldKit> = {
+  "frica de intuneric": {
+    target: "întunericului",
+    order: "Ordinul Felinarelor de Veghe",
+    ingredients: [
+      { name: "Apă de Stea Liniștită", detail: "o măsură imaginară" },
+      { name: "Miere de Gând Bun", detail: "o picătură imaginară" },
+      { name: "Cristale de Lumină Mică", detail: "trei sclipiri imaginare" },
+    ],
+    spell: "Noapte bună, noapte lină, camera mea păstrează lumină. Privesc, respir și cer ajutor, iar seara vine mai ușor.",
+  },
+  "umbrele noptii": {
+    target: "umbrelor nopții",
+    order: "Ordinul Umbrelor Cuminți",
+    ingredients: [
+      { name: "Apă de Lună Plină", detail: "o măsură imaginară" },
+      { name: "Esență de Lămâie-Soare", detail: "o rază imaginară" },
+      { name: "Cristale de Curaj", detail: "trei sclipiri imaginare" },
+    ],
+    spell: "Umbre mici și umbre mari, vă privesc așa cum sunteți. Camera mea îmi este cunoscută, iar eu nu sunt singur.",
+  },
+  "monstrul de sub pat": {
+    target: "grijilor de sub pat",
+    order: "Ordinul Dragonilor Somnoroși",
+    ingredients: [
+      { name: "Râu de Somn Liniștit", detail: "o măsură imaginară" },
+      { name: "Firimituri de Curaj", detail: "două zâmbete imaginare" },
+      { name: "Pulbere de Dragon Somnoros", detail: "trei sclipiri imaginare" },
+    ],
+    spell: "Sub pat este loc cunoscut, privit o dată și apoi lăsat. Adultul meu rămâne aproape, iar somnul poate să înceapă.",
+  },
+  "zgomotele ciudate": {
+    target: "zgomotelor de noapte",
+    order: "Ordinul Ecourilor Liniștite",
+    ingredients: [
+      { name: "Lac de Liniște", detail: "o măsură imaginară" },
+      { name: "Miere de Șoaptă", detail: "o picătură imaginară" },
+      { name: "Praf de Ecou Adormit", detail: "trei sclipiri imaginare" },
+    ],
+    spell: "Aud un sunet, îl numesc, lângă adult îl deslușesc. Casa respiră uneori, iar eu respir încet de trei ori.",
+  },
+  "dulapul scartaitor": {
+    target: "ușilor și umbrelor din dulap",
+    order: "Ordinul Hainelor Adormite",
+    ingredients: [
+      { name: "Picături de Pace", detail: "o măsură imaginară" },
+      { name: "Lumină Galbenă de Curaj", detail: "o rază imaginară" },
+      { name: "Cristale pentru Uși Cuminți", detail: "trei sclipiri imaginare" },
+    ],
+    spell: "Uși de dulap, haine moi, vă privesc și știu ce sunteți voi. Camera mea e loc știut, iar eu mă simt văzut.",
+  },
+  "vise urate": {
+    target: "viselor încurcate",
+    order: "Ordinul Norilor de Vis Bun",
+    ingredients: [
+      { name: "Rouă de Vis Bun", detail: "o măsură imaginară" },
+      { name: "Rază de Dimineață", detail: "o lumină imaginară" },
+      { name: "Pulbere de Nor Pufos", detail: "trei sclipiri imaginare" },
+    ],
+    spell: "Visul vine, visul trece, eu pot spune ce mă sperie. Cer ajutor, respir ușor și aleg un gând ocrotitor.",
+  },
+};
 
 type PdfInstance = {
   internal: { pageSize: { getWidth: () => number; getHeight: () => number } };
@@ -253,1441 +120,98 @@ type PdfInstance = {
   text: (text: string | string[], x: number, y: number, options?: { lineHeightFactor?: number }) => void;
 };
 
-const monsterCopy: Record<string, { target: string; label: string }> = {
-  'umbrele noptii': { target: 'umbrelor nopții', label: 'UMBRE' },
-  'monstrul de sub pat': { target: 'monstrului de sub pat', label: 'MONSTRU DE SUB PAT' },
-  'zgomotele ciudate': { target: 'zgomotelor ciudate', label: 'ZGOMOTE CIUDATE' },
-  'dulapul scartaitor': { target: 'dulapului scârțâitor', label: 'DULAP SCÂRȚÂITOR' },
-  'frica de intuneric': { target: 'fricii de întuneric', label: 'ÎNTUNERIC' },
-  'vise urate': { target: 'viselor urâte', label: 'VISE URÂTE' },
-};
-
-const monsterDefaults: Record<string, { location: string; helper: string; ritual: string }> = {
-  'umbrele noptii': {
-    location: 'colțurile camerei și perdelele',
-    helper: 'lumina de veghe',
-    ritual: 'o îmbrățișare și trei respirații lente',
-  },
-  'monstrul de sub pat': {
-    location: 'spațiul de sub pat',
-    helper: 'jucăria preferată de pază',
-    ritual: 'verificarea rapidă sub pat împreună cu un adult',
-  },
-  'zgomotele ciudate': {
-    location: 'ușa, fereastra și pereții care pocnesc',
-    helper: 'sunetul liniștit al respirației',
-    ritual: 'ascultarea a trei sunete obișnuite ale casei',
-  },
-  'dulapul scartaitor': {
-    location: 'ușile dulapului',
-    helper: 'pătura preferată',
-    ritual: 'spus noapte bună hainelor din dulap',
-  },
-  'frica de intuneric': {
-    location: 'colțurile întunecate ale camerei',
-    helper: 'lumina de veghe sau o lanternă mică',
-    ritual: 'număratul a trei lucruri sigure din cameră',
-  },
-  'vise urate': {
-    location: 'lângă pat și noptieră',
-    helper: 'o poveste scurtă cu final bun',
-    ritual: 'alegerea unui gând frumos pentru vis',
-  },
-};
-
-function stripHtml(value: string) {
-  return value
-    .replace(/<br\s*\/?>/gi, ' ')
-    .replace(/<\/?em[^>]*>/gi, '')
-    .replace(/<[^>]*>/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-function cleanPlainText(value: string, fallback: string, maxLength = 58) {
-  const clean = stripHtml(value).replace(/[.!?]+$/g, '').trim() || fallback;
-  if (clean.length <= maxLength) return clean;
-  return `${clean.slice(0, maxLength - 3).trim()}...`;
-}
-
-function sanitizeEmHtml(value: string) {
-  return value
-    .replace(/<br\s*\/?>/gi, ' ')
-    .replace(/<em[^>]*>/gi, '[[EM]]')
-    .replace(/<\/em>/gi, '[[/EM]]')
-    .replace(/<[^>]*>/g, '')
-    .replace(/\[\[EM\]\]/g, '<em>')
-    .replace(/\[\[\/EM\]\]/g, '</em>')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-function sanitizeSpellText(value: string) {
-  return value
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<[^>]*>/g, '')
-    .split(/\r?\n/)
-    .map((line) => line.replace(/\s+/g, ' ').trim())
-    .filter(Boolean)
-    .slice(0, 4)
-    .map((line) => line.length <= 56 ? line : `${line.slice(0, 53).trim()}...`)
-    .join('\n');
-}
-
-function cleanKitContent(content: MonsterKitContent): MonsterKitContent {
-  return {
-    body: sanitizeEmHtml(content.body),
-    ingredients: content.ingredients.map((ingredient) => ({
-      num: stripHtml(ingredient.num),
-      icon: stripHtml(ingredient.icon),
-      name: stripHtml(ingredient.name),
-      detail: stripHtml(ingredient.detail),
-    })),
-    steps: content.steps.map((step) => ({
-      roman: stripHtml(step.roman),
-      l1: stripHtml(step.l1),
-      l2: stripHtml(step.l2),
-    })),
-    spell: sanitizeSpellText(content.spell),
-    clauses: content.clauses.map((clause) => ({
-      art: stripHtml(clause.art),
-      text: stripHtml(clause.text),
-    })),
-    signatures: [
-      {
-        name: stripHtml(content.signatures[0].name),
-        title: stripHtml(content.signatures[0].title),
-      },
-      {
-        name: stripHtml(content.signatures[1].name),
-        title: stripHtml(content.signatures[1].title),
-      },
-    ],
-    instructionLines: content.instructionLines.map((line) => stripHtml(line)),
-    labelIngredients: stripHtml(content.labelIngredients),
-    miniSeals: content.miniSeals?.map((seal) => stripHtml(seal)),
-  };
-}
-
-function buildPersonalizedKitContent({
-  name,
-  monsterType,
-  fearLocation,
-  calmingHelper,
-  bedtimeRitual,
-}: {
-  name: string;
-  monsterType: string;
-  fearLocation: string;
-  calmingHelper: string;
-  bedtimeRitual: string;
-}) {
-  const base = MONSTER_KITS[monsterType] || MONSTER_KITS['umbrele noptii'];
-  const defaults = monsterDefaults[monsterType] || monsterDefaults['umbrele noptii'];
-  const heroName = cleanPlainText(name, 'copilul', 28);
-  const location = cleanPlainText(fearLocation, defaults.location, 48);
-  const helper = cleanPlainText(calmingHelper, defaults.helper, 42);
-  const ritual = cleanPlainText(bedtimeRitual, defaults.ritual, 48);
-
-  const personalized: MonsterKitContent = {
-    ...base,
-    body: `${base.body} Zona verificată special pentru ${heroName} este <em>${location}</em>, iar scutul se întărește cu <em>${helper}</em> și cu ritualul de seară: <em>${ritual}</em>.`,
-    steps: [
-      base.steps[0],
-      {
-        roman: 'II',
-        l1: `Pulverizează blând la ${location},`,
-        l2: `apoi folosește ${helper}.`,
-      },
-      {
-        roman: 'III',
-        l1: `Încheie cu ritualul: ${ritual},`,
-        l2: 'și declară camera pregătită de somn.',
-      },
-    ],
-    clauses: [
-      ...base.clauses.slice(0, 3),
-      {
-        art: 'Art. IV',
-        text: `Pentru ${heroName}, scutul se activează complet la ${location}, mai ales când apare ${helper} și ritualul "${ritual}".`,
-      },
-    ],
-    instructionLines: [
-      base.instructionLines[0],
-      base.instructionLines[1],
-      `3.  Pulverizează la ${location}`,
-      `4.  Folosește ${helper}`,
-      `5.  Încheie cu: ${ritual}  ✓`,
-    ],
-  };
-
-  return cleanKitContent(personalized);
-}
-
-function mergeMonsterKitContent(generated: Partial<MonsterKitContent>, fallback: MonsterKitContent): MonsterKitContent {
-  const ingredients = Array.isArray(generated.ingredients) && generated.ingredients.length === 3
-    ? generated.ingredients.map((ingredient, index) => ({
-        num: String(index + 1),
-        icon: cleanPlainText(ingredient.icon || "", fallback.ingredients[index]?.icon || "✦", 8),
-        name: cleanPlainText(ingredient.name || "", fallback.ingredients[index]?.name || "Apă", 30),
-        detail: cleanPlainText(ingredient.detail || "", fallback.ingredients[index]?.detail || "Ingredient magic", 42),
-      }))
-    : fallback.ingredients;
-  const steps = Array.isArray(generated.steps) && generated.steps.length === 3
-    ? generated.steps.map((step, index) => ({
-        roman: ["I", "II", "III"][index],
-        l1: cleanPlainText(step.l1 || "", fallback.steps[index]?.l1 || "Pregătește ritualul cu un adult", 74),
-        l2: cleanPlainText(step.l2 || "", fallback.steps[index]?.l2 || "Apoi continuă liniștit", 74),
-      }))
-    : fallback.steps;
-  const spell = sanitizeSpellText(generated.spell || "");
-
-  return cleanKitContent({
-    ...fallback,
-    body: sanitizeEmHtml(generated.body || fallback.body),
-    ingredients,
-    steps,
-    spell: spell || fallback.spell,
-    labelIngredients: ingredients
-      .map((ingredient) => cleanPlainText(ingredient.detail || ingredient.name, ingredient.name, 26))
-      .join(" · "),
-  });
-}
-
-function addSearchableTextLayer(pdf: PdfInstance, text: string, pageWidth: number) {
-  const cleanText = text.replace(/\s+/g, ' ').trim();
-  if (!cleanText) return;
-
-  pdf.setFont('times', 'normal');
-  pdf.setFontSize(6);
-  pdf.setTextColor(255, 255, 255);
-  const lines = pdf.splitTextToSize(cleanText, pageWidth - 20).slice(0, 80);
-  pdf.text(lines, 10, 10, { lineHeightFactor: 1.05 });
-}
-
-/* ══════════════════════════════════════════════════
-   MAIN COMPONENT
-══════════════════════════════════════════════════ */
-export default function MonsterKit() {
-  const [name,        setName]        = useState('');
-  const [monsterType, setMonsterType] = useState(monsters[0].id);
-  const [showResult,  setShowResult]  = useState(false);
-  const [showQuickRating, setShowQuickRating] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [resultNote, setResultNote] = useState("");
-  const [isDownloading, setIsDownloading] = useState(false);
-  const [fearLocation, setFearLocation] = useState('');
-  const [calmingHelper, setCalmingHelper] = useState('');
-  const [bedtimeRitual, setBedtimeRitual] = useState('');
-  const [generatedContent, setGeneratedContent] = useState<MonsterKitContent | null>(null);
-  const [hasPurchaseConsent, setHasPurchaseConsent] = useState(false);
-  const [purchaseConsentError, setPurchaseConsentError] = useState('');
-
-  useEffect(() => {
-    const applyLumiChoice = (event: Event) => {
-      const detail = (event as CustomEvent<{
-        product?: string;
-        monsterType?: string;
-        fearLocation?: string;
-        calmingHelper?: string;
-        bedtimeRitual?: string;
-      }>).detail;
-      if (detail?.product !== 'monster') return;
-      if (detail.monsterType && monsters.some((monster) => monster.id === detail.monsterType)) setMonsterType(detail.monsterType);
-      if (detail.fearLocation) setFearLocation(detail.fearLocation);
-      if (detail.calmingHelper) setCalmingHelper(detail.calmingHelper);
-      if (detail.bedtimeRitual) setBedtimeRitual(detail.bedtimeRitual);
-    };
-    window.addEventListener('pmm:lumi-material-choice', applyLumiChoice);
-    return () => window.removeEventListener('pmm:lumi-material-choice', applyLumiChoice);
-  }, []);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const orderId = params.get("order");
-    const token = params.get("token");
-    const requestedItem = params.get("item");
-    if (!orderId || !token || (requestedItem && requestedItem !== "monster")) return;
-
-    void fetch(`/api/orders/${encodeURIComponent(orderId)}?token=${encodeURIComponent(token)}&item=monster`)
-      .then(async (response) => response.ok ? response.json() : null)
-      .then((delivery: { product?: string; configuration?: Record<string, unknown>; output?: Partial<MonsterKitContent> } | null) => {
-        if (!delivery || delivery.product !== "monster" || !delivery.output) return;
-        const generation = delivery.configuration?.generation as Record<string, unknown> | undefined;
-        const deliveredName = typeof generation?.name === "string" ? generation.name : "";
-        const deliveredMonster = typeof generation?.monster === "string" && monsters.some((monster) => monster.id === generation.monster) ? generation.monster : monsters[0].id;
-        if (typeof generation?.name === "string") setName(generation.name);
-        if (deliveredMonster) setMonsterType(deliveredMonster);
-        if (typeof generation?.context === "string") setFearLocation(generation.context);
-        if (typeof generation?.interest === "string") setCalmingHelper(generation.interest);
-        if (typeof generation?.tone === "string") setBedtimeRitual(generation.tone);
-        setGeneratedContent(mergeMonsterKitContent(delivery.output, buildPersonalizedKitContent({ name: deliveredName, monsterType: deliveredMonster, fearLocation: typeof generation?.context === "string" ? generation.context : "", calmingHelper: typeof generation?.interest === "string" ? generation.interest : "", bedtimeRitual: typeof generation?.tone === "string" ? generation.tone : "" })));
-        setShowResult(true);
-      })
-      .catch(() => undefined);
-  }, []);
-
-  const handleGenerate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) return;
-    if (commerce.acceptsPayments && !hasPurchaseConsent) {
-      setPurchaseConsentError('Confirmă livrarea imediată înainte de a continua către plată.');
-      return;
-    }
-    setPurchaseConsentError('');
-    trackEvent('product_started', { product: 'monster' });
-    setShowQuickRating(false);
-    setResultNote("");
-    setIsGenerating(true);
-
-    if (commerce.acceptsPayments) {
-      try {
-        await beginOrderCheckout("night-shield", {
-          generation: { type: "monster", name, monster: monsterType, context: fearLocation, interest: calmingHelper, tone: bedtimeRitual },
-        });
-      } catch (error) {
-        alert(error instanceof Error ? error.message : "Nu am putut pregati plata.");
-      } finally {
-        setIsGenerating(false);
-      }
-      return;
-    }
-
-    const fallback = buildPersonalizedKitContent({
-      name,
-      monsterType,
-      fearLocation,
-      calmingHelper,
-      bedtimeRitual,
-    });
-
-    try {
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'monster',
-          name,
-          monster: monsterType,
-          context: fearLocation,
-          interest: calmingHelper,
-          tone: bedtimeRitual,
-        }),
-      });
-      const payload = await response.json() as { success?: boolean; data?: Partial<MonsterKitContent> };
-
-      if (response.ok && payload.success && payload.data) {
-        setGeneratedContent(mergeMonsterKitContent(payload.data, fallback));
-        trackEvent('generation_completed', { product: 'monster', generationMode: 'ai', pageCount: MONSTER_PAGE_COUNT });
-      } else {
-        setGeneratedContent(fallback);
-        setResultNote("Materialul este gata. Poți genera din nou oricând pentru o altă formulare.");
-        trackEvent('generation_completed', { product: 'monster', generationMode: 'template', pageCount: MONSTER_PAGE_COUNT });
-      }
-    } catch (error) {
-      console.error('Nu am putut genera kitul cu AI:', error);
-      setGeneratedContent(fallback);
-      setResultNote("Materialul este gata. Poți genera din nou oricând pentru o altă formulare.");
-      trackEvent('generation_completed', { product: 'monster', generationMode: 'template', pageCount: MONSTER_PAGE_COUNT });
-    } finally {
-      setIsGenerating(false);
-      setShowResult(true);
-    }
-  };
-  const renderMonsterPdf = async (quality: 'download' | 'email' = 'download') => {
-      const [{ jsPDF }, html2canvasModule] = await Promise.all([
-        import("jspdf"),
-        import("html2canvas"),
-      ]);
-      const html2canvas = html2canvasModule.default;
-      const pdf         = new jsPDF('p', 'mm', 'a4');
-      const W           = pdf.internal.pageSize.getWidth();
-      const H           = pdf.internal.pageSize.getHeight();
-
-      for (let i = 1; i <= MONSTER_PAGE_COUNT; i++) {
-        const el = document.getElementById(`mk-page-${i}`);
-        if (!el) continue;
-        el.style.display = 'block';
-        try {
-          const canvas = await html2canvas(el, {
-            scale: quality === 'email' ? 1.7 : 2.5, useCORS: true, logging: false,
-            windowWidth: 794, windowHeight: 1123,
-          });
-          addSearchableTextLayer(pdf, el.innerText, W);
-          pdf.addImage(canvas.toDataURL('image/jpeg', quality === 'email' ? 0.86 : 0.97), 'JPEG', 0, 0, W, H);
-        } finally {
-          el.style.display = 'none';
-        }
-        if (i < MONSTER_PAGE_COUNT) pdf.addPage();
-      }
-      return pdf;
-  };
-
-  const createMonsterPdfBlob = async () => (await renderMonsterPdf('email')).output('blob');
-
-  const handleDownload = async () => {
-    setIsDownloading(true);
-    const renderStartedAt = Date.now();
-    trackEvent('pdf_render_started', { product: 'monster' });
-    try {
-      const pdf = await renderMonsterPdf();
-      pdf.save(`Kit_Magic_${name.trim()}.pdf`);
-      trackEvent('pdf_render_completed', { product: 'monster', durationMs: Date.now() - renderStartedAt });
-      trackEvent('pdf_downloaded', { product: 'monster', pageCount: MONSTER_PAGE_COUNT });
-      setShowQuickRating(true);
-    } catch (error) {
-      trackEvent('pdf_render_failed', { product: 'monster', durationMs: Date.now() - renderStartedAt });
-      console.error(error);
-      alert(error instanceof Error ? error.message : 'Nu am putut genera PDF-ul.');
-    } finally {
-      setIsDownloading(false);
-    }
-  };
-
-  const monsterLabel = monsters.find(m => m.id === monsterType)?.label ?? monsterType;
-  const monsterTarget = monsterCopy[monsterType]?.target ?? monsterLabel.toLocaleLowerCase('ro-RO');
-  const bottleLabel = monsterCopy[monsterType]?.label ?? monsterLabel.toLocaleUpperCase('ro-RO');
-  const activeDefaults = monsterDefaults[monsterType] || monsterDefaults['umbrele noptii'];
-  const fallbackContent = buildPersonalizedKitContent({
-    name,
-    monsterType,
-    fearLocation,
-    calmingHelper,
-    bedtimeRitual,
-  });
-  const kitContent = generatedContent || fallbackContent;
-
-  return (
-    <section id="monster-away" className="relative scroll-mt-16 overflow-hidden bg-brand-navy px-4 py-14 md:scroll-mt-24 md:py-24">
-      <MagicalLoader isVisible={isGenerating || isDownloading} />
-      {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-20">
-        {backgroundStars.map((star) => (
-          <Star key={star.id} size={star.size} fill="white" stroke="none"
-            style={{ position: 'absolute', top: star.top, left: star.left, opacity: star.opacity }} />
-        ))}
-      </div>
-
-      <div className="max-w-4xl mx-auto relative z-10">
-
-        {/* Header */}
-        <div className="mb-8 text-center md:mb-14">
-          <div className="inline-flex items-center gap-2 border border-brand-gold/30 bg-brand-gold/10 px-5 py-2 text-sm font-bold uppercase tracking-widest text-brand-gold mb-6">
-            <BrandMark className="h-5 w-5" tone="paper" /> Ritual de noapte
-          </div>
-          <h2 className="font-nunito text-3xl font-extrabold leading-tight text-brand-cream md:text-6xl">
-            Scutul <span className="text-brand-gold">de Noapte</span>
-          </h2>
-          <p className="mt-4 text-brand-cream/70 text-lg max-w-xl mx-auto">
-            Un ritual blând de șase pagini, cu plan pentru părinte, certificat, formulă de curaj și calendar pentru șapte seri.
-          </p>
-        </div>
-
-        {/* Form card */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="border border-brand-gold/25 bg-brand-cream p-5 shadow-2xl md:p-14"
-        >
-          <form onSubmit={handleGenerate} className="space-y-7 md:space-y-10">
-            <MobileFlowSteps items={["Copilul", "Ritualul", "PDF-ul"]} accentClass="bg-brand-navy" />
-
-            <div>
-              <label className="block font-nunito font-black text-brand-navy text-lg mb-3 uppercase tracking-wider">
-                Cui îi aparține curajul?
-              </label>
-              <input
-                type="text" value={name} onChange={e => setName(e.target.value)}
-                placeholder="ex: Sofia, Alexandru, Ioana…"
-                className="min-h-14 w-full border border-brand-navy/20 bg-white px-5 py-4 text-lg font-bold text-brand-navy outline-none transition focus:border-brand-purple focus:ring-2 focus:ring-brand-purple/15"
-              />
-            </div>
-
-            <div>
-              <label className="block font-nunito font-black text-brand-navy text-lg mb-4 uppercase tracking-wider">
-                Ce teamă transformăm în curaj?
-              </label>
-              <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
-                {monsters.map(m => (
-                  <button key={m.id} type="button" onClick={() => setMonsterType(m.id)}
-                    className={`flex min-h-28 flex-col items-center justify-center gap-2 border p-3 transition-all duration-200 md:gap-3 md:p-5 ${
-                      monsterType === m.id
-                        ? 'border-brand-purple bg-brand-purple shadow-lg shadow-brand-purple/20'
-                        : 'border-brand-navy/10 bg-white/60 hover:border-brand-purple/40'
-                    }`}
-                  >
-                    <span className="text-3xl md:text-4xl">{m.icon}</span>
-                    <span className={`text-center text-xs font-black uppercase tracking-wide leading-tight ${monsterType === m.id ? 'text-white' : 'text-brand-navy'}`}>{m.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <details className="border-y border-brand-navy/10 py-4 md:border-0 md:py-0" open>
-              <summary className="cursor-pointer text-sm font-black text-brand-navy md:hidden">Adaugă detalii pentru ritual</summary>
-              <div className="mt-5 grid grid-cols-1 gap-4 md:mt-0 md:grid-cols-3">
-              <div>
-                <label className="block font-nunito font-black text-brand-navy text-sm mb-2 uppercase tracking-wider">
-                  Unde apare frica?
-                </label>
-                <input
-                  type="text"
-                  value={fearLocation}
-                  onChange={e => setFearLocation(e.target.value)}
-                  placeholder={activeDefaults.location}
-                  className="min-h-12 w-full border border-brand-navy/20 bg-white px-4 py-3 font-bold text-brand-navy outline-none transition focus:border-brand-purple"
-                />
-              </div>
-              <div>
-                <label className="block font-nunito font-black text-brand-navy text-sm mb-2 uppercase tracking-wider">
-                  Ce îl/o liniștește?
-                </label>
-                <input
-                  type="text"
-                  value={calmingHelper}
-                  onChange={e => setCalmingHelper(e.target.value)}
-                  placeholder={activeDefaults.helper}
-                  className="min-h-12 w-full border border-brand-navy/20 bg-white px-4 py-3 font-bold text-brand-navy outline-none transition focus:border-brand-purple"
-                />
-              </div>
-              <div>
-                <label className="block font-nunito font-black text-brand-navy text-sm mb-2 uppercase tracking-wider">
-                  Ritual de seară
-                </label>
-                <input
-                  type="text"
-                  value={bedtimeRitual}
-                  onChange={e => setBedtimeRitual(e.target.value)}
-                  placeholder={activeDefaults.ritual}
-                  className="min-h-12 w-full border border-brand-navy/20 bg-white px-4 py-3 font-bold text-brand-navy outline-none transition focus:border-brand-purple"
-                />
-              </div>
-              </div>
-            </details>
-
-            {/* PDF contents */}
-            <div className="border-y border-brand-navy/12 bg-brand-navy/5 p-4 md:p-6">
-              <p className="font-bold text-brand-navy/60 text-sm uppercase tracking-wider mb-4 flex items-center gap-2">
-                <Sparkles size={14} /> Ce primești în PDF
-              </p>
-              <div className="grid grid-cols-1 gap-3 text-left sm:grid-cols-2 md:gap-4 md:text-center">
-                {[
-                  { icon: '🫶', label: 'Plan pentru părinte', desc: 'Cum răspunzi calm, în trei pași' },
-                  { icon: '📜', label: 'Certificat Oficial', desc: 'Clauze adaptate fricii alese' },
-                  { icon: '🧪', label: 'Rețetă și etichete',  desc: 'Ritual simbolic, pregătit în siguranță' },
-                  { icon: '✦', label: 'Card + calendar',      desc: 'Șapte seri în care curajul devine rutină' },
-                ].map(item => (
-                  <div key={item.label} className="flex items-center gap-3 md:flex-col md:gap-2">
-                    <span className="text-2xl md:text-3xl">{item.icon}</span>
-                    <span className="font-black text-brand-navy text-sm">{item.label}</span>
-                    <span className="text-brand-navy/50 text-xs">{item.desc}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <p className="border-l-4 border-brand-gold bg-brand-gold/15 px-5 py-4 text-sm font-bold leading-relaxed text-brand-navy/65">
-              Notă pentru adult: spray-ul magic este un ritual simbolic de joacă. Prepară-l doar cu ingrediente alimentare inofensive, pulverizează în aer sau lângă obiecte, niciodată pe piele, față, ochi, pernă sau animale.
-            </p>
-
-            {commerce.acceptsPayments && (
-              <DigitalPurchaseConsent
-                checked={hasPurchaseConsent}
-                onCheckedChange={(checked) => {
-                  setHasPurchaseConsent(checked);
-                  if (checked) setPurchaseConsentError('');
-                }}
-                productLabel="Scutul de Noapte"
-                error={purchaseConsentError}
-              />
-            )}
-
-            <motion.button
-              type="submit" disabled={!name.trim() || isGenerating}
-              whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-              className="flex w-full items-center justify-center gap-3 border-b-4 border-brand-gold bg-brand-navy py-5 text-lg font-black text-brand-cream shadow-xl transition hover:bg-brand-purple disabled:cursor-not-allowed disabled:opacity-30 md:text-xl"
-            >
-              <ShieldCheck size={28} /> {isGenerating ? 'Pregătim magia...' : commerce.acceptsPayments ? 'Continuă către plată' : 'Generează kitul'}
-            </motion.button>
-          </form>
-        </motion.div>
-      </div>
-
-      {/* ════ HIDDEN PDF TEMPLATES ════ */}
-      <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', top: 0, pointerEvents: 'none' }}>
-        <style>{CERT_STYLES}</style>
-        <Page1Certificate name={name} monsterTarget={monsterTarget} content={kitContent} />
-        <Page2Recipe content={kitContent} />
-        <Page3Labels name={name} bottleLabel={bottleLabel} content={kitContent} />
-        <Page4NightCard name={name} monsterLabel={monsterLabel} fearLocation={fearLocation || activeDefaults.location} calmingHelper={calmingHelper || activeDefaults.helper} bedtimeRitual={bedtimeRitual || activeDefaults.ritual} spell={kitContent.spell} />
-        <Page5ParentPlan name={name} monsterLabel={monsterLabel} fearLocation={fearLocation || activeDefaults.location} calmingHelper={calmingHelper || activeDefaults.helper} bedtimeRitual={bedtimeRitual || activeDefaults.ritual} />
-        <Page6SevenNightTracker name={name} calmingHelper={calmingHelper || activeDefaults.helper} bedtimeRitual={bedtimeRitual || activeDefaults.ritual} />
-      </div>
-
-      {/* Result modal */}
-      <AnimatePresence>
-        {showResult && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[11000] flex items-center justify-center overflow-y-auto bg-brand-navy/95 p-2 backdrop-blur-md sm:p-4"
-          >
-            <motion.div
-              initial={{ scale: 0.9, y: 40 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 40 }}
-              className="relative my-auto flex max-h-[calc(100dvh-1rem)] w-full max-w-lg min-h-0 flex-col overflow-hidden rounded-[2rem] border-4 border-brand-gold bg-brand-cream shadow-2xl sm:max-h-[calc(100dvh-2rem)] sm:rounded-[3rem]"
-            >
-              <button onClick={() => setShowResult(false)}
-                className="absolute top-5 right-5 w-10 h-10 rounded-full bg-brand-navy/10 hover:bg-brand-navy/20 flex items-center justify-center font-black text-brand-navy/60 transition-all z-10">
-                ✕
-              </button>
-              <div className="min-h-0 overflow-y-auto overscroll-contain p-5 pb-7 pr-4 text-center sm:p-8 sm:pr-6 md:p-10 md:pr-8">
-                <motion.div
-                  animate={{ rotate: [0, 10, -10, 0], scale: [1, 1.1, 1] }}
-                  transition={{ duration: 1.2, delay: 0.2 }}
-                  className="text-7xl mb-6 block"
-                >🛡️</motion.div>
-                <h3 className="font-nunito font-black text-3xl text-brand-navy mb-3">Scutul este pregătit!</h3>
-                <p className="text-brand-navy/60 font-medium mb-2">
-                  Certificatul lui <span className="text-brand-purple font-black">{name}</span> e gata de printat.
-                </p>
-                <p className="text-brand-navy/40 text-sm mb-8">6 pagini A4 · Adaptat pentru {monsterLabel.toLocaleLowerCase('ro-RO')} · Gata de printat</p>
-                {resultNote && <p className="mb-6 border border-brand-gold/45 bg-brand-gold/10 px-4 py-3 text-left text-sm font-semibold leading-relaxed text-brand-navy/70">{resultNote}</p>}
-                <div className="mb-8 grid grid-cols-2 gap-3 text-sm">
-                  {['Plan pentru părinte', 'Certificat', 'Rețetă și etichete', 'Card de noptieră', 'Calendar 7 seri', 'Ritual personalizat'].map(item => (
-                    <div key={item} className="bg-brand-navy/5 rounded-2xl py-3 px-2 font-bold text-brand-navy/70">{item}</div>
-                  ))}
-                </div>
-                <motion.button
-                  onClick={handleDownload}
-                  disabled={isDownloading}
-                  whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-                  className="w-full bg-brand-navy text-brand-cream py-5 rounded-2xl font-black text-lg border-b-8 border-brand-gold flex items-center justify-center gap-3 shadow-xl transition-all disabled:opacity-50"
-                >
-                  <Download size={22} /> Descarcă PDF-ul Complet
-                </motion.button>
-                <EmailDelivery product="monster" filename={`Kit_Magic_${name.trim() || 'Erou'}.pdf`} childName={name} createPdf={createMonsterPdfBlob} />
-                {showQuickRating && <QuickRating product="monster" />}
-                <FeedbackInvite product="monster" compact />
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </section>
-  );
-}
-
-/* ══════════════════════════════════════════════════
-   PDF PAGE COMPONENTS
-══════════════════════════════════════════════════ */
-
-function Page1Certificate({ name, monsterTarget, content }: { name: string; monsterTarget: string; content: MonsterKitContent }) {
-  const heroName = name.trim() || 'EROUL NOSTRU';
-  return (
-    <div id="mk-page-1" className="mk-page" style={{ display: 'none' }}>
-      <div className="mk-bg" />
-      <div className="mk-border-outer" />
-      <div className="mk-border-inner" />
-      {(['tl','tr','bl','br'] as const).map(pos => <CornerSVG key={pos} pos={pos} />)}
-
-      <div className="mk-content">
-        <p className="mk-ministry">Povestea Mea Magică · Scutul de Noapte</p>
-        <h1 className="mk-title">CERTIFICAT OFICIAL<br/>DE PROTECȚIE MAGICĂ</h1>
-        <p className="mk-subtitle">împotriva {monsterTarget} și a fricilor de noapte</p>
-        <Divider stars={3} />
-
-        <div className="mk-beneficiary-box">
-          <span className="mk-beneficiary-label">Se acordă copilului curajos</span>
-          <div className="mk-beneficiary-name">{heroName}</div>
-        </div>
-
-        <p className="mk-body">
-          Prin autoritatea conferită de <em>Ordinul Dragonului Somnoros</em> și cu binecuvântarea{' '}
-          <em>Zânei Luminilor de Noapte</em>, <span dangerouslySetInnerHTML={{ __html: content.body }} />{' '}
-          <em>Certificatul se activează prin citire, zâmbet și îmbrățișare.</em>
-        </p>
-
-        <Divider stars={1} />
-
-        <p className="mk-clauses-title">Clauze Oficiale Antimonstru · Articole de Lege Magică</p>
-        <div className="mk-clauses-grid">
-          {content.clauses.map((clause) => (
-            <div key={clause.art} className="mk-clause">
-              <span className="mk-clause-num">{clause.art}</span>{clause.text}
-            </div>
-          ))}
-        </div>
-
-        <Divider stars={1} />
-
-        <div className="mk-seal-row">
-          <div className="mk-sig-block">
-            <div className="mk-sig-line" />
-            <div className="mk-sig-name">{content.signatures[0].name}</div>
-            <div className="mk-sig-title">{content.signatures[0].title}</div>
-          </div>
-          <DragonSeal />
-          <div className="mk-sig-block">
-            <div className="mk-sig-line" />
-            <div className="mk-sig-name">{content.signatures[1].name}</div>
-            <div className="mk-sig-title">{content.signatures[1].title}</div>
-          </div>
-        </div>
-
-        <Divider stars={1} narrow />
-        <p className="mk-validity">Valabil pentru ritualuri de seară, sub supravegherea unui adult</p>
-        <p className="mk-cert-number">Nr. #0001 · Seria SOMN-LINIȘTIT</p>
-      </div>
-    </div>
-  );
-}
-
-function Page2Recipe({ content }: { content: MonsterKitContent }) {
-  return (
-    <div id="mk-page-2" className="mk-page" style={{ display: 'none' }}>
-      <div className="mk-bg" />
-      <div className="mk-border-outer" />
-      <div className="mk-border-inner" />
-      {(['tl','tr','bl','br'] as const).map(pos => <CornerSVG key={pos} pos={pos} />)}
-
-      <div className="mk-content">
-        <p className="mk-ministry">Povestea Mea Magică · Ritual de Noapte</p>
-        <h1 className="mk-title" style={{ fontSize: 30 }}>REȚETA SECRETĂ</h1>
-        <p className="mk-subtitle">a Spray-ului Anti-Monștri · Formulă Clasificată</p>
-        <Divider stars={3} />
-
-        <div className="mk-recipe-cols">
-          <div className="mk-recipe-col">
-            <p className="mk-recipe-section-title">Ingrediente Magice</p>
-            {content.ingredients.map((ing) => (
-              <div key={ing.num} className="mk-ingredient">
-                <span className="mk-ing-num">{ing.num}</span>
-                <div>
-                  <div className="mk-ing-name">{ing.icon} {ing.name}</div>
-                  <div className="mk-ing-detail">{ing.detail}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="mk-vdivider" />
-
-          <div className="mk-recipe-col">
-            <p className="mk-recipe-section-title">Mod de Preparare</p>
-            {content.steps.map((s) => (
-              <div key={s.roman} className="mk-step">
-                <div className="mk-step-num"><span>{s.roman}</span></div>
-                <div>
-                  <div className="mk-step-l1">{s.l1}</div>
-                  <div className="mk-step-l2">{s.l2}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <Divider stars={3} />
-
-        <div className="mk-incantation-box" style={{ marginTop: '50px' }}>
-          <p className="mk-incantation-label">Descântecul de Activare · Se rostește în șoaptă</p>
-          <p className="mk-incantation-text">
-            „{content.spell}”
-          </p>
-        </div>
-
-        <Divider stars={1} narrow />
-
-        <p className="mk-disclaimer">
-          ⚠️ Ritual de joacă pentru seară, pregătit de un adult cu ingrediente inofensive
-        </p>
-
-        <div className="mk-mini-seal-row">
-          {(content.miniSeals || ['Aprobat de\nDragonul Somnoros', 'Nr. Rețetă\nSPRAY-007', 'Zâna Luminilor\nde Noapte']).map((t, i) => (
-            <React.Fragment key={t}>
-              <div className="mk-mini-seal">{t.split('\n').map((l, j) => <span key={j}>{l}<br /></span>)}</div>
-              {i < 2 && <span className="mk-mini-dot">✦</span>}
-            </React.Fragment>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Page3Labels({ name, bottleLabel, content }: { name: string; bottleLabel: string; content: MonsterKitContent }) {
-  const safeName = name.trim() || 'EROUL';
-  return (
-    <div id="mk-page-3" className="mk-page mk-page-parchment" style={{ display: 'none' }}>
-      <div className="mk-border-outer mk-border-dark" />
-      <div className="mk-border-inner mk-border-inner-dark" />
-      {(['tl','tr','bl','br'] as const).map(pos => <CornerSVG key={pos} pos={pos} dark />)}
-
-      <div className="mk-content">
-        <p className="mk-ministry mk-ministry-dark">Decupați și lipiți pe flacon · Tăiați pe linia punctată</p>
-
-        {/* Main bottle label */}
-        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 20, marginBottom: 28 }}>
-          <div className="mk-label-cut-wrap">
-            <div className="mk-label-main">
-              <p className="mk-label-ministry">MINISTERUL PROTECȚIEI MAGICE</p>
-              <h2 className="mk-label-title">SPRAY MAGIC</h2>
-              <h3 className="mk-label-subtitle">ANTI-{bottleLabel}</h3>
-              <div className="mk-label-divider" />
-              <div className="mk-label-stars">✦ ✦ ✦ ✦ ✦</div>
-              <div className="mk-label-divider" style={{ marginTop: 10 }} />
-              <p className="mk-label-owner">Proprietar: <strong>{safeName}</strong></p>
-              <p className="mk-label-formula">Formula Secretă Nr. SPRAY-007</p>
-              <p className="mk-label-ingredients">{content.labelIngredients}</p>
-              <p className="mk-label-validity">VALABIL PÂNĂ LA: SFÂRȘITUL MONȘTRILOR</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="mk-labels-bottom-row">
-          {/* Round seal */}
-          <div className="mk-label-cut-wrap" style={{ flexShrink: 0 }}>
-            <div className="mk-seal-label">
-              <div style={{ transform: 'scale(0.85)' }}>
-                <DragonSeal />
-              </div>
-            </div>
-          </div>
-
-          {/* Instruction strip */}
-          <div className="mk-label-cut-wrap" style={{ flex: 1 }}>
-            <div className="mk-instr-label">
-              <p className="mk-instr-title">INSTRUCȚIUNI</p>
-              {content.instructionLines.map(line => <p key={line} className="mk-instr-line">{line}</p>)}
-              <p className="mk-instr-footer">SPRAY-007 · SOMN LINIȘTIT</p>
-            </div>
-          </div>
-        </div>
-
-        <p className="mk-page3-note">
-          Sus: Etichetă principală flacon &nbsp;·&nbsp; Jos stânga: Sigiliu rotund &nbsp;·&nbsp; Jos dreapta: Etichetă cu instrucțiuni
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function Page4NightCard({
-  name,
-  monsterLabel,
-  fearLocation,
-  calmingHelper,
-  bedtimeRitual,
-  spell,
-}: {
-  name: string;
-  monsterLabel: string;
-  fearLocation: string;
-  calmingHelper: string;
-  bedtimeRitual: string;
-  spell: string;
-}) {
-  const heroName = cleanPlainText(name, "Micul erou", 28);
-  const place = cleanPlainText(fearLocation, "camera mea", 50);
-  const helper = cleanPlainText(calmingHelper, "o îmbrățișare", 46);
-  const ritual = cleanPlainText(bedtimeRitual, "trei respirații lente", 54);
-
-  return (
-    <div id="mk-page-4" className="mk-page" style={{ display: "none" }}>
-      <div className="mk-bg" />
-      <div className="mk-border-outer" />
-      <div className="mk-border-inner" />
-      {(["tl", "tr", "bl", "br"] as const).map((pos) => <CornerSVG key={pos} pos={pos} />)}
-      <div className="mk-content" style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <p className="mk-ministry">Povestea Mea Magică · Scutul de Noapte</p>
-        <h1 className="mk-title" style={{ fontSize: 31 }}>CARDUL MEU DE CURAJ</h1>
-        <p className="mk-subtitle">Pentru noptiera lui {heroName}</p>
-        <Divider stars={3} />
-
-        <div style={{ width: 600, marginTop: 28, padding: "54px 56px", border: "2px dashed rgba(201,168,76,.75)", background: "rgba(255,255,255,.035)", boxSizing: "border-box", textAlign: "center" }}>
-          <p style={{ margin: 0, color: "#c9a84c", fontFamily: "Cinzel, serif", fontSize: 13, fontWeight: 700, letterSpacing: 2.4, textTransform: "uppercase" }}>În seara aceasta</p>
-          <p style={{ margin: "20px 0 0", color: "#f4e4c1", fontSize: 25, lineHeight: 1.35 }}>
-            {heroName}, la {place}, poți privi {monsterLabel.toLocaleLowerCase("ro-RO")} și poți spune: „Știu ce ești. Eu sunt în siguranță.”
-          </p>
-          <div style={{ height: 1, width: 160, background: "#c9a84c", margin: "30px auto" }} />
-          <p style={{ margin: 0, color: "#c9a84c", fontFamily: "Cinzel, serif", fontSize: 12, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Cei trei pași</p>
-          <div style={{ marginTop: 18, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
-            {["Privesc și numesc", helper, ritual].map((item, index) => (
-              <div key={item} style={{ minHeight: 105, border: "1px solid rgba(201,168,76,.45)", padding: "18px 12px", boxSizing: "border-box" }}>
-                <span style={{ display: "grid", width: 28, height: 28, margin: "0 auto 11px", placeItems: "center", border: "1px solid #c9a84c", borderRadius: "50%", color: "#c9a84c", fontFamily: "Cinzel, serif", fontSize: 12 }}>{index + 1}</span>
-                <span style={{ color: "#f4e4c1", fontSize: 15, lineHeight: 1.25 }}>{item}</span>
-              </div>
-            ))}
-          </div>
-          <p style={{ margin: "34px 0 0", whiteSpace: "pre-line", color: "#f4e4c1", fontSize: 21, fontStyle: "italic", lineHeight: 1.42 }}>„{spell}”</p>
-        </div>
-
-        <div style={{ width: 600, marginTop: 34, borderTop: "1px solid rgba(201,168,76,.38)", paddingTop: 20 }}>
-          <p style={{ margin: 0, color: "rgba(244,228,193,.72)", fontSize: 15, lineHeight: 1.45, textAlign: "center" }}>
-            Decupați cardul pe linia punctată și păstrați-l aproape de pat. Citiți-l calm, fără să minimalizați teama, apoi lăsați copilul să aleagă pasul care îl ajută cel mai mult.
-          </p>
-        </div>
-        <p className="mk-validity" style={{ marginTop: 28 }}>Ritual simbolic de joacă · folosit împreună cu un adult</p>
-      </div>
-    </div>
-  );
-}
-
-function Page5ParentPlan({
-  name,
-  monsterLabel,
-  fearLocation,
-  calmingHelper,
-  bedtimeRitual,
-}: {
-  name: string;
-  monsterLabel: string;
-  fearLocation: string;
-  calmingHelper: string;
-  bedtimeRitual: string;
-}) {
-  const heroName = cleanPlainText(name, "copilul tău", 28);
-  const place = cleanPlainText(fearLocation, "camera copilului", 52);
-  const helper = cleanPlainText(calmingHelper, "o îmbrățișare", 50);
-  const ritual = cleanPlainText(bedtimeRitual, "trei respirații lente", 60);
-  const plan = [
-    {
-      number: "01",
-      title: "Ascultă înainte să explici",
-      copy: `Spune-i lui ${heroName}: „Te cred. Sunt aici cu tine.” Nu minimaliza teama și nu o transforma într-o glumă.`,
-    },
-    {
-      number: "02",
-      title: "Numiți împreună ce este real",
-      copy: `Priviți calm spre ${place}. Observați forma, lumina sau sunetul, apoi numiți trei lucruri obișnuite din cameră.`,
-    },
-    {
-      number: "03",
-      title: "Încheiați mereu la fel",
-      copy: `Folosiți ${helper}, apoi continuați cu ${ritual}. Repetiția blândă ajută corpul să recunoască momentul de liniște.`,
-    },
-  ];
-
-  return (
-    <div id="mk-page-5" className="mk-page mk-page-parchment" style={{ display: "none" }}>
-      <div className="mk-border-outer mk-border-dark" />
-      <div className="mk-border-inner mk-border-inner-dark" />
-      {(["tl", "tr", "bl", "br"] as const).map((pos) => <CornerSVG key={pos} pos={pos} dark />)}
-      <div className="mk-content mk-parent-content">
-        <p className="mk-ministry mk-ministry-dark">Povestea Mea Magică · Scutul de Noapte</p>
-        <p className="mk-parent-kicker">Pagina adultului</p>
-        <h1 className="mk-parent-title">CUM ÎL ÎNSOȚIM PE {heroName.toLocaleUpperCase("ro-RO")}</h1>
-        <p className="mk-parent-lead">Un plan scurt pentru serile în care {monsterLabel.toLocaleLowerCase("ro-RO")} pare mai puternică decât de obicei.</p>
-
-        <div className="mk-parent-plan">
-          {plan.map((item) => (
-            <div key={item.number} className="mk-parent-step">
-              <div className="mk-parent-step-number">{item.number}</div>
-              <div>
-                <h2>{item.title}</h2>
-                <p>{item.copy}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="mk-parent-phrase">
-          <span>Fraza de revenire</span>
-          <p>„Teama poate sta puțin lângă noi. Nu trebuie să plece imediat. Facem pasul nostru mic și rămân aici cu tine.”</p>
-        </div>
-
-        <p className="mk-parent-note">Scutul de Noapte este un instrument de joc și conectare, nu înlocuiește sprijinul medical sau psihologic. Dacă teama persistă, se intensifică ori afectează somnul familiei, cere sfatul unui specialist.</p>
-      </div>
-    </div>
-  );
-}
-
-function Page6SevenNightTracker({
-  name,
-  calmingHelper,
-  bedtimeRitual,
-}: {
-  name: string;
-  calmingHelper: string;
-  bedtimeRitual: string;
-}) {
-  const heroName = cleanPlainText(name, "micul erou", 28);
-  const helper = cleanPlainText(calmingHelper, "o îmbrățișare", 48);
-  const ritual = cleanPlainText(bedtimeRitual, "trei respirații lente", 56);
-
-  return (
-    <div id="mk-page-6" className="mk-page" style={{ display: "none" }}>
-      <div className="mk-bg" />
-      <div className="mk-border-outer" />
-      <div className="mk-border-inner" />
-      {(["tl", "tr", "bl", "br"] as const).map((pos) => <CornerSVG key={pos} pos={pos} />)}
-      <div className="mk-content mk-tracker-content">
-        <p className="mk-ministry">Povestea Mea Magică · Scutul de Noapte</p>
-        <p className="mk-tracker-kicker">O săptămână de pași mici</p>
-        <h1 className="mk-title" style={{ fontSize: 30 }}>CALENDARUL CURAJULUI</h1>
-        <p className="mk-subtitle">Șapte seri pentru {heroName}</p>
-        <Divider stars={3} />
-
-        <div className="mk-tracker-ritual">
-          <div><span>Pasul care mă ajută</span><strong>{helper}</strong></div>
-          <div><span>Ritualul nostru</span><strong>{ritual}</strong></div>
-        </div>
-
-        <div className="mk-tracker-table">
-          <div className="mk-tracker-row mk-tracker-head">
-            <span>Seara</span><span>Am numit teama</span><span>Am făcut ritualul</span><span>Cum m-am simțit</span>
-          </div>
-          {Array.from({ length: 7 }, (_, index) => (
-            <div key={index} className="mk-tracker-row">
-              <strong>{index + 1}</strong>
-              <span className="mk-tracker-check">□</span>
-              <span className="mk-tracker-check">□</span>
-              <span className="mk-tracker-moods">☾ &nbsp; ◡ &nbsp; ★</span>
-            </div>
-          ))}
-        </div>
-
-        <div className="mk-tracker-finish">
-          <span>După șapte seri</span>
-          <p>Nu măsurăm dacă teama a dispărut. Observăm dacă {heroName} a putut să o numească, să ceară ajutor și să facă ritualul împreună cu un adult.</p>
-        </div>
-        <p className="mk-validity">Bifați fără presiune · fiecare seară poate arăta diferit</p>
-      </div>
-    </div>
-  );
-}
-
-/* ── Shared sub-components ── */
-function Divider({ stars = 3, narrow = false }: { stars?: number; narrow?: boolean }) {
-  const w = narrow ? 140 : 260;
-  return (
-    <div className="mk-divider">
-      <div className="mk-div-line" style={{ width: w }} />
-      {Array.from({ length: stars }).map((_, i) => <span key={i} className="mk-div-star">✦</span>)}
-      <div className="mk-div-line" style={{ width: w }} />
-    </div>
-  );
-}
-
-function CornerSVG({ pos, dark = false }: { pos: 'tl'|'tr'|'bl'|'br'; dark?: boolean }) {
-  const sx = (pos === 'tr' || pos === 'br') ? -1 : 1;
-  const sy = (pos === 'bl' || pos === 'br') ? -1 : 1;
-  const style: React.CSSProperties = {
-    position: 'absolute', width: 52, height: 52,
-    top:    pos.startsWith('t') ? 8 : undefined,
-    bottom: pos.startsWith('b') ? 8 : undefined,
-    left:   pos.endsWith('l')   ? 8 : undefined,
-    right:  pos.endsWith('r')   ? 8 : undefined,
-    transform: `scale(${sx}, ${sy})`,
-  };
-  const stroke = dark ? '#8a6e2f' : '#c9a84c';
-  return (
-    <svg style={style} viewBox="0 0 52 52" fill="none">
-      <path d="M2 30 L2 2 L30 2" stroke={stroke} strokeWidth="1.6" />
-      <path d="M2 14 L14 2" stroke={stroke} strokeWidth="0.9" opacity="0.55" />
-      <path d="M2 22 L22 2" stroke={stroke} strokeWidth="0.5" opacity="0.3" />
-      <circle cx="2" cy="2" r="2.6" fill={stroke} opacity="0.85" />
-    </svg>
-  );
-}
-
-function DragonSeal() {
-  return (
-    <div className="mk-dragon-seal">
-      <div className="mk-dragon-seal-inner" style={{ marginTop: '-8px' }}>
-        <svg viewBox="0 0 80 80" width="54" height="54" fill="none">
-          {/* Body */}
-          <ellipse cx="40" cy="47" rx="12" ry="10" fill="#c9a84c" opacity="0.85"/>
-          {/* Head */}
-          <ellipse cx="40" cy="30" rx="9" ry="8" fill="#c9a84c" opacity="0.85"/>
-          {/* Snout */}
-          <ellipse cx="47" cy="32" rx="5" ry="4" fill="#c9a84c" opacity="0.75"/>
-          {/* Tail */}
-          <path d="M52 47 Q66 43 68 55 Q60 51 52 51" fill="#c9a84c" opacity="0.8"/>
-          {/* Wings */}
-          <path d="M28 41 Q13 28 17 17 Q25 31 34 39" fill="#c9a84c" opacity="0.65"/>
-          <path d="M52 41 Q67 28 63 17 Q55 31 46 39" fill="#c9a84c" opacity="0.65"/>
-          {/* Eye */}
-          <circle cx="45" cy="28" r="2.5" fill="#0e0f23"/>
-          <circle cx="45.8" cy="27.2" r="0.9" fill="#c9a84c" opacity="0.6"/>
-          {/* Flame */}
-          <path d="M51 28 Q58 22 55 15 Q51 20 49 15 Q47 21 51 28Z" fill="#f4e4a0" opacity="0.8"/>
-        </svg>
-        <p className="mk-dragon-seal-text">SIGILIUL<br/>DRAGONULUI<br/>SOMNOROS<br/>· AUTENTIC ·</p>
-      </div>
-    </div>
-  );
-}
-
-/* ══════════════════════════════════════════════════
-   EMBEDDED STYLES for PDF templates
-══════════════════════════════════════════════════ */
-const CERT_STYLES = `
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;1,300;1,400&display=swap');
-
-.mk-page {
-  width: 794px; height: 1123px;
-  background: linear-gradient(160deg, #0e0f23 0%, #0d1535 55%, #0e0f23 100%);
-  position: relative; overflow: hidden;
-  font-family: 'Crimson Pro', Georgia, serif;
-  box-sizing: border-box;
-}
-.mk-page-parchment { background: #f0ead8 !important; }
-.mk-bg {
-  position: absolute; inset: 0;
-  background:
-    radial-gradient(ellipse at 15% 15%, rgba(155,89,182,0.07) 0%, transparent 55%),
-    radial-gradient(ellipse at 85% 85%, rgba(201,168,76,0.05) 0%, transparent 55%);
-}
-
-.mk-border-outer {
-  position: absolute; inset: 16px;
-  border: 2.5px solid #c9a84c; border-radius: 3px;
-}
-.mk-border-inner {
-  position: absolute; inset: 27px;
-  border: 0.65px solid rgba(201,168,76,0.3); border-radius: 2px;
-}
-.mk-border-dark       { border-color: #8a6e2f !important; }
-.mk-border-inner-dark { border-color: rgba(138,110,47,0.3) !important; }
-
-.mk-content {
-  position: relative; z-index: 10;
-  padding: 54px 68px 38px;
-  display: flex; flex-direction: column;
-  height: 100%; box-sizing: border-box;
-}
-
-/* ── Typography ── */
-.mk-ministry {
-  font-family: 'Cinzel', serif; font-size: 8px; font-weight: 600;
-  letter-spacing: 0.32em; color: #c9a84c; text-align: center;
-  text-transform: uppercase; opacity: 0.78; margin-bottom: 12px;
-}
-.mk-ministry-dark { color: #7a5c22; }
-
-.mk-title {
-  font-family: 'Cinzel', serif; font-size: 27px; font-weight: 700;
-  color: #f4e4a0; text-align: center; line-height: 1.22;
-  margin: 0 0 7px; letter-spacing: 0.04em;
-  text-shadow: 0 0 28px rgba(201,168,76,0.25);
-}
-.mk-subtitle {
-  font-family: 'Cinzel', serif; font-size: 10.5px; color: #c9a84c;
-  text-align: center; letter-spacing: 0.17em; margin-bottom: 2px; opacity: 0.88;
-}
-
-.mk-divider {
-  display: flex; align-items: center; gap: 10px;
-  justify-content: center; margin: 13px auto;
-}
-.mk-div-line {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, #c9a84c, transparent);
-  opacity: 0.58;
-}
-.mk-div-star { color: #c9a84c; font-size: 12px; }
-
-/* ── Beneficiary ── */
-.mk-beneficiary-box {
-  text-align: center; margin: 12px 0;
-  padding: 16px 28px;
-  background: rgba(201,168,76,0.06);
-  border: 1px solid rgba(201,168,76,0.22);
-  border-radius: 3px;
-}
-.mk-beneficiary-label {
-  font-family: 'Cinzel', serif; font-size: 8px; letter-spacing: 0.26em;
-  color: #c9a84c; text-transform: uppercase;
-  display: block; margin-bottom: 10px; opacity: 0.85;
-}
-.mk-beneficiary-name {
-  font-family: 'Cinzel', serif; font-size: 26px; color: #f4e4a0;
-  font-weight: 600; letter-spacing: 0.05em;
-  border-bottom: 1px solid rgba(201,168,76,0.42);
-  display: inline-block; min-width: 300px; padding-bottom: 6px;
-  max-width: 540px; overflow-wrap: anywhere;
-}
-
-/* ── Body text ── */
-.mk-body {
-  font-size: 13.5px; line-height: 1.75; color: #d4c5e8;
-  text-align: center; font-style: italic; margin: 11px 0;
-  overflow-wrap: anywhere;
-}
-.mk-body em { color: #f4e4a0; font-style: normal; font-weight: 500; }
-
-/* ── Clauses ── */
-.mk-clauses-title {
-  font-family: 'Cinzel', serif; font-size: 8px; font-weight: 600;
-  letter-spacing: 0.28em; color: #c9a84c; text-align: center;
-  text-transform: uppercase; margin: 8px 0 10px; opacity: 0.85;
-}
-.mk-clauses-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-bottom: 6px;
-}
-.mk-clause {
-  background: rgba(201,168,76,0.05);
-  border: 1px solid rgba(201,168,76,0.18);
-  border-radius: 3px; padding: 11px 14px;
-  font-size: 12px; color: #bfb3d4; line-height: 1.65; text-align: left;
-  overflow-wrap: anywhere;
-}
-.mk-clause-num {
-  font-family: 'Cinzel', serif; color: #c9a84c;
-  font-size: 8.5px; font-weight: 600; letter-spacing: 0.14em;
-  display: block; margin-bottom: 5px;
-}
-
-/* ── Seal row ── */
-.mk-seal-row {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 20px; margin: 8px 0;
-}
-.mk-sig-block { flex: 1; text-align: center; }
-.mk-sig-line {
-  height: 1px; background: rgba(201,168,76,0.4);
-  width: 180px; margin: 0 auto 7px;
-}
-.mk-sig-name  { font-size: 11.5px; color: #9a8bc0; font-style: italic; margin-bottom: 4px; }
-.mk-sig-title {
-  font-family: 'Cinzel', serif; font-size: 7px; color: #c9a84c;
-  letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.82;
-}
-.mk-dragon-seal {
-  flex-shrink: 0; width: 100px; height: 100px; border-radius: 50%;
-  border: 1.8px solid #c9a84c;
-  background: rgba(201,168,76,0.07);
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 0 18px rgba(201,168,76,0.12);
-}
-.mk-dragon-seal-inner { text-align: center; }
-.mk-dragon-seal-text {
-  font-family: 'Cinzel', serif; font-size: 6px; color: #c9a84c;
-  letter-spacing: 0.1em; line-height: 1.5; margin-top: 3px;
-}
-
-/* ── Footer ── */
-.mk-validity {
-  font-family: 'Cinzel', serif; font-size: 7.5px;
-  color: rgba(201,168,76,0.5); text-align: center;
-  letter-spacing: 0.2em; text-transform: uppercase; margin-top: 6px;
-}
-.mk-cert-number {
-  font-family: 'Cinzel', serif; font-size: 7px;
-  color: rgba(201,168,76,0.28); text-align: right;
-  letter-spacing: 0.15em; margin-top: 4px;
-}
-
-/* ══ PAGE 2: Recipe ══ */
-.mk-recipe-cols {
-  display: flex; gap: 0; margin: 12px 0; flex: 1; align-items: flex-start;
-}
-.mk-recipe-col { flex: 1; padding: 0 18px; }
-.mk-recipe-col:first-child { padding-left: 0; }
-.mk-recipe-col:last-child  { padding-right: 0; }
-
-.mk-vdivider {
-  width: 1px; flex-shrink: 0; margin: 6px 6px;
-  background: linear-gradient(to bottom, transparent, rgba(201,168,76,0.38) 20%, rgba(201,168,76,0.38) 80%, transparent);
-}
-.mk-recipe-section-title {
-  font-family: 'Cinzel', serif; font-size: 9px; font-weight: 600;
-  letter-spacing: 0.28em; color: #c9a84c; text-transform: uppercase;
-  margin-bottom: 18px; opacity: 0.9;
-}
-.mk-ingredient {
-  display: flex; gap: 14px; align-items: flex-start; margin-bottom: 20px;
-}
-.mk-ing-num {
-  font-family: 'Cinzel', serif; font-size: 24px; font-weight: 700;
-  color: rgba(201,168,76,0.18); line-height: 1; flex-shrink: 0;
-  width: 24px; text-align: right; margin-top: 1px;
-}
-.mk-ing-name   { font-size: 13.5px; font-weight: 500; color: #f4e4a0; line-height: 1.3; overflow-wrap: anywhere; }
-.mk-ing-detail { font-size: 11px; color: #9a8bc0; font-style: italic; margin-top: 3px; overflow-wrap: anywhere; }
-
-.mk-step {
-  display: grid; grid-template-columns: 28px minmax(0, 1fr); column-gap: 12px;
-  align-items: start; margin-bottom: 18px;
-}
-.mk-step-num {
-  width: 28px; height: 28px; box-sizing: border-box; border-radius: 50%;
-  border: 1.2px solid rgba(201,168,76,0.5);
-  background: rgba(201,168,76,0.08);
-  color: #d7b759; display: grid; place-items: center; margin: 0;
-}
-.mk-step-num span {
-  display: block; font-family: 'Cinzel', serif; font-size: 9px; font-weight: 700;
-  line-height: 1; text-align: center; transform: translateY(-1.5px);
-}
-.mk-step-l1 { font-size: 13px; color: #d4c5e8; line-height: 1.45; overflow-wrap: anywhere; }
-.mk-step-l2 { font-size: 12px; color: #bfb3d4; font-style: italic; margin-top: 3px; overflow-wrap: anywhere; }
-
-.mk-incantation-box {
-  background: rgba(201,168,76,0.06);
-  border: 1px solid rgba(201,168,76,0.26);
-  border-radius: 4px;
-  padding: 20px 30px; text-align: center; margin: 6px 0;
-}
-.mk-incantation-label {
-  font-family: 'Cinzel', serif; font-size: 7.5px; font-weight: 600;
-  letter-spacing: 0.28em; color: #c9a84c; text-transform: uppercase;
-  display: block; margin-bottom: 12px; opacity: 0.88;
-}
-.mk-incantation-text {
-  font-size: 16px; font-style: italic; color: #d4c5e8; line-height: 1.75;
-  overflow-wrap: anywhere; white-space: pre-line;
-}
-.mk-incantation-text strong { color: #f4e4a0; font-style: normal; }
-
-.mk-disclaimer {
-  font-family: 'Cinzel', serif; font-size: 7px;
-  color: rgba(201,168,76,0.4); text-align: center;
-  letter-spacing: 0.14em; margin: 6px 0 4px;
-}
-.mk-mini-seal-row {
-  display: flex; align-items: center; justify-content: center;
-  gap: 8px; margin-top: 8px;
-}
-.mk-mini-seal {
-  font-family: 'Cinzel', serif; font-size: 7px;
-  color: rgba(201,168,76,0.38); letter-spacing: 0.14em;
-  text-align: center; line-height: 1.6;
-}
-.mk-mini-dot { color: rgba(201,168,76,0.28); font-size: 10px; }
-
-/* ══ PAGE 3: Labels ══ */
-.mk-label-cut-wrap {
-  border: 1.5px dashed rgba(138,110,47,0.42);
-  border-radius: 8px; padding: 7px;
-  display: inline-block;
-}
-.mk-label-main {
-  width: 560px;
-  background: linear-gradient(160deg, #0e0f23, #0d1535);
-  border: 2px solid #c9a84c; border-radius: 12px;
-  padding: 28px 40px; text-align: center;
-}
-.mk-label-ministry {
-  font-family: 'Cinzel', serif; font-size: 7.5px; letter-spacing: 0.26em;
-  color: #c9a84c; text-transform: uppercase; opacity: 0.78; margin-bottom: 10px;
-}
-.mk-label-title {
-  font-family: 'Cinzel', serif; font-size: 34px; font-weight: 700;
-  color: #f4e4a0; letter-spacing: 0.05em; margin: 0 0 5px;
-}
-.mk-label-subtitle {
-  font-family: 'Cinzel', serif; font-size: 15px; color: #c9a84c;
-  letter-spacing: 0.12em; margin-bottom: 10px;
-}
-.mk-label-divider {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, #c9a84c, transparent);
-  opacity: 0.45; margin: 8px 0;
-}
-.mk-label-stars   { color: #c9a84c; font-size: 14px; letter-spacing: 8px; margin: 6px 0; }
-.mk-label-owner   { font-family: 'Cinzel', serif; font-size: 12px; color: #d4c5e8; margin: 10px 0 5px; letter-spacing: 0.1em; overflow-wrap: anywhere; }
-.mk-label-owner strong   { color: #f4e4a0; }
-.mk-label-formula        { font-size: 13px; color: #9a8bc0; font-style: italic; margin-bottom: 4px; }
-.mk-label-ingredients    { font-size: 12px; color: #bfb3d4; font-style: italic; margin-bottom: 7px; overflow-wrap: anywhere; }
-.mk-label-validity {
-  font-family: 'Cinzel', serif; font-size: 7px;
-  color: rgba(201,168,76,0.5); letter-spacing: 0.15em; text-transform: uppercase;
-}
-
-.mk-labels-bottom-row {
-  display: flex; gap: 28px; align-items: flex-start; justify-content: center;
-}
-
-.mk-seal-label {
-  width: 180px; height: 180px; border-radius: 50%;
-  background: linear-gradient(160deg, #0e0f23, #0d1535);
-  border: 2.5px solid #c9a84c;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 0 16px rgba(201,168,76,0.1);
-}
-.mk-seal-label-inner { text-align: center; }
-.mk-seal-label-text {
-  font-family: 'Cinzel', serif; font-size: 8.5px; color: #c9a84c;
-  letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.88; line-height: 1.5;
-}
-
-.mk-instr-label {
-  background: linear-gradient(160deg, #0e0f23, #0d1535);
-  border: 2px solid #c9a84c; border-radius: 12px;
-  width: 420px;
-  padding: 26px 32px; text-align: center;
-  display: flex; flex-direction: column; justify-content: center;
-}
-.mk-instr-title {
-  font-family: 'Cinzel', serif; font-size: 9px; font-weight: 600;
-  color: #c9a84c; letter-spacing: 0.24em; text-transform: uppercase;
-  opacity: 0.9; margin-bottom: 12px;
-}
-.mk-instr-line   { font-size: 15px; color: #d4c5e8; margin: 6px 0; overflow-wrap: anywhere; }
-.mk-instr-footer {
-  font-family: 'Cinzel', serif; font-size: 7px;
-  color: rgba(201,168,76,0.4); letter-spacing: 0.14em; margin-top: 10px;
-}
-
-.mk-page3-note {
-  font-family: 'Cinzel', serif; font-size: 7.5px;
-  color: rgba(138,110,47,0.5); text-align: center;
-  letter-spacing: 0.16em; margin-top: auto; padding-top: 18px;
-}
-
-/* PAGE 5: Parent plan */
-.mk-parent-content { color: #24324f; padding: 62px 76px 48px; }
-.mk-parent-kicker, .mk-tracker-kicker {
-  margin: 28px 0 10px; color: #8052a0; font-family: 'Cinzel', serif;
-  font-size: 9px; font-weight: 700; letter-spacing: .28em; text-align: center; text-transform: uppercase;
-}
-.mk-parent-title {
-  margin: 0 auto; max-width: 590px; color: #24324f; font-family: 'Cinzel', serif;
-  font-size: 29px; line-height: 1.25; text-align: center; overflow-wrap: anywhere;
-}
-.mk-parent-lead {
-  margin: 18px auto 30px; max-width: 560px; color: #59627a; font-size: 18px;
-  line-height: 1.5; text-align: center;
-}
-.mk-parent-plan { display: grid; gap: 15px; }
-.mk-parent-step {
-  display: grid; grid-template-columns: 58px 1fr; gap: 18px; align-items: start;
-  border: 1px solid rgba(128,82,160,.2); border-left: 5px solid #8052a0;
-  background: rgba(255,255,255,.55); padding: 20px 22px;
-}
-.mk-parent-step-number {
-  color: #c19a34; font-family: 'Cinzel', serif; font-size: 21px; font-weight: 700;
-  border-right: 1px solid rgba(193,154,52,.35); min-height: 62px; padding-top: 4px;
-}
-.mk-parent-step h2 { margin: 0 0 7px; color: #24324f; font-family: 'Cinzel', serif; font-size: 15px; letter-spacing: .04em; }
-.mk-parent-step p { margin: 0; color: #4d556b; font-size: 15px; line-height: 1.5; }
-.mk-parent-phrase {
-  margin-top: 24px; border: 1px solid rgba(193,154,52,.5); background: #24324f;
-  padding: 20px 28px; text-align: center;
-}
-.mk-parent-phrase span { color: #e5b84f; font-family: 'Cinzel', serif; font-size: 8px; font-weight: 700; letter-spacing: .24em; text-transform: uppercase; }
-.mk-parent-phrase p { margin: 10px 0 0; color: #f8eed4; font-size: 17px; font-style: italic; line-height: 1.45; }
-.mk-parent-note { margin: auto 18px 0; color: #747b8c; font-size: 11px; line-height: 1.45; text-align: center; }
-
-/* PAGE 6: Seven-night tracker */
-.mk-tracker-content { align-items: stretch; padding: 58px 64px 42px; }
-.mk-tracker-kicker { color: #c9a84c; margin-top: 22px; }
-.mk-tracker-ritual { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 20px 0; }
-.mk-tracker-ritual div { border: 1px solid rgba(201,168,76,.35); background: rgba(255,255,255,.035); padding: 15px 18px; }
-.mk-tracker-ritual span { display: block; color: #c9a84c; font-family: 'Cinzel', serif; font-size: 7px; letter-spacing: .18em; text-transform: uppercase; }
-.mk-tracker-ritual strong { display: block; margin-top: 8px; color: #f4e4c1; font-size: 14px; font-weight: 500; line-height: 1.3; overflow-wrap: anywhere; }
-.mk-tracker-table { border: 1px solid rgba(201,168,76,.35); }
-.mk-tracker-row { display: grid; grid-template-columns: 72px 1fr 1fr 1.15fr; min-height: 63px; border-bottom: 1px solid rgba(201,168,76,.22); align-items: center; text-align: center; }
-.mk-tracker-row:last-child { border-bottom: 0; }
-.mk-tracker-row > * { min-height: 63px; box-sizing: border-box; display: grid; place-items: center; border-right: 1px solid rgba(201,168,76,.22); padding: 8px; }
-.mk-tracker-row > *:last-child { border-right: 0; }
-.mk-tracker-head { min-height: 52px; background: rgba(201,168,76,.1); color: #c9a84c; font-family: 'Cinzel', serif; font-size: 7px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
-.mk-tracker-head > * { min-height: 52px; }
-.mk-tracker-row strong { color: #f4e4c1; font-family: 'Cinzel', serif; font-size: 17px; }
-.mk-tracker-check { color: #d4c5e8; font-size: 28px; }
-.mk-tracker-moods { color: #c9a84c; font-size: 19px; letter-spacing: 2px; }
-.mk-tracker-finish { margin-top: 20px; border-left: 4px solid #c9a84c; background: rgba(201,168,76,.07); padding: 17px 20px; }
-.mk-tracker-finish span { color: #c9a84c; font-family: 'Cinzel', serif; font-size: 8px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; }
-.mk-tracker-finish p { margin: 7px 0 0; color: #d4c5e8; font-size: 14px; line-height: 1.45; }
+function addSearchableText(pdf: PdfInstance, text: string, width: number) {
+  pdf.setFont("times", "normal"); pdf.setFontSize(6); pdf.setTextColor(255, 255, 255);
+  pdf.text(pdf.splitTextToSize(text.replace(/\s+/g, " ").trim(), width - 20).slice(0, 90), 10, 10, { lineHeightFactor: 1.05 });
+}
+
+const NEW_PDF_CSS = `
+.ns-page{width:794px;height:1123px;position:relative;overflow:hidden;box-sizing:border-box;background:linear-gradient(160deg,#090f25,#0d1b3b 56%,#090f25);color:#f7efd9;font-family:Arial,sans-serif}.ns-page *{box-sizing:border-box}.ns-frame{position:absolute;inset:24px;border:2px solid rgba(226,190,92,.7);padding:56px 62px;background:rgba(10,24,52,.86);box-shadow:inset 0 0 0 10px rgba(226,190,92,.025)}.ns-frame:before,.ns-frame:after{content:"✦";position:absolute;color:#e2be5c;font-size:20px}.ns-frame:before{left:20px;top:17px}.ns-frame:after{right:20px;bottom:17px}.ns-kicker{font-size:11px;font-weight:800;letter-spacing:2.4px;text-transform:uppercase;color:#e2be5c}.ns-title{font-family:Georgia,serif;font-size:43px;line-height:1.08;margin:16px 0 10px;color:#fff8e7}.ns-rule{height:1px;background:#e2be5c;margin:24px 0;opacity:.65}.ns-footer{position:absolute;left:62px;right:62px;bottom:30px;display:flex;justify-content:space-between;color:#b9c4d5;font-size:9px;letter-spacing:1.1px;text-transform:uppercase}.ns-body{font-family:Georgia,serif;font-size:23px;line-height:1.58;color:#f8f2e4}.ns-body p{margin:0 0 23px}.ns-panel{border:1px solid rgba(226,190,92,.52);padding:22px;background:#132a49}.ns-list{display:grid;gap:14px;margin-top:24px}.ns-item{display:flex;gap:16px;align-items:flex-start;border-bottom:1px solid rgba(226,190,92,.24);padding:0 0 15px}.ns-num{flex:0 0 40px;height:40px;border:1px solid #e2be5c;display:grid;place-items:center;color:#e2be5c;font-family:Georgia,serif;font-size:18px}.ns-item h3{font-family:Georgia,serif;font-size:21px;margin:0 0 6px;color:#fff8e7}.ns-item p{font-size:15px;line-height:1.45;margin:0;color:#d9dfeb}.ns-map{height:390px;position:relative;border:1px solid rgba(226,190,92,.5);background:#112744;margin-top:18px}.ns-bed{position:absolute;left:60px;bottom:46px;width:250px;height:125px;border:3px solid #e2be5c}.ns-bed:before{content:"PAT";position:absolute;left:18px;top:18px;color:#e2be5c;font-weight:800}.ns-window{position:absolute;right:65px;top:45px;width:135px;height:105px;border:3px solid #8db5c9}.ns-door{position:absolute;right:55px;bottom:46px;width:105px;height:150px;border:3px solid #8db5c9}.ns-safe{position:absolute;width:32px;height:32px;border-radius:50%;background:#e2be5c;color:#08162d;display:grid;place-items:center;font-weight:900}.ns-map>span:nth-child(4){left:105px!important;top:70px!important}.ns-map>span:nth-child(5){right:220px!important;top:190px!important}.ns-map>span:nth-child(6){left:330px!important;bottom:68px!important}.ns-note{font-size:14px;line-height:1.45;color:#cbd4e1}.ns-breathe{width:280px;height:280px;margin:22px auto;border:2px solid #e2be5c;border-radius:50%;display:grid;place-items:center;text-align:center;padding:40px;box-shadow:0 0 0 22px rgba(226,190,92,.07),0 0 0 44px rgba(226,190,92,.035)}.ns-breathe strong{display:block;font-family:Georgia,serif;font-size:36px;color:#fff8e7}.ns-breathe span{font-size:16px;line-height:1.45;color:#d9dfeb}.ns-quote{font-family:Georgia,serif;font-size:25px;line-height:1.4;text-align:center;color:#fff8e7;border-top:1px solid #e2be5c;border-bottom:1px solid #e2be5c;padding:34px 20px;margin:0}.ns-parent{background:#f7efd9;color:#14233b}.ns-parent .ns-frame{background:#fffaf0;border-color:#a9812d}.ns-parent .ns-title,.ns-parent .ns-body,.ns-parent .ns-item h3{color:#14233b}.ns-parent .ns-kicker{color:#8052a0}.ns-parent .ns-footer,.ns-parent .ns-note{color:#596476}.ns-card-page,.ns-label-page{background:#eee5cf;color:#14233b}.ns-cut{margin-top:28px;border:2px dashed #7d6b49;padding:22px}.ns-card{height:480px;border:4px double #b28b35;background:#fffaf0;padding:50px;text-align:center;display:flex;flex-direction:column;justify-content:center}.ns-card h2{font-family:Georgia,serif;font-size:40px;margin:0 0 26px;color:#14233b}.ns-card p{font-family:Georgia,serif;font-size:25px;line-height:1.5;margin:0;color:#263752}.ns-stars{font-size:28px;letter-spacing:16px;color:#e2be5c}.ns-ministry{text-align:center;text-transform:uppercase;letter-spacing:3px;font-size:8px;font-weight:800;color:#e2be5c;opacity:.8}.ns-crest{width:78px;height:78px;margin:17px auto 13px;border:2px solid #e2be5c;border-radius:50%;display:grid;place-items:center;font-family:Georgia,serif;font-size:34px;color:#e2be5c;box-shadow:0 0 0 7px rgba(226,190,92,.06)}.ns-official{text-align:center;font-family:Georgia,serif;font-size:33px;line-height:1.13;color:#fff8e7;margin:8px auto;max-width:590px}.ns-official-sub{text-align:center;text-transform:uppercase;letter-spacing:2.2px;font-size:9px;color:#e2be5c}.ns-beneficiary{margin:20px auto 15px;padding:14px 32px;width:82%;border:1px solid rgba(226,190,92,.35);text-align:center;background:rgba(226,190,92,.055)}.ns-beneficiary span{display:block;text-transform:uppercase;letter-spacing:2px;font-size:8px;color:#b9c4d5}.ns-beneficiary strong{display:block;margin-top:8px;font-family:Georgia,serif;font-size:34px;color:#fff8e7}.ns-cert-copy{font-family:Georgia,serif;font-size:16px;line-height:1.5;text-align:center;color:#d8d3e5}.ns-clauses{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:17px}.ns-clause{min-height:90px;border:1px solid rgba(226,190,92,.25);background:rgba(255,255,255,.025);padding:12px;font-size:12px;line-height:1.4;color:#cbd4e1}.ns-clause b{display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:1.4px;font-size:8px;color:#e2be5c}.ns-seal-row{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:15px;color:#e2be5c;font-size:9px;text-transform:uppercase;letter-spacing:1.5px}.ns-recipe{display:grid;grid-template-columns:.92fr 1.08fr;gap:30px;margin-top:17px}.ns-recipe-col+.ns-recipe-col{border-left:1px solid rgba(226,190,92,.25);padding-left:30px}.ns-section-title{margin:0 0 20px;text-transform:uppercase;letter-spacing:2px;font-size:10px;color:#e2be5c}.ns-ingredient{display:grid;grid-template-columns:30px 1fr;gap:12px;margin-bottom:22px}.ns-ingredient-num{font-family:Georgia,serif;font-size:26px;line-height:1;color:rgba(226,190,92,.34)}.ns-ingredient strong,.ns-prep strong{display:block;font-family:Georgia,serif;font-size:16px;color:#fff8e7}.ns-ingredient small,.ns-prep small{display:block;margin-top:4px;font-size:12px;line-height:1.3;color:#aebbd0;font-style:italic}.ns-prep{display:grid;grid-template-columns:35px 1fr;gap:12px;margin-bottom:18px}.ns-prep-num{width:31px;height:31px;border:1px solid rgba(226,190,92,.65);border-radius:50%;display:grid;place-items:center;font-family:Georgia,serif;color:#e2be5c}.ns-incantation{margin-top:23px;border:1px solid rgba(226,190,92,.4);padding:17px 24px;text-align:center;background:rgba(226,190,92,.05)}.ns-incantation span{display:block;text-transform:uppercase;letter-spacing:2px;font-size:8px;color:#e2be5c}.ns-incantation p{margin:10px 0 0;font-family:Georgia,serif;font-size:17px;line-height:1.42;font-style:italic;color:#efe6fa}.ns-safety{margin-top:9px;text-align:center;font-size:9px;line-height:1.4;color:#9faabd}.ns-label-page .ns-frame{background:#f8f1df;border:1px solid #9b7a33}.ns-label-board{margin:18px auto 0;border:2px solid #e2be5c;background:linear-gradient(150deg,#0b132d,#101f42);padding:24px 38px;text-align:center;color:#fff8e7}.ns-label-board h3{margin:9px 0 3px;font-family:Georgia,serif;font-size:35px}.ns-label-board .owner{margin:13px auto;padding:9px;border-top:1px solid rgba(226,190,92,.4);border-bottom:1px solid rgba(226,190,92,.4);font-size:16px}.ns-label-board .formula{font-family:Georgia,serif;font-size:15px;line-height:1.4;font-style:italic;color:#d8cdea}.ns-cut-grid{display:grid;grid-template-columns:.76fr 1.24fr;gap:16px;margin-top:17px}.ns-round-label{aspect-ratio:1;border:2px dashed #9b7a33;padding:10px}.ns-round-label div{height:100%;border-radius:50%;background:#0d203c;border:2px solid #e2be5c;display:grid;place-items:center;text-align:center;color:#e2be5c;font-size:12px;line-height:1.3;text-transform:uppercase;letter-spacing:1px}.ns-instruction-label{border:2px dashed #9b7a33;padding:10px}.ns-instruction-label div{height:100%;background:#0d203c;border:2px solid #e2be5c;padding:17px;color:#f7efd9}.ns-instruction-label h4{text-align:center;text-transform:uppercase;letter-spacing:2px;color:#e2be5c;margin:0 0 11px}.ns-instruction-label p{margin:6px 0;font-size:12px;line-height:1.3}.ns-combo{display:grid;grid-template-columns:1fr .9fr;gap:26px;align-items:center}.ns-parent-plan{display:grid;gap:11px;margin-top:14px}.ns-parent-step{display:grid;grid-template-columns:42px 1fr;gap:15px;border-left:5px solid #8052a0;background:#f4edf5;padding:14px 17px}.ns-parent-step b{font-family:Georgia,serif;font-size:22px;color:#a9812d}.ns-parent-step h3{margin:0 0 4px;font-family:Georgia,serif;font-size:18px;color:#14233b}.ns-parent-step p{margin:0;font-size:13px;line-height:1.4;color:#536078}.ns-parent-phrase{margin-top:15px;background:#14233b;border:1px solid #a9812d;padding:15px 21px;text-align:center;font-family:Georgia,serif;font-size:16px;line-height:1.35;color:#fff8e7}.ns-tracker-intro{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0 15px}.ns-tracker-intro div{border:1px solid rgba(226,190,92,.32);padding:11px 13px}.ns-tracker-intro span{display:block;text-transform:uppercase;letter-spacing:1.4px;font-size:7px;color:#e2be5c}.ns-tracker-intro strong{display:block;margin-top:6px;font-size:12px;line-height:1.25;color:#fff8e7}.ns-tracker{border:1px solid rgba(226,190,92,.4)}.ns-tracker-row{display:grid;grid-template-columns:55px 1fr 1fr 1.15fr;min-height:51px;border-bottom:1px solid rgba(226,190,92,.22);align-items:center;text-align:center}.ns-tracker-row:last-child{border-bottom:0}.ns-tracker-row>*{height:100%;display:grid;place-items:center;border-right:1px solid rgba(226,190,92,.22);padding:6px}.ns-tracker-row>*:last-child{border-right:0}.ns-tracker-head{min-height:43px;background:rgba(226,190,92,.09);text-transform:uppercase;letter-spacing:.8px;font-size:7px;color:#e2be5c}.ns-tracker-row strong{font-family:Georgia,serif;font-size:16px;color:#fff8e7}.ns-tracker-check{font-size:22px;color:#d8d3e5}.ns-tracker-moods{font-size:15px;color:#e2be5c}
+#ns-page-5 .ns-map{height:320px;margin-top:14px}
+#ns-page-5 .ns-list{gap:10px;margin-top:14px}
+#ns-page-5 .ns-item{padding-bottom:10px}
+#ns-page-5 .ns-item h3{font-size:19px;margin-bottom:3px}
+.ns-label-strips{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}
+.ns-label-strip{border:2px dashed #9b7a33;padding:8px}
+.ns-label-strip span{min-height:62px;background:#0d203c;border:1px solid #e2be5c;display:grid;place-items:center;padding:10px;text-align:center;color:#e2be5c;font-size:10px;line-height:1.3;font-weight:800;letter-spacing:1.1px;text-transform:uppercase}
+.ns-label-note{margin:14px auto 0;max-width:520px;text-align:center;color:#596476;font-size:10px;line-height:1.45}
 `;
+
+const PDF_CSS = `${CLASSIC_SHIELD_STYLES}\n${NEW_PDF_CSS}`;
+
+export default function MonsterKit() {
+  const [name, setName] = useState(""); const [age, setAge] = useState("4"); const [fear, setFear] = useState(fears[0].id);
+  const [location, setLocation] = useState(""); const [helper, setHelper] = useState(""); const [ritual, setRitual] = useState("");
+  const [content, setContent] = useState<NightShieldContent | null>(null); const [showResult, setShowResult] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false); const [isDownloading, setIsDownloading] = useState(false); const [resultNote, setResultNote] = useState("");
+  const [showRating, setShowRating] = useState(false); const [consent, setConsent] = useState(false); const [consentError, setConsentError] = useState("");
+  const [audioPhase, setAudioPhase] = useState<"idle" | "loading" | "playing">("idle");
+  const selectedFear = fears.find((item) => item.id === fear) || fears[0];
+  const fallback = useMemo(() => buildNightShieldContent({ name, age, fear, fearLabel: selectedFear.label, location: location || defaults[fear]?.location, helper: helper || defaults[fear]?.helper, ritual: ritual || defaults[fear]?.ritual }), [age, fear, helper, location, name, ritual, selectedFear.label]);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToNarration((state) => setAudioPhase(state.owner === AUDIO_OWNER ? state.phase : "idle"));
+    return () => { unsubscribe(); };
+  }, []);
+  useEffect(() => () => stopNarration(AUDIO_OWNER), []);
+  useEffect(() => {
+    const listener = (event: Event) => { const detail = (event as CustomEvent<Record<string, string>>).detail; if (detail?.product !== "monster") return; if (detail.monsterType && fears.some((item) => item.id === detail.monsterType)) setFear(detail.monsterType); if (detail.fearLocation) setLocation(detail.fearLocation); if (detail.calmingHelper) setHelper(detail.calmingHelper); if (detail.bedtimeRitual) setRitual(detail.bedtimeRitual); };
+    window.addEventListener("pmm:lumi-material-choice", listener); return () => window.removeEventListener("pmm:lumi-material-choice", listener);
+  }, []);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search); const orderId = params.get("order"); const token = params.get("token");
+    if (!orderId || !token || (params.get("item") && params.get("item") !== "monster")) return;
+    void fetch(`/api/orders/${encodeURIComponent(orderId)}?token=${encodeURIComponent(token)}&item=monster`).then(async (response) => response.ok ? response.json() : null).then((delivery: { product?: string; configuration?: Record<string, unknown>; output?: unknown } | null) => {
+      if (!delivery || delivery.product !== "monster" || !delivery.output) return; const generation = delivery.configuration?.generation as Record<string, unknown> | undefined;
+      const deliveredFear = typeof generation?.monster === "string" ? generation.monster : fears[0].id; const deliveredName = typeof generation?.name === "string" ? generation.name : ""; const deliveredAge = typeof generation?.age === "string" ? generation.age : "4";
+      const deliveredLocation = typeof generation?.context === "string" ? generation.context : ""; const deliveredHelper = typeof generation?.interest === "string" ? generation.interest : ""; const deliveredRitual = typeof generation?.tone === "string" ? generation.tone : ""; const deliveredLabel = fears.find((item) => item.id === deliveredFear)?.label || fears[0].label;
+      setName(deliveredName); setAge(deliveredAge); setFear(deliveredFear); setLocation(deliveredLocation); setHelper(deliveredHelper); setRitual(deliveredRitual);
+      setContent(sanitizeNightShieldContent(delivery.output, buildNightShieldContent({ name: deliveredName, age: deliveredAge, fear: deliveredFear, fearLabel: deliveredLabel, location: deliveredLocation, helper: deliveredHelper, ritual: deliveredRitual }))); setShowResult(true);
+    }).catch(() => undefined);
+  }, []);
+
+  const generate = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault(); if (!name.trim()) return; if (commerce.acceptsPayments && !consent) { setConsentError("Confirmă livrarea imediată înainte de a continua către plată."); return; }
+    setConsentError(""); setIsGenerating(true); setShowRating(false); setResultNote(""); trackEvent("product_started", { product: "monster" });
+    const generation = { type: "monster", name, age, monster: fear, context: location, interest: helper, tone: ritual };
+    if (commerce.acceptsPayments) { try { await beginOrderCheckout("night-shield", { generation }); } catch (error) { alert(error instanceof Error ? error.message : "Nu am putut pregăti plata."); } finally { setIsGenerating(false); } return; }
+    try { const response = await fetch("/api/generate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(generation) }); const payload = await response.json() as { success?: boolean; data?: unknown }; if (!response.ok || !payload.success || !payload.data) throw new Error("generation"); setContent(sanitizeNightShieldContent(payload.data, fallback)); trackEvent("generation_completed", { product: "monster", generationMode: "ai", pageCount: PAGE_COUNT }); }
+    catch { setContent(fallback); setResultNote("Ritualul este pregătit într-o variantă sigură și personalizată. Îl poți regenera pentru o formulare nouă."); trackEvent("generation_completed", { product: "monster", generationMode: "template", pageCount: PAGE_COUNT }); }
+    finally { setIsGenerating(false); setShowResult(true); }
+  };
+
+  const renderPdf = async (quality: "download" | "email" = "download") => {
+    const [{ jsPDF }, html2canvasModule] = await Promise.all([import("jspdf"), import("html2canvas")]); const pdf = new jsPDF("p", "mm", "a4"); const width = pdf.internal.pageSize.getWidth(); const height = pdf.internal.pageSize.getHeight();
+    await document.fonts.ready;
+    for (let index = 1; index <= PAGE_COUNT; index += 1) { const element = document.getElementById(`ns-page-${index}`); if (!element) continue; element.style.display = "block"; try { await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))); const canvas = await html2canvasModule.default(element, { scale: quality === "email" ? 1.65 : 2.35, useCORS: true, logging: false, windowWidth: 794, windowHeight: 1123 }); addSearchableText(pdf, element.innerText, width); pdf.addImage(canvas.toDataURL("image/jpeg", quality === "email" ? .84 : .96), "JPEG", 0, 0,width, height); } finally { element.style.display = "none"; } if (index < PAGE_COUNT) pdf.addPage(); }
+    return pdf;
+  };
+  const download = async () => { setIsDownloading(true); const started = Date.now(); trackEvent("pdf_render_started", { product: "monster" }); try { const pdf = await renderPdf(); pdf.save(`Scutul_de_Noapte_${name.trim()}.pdf`); trackEvent("pdf_render_completed", { product: "monster", durationMs: Date.now() - started }); trackEvent("pdf_downloaded", { product: "monster", pageCount: PAGE_COUNT }); setShowRating(true); } catch { trackEvent("pdf_render_failed", { product: "monster", durationMs: Date.now() - started }); } finally { setIsDownloading(false); } };
+  const toggleAudio = async () => { if (!content) return; if (audioPhase !== "idle") { stopNarration(AUDIO_OWNER); return; } try { await playNarration(AUDIO_OWNER, nightShieldNarration(name, content), "lumi"); } catch { setResultNote("Audio-ul nu este disponibil momentan. Ritualul rămâne pregătit pentru citit împreună."); } };
+
+  return <section id="monster-away" className="relative overflow-hidden bg-brand-navy px-4 py-14 text-brand-cream md:px-8 md:py-20"><div className="mx-auto max-w-6xl"><div className="mx-auto mb-10 max-w-3xl text-center"><p className="text-xs font-black uppercase tracking-[0.22em] text-brand-gold">Ritual personalizat de seară</p><h1 className="mt-4 font-serif text-4xl leading-tight md:text-6xl">Scutul de Noapte</h1><p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-brand-cream/72 md:text-lg">Certificatul, rețeta imaginară și etichetele îndrăgite se întâlnesc cu o poveste scurtă, repere pentru cameră și pași blânzi pentru întreaga familie.</p></div>
+    <div className="grid items-start gap-10 lg:grid-cols-[.85fr_1.15fr]"><aside className="border border-brand-gold/30 bg-white/5 p-6 md:p-8"><p className="text-xs font-black uppercase tracking-[0.16em] text-brand-gold">În PDF</p><h2 className="mt-3 font-serif text-3xl">Jocul magic, completat cu repere reale</h2><div className="mt-7 grid gap-4 text-sm text-brand-cream/78">{[[Award,"Certificat oficial de protecție magică"],[Sparkles,"Rețeta și etichetele originale pentru flacon"],[MoonStar,"Poveste scurtă despre emoția aleasă"],[Map,"Harta camerei și locurile sigure"],[Wind,"Respirație și formulă de curaj"],[HeartHandshake,"Ghid pentru părinte, card și calendar"],[Headphones,"Audio ghidat de Lumi"]].map(([Icon,label]) => <div key={String(label)} className="flex items-center gap-3"><Icon className="shrink-0 text-brand-gold" size={19}/><span>{String(label)}</span></div>)}</div></aside>
+      <form onSubmit={generate} className="bg-brand-cream p-5 text-brand-navy shadow-2xl md:p-9"><MobileFlowSteps items={["Copilul","Seara","Ritualul"]} accentClass="bg-brand-purple"/><div className="grid gap-5 sm:grid-cols-2"><label className="text-sm font-black">Numele copilului<input required value={name} onChange={(event)=>setName(event.target.value)} maxLength={32} placeholder="Ex: Erica" className="mt-2 w-full border border-brand-navy/20 bg-white px-4 py-3 font-semibold outline-none focus:border-brand-purple"/></label><label className="text-sm font-black">Vârsta copilului<select value={age} onChange={(event)=>setAge(event.target.value)} className="mt-2 w-full border border-brand-navy/20 bg-white px-4 py-3 font-semibold outline-none focus:border-brand-purple">{[2,3,4,5,6,7,8,9].map((value)=><option key={value} value={value}>{value} ani</option>)}</select></label></div>
+        <fieldset className="mt-7"><legend className="text-sm font-black">Ce face seara mai dificilă?</legend><div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">{fears.map((item)=>{const Icon=item.icon;const active=fear===item.id;return <button key={item.id} type="button" onClick={()=>setFear(item.id)} className={`flex min-h-20 flex-col items-center justify-center gap-2 border px-2 text-xs font-black transition ${active?"border-brand-purple bg-brand-purple text-white":"border-brand-navy/15 bg-white hover:border-brand-purple"}`}><Icon size={20}/>{item.label}</button>})}</div></fieldset>
+        <div className="mt-7 grid gap-5"><label className="text-sm font-black">Locul care atrage atenția copilului<input value={location} onChange={(event)=>setLocation(event.target.value)} maxLength={88} placeholder={defaults[fear]?.location} className="mt-2 w-full border border-brand-navy/20 bg-white px-4 py-3 font-semibold outline-none focus:border-brand-purple"/></label><label className="text-sm font-black">Ce îl liniștește de obicei?<input value={helper} onChange={(event)=>setHelper(event.target.value)} maxLength={88} placeholder={defaults[fear]?.helper} className="mt-2 w-full border border-brand-navy/20 bg-white px-4 py-3 font-semibold outline-none focus:border-brand-purple"/></label><label className="text-sm font-black">Ritualul vostru de seară<input value={ritual} onChange={(event)=>setRitual(event.target.value)} maxLength={96} placeholder={defaults[fear]?.ritual} className="mt-2 w-full border border-brand-navy/20 bg-white px-4 py-3 font-semibold outline-none focus:border-brand-purple"/></label></div>
+        {commerce.acceptsPayments&&<div className="mt-7"><DigitalPurchaseConsent checked={consent} onCheckedChange={setConsent} productLabel="Scutul de Noapte" error={consentError}/></div>}<button disabled={isGenerating||!name.trim()} className="mt-7 flex w-full items-center justify-center gap-3 bg-brand-purple px-5 py-4 text-base font-black text-white transition hover:bg-brand-navy disabled:opacity-50"><ShieldCheck size={22}/>{isGenerating?"Pregătim ritualul...":commerce.acceptsPayments?`Continuă către plată · ${commerce.prices.nightShield}`:"Creează Scutul de Noapte"}</button>
+      </form></div></div><MagicalLoader isVisible={isGenerating}/>
+    <AnimatePresence>{showResult&&content&&<motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[90] flex items-center justify-center bg-brand-navy/88 p-3 backdrop-blur-sm" onClick={()=>setShowResult(false)}><motion.div initial={{y:22,opacity:0}} animate={{y:0,opacity:1}} onClick={(event)=>event.stopPropagation()} className="max-h-[88dvh] w-full max-w-xl overflow-y-auto bg-brand-cream p-5 text-center text-brand-navy shadow-2xl md:p-8"><button type="button" onClick={()=>setShowResult(false)} className="ml-auto grid h-9 w-9 place-items-center border border-brand-navy/15" aria-label="Închide"><X size={18}/></button><div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-brand-navy text-brand-gold"><MoonStar size={30}/></div><p className="mt-4 text-xs font-black uppercase tracking-[0.18em] text-brand-purple">9 pagini personalizate</p><h2 className="mt-2 font-serif text-3xl">Scutul lui {name}</h2><p className="mt-3 text-sm leading-relaxed text-brand-navy/65">Certificatul, rețeta, etichetele, povestea, harta, cardul și calendarul de seară sunt gata.</p>{resultNote&&<p className="mt-4 border border-brand-gold/35 bg-white px-4 py-3 text-xs font-bold leading-relaxed">{resultNote}</p>}<button type="button" onClick={toggleAudio} disabled={audioPhase==="loading"} className="mt-6 flex w-full items-center justify-center gap-3 border border-brand-purple px-5 py-3 font-black text-brand-purple hover:bg-brand-purple hover:text-white disabled:opacity-50">{audioPhase==="playing"?<Pause size={20}/>:<Play size={20}/>} {audioPhase==="loading"?"Lumi pregătește vocea...":audioPhase==="playing"?"Oprește ghidul audio":"Ascultă ritualul cu Lumi"}</button><button type="button" onClick={download} disabled={isDownloading} className="mt-3 flex w-full items-center justify-center gap-3 bg-brand-navy px-5 py-4 font-black text-white disabled:opacity-50"><Download size={20}/>{isDownloading?"Pregătim PDF-ul...":"Descarcă Scutul de Noapte"}</button><EmailDelivery product="monster" filename={`Scutul_de_Noapte_${name.trim()}.pdf`} childName={name} createPdf={async()=>(await renderPdf("email")).output("blob")}/>{showRating&&<QuickRating product="monster"/>}<FeedbackInvite product="monster"/></motion.div></motion.div>}</AnimatePresence>
+    {showResult&&content&&<div aria-hidden="true" style={{position:"fixed",left:0,top:0,zIndex:-10,pointerEvents:"none"}}><style>{PDF_CSS}</style><NightShieldPages name={name} fear={fear} fearLabel={selectedFear.label} location={location||defaults[fear]?.location} helper={helper||defaults[fear]?.helper} ritual={ritual||defaults[fear]?.ritual} content={content}/></div>}
+  </section>;
+}
+
+function Page({index,kicker,title,children,light=false}:{index:number;kicker:string;title:string;children:React.ReactNode;light?:boolean}){return <div id={`ns-page-${index}`} className={`ns-page${light?" ns-parent":""}`} style={{display:"none"}}><div className="ns-frame"><div className="ns-kicker">{kicker}</div><h2 className="ns-title">{title}</h2><div className="ns-rule"/>{children}<div className="ns-footer"><span>Povestea Mea Magică · Scutul de Noapte</span><span>{index} / {PAGE_COUNT}</span></div></div></div>}
+
+function NightShieldPages({name,fear,fearLabel,location,helper,ritual,content}:{name:string;fear:string;fearLabel:string;location:string;helper:string;ritual:string;content:NightShieldContent}){
+  const kit=classicShieldKits[fear]||classicShieldKits["frica de intuneric"];
+  return <>
+    <ClassicShieldPages name={name} fearLabel={fearLabel} location={location} helper={helper} ritual={ritual} kit={kit}/>
+    <Page index={4} kicker="Povestea serii" title={content.storyTitle}><div className="ns-body">{content.storyParagraphs.map((paragraph)=><p key={paragraph}>{paragraph}</p>)}</div><div className="ns-incantation"><span>Formula serii</span><p>„{kit.spell}”</p></div></Page>
+    <Page index={5} kicker="Camera cunoscută" title="Harta locurilor sigure"><p className="ns-note">Desenați împreună camera, apoi marcați cele trei repere. Harta nu caută pericole; îl ajută pe copil să recunoască locurile familiare.</p><div className="ns-map"><div className="ns-window"/><div className="ns-door"/><div className="ns-bed"/><span className="ns-safe">1</span><span className="ns-safe">2</span><span className="ns-safe">3</span></div><div className="ns-list">{content.safePlaces.map((place,index)=><div className="ns-item" key={place}><span className="ns-num">{index+1}</span><div><h3>{place}</h3></div></div>)}</div></Page>
+    <Page index={6} kicker={`Cuvintele lui ${name}`} title="Respirație și formulă"><div className="ns-combo"><div className="ns-breathe"><div><strong>3 × 4</strong><span>Inspirăm până la 3<br/>Expirăm până la 4</span></div></div><div className="ns-quote">„{content.courageFormula}”</div></div><div className="ns-panel" style={{marginTop:28}}><p className="ns-body" style={{fontSize:18,margin:0}}>{content.breathingCue}</p></div><p className="ns-note" style={{marginTop:18,textAlign:"center"}}>Respirația rămâne naturală. Opriți exercițiul dacă devine inconfortabil.</p></Page>
+    <Page index={7} kicker="Pentru adultul de încredere" title="Planul serii" light><p className="ns-note" style={{fontSize:16}}>{content.parentMessage}</p><div className="ns-parent-plan">{content.ritualSteps.map((step,index)=><div className="ns-parent-step" key={step.title}><b>0{index+1}</b><div><h3>{step.title}</h3><p>{step.text}</p></div></div>)}</div><div className="ns-parent-phrase">„Te cred. Sunt aici. Facem împreună următorul pas mic.”</div><p className="ns-note" style={{marginTop:18,textAlign:"center"}}>Scutul este un joc de conectare pentru familie. Nu înlocuiește sfatul unui medic sau specialist atunci când frica persistă ori afectează puternic somnul copilului.</p></Page>
+    <div id="ns-page-8" className="ns-page ns-card-page" style={{display:"none"}}><div className="ns-frame" style={{background:"#fffaf0",borderColor:"#a9812d"}}><div className="ns-kicker" style={{color:"#8052a0"}}>Decupează pe linia punctată</div><h2 className="ns-title" style={{color:"#14233b"}}>Card pentru noptieră</h2><div className="ns-cut"><div className="ns-card"><div className="ns-stars">✦ ✦ ✦</div><h2>Scutul lui {name}</h2><p>{content.bedsideMessage}</p></div></div><div className="ns-footer" style={{color:"#596476"}}><span>Povestea Mea Magică · Scutul de Noapte</span><span>8 / {PAGE_COUNT}</span></div></div></div>
+    <Page index={9} kicker="O săptămână de pași mici" title="Calendarul curajului"><div className="ns-tracker-intro"><div><span>Semnul care ajută</span><strong>{helper}</strong></div><div><span>Ritualul nostru</span><strong>{ritual}</strong></div></div><div className="ns-tracker"><div className="ns-tracker-row ns-tracker-head"><span>Seara</span><span>Am numit emoția</span><span>Am făcut ritualul</span><span>Cum m-am simțit</span></div>{Array.from({length:7},(_,index)=><div className="ns-tracker-row" key={index}><strong>{index+1}</strong><span className="ns-tracker-check">□</span><span className="ns-tracker-check">□</span><span className="ns-tracker-moods">☾ &nbsp; ◡ &nbsp; ★</span></div>)}</div><div className="ns-incantation"><span>După șapte seri</span><p style={{fontSize:15}}>Observăm dacă {name} a putut să numească emoția, să ceară ajutor și să urmeze ritualul împreună cu un adult.</p></div></Page>
+  </>;
+}

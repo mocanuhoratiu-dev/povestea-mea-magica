@@ -125,7 +125,7 @@ export default function AlbumFlipbook() {
     <div
       className={`relative mx-auto w-full outline-none ${isExpanded ? "max-w-none" : "max-w-[1120px]"}`}
       role="group"
-      aria-label={`Poveste demonstrativă, pagina ${activeIndex + 1} din ${albumSamplePages.length}`}
+      aria-label={`Povestea Magică a Evei, pagina ${activeIndex + 1} din ${albumSamplePages.length}`}
       tabIndex={0}
       onKeyDown={(event) => {
         if (event.key === "ArrowLeft") goPrevious();
@@ -196,9 +196,9 @@ export default function AlbumFlipbook() {
           <div className="max-w-xl">
             <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-brand-gold"><Sparkles size={16} /> O carte adevărată, pagină cu pagină</div>
             <h2 id="album-sample-title" className="mt-4 font-serif text-4xl leading-tight sm:text-5xl">Intră în Povestea Magică a Evei.</h2>
-            <p className="mt-5 text-base font-semibold leading-relaxed text-brand-cream/72 sm:text-lg">Răsfoiește toate cele 16 pagini ale poveștii demonstrative. Fiecare comandă primește o aventură nouă, construită din alegerile familiei.</p>
+            <p className="mt-5 text-base font-semibold leading-relaxed text-brand-cream/72 sm:text-lg">Răsfoiește toate cele 16 pagini ale poveștii Evei. Fiecare comandă primește o aventură nouă, construită din alegerile familiei.</p>
             <div className="mt-7 flex flex-wrap gap-x-6 gap-y-3 text-sm font-bold text-brand-cream/72">
-              <span className="inline-flex items-center gap-2"><BookOpen size={17} className="text-brand-gold" /> 16 pagini A5 landscape</span>
+              <span className="inline-flex items-center gap-2"><BookOpen size={17} className="text-brand-gold" /> 16 pagini A5, format orizontal</span>
               <span className="inline-flex items-center gap-2"><Volume2 size={17} className="text-brand-gold" /> Narațiune în română</span>
             </div>
           </div>

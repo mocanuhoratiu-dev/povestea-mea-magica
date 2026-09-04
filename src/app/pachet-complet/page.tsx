@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import BundleConfigurator from "@/components/BundleConfigurator";
 import CommercialPage from "@/components/CommercialPage";
+import { commerce } from "@/lib/siteMode";
 
 export const metadata: Metadata = {
   title: "Pachetul Complet | Povestea Mea Magică",
@@ -10,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function CompleteBundlePage() {
   return (
-    <CommercialPage eyebrow="Pachetul Complet · 79 lei" title="Toată magia într-o singură comandă." description="Primești Povestea Magică, Scutul de Noapte și Trusa de Răbdare. Cartea ilustrată vine cu propriul caiet de activități, fiecare produs se personalizează separat, iar plata se face o singură dată.">
+    <CommercialPage eyebrow={`Pachetul Complet · ${commerce.prices.completeBundle}`} title="Toată magia într-o singură comandă." description="Primești Povestea Magică, Scutul de Noapte și Trusa de Răbdare. Cartea ilustrată vine cu propriul caiet de activități, fiecare produs se personalizează separat, iar plata se face o singură dată.">
       <BundleConfigurator />
     </CommercialPage>
   );

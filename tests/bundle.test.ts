@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { bundleVariantForProductId, readBundleConfiguration } from "../src/lib/bundle.ts";
-import { checkoutCatalog } from "../src/lib/catalog.ts";
+import { checkoutCatalog, checkoutProductIds, isCheckoutProductId } from "../src/lib/catalog.ts";
 import { createReadyEmailSubject, productEmailCopy } from "../src/lib/emailTemplates.ts";
 
 function item(product: "story" | "monster" | "emergency" | "album") {
@@ -15,6 +15,15 @@ test("bundle product ids resolve to distinct variants", () => {
   assert.equal(bundleVariantForProductId("family-bundle"), "family");
   assert.equal(bundleVariantForProductId("complete-bundle"), "complete");
   assert.equal(bundleVariantForProductId("story-long"), null);
+});
+
+test("only the current collection can start a new checkout", () => {
+  assert.deepEqual(checkoutProductIds, ["night-shield", "patience-kit", "complete-bundle", "illustrated-album-digital"]);
+  assert.equal(isCheckoutProductId("illustrated-album-digital"), true);
+  assert.equal(isCheckoutProductId("complete-bundle"), true);
+  assert.equal(isCheckoutProductId("story-short"), false);
+  assert.equal(isCheckoutProductId("story-long"), false);
+  assert.equal(isCheckoutProductId("family-bundle"), false);
 });
 
 test("family bundle accepts exactly the three family materials", () => {

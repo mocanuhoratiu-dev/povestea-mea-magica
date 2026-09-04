@@ -157,7 +157,7 @@ export default function LumiGuide() {
 
   const toggleVoice = async () => {
     if (isSpeaking) { stopSharedNarration(LUMI_NARRATION_OWNER); return; }
-    const text = step < totalSteps ? prompts[step] : `Povestea Magică pentru ${draft.name} este pregătită pentru preview. Poți verifica toate alegerile înainte să continuăm.`;
+    const text = step < totalSteps ? prompts[step] : `Povestea Magică pentru ${draft.name} este pregătită pentru mostră. Poți verifica toate alegerile înainte să continuăm.`;
     try {
       const started = await playNarration(LUMI_NARRATION_OWNER, text, "lumi");
       if (started) trackEvent("lumi_voice_played");
@@ -196,7 +196,7 @@ export default function LumiGuide() {
   ];
 
   return (
-    <aside className="fixed bottom-3 left-2 right-2 z-[9990] sm:bottom-5 sm:left-auto sm:right-6 sm:w-[400px]" aria-label="Lumi, ghidul pentru Povestea Magică">
+    <aside className="fixed bottom-3 left-2 right-2 z-[80] sm:bottom-5 sm:left-auto sm:right-6 sm:w-[400px]" aria-label="Lumi, ghidul pentru Povestea Magică">
       <AnimatePresence mode="wait">
         {isOpen ? (
           <motion.section key="guide" initial={{ opacity: 0, y: 18, scale: .97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 12, scale: .97 }} className="flex max-h-[min(660px,calc(100dvh-5rem))] min-h-0 flex-col overflow-hidden border border-brand-gold/55 bg-brand-cream shadow-[0_24px_70px_rgba(15,25,48,.35)]">

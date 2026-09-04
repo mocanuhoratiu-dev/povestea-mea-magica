@@ -5,6 +5,8 @@ import { checkRateLimit, requestExceedsBodyLimit } from "@/lib/requestProtection
 import { logTelemetry, type TelemetryProduct } from "@/lib/telemetry";
 import { readBoundedDuration, withTimeout } from "@/lib/aiTimeout";
 import { isTrustedOrderWorker } from "@/lib/orders";
+import { buildNightShieldContent, sanitizeNightShieldContent } from "@/lib/nightShield";
+import { buildPatienceKitContent, recommendedDifficulty, sanitizePatienceKitContent, type PatienceDifficulty } from "@/lib/patienceKit";
 
 type GenerateRequest = {
   type?: "monster" | "story" | "emergency";
@@ -18,6 +20,7 @@ type GenerateRequest = {
   interest?: string;
   duration?: string;
   activityMode?: string;
+  difficulty?: PatienceDifficulty;
   tone?: string;
   themeDetail?: string;
   lessonDetail?: string;
@@ -143,6 +146,7 @@ function normalizeGenerateRequest(value: unknown): GenerateRequest | null {
     interest: cleanRequestText(data.interest, 100),
     duration: cleanRequestText(data.duration, 24),
     activityMode: cleanRequestText(data.activityMode, 32),
+    difficulty: data.difficulty === "easy" || data.difficulty === "medium" || data.difficulty === "advanced" ? data.difficulty : undefined,
     tone: cleanRequestText(data.tone, 80),
     themeDetail: cleanRequestText(data.themeDetail, 180),
     lessonDetail: cleanRequestText(data.lessonDetail, 180),
@@ -169,65 +173,50 @@ const STORY_RESPONSE_SCHEMA = {
 const MONSTER_RESPONSE_SCHEMA = {
   type: "object",
   additionalProperties: false,
-  required: ["body", "ingredients", "steps", "spell"],
+  required: ["storyTitle", "storyParagraphs", "safePlaces", "ritualSteps", "breathingCue", "courageFormula", "parentMessage", "bedsideMessage", "certificateLine"],
   properties: {
-    body: { type: "string" },
-    ingredients: {
+    storyTitle: { type: "string" },
+    storyParagraphs: { type: "array", minItems: 3, maxItems: 3, items: { type: "string" } },
+    safePlaces: { type: "array", minItems: 3, maxItems: 3, items: { type: "string" } },
+    ritualSteps: {
       type: "array",
       minItems: 3,
       maxItems: 3,
       items: {
         type: "object",
         additionalProperties: false,
-        required: ["num", "icon", "name", "detail"],
-        properties: {
-          num: { type: "string" },
-          icon: { type: "string" },
-          name: { type: "string" },
-          detail: { type: "string" },
-        },
+        required: ["title", "text"],
+        properties: { title: { type: "string" }, text: { type: "string" } },
       },
     },
-    steps: {
-      type: "array",
-      minItems: 3,
-      maxItems: 3,
-      items: {
-        type: "object",
-        additionalProperties: false,
-        required: ["roman", "l1", "l2"],
-        properties: {
-          roman: { type: "string" },
-          l1: { type: "string" },
-          l2: { type: "string" },
-        },
-      },
-    },
-    spell: { type: "string" },
+    breathingCue: { type: "string" },
+    courageFormula: { type: "string" },
+    parentMessage: { type: "string" },
+    bedsideMessage: { type: "string" },
+    certificateLine: { type: "string" },
   },
 } as const;
 
 const EMERGENCY_RESPONSE_SCHEMA = {
   type: "object",
   additionalProperties: false,
-  required: ["missionTitle", "missionNote", "radar", "riddle", "drawing", "patience", "story_starters", "true_or_false"],
+  required: ["missionTitle", "missionNote", "radar", "drawingPrompt", "coloringPrompt", "verbalPrompts", "cards", "levelChallenges"],
   properties: {
     missionTitle: { type: "string" },
     missionNote: { type: "string" },
-    radar: { type: "array", minItems: 4, maxItems: 4, items: { type: "string" } },
-    riddle: { type: "string" },
-    drawing: { type: "string" },
-    patience: { type: "string" },
-    story_starters: { type: "array", minItems: 3, maxItems: 3, items: { type: "string" } },
-    true_or_false: {
-      type: "array",
-      minItems: 3,
-      maxItems: 3,
-      items: {
-        type: "object",
-        additionalProperties: false,
-        required: ["q", "a"],
-        properties: { q: { type: "string" }, a: { type: "string" } },
+    radar: { type: "array", minItems: 6, maxItems: 6, items: { type: "string" } },
+    drawingPrompt: { type: "string" },
+    coloringPrompt: { type: "string" },
+    verbalPrompts: { type: "array", minItems: 6, maxItems: 6, items: { type: "string" } },
+    cards: { type: "array", minItems: 8, maxItems: 8, items: { type: "string" } },
+    levelChallenges: {
+      type: "object",
+      additionalProperties: false,
+      required: ["easy", "medium", "advanced"],
+      properties: {
+        easy: { type: "array", minItems: 3, maxItems: 3, items: { type: "string" } },
+        medium: { type: "array", minItems: 3, maxItems: 3, items: { type: "string" } },
+        advanced: { type: "array", minItems: 3, maxItems: 3, items: { type: "string" } },
       },
     },
   },
@@ -263,18 +252,6 @@ function stripHtml(value: unknown): string {
     .replace(/<br\s*\/?>/gi, " ")
     .replace(/<\/?em[^>]*>/gi, "")
     .replace(/<[^>]*>/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function sanitizeEmHtml(value: unknown): string {
-  return String(value ?? "")
-    .replace(/<br\s*\/?>/gi, " ")
-    .replace(/<em[^>]*>/gi, "[[EM]]")
-    .replace(/<\/em>/gi, "[[/EM]]")
-    .replace(/<[^>]*>/g, "")
-    .replace(/\[\[EM\]\]/g, "<em>")
-    .replace(/\[\[\/EM\]\]/g, "</em>")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -647,98 +624,6 @@ Returnează DOAR JSON valid, fără \`\`\`json și fără text înainte/după:
   return { prompt, wordTarget, minWords, maxOutputTokens, continuationParagraphTarget };
 }
 
-function limitMonsterText(value: unknown, maxLength: number) {
-  const clean = stripHtml(value);
-  if (clean.length <= maxLength) return clean;
-  return `${clean.slice(0, maxLength - 3).trim()}...`;
-}
-
-function sanitizeMonsterBody(value: unknown) {
-  const clean = sanitizeEmHtml(value);
-  if (stripHtml(clean).length <= 320) return clean;
-  return limitMonsterText(clean, 320);
-}
-
-function sanitizeMonsterSpell(value: unknown) {
-  return String(value ?? "")
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<[^>]*>/g, "")
-    .split(/\r?\n/)
-    .map((line) => line.replace(/\s+/g, " ").trim())
-    .filter(Boolean)
-    .slice(0, 4)
-    .map((line) => limitMonsterText(line, 56))
-    .join("\n");
-}
-
-function sanitizeMonsterKit(value: unknown) {
-  const kit = value as {
-    body?: unknown;
-    ingredients?: Array<{ num?: unknown; icon?: unknown; name?: unknown; detail?: unknown }>;
-    steps?: Array<{ roman?: unknown; l1?: unknown; l2?: unknown }>;
-    spell?: unknown;
-  };
-
-  return {
-    body: sanitizeMonsterBody(kit.body),
-    ingredients: Array.isArray(kit.ingredients)
-      ? kit.ingredients.slice(0, 4).map((ingredient, index) => ({
-          num: stripHtml(ingredient.num) || String(index + 1),
-          icon: stripHtml(ingredient.icon).slice(0, 8),
-          name: limitMonsterText(ingredient.name, 26),
-          detail: limitMonsterText(ingredient.detail, 34),
-        }))
-      : [],
-    steps: Array.isArray(kit.steps)
-      ? kit.steps.slice(0, 3).map((step, index) => ({
-          roman: stripHtml(step.roman) || ["I", "II", "III"][index] || String(index + 1),
-          l1: limitMonsterText(step.l1, 56),
-          l2: limitMonsterText(step.l2, 56),
-        }))
-      : [],
-    spell: sanitizeMonsterSpell(kit.spell),
-  };
-}
-
-function limitEmergencyText(value: unknown, maxLength: number) {
-  const clean = normalizeRomanianText(stripHtml(value));
-  if (clean.length <= maxLength) return clean;
-  return `${clean.slice(0, maxLength - 3).trim()}...`;
-}
-
-function sanitizeEmergencyKit(value: unknown) {
-  const kit = value as {
-    missionTitle?: unknown;
-    missionNote?: unknown;
-    radar?: unknown[];
-    riddle?: unknown;
-    drawing?: unknown;
-    patience?: unknown;
-    story_starters?: unknown[];
-    true_or_false?: Array<{ q?: unknown; a?: unknown }>;
-  };
-
-  return {
-    missionTitle: limitEmergencyText(kit.missionTitle, 48),
-    missionNote: limitEmergencyText(kit.missionNote, 130),
-    radar: Array.isArray(kit.radar)
-      ? kit.radar.slice(0, 4).map((item) => limitEmergencyText(item, 68))
-      : [],
-    riddle: limitEmergencyText(kit.riddle, 210),
-    drawing: limitEmergencyText(kit.drawing, 210),
-    patience: limitEmergencyText(kit.patience, 270),
-    story_starters: Array.isArray(kit.story_starters)
-      ? kit.story_starters.slice(0, 3).map((item) => limitEmergencyText(item, 150))
-      : [],
-    true_or_false: Array.isArray(kit.true_or_false)
-      ? kit.true_or_false.slice(0, 3).map((item) => ({
-          q: limitEmergencyText(item.q, 155),
-          a: limitEmergencyText(item.a, 200),
-        }))
-      : [],
-  };
-}
-
 async function generateGeminiText({
   apiKey,
   prompt,
@@ -1022,6 +907,18 @@ export async function POST(req: Request) {
         return NextResponse.json({ success: true, data: fallback });
       }
 
+      if (data.type === "monster") {
+        const fallback = buildNightShieldContent({ name: data.name || "copilul", age: data.age, fear: data.monster || "frica de intuneric", location: data.context, helper: data.interest, ritual: data.tone });
+        logTelemetry("pmm_generation_completed", { product, result: "success", generationMode: "fallback", durationMs: Date.now() - startedAt, aiProvider: getAiProvider() });
+        return NextResponse.json({ success: true, data: fallback });
+      }
+
+      if (data.type === "emergency") {
+        const fallback = buildPatienceKitContent({ name: data.name || "copilul", age: data.age || "5", context: data.context || "o perioadă de așteptare", interest: data.interest, duration: data.duration, difficulty: data.difficulty || recommendedDifficulty(data.age || "5") });
+        logTelemetry("pmm_generation_completed", { product, result: "success", generationMode: "fallback", durationMs: Date.now() - startedAt, aiProvider: getAiProvider() });
+        return NextResponse.json({ success: true, data: fallback });
+      }
+
       logTelemetry("pmm_generation_failed", {
         product,
         result: "error",
@@ -1044,47 +941,55 @@ export async function POST(req: Request) {
       const location = data.context || "camera copilului";
       const helper = data.interest || "o îmbrățișare și o lumină de veghe";
       const ritual = data.tone || "trei respirații lente înainte de somn";
-      const prompt = `Ești reprezentantul Ministerului Protecției Magice. Creezi un kit blând, cald și printabil pentru copilul "${data.name}", care se pregătește de somn și are nevoie de ajutor cu: "${data.monster}".
+      const prompt = `Ești un autor român specializat în ritualuri de conectare pentru copii și părinți. Creezi Scutul de Noapte pentru copilul "${data.name}", în vârstă de ${data.age || "4"} ani, pentru serile în care apare: "${data.monster}".
 
 Detalii alese de părinte:
-- Locul care are nevoie de protecție: "${location}".
-- Ce îl/o liniștește pe copil: "${helper}".
+- Locul care atrage atenția copilului: "${location}".
+- Ce îl/o ajută de obicei: "${helper}".
 - Ritualul de seară: "${ritual}".
 
-Creează conținut personalizat: folosește natural numele copilului, frica aleasă și cel puțin două dintre detaliile de mai sus. Tonul este jucăuș și liniștitor; nu confirma că monștrii există și nu promite rezultate medicale. Este un joc de imaginație: nu spune că umbrele, obiectele, ingredientele sau jucăriile prind viață, au puteri reale, păzesc copilul ori alungă ceva în mod real. Evită formulele de adresare precum „vrăjitoare” sau „vrăjitor”.
+Creează conținut profund personalizat, cald și lipsit de dramatizare. Numele, emoția, locul, ajutorul și ritualul trebuie să schimbe efectiv conținutul. Nu confirma existența monștrilor sau a unui pericol imaginar. Nu spune că obiectele au puteri reale, nu promite că frica dispare și nu folosi limbaj medical sau terapeutic. Nu include spray-uri, poțiuni ori ingrediente. Adultul este mereu reperul real de siguranță.
 
-Siguranță: spray-ul este un ritual simbolic pregătit de un adult. Ingredientele trebuie să fie sigure pentru un spray de joacă: apă potabilă și, cel mult, o singură picătură de colorant alimentar. Nu propune uleiuri esențiale, parfum, detergent, oțet, bicarbonat, sare, zahăr, miere, scorțișoară, lichide acide sau aplicare pe corp, față, ochi, pernă, suprafețe ori animale. În pași, spune că spray-ul se pulverizează o singură dată în aer de către un adult. Dacă ai nevoie de un al treilea ingredient, îl poți numi "un gând curajos" și precizezi în pas că nu se pune în flacon.
-
-Conținutul intră într-un template cu spațiu fix. Respectă exact:
-- body: 1-2 propoziții, maximum 320 de caractere; poți folosi cel mult două accente <em>...</em>.
-- ingredients: exact 3; numele comun maximum 26 de caractere, fără paranteze sau cantități, iar denumirea magică maximum 34 de caractere.
-- steps: exact 3, marcate I, II, III; fiecare l1 și l2 maximum 56 de caractere, fără HTML.
-- spell: exact 4 versuri separate prin caracterul newline \\n, fiecare de maximum 56 de caractere, fără HTML; include numele copilului.
+Respectă exact:
+- storyTitle: titlu scurt, maximum 70 caractere, cu numele copilului.
+- storyParagraphs: exact 3 paragrafe, fiecare 180-330 caractere. Povestea numește emoția, arată adultul prezent și se încheie cu un pas mic, realist.
+- safePlaces: exact 3 repere concrete din camera sau rutina descrisă, maximum 100 caractere fiecare.
+- ritualSteps: exact 3 obiecte cu title maximum 42 caractere și text maximum 180 caractere. Pașii sunt observare, respirație/alegere, încheiere împreună.
+- breathingCue: maximum 300 caractere; respirație naturală, fără forțare, adaptată vârstei.
+- courageFormula: maximum 300 caractere, cu numele copilului; acceptă emoția și cererea de ajutor.
+- parentMessage: maximum 560 caractere, practic și empatic; confirmă emoția fără să confirme pericolul.
+- bedsideMessage: maximum 280 caractere, ușor de recitit seara.
+- certificateLine: maximum 260 caractere, laudă exersarea pașilor, nu absența fricii.
 
 Returnează doar JSON valid conform schemei, fără Markdown.`;
 
       const generated = await generateWithModelFallback({
         prompt,
         responseJsonSchema: MONSTER_RESPONSE_SCHEMA,
-        maxOutputTokens: 1000,
-        temperature: 0.8,
+        maxOutputTokens: 1800,
+        temperature: 0.72,
       });
       if ("error" in generated) {
-        logTelemetry("pmm_generation_failed", {
+        const fallback = buildNightShieldContent({ name: data.name || "copilul", age: data.age, fear: data.monster || "frica de intuneric", location, helper, ritual });
+        logTelemetry("pmm_generation_completed", {
           product,
-          result: "error",
-          errorCode: "ai_error",
+          result: "success",
+          generationMode: "fallback",
           durationMs: Date.now() - startedAt,
           aiProvider: getAiProvider(),
         });
-        return NextResponse.json({ success: false, error: generated.error }, { status: 500 });
+        return NextResponse.json({ success: true, data: fallback, warning: generated.error });
       }
-      const result = sanitizeMonsterKit(parseJsonObject(generated.text));
+      const fallback = buildNightShieldContent({ name: data.name || "copilul", age: data.age, fear: data.monster || "frica de intuneric", location, helper, ritual });
+      let result = fallback;
+      let generationMode: "ai" | "fallback" = "ai";
+      try { result = sanitizeNightShieldContent(parseJsonObject(generated.text), fallback); }
+      catch { generationMode = "fallback"; }
 
       logTelemetry("pmm_generation_completed", {
         product,
         result: "success",
-        generationMode: "ai",
+        generationMode,
         durationMs: Date.now() - startedAt,
         aiProvider: getAiProvider(),
         model: generated.model,
@@ -1300,7 +1205,8 @@ Returnează doar JSON valid conform schemei, fără Markdown.`;
     }
 
     if (data.type === "emergency") {
-      const prompt = `Ești un educator creativ român. Creezi o Trusă Magică de Urgență care va fi tipărită pe A4 și folosită imediat de un părinte cu copilul.
+      const difficulty = data.difficulty || recommendedDifficulty(data.age || "5");
+      const prompt = `Ești un educator creativ român. Personalizezi conținutul unei Truse de Răbdare care va fi tipărită pe A4 și folosită imediat de un părinte cu copilul.
 
 Datele copilului:
 - Nume: ${data.name}
@@ -1308,44 +1214,51 @@ Datele copilului:
 - Locul/situația: ${data.context || "o perioadă de așteptare"}
 - Interes preferat: ${data.interest || "imaginația și joaca"}
 - Timp disponibil: ${data.duration || "10-20 minute"}
-- Stil preferat: ${data.activityMode || "mix"}
+- Nivel ales: ${difficulty}
 
-Scrie numai în română naturală, caldă și clară. Toate activitățile trebuie să fie sigure, liniștite, fără materiale obligatorii și posibile chiar în locul indicat. Respectă cu strictețe locul: nu propune alergat la restaurant, în aeroport, la doctor sau la coadă. Leagă interesul copilului firesc de cel puțin două activități. Evită limbajul medical, fricile, pedepsele și promisiunile de tipul „vei sta cuminte”.
+Scrie numai în română naturală, caldă și clară. Toate activitățile trebuie să fie sigure, liniștite, posibile cu hârtie și creion sau doar verbal, chiar în locul indicat. Nu propune alergat, folosirea obiectelor altor persoane, atingerea echipamentelor ori deranjarea celor din jur. Leagă interesul copilului firesc de cel puțin patru elemente. Evită pedepsele, competiția și promisiunile de tipul „vei sta cuminte”. Nu genera labirintul și jocul de diferențe; acestea sunt adăugate separat din structuri validate.
 
-Conținutul intră într-un template cu spațiu fix. Respectă exact limitele:
-- missionTitle: 2-6 cuvinte, maximum 48 de caractere.
-- missionNote: o singură propoziție, maximum 130 de caractere.
-- radar: exact 4 indicii observabile, fără numere, fiecare maximum 68 de caractere.
-- riddle: 2 versuri scurte, maximum 210 caractere în total.
-- drawing: o singură propoziție, maximum 210 caractere.
-- patience: 2-3 propoziții scurte, maximum 270 de caractere; un joc calm, adaptat timpului disponibil.
-- story_starters: exact 3 începuturi de poveste, fiecare maximum 150 de caractere.
-- true_or_false: exact 3 întrebări. q are maximum 155 caractere. a începe obligatoriu cu „Adevărat.” sau „Fals.” și are maximum 200 de caractere.
+Respectă exact limitele:
+- missionTitle: 2-8 cuvinte, maximum 70 caractere.
+- missionNote: o propoziție, maximum 220 caractere, specifică locului, duratei și nivelului.
+- radar: exact 6 indicii care chiar pot fi observate în acel loc, maximum 80 caractere fiecare.
+- drawingPrompt: o provocare personalizată, 1-2 propoziții și maximum 210 caractere.
+- coloringPrompt: o provocare care folosește emblema tipărită, 1-2 propoziții și maximum 190 caractere.
+- verbalPrompts: exact 6 jocuri scurte pentru părinte și copil, maximum 105 caractere fiecare, fără materiale.
+- cards: exact 8 comenzi complete, foarte scurte, maximum 65 caractere fiecare.
+- levelChallenges: easy, medium și advanced au fiecare exact 3 provocări. Fiecare are maximum 105 caractere, este o propoziție completă și este sigură în locul ales. Nivelurile cresc prin atenție și număr de pași, nu prin presiune.
+
+Nu încheia niciun text cu puncte de suspensie și nu tăia propozițiile. Dacă interesul preferat este o listă lungă, alege firesc cel mult două elemente potrivite activității.
 
 Returnează exclusiv un obiect JSON valid, conform schemei cerute. Fără Markdown, fără explicații în afara JSON-ului.`;
 
       const generated = await generateWithModelFallback({
         prompt,
         responseJsonSchema: EMERGENCY_RESPONSE_SCHEMA,
-        maxOutputTokens: 1500,
-        temperature: 0.8,
+        maxOutputTokens: 2200,
+        temperature: 0.76,
       });
       if ("error" in generated) {
-        logTelemetry("pmm_generation_failed", {
+        const fallback = buildPatienceKitContent({ name: data.name || "copilul", age: data.age || "5", context: data.context || "o perioadă de așteptare", interest: data.interest, duration: data.duration, difficulty });
+        logTelemetry("pmm_generation_completed", {
           product,
-          result: "error",
-          errorCode: "ai_error",
+          result: "success",
+          generationMode: "fallback",
           durationMs: Date.now() - startedAt,
           aiProvider: getAiProvider(),
         });
-        return NextResponse.json({ success: false, error: generated.error }, { status: 500 });
+        return NextResponse.json({ success: true, data: fallback, warning: generated.error });
       }
-      const result = sanitizeEmergencyKit(parseJsonObject(generated.text));
+      const fallback = buildPatienceKitContent({ name: data.name || "copilul", age: data.age || "5", context: data.context || "o perioadă de așteptare", interest: data.interest, duration: data.duration, difficulty });
+      let result = fallback;
+      let generationMode: "ai" | "fallback" = "ai";
+      try { result = sanitizePatienceKitContent(parseJsonObject(generated.text), fallback); }
+      catch { generationMode = "fallback"; }
 
       logTelemetry("pmm_generation_completed", {
         product,
         result: "success",
-        generationMode: "ai",
+        generationMode,
         durationMs: Date.now() - startedAt,
         aiProvider: getAiProvider(),
         model: generated.model,

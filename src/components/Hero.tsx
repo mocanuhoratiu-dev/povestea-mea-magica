@@ -31,8 +31,8 @@ export default function Hero() {
             Copilul tău devine eroul unei aventuri ilustrate, create din chipul, lumea și micile detalii pe care doar familia voastră le cunoaște.
           </p>
           <div className="mx-auto mt-7 flex max-w-xl flex-wrap justify-center gap-x-6 gap-y-3 border-y border-white/20 py-4 text-xs font-black text-brand-cream/85 lg:mx-0 lg:justify-start">
-            <span className="inline-flex items-center gap-2"><BookOpen size={16} className="text-brand-gold" /> 16 pagini ilustrate</span>
-            <span className="inline-flex items-center gap-2"><ShieldCheck size={16} className="text-brand-gold" /> Preview înainte de plată</span>
+            <span className="inline-flex items-center gap-2"><BookOpen size={16} className="text-brand-gold" /> 16 pagini de poveste</span>
+            <span className="inline-flex items-center gap-2"><ShieldCheck size={16} className="text-brand-gold" /> Previzualizare înainte de plată</span>
           </div>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row lg:justify-start">
             <motion.a

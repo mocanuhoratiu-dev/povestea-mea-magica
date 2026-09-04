@@ -4,6 +4,7 @@ import { ArrowRight, BookHeart, ShieldCheck, TimerReset } from "lucide-react";
 import BrandMark from "@/components/BrandMark";
 import Footer from "@/components/Footer";
 import ProductReader from "@/components/ProductReader";
+import { commerce } from "@/lib/siteMode";
 
 export const metadata: Metadata = {
   title: "Modele PDF | Povestea Mea Magică",
@@ -24,8 +25,8 @@ const models = [
     orientation: "landscape" as const,
     moment: "Pentru o poveste de păstrat",
     title: "Povestea Magică",
-    price: "59 lei",
-    pageCount: "16 + 5 pagini A5 landscape",
+    price: commerce.prices.illustratedAlbum,
+    pageCount: "16 + 5 pagini A5, format orizontal",
     description: "O carte ilustrată premium în care copilul devine eroul unei aventuri create pentru el.",
     readerNote: "Modelul arată structura vizuală a produsului: cartea are 13 scene ilustrate distinct, iar activitățile sunt livrate separat, ca să poată fi printate pe hârtie potrivită pentru creioane.",
     href: "/povestea-magica",
@@ -47,44 +48,45 @@ const models = [
     id: "scutul-de-noapte",
     moment: "Pentru noapte",
     title: "Scutul de Noapte",
-    price: "19 lei",
-    pageCount: "6 pagini A4",
-    description: "Un ritual simbolic de seară, cu plan pentru părinte, certificat, pași ușor de repetat, card și calendar pentru șapte seri.",
-    readerNote: "Fiecare parte are un rol clar: părintele primește un plan scurt, copilul își pregătește ritualul, iar calendarul transformă curajul într-o rutină blândă.",
+    price: commerce.prices.nightShield,
+    pageCount: "9 pagini A4 + audio",
+    description: "Un ritual magic de seară, cu certificat, rețetă imaginară și etichete, completat de poveste, hartă, respirație și ghid pentru părinte.",
+    readerNote: "Jocul simbolic deschide experiența, apoi copilul recunoaște camera și pașii ritualului, iar părintele primește un limbaj blând, fără promisiuni medicale sau confirmarea pericolului imaginat.",
     href: "/scutul-de-noapte",
     cta: "Creează scutul",
     accent: "text-brand-gold",
     rule: "bg-brand-gold",
     icon: ShieldCheck,
-    choices: ["numele copilului", "teama și locul în care apare", "lucrurile care îl/o liniștesc"],
-    source: "/examples/scut-contact.png",
+    choices: ["numele copilului și teama aleasă", "locul din cameră și semnul de liniștire", "ritualul propriu al familiei"],
+    source: "/examples/scut-classic-plus-contact.png",
     pages: [
-      { title: "Certificatul", caption: "Curajul primește un nume și o misiune pe măsura copilului.", crop: { left: 2.5, top: 2.6, width: 45, height: 44.6 } },
-      { title: "Rețeta ritualului", caption: "Pașii urmăresc teama și ritualul pe care îl alegeți împreună.", crop: { left: 52.5, top: 2.6, width: 45, height: 44.6 } },
-      { title: "Etichetele", caption: "Flaconul rămâne o ancoră jucăușă pentru rutina de seară.", crop: { left: 2.5, top: 52.6, width: 45, height: 44.6 } },
+      { title: "Certificatul de protecție magică", caption: "Copilul primește certificatul oficial original, cu clauze magice și sigiliul Dragonului Somnoros.", crop: { left: 2.5, top: 2.6, width: 45, height: 44.6 } },
+      { title: "Rețeta imaginară", caption: "Ingredientele fantastice și formula personalizată fac ritualul memorabil.", crop: { left: 52.5, top: 2.6, width: 45, height: 44.6 } },
+      { title: "Etichetele Scutului", caption: "Etichetele detașabile transformă un flacon gol într-un obiect de joacă simbolică.", crop: { left: 2.5, top: 52.6, width: 45, height: 44.6 } },
     ],
   },
   {
     id: "trusa-de-rabdare",
     moment: "Pentru așteptare",
     title: "Trusa de Răbdare",
-    price: "19 lei",
-    pageCount: "7 pagini A4",
-    description: "Activități pentru drum, restaurant, medic sau alte momente în care timpul pare să treacă mai greu.",
-    readerNote: "Paginile alternează între observare, desen, joc de cuvinte și o mică reușită de final. Le puteți folosi în orice ordine.",
+    price: commerce.prices.patienceKit,
+    pageCount: "10 pagini A4",
+    description: "Opt activități pentru drum, restaurant, medic sau alte momente în care timpul pare să treacă mai greu.",
+    readerNote: "Paginile alternează între observare, logică, desen, colorat și joc verbal. Labirintul și diferențele folosesc structuri validate, iar AI-ul personalizează restul selecției.",
     href: "/trusa-de-rabdare",
     cta: "Pregătește trusa",
     accent: "text-brand-orange",
     rule: "bg-brand-orange",
     icon: TimerReset,
-    choices: ["numele și vârsta copilului", "locul în care așteptați", "interesele și ritmul activităților"],
-    source: "/examples/trusa-contact.png",
+    choices: ["numele și vârsta copilului", "locul și durata așteptării", "interesele și nivelul de dificultate"],
+    source: "/examples/trusa-final-contact.png",
     pages: [
-      { title: "Radarul Magic", caption: "Locul ales devine punctul de plecare pentru prima misiune.", crop: { left: 1.7, top: 2.6, width: 30, height: 44.6 } },
-      { title: "Creativitate și răbdare", caption: "O provocare scurtă lasă loc pentru desen și imaginație.", crop: { left: 35, top: 2.6, width: 30, height: 44.6 } },
-      { title: "Continuă povestea", caption: "Interesele copilului dau direcție provocării narative.", crop: { left: 68.3, top: 2.6, width: 30, height: 44.6 } },
-      { title: "Provocarea finală", caption: "Întrebările și micile sarcini sunt potrivite contextului vostru.", crop: { left: 1.7, top: 52.6, width: 30, height: 44.6 } },
-      { title: "Diploma de onoare", caption: "O încheiere simplă pentru o așteptare dusă cu bine.", crop: { left: 35, top: 52.6, width: 30, height: 44.6 } },
+      { title: "Coperta-ghid", caption: "Momentul, durata, nivelul și modul de folosire sunt clare de la început.", crop: { left: 1.7, top: 2.6, width: 30, height: 44.6 } },
+      { title: "Radarul exploratorului", caption: "Locul ales devine punctul de plecare pentru observații reale.", crop: { left: 35, top: 2.6, width: 30, height: 44.6 } },
+      { title: "Labirint validat", caption: "Traseul este construit controlat și are o soluție clară.", crop: { left: 68.3, top: 2.6, width: 30, height: 44.6 } },
+      { title: "Găsește diferențele", caption: "Cele cinci diferențe sunt intenționate și apar în pagina de răspunsuri.", crop: { left: 1.7, top: 52.6, width: 30, height: 44.6 } },
+      { title: "Cartonașele", caption: "Opt misiuni scurte pot fi decupate și refolosite.", crop: { left: 35, top: 52.6, width: 30, height: 44.6 } },
+      { title: "Soluții și certificat", caption: "Adultul are răspunsurile, iar copilul încheie trusa cu un certificat personalizat.", crop: { left: 68.3, top: 52.6, width: 30, height: 44.6 } },
     ],
   },
 ];
@@ -100,7 +102,7 @@ export default function ModelsPage() {
             <div>
               <p className="text-xs font-black uppercase tracking-[0.16em] text-brand-purple">Răsfoiește înainte să alegi</p>
               <h1 className="mt-4 font-nunito text-4xl font-black leading-tight text-brand-navy md:text-6xl">Nu alegi o promisiune. Vezi paginile.</h1>
-              <p className="mt-5 max-w-3xl text-lg font-medium leading-relaxed text-brand-navy/70">Fiecare reader de mai jos arată pagini reale ale produsului. La generare, structura rămâne clară, iar textul, misiunile și detaliile sunt construite pentru copilul vostru.</p>
+              <p className="mt-5 max-w-3xl text-lg font-medium leading-relaxed text-brand-navy/70">Fiecare model de mai jos arată pagini reale ale produsului. La generare, structura rămâne clară, iar textul, misiunile și detaliile sunt construite pentru copilul vostru.</p>
             </div>
           </div>
         </div>

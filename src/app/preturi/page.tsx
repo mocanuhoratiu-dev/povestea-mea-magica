@@ -11,14 +11,14 @@ export const metadata: Metadata = {
 };
 
 const offers = [
-  { title: "Povestea Magică", price: commerce.prices.illustratedAlbum, description: "Cartea ilustrată în care copilul devine personajul principal, creată în jurul lumii și aventurii alese de familie.", details: ["16 pagini A5 landscape și 13 scene ilustrate", "Personaj consecvent din descriere sau fotografie", "Caiet separat cu colorat, labirint și găsește diferențele"], href: "/povestea-magica", cta: "Creează Povestea Magică", icon: BookHeart },
-  { title: "Scutul de Noapte", price: commerce.prices.nightShield, description: "Un ritual blând pentru serile în care întunericul sau o teamă au nevoie de puțin curaj.", details: ["Certificat personalizat de curaj", "Ritual simplu, de repetat împreună", "Etichete și card de noptieră printabile"], href: "/scutul-de-noapte", cta: "Creează Scutul", icon: ShieldCheck },
-  { title: "Trusa de Răbdare", price: commerce.prices.patienceKit, description: "Activități personalizate pentru restaurant, drum, medic sau orice moment în care timpul trece mai greu.", details: ["7 pagini A4 de activități", "Misiuni adaptate vârstei, locului și intereselor", "Diplomă de final"], href: "/trusa-de-rabdare", cta: "Pregătește Trusa", icon: TimerReset },
+  { title: "Povestea Magică", price: commerce.prices.illustratedAlbum, description: "Cartea ilustrată în care copilul devine personajul principal, creată în jurul lumii și aventurii alese de familie.", details: ["16 pagini A5 în format orizontal și 13 scene ilustrate", "Personaj consecvent din descriere sau fotografie", "Caiet separat cu colorat, labirint și găsește diferențele"], href: "/povestea-magica", cta: "Creează Povestea Magică", icon: BookHeart },
+  { title: "Scutul de Noapte", price: commerce.prices.nightShield, description: "Un joc magic și un ritual blând pentru serile în care întunericul sau o teamă au nevoie de cuvinte și repere familiare.", details: ["Certificat, rețetă imaginară și etichete", "Poveste, hartă, respirație și ghid pentru părinte", "Card de noptieră, calendar și audio Lumi"], href: "/scutul-de-noapte", cta: "Creează Scutul", icon: ShieldCheck },
+  { title: "Trusa de Răbdare", price: commerce.prices.patienceKit, description: "Activități personalizate pentru restaurant, drum, medic sau orice moment în care timpul trece mai greu.", details: ["10 pagini A4 economice la imprimare", "8 activități, inclusiv labirint și diferențe validate", "Cartonașe detașabile și trei niveluri"], href: "/trusa-de-rabdare", cta: "Pregătește Trusa", icon: TimerReset },
 ];
 
 export default function PricingPage() {
   return (
-    <CommercialPage eyebrow="Prețuri transparente" title="Trei produse. Fiecare creat pentru un moment real." description="Prețurile sunt finale și apar înainte de plata securizată. Personalizarea și preview-ul Poveștii Magice încep fără plată.">
+    <CommercialPage eyebrow="Prețuri transparente" title="Trei produse. Fiecare creat pentru un moment real." description="Prețurile sunt finale și apar înainte de plata securizată. Personalizarea și previzualizarea Poveștii Magice încep fără plată.">
       <section className="px-6 py-16 md:py-20">
         <div className="mx-auto max-w-5xl border-y border-brand-gold/45 bg-brand-gold/10 px-6 py-6 text-center">
           <p className="text-sm font-black text-brand-navy">{siteCopy.paymentNotice}</p>

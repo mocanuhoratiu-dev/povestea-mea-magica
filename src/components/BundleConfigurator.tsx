@@ -67,11 +67,12 @@ export default function BundleConfigurator() {
     personalDetail: "", storyContext: "", dedication: "", dedicationFrom: "",
   });
   const [monsterSameChild, setMonsterSameChild] = useState(true);
-  const [monster, setMonster] = useState({ name: "", type: "frica de intuneric", location: "", helper: "", ritual: "" });
+  const [monster, setMonster] = useState({ name: "", age: "5", type: "frica de intuneric", location: "", helper: "", ritual: "" });
   const [emergencySameChild, setEmergencySameChild] = useState(true);
-  const [emergency, setEmergency] = useState({ name: "", age: "5", context: contexts[0][0] as string, interest: "", duration: "10-20 minute", activityMode: "mix" });
+  const [emergency, setEmergency] = useState({ name: "", age: "5", context: contexts[0][0] as string, interest: "", duration: "10-20 minute", difficulty: "medium" });
 
   const effectiveMonsterName = monsterSameChild ? album.name : monster.name;
+  const effectiveMonsterAge = monsterSameChild ? album.age : monster.age;
   const effectiveEmergencyName = emergencySameChild ? album.name : emergency.name;
   const effectiveEmergencyAge = emergencySameChild ? album.age : emergency.age;
   const bundleFingerprint = useMemo(
@@ -191,8 +192,8 @@ export default function BundleConfigurator() {
         },
         dedication: album.dedication.trim(), dedicationFrom: album.dedicationFrom.trim(),
       } },
-      { product: "monster" as const, configuration: { generation: { type: "monster", name: effectiveMonsterName.trim(), monster: monster.type, context: monster.location.trim(), interest: monster.helper.trim(), tone: monster.ritual.trim() } } },
-      { product: "emergency" as const, configuration: { generation: { type: "emergency", name: effectiveEmergencyName.trim(), age: effectiveEmergencyAge, context: emergency.context, interest: emergency.interest.trim(), duration: emergency.duration, activityMode: emergency.activityMode } } },
+      { product: "monster" as const, configuration: { generation: { type: "monster", name: effectiveMonsterName.trim(), age: effectiveMonsterAge, monster: monster.type, context: monster.location.trim(), interest: monster.helper.trim(), tone: monster.ritual.trim() } } },
+      { product: "emergency" as const, configuration: { generation: { type: "emergency", name: effectiveEmergencyName.trim(), age: effectiveEmergencyAge, context: emergency.context, interest: emergency.interest.trim(), duration: emergency.duration, difficulty: emergency.difficulty } } },
     ];
   }
 
@@ -220,7 +221,7 @@ export default function BundleConfigurator() {
 
   async function startCheckout() {
     if (!activeAlbumPreview) return createCompleteBundlePreview();
-    if (!activeAlbumPreview.ready) return setError("Așteaptă câteva momente: cele două pagini de preview sunt încă în lucru.");
+    if (!activeAlbumPreview.ready) return setError("Așteaptă câteva momente: cele două pagini ale mostrei sunt încă în lucru.");
     if (!hasConsent) return setError("Confirmă livrarea imediată înainte de plată.");
     setError("");
     setIsLoading(true);
@@ -295,10 +296,10 @@ export default function BundleConfigurator() {
           {step === 1 && <div>
             <p className="text-xs font-black uppercase tracking-[0.15em] text-brand-purple">2 din 4 · Scutul de Noapte</p>
             <h2 className="mt-3 font-serif text-4xl text-brand-navy">Un ritual pentru mai mult curaj</h2>
-            <p className="mt-3 text-sm font-semibold leading-relaxed text-brand-navy/60">Șase pagini pentru copil și părinte: poveste, ritual, plan practic și calendar de șapte seri.</p>
+            <p className="mt-3 text-sm font-semibold leading-relaxed text-brand-navy/60">Nouă pagini pentru copil și părinte: poveste scurtă, hartă, ritual, respirație, card de noptieră și certificat.</p>
             <div className="mt-8 space-y-5">
               <ChildReuse checked={monsterSameChild} onChange={setMonsterSameChild} name={album.name} />
-              {!monsterSameChild && <label className={labelClass}>Numele copilului<input className={inputClass} value={monster.name} maxLength={40} onChange={(event) => setMonster({ ...monster, name: event.target.value })} /></label>}
+              {!monsterSameChild && <div className="grid gap-5 sm:grid-cols-2"><label className={labelClass}>Numele copilului<input className={inputClass} value={monster.name} maxLength={40} onChange={(event) => setMonster({ ...monster, name: event.target.value })} /></label><label className={labelClass}>Vârsta<select className={inputClass} value={monster.age} onChange={(event) => setMonster({ ...monster, age: event.target.value })}>{Array.from({ length: 8 }, (_, index) => index + 2).map((value) => <option key={value} value={value}>{value} ani</option>)}</select></label></div>}
               <label className={labelClass}>Ce vrem să îmblânzim<select className={inputClass} value={monster.type} onChange={(event) => setMonster({ ...monster, type: event.target.value })}>{monsters.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
               <label className={labelClass}>Unde apare cel mai des<input className={inputClass} value={monster.location} maxLength={180} onChange={(event) => setMonster({ ...monster, location: event.target.value })} placeholder="Lângă pat, în colțul camerei..." /></label>
               <label className={labelClass}>Ce îl liniștește<input className={inputClass} value={monster.helper} maxLength={180} onChange={(event) => setMonster({ ...monster, helper: event.target.value })} placeholder="O lumină de veghe, o îmbrățișare..." /></label>
@@ -309,14 +310,14 @@ export default function BundleConfigurator() {
           {step === 2 && <div>
             <p className="text-xs font-black uppercase tracking-[0.15em] text-brand-purple">3 din 4 · Trusa de Răbdare</p>
             <h2 className="mt-3 font-serif text-4xl text-brand-navy">Misiuni pentru următoarea așteptare</h2>
-            <p className="mt-3 text-sm font-semibold leading-relaxed text-brand-navy/60">Șapte pagini clare, ușor de tipărit și folosit de părinte exact când e nevoie.</p>
+            <p className="mt-3 text-sm font-semibold leading-relaxed text-brand-navy/60">Zece pagini economice la imprimare, cu opt activități și trei niveluri de dificultate.</p>
             <div className="mt-8 grid gap-5 sm:grid-cols-2">
               <div className="sm:col-span-2"><ChildReuse checked={emergencySameChild} onChange={setEmergencySameChild} name={album.name} /></div>
               {!emergencySameChild && <><label className={labelClass}>Numele copilului<input className={inputClass} value={emergency.name} maxLength={40} onChange={(event) => setEmergency({ ...emergency, name: event.target.value })} /></label><label className={labelClass}>Vârsta<select className={inputClass} value={emergency.age} onChange={(event) => setEmergency({ ...emergency, age: event.target.value })}>{Array.from({ length: 9 }, (_, index) => index + 2).map((value) => <option key={value} value={value}>{value} ani</option>)}</select></label></>}
               <label className={`${labelClass} sm:col-span-2`}>Unde va fi folosită<select className={inputClass} value={emergency.context} onChange={(event) => setEmergency({ ...emergency, context: event.target.value })}>{contexts.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
               <label className={`${labelClass} sm:col-span-2`}>Ce îl pasionează<input className={inputClass} value={emergency.interest} maxLength={180} onChange={(event) => setEmergency({ ...emergency, interest: event.target.value })} placeholder="Dinozauri, mașini, desen, animale..." /></label>
               <label className={labelClass}>Cât durează așteptarea<select className={inputClass} value={emergency.duration} onChange={(event) => setEmergency({ ...emergency, duration: event.target.value })}><option>5-10 minute</option><option>10-20 minute</option><option>20+ minute</option></select></label>
-              <label className={labelClass}>Tipul activităților<select className={inputClass} value={emergency.activityMode} onChange={(event) => setEmergency({ ...emergency, activityMode: event.target.value })}><option value="liniștite">Liniștite</option><option value="cu mișcare mică">Cu mișcare mică</option><option value="mix">Mix</option></select></label>
+              <label className={labelClass}>Dificultate<select className={inputClass} value={emergency.difficulty} onChange={(event) => setEmergency({ ...emergency, difficulty: event.target.value })}><option value="easy">Explorator</option><option value="medium">Detectiv</option><option value="advanced">Maestru</option></select></label>
             </div>
           </div>}
 
@@ -330,7 +331,7 @@ export default function BundleConfigurator() {
 
             <div className="mt-7">
               {activeAlbumPreview ? <div>
-                {activeAlbumPreview.ready && activeAlbumPreview.pages.length === 3 ? <AlbumPreviewFlipbook pages={activeAlbumPreview.pages} childName={album.name} /> : <div className="overflow-hidden rounded-md border border-brand-gold/60 bg-brand-navy"><div className="relative aspect-[3/2]"><Image src={activeAlbumPreview.imageUrl} alt={`Coperta albumului pentru ${album.name}`} fill unoptimized sizes="(max-width: 768px) 100vw, 768px" className="object-cover" onError={() => setAlbumPreview(null)} /><div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,24,44,.78),rgba(7,24,44,.12)_60%,transparent)]" /><div className="absolute inset-y-0 left-0 flex w-[56%] flex-col justify-center p-6 text-brand-cream"><p className="text-[10px] font-black uppercase tracking-[0.15em] text-brand-gold">Preview personalizat</p><p className="mt-2 font-serif text-2xl leading-tight sm:text-3xl">{activeAlbumPreview.title}</p></div></div><div className="flex items-center gap-3 px-4 py-3 text-xs font-bold text-brand-cream/75"><LoaderCircle size={16} className="animate-spin text-brand-gold" />Scriem povestea și ilustrăm două pagini pentru mostră.</div></div>}
+                {activeAlbumPreview.ready && activeAlbumPreview.pages.length === 3 ? <AlbumPreviewFlipbook pages={activeAlbumPreview.pages} childName={album.name} /> : <div className="overflow-hidden rounded-md border border-brand-gold/60 bg-brand-navy"><div className="relative aspect-[3/2]"><Image src={activeAlbumPreview.imageUrl} alt={`Coperta albumului pentru ${album.name}`} fill unoptimized sizes="(max-width: 768px) 100vw, 768px" className="object-cover" onError={() => setAlbumPreview(null)} /><div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,24,44,.78),rgba(7,24,44,.12)_60%,transparent)]" /><div className="absolute inset-y-0 left-0 flex w-[56%] flex-col justify-center p-6 text-brand-cream"><p className="text-[10px] font-black uppercase tracking-[0.15em] text-brand-gold">Mostră personalizată</p><p className="mt-2 font-serif text-2xl leading-tight sm:text-3xl">{activeAlbumPreview.title}</p></div></div><div className="flex items-center gap-3 px-4 py-3 text-xs font-bold text-brand-cream/75"><LoaderCircle size={16} className="animate-spin text-brand-gold" />Scriem povestea și ilustrăm două pagini pentru mostră.</div></div>}
                 <div className="flex flex-wrap items-center justify-between gap-3 border-x border-b border-brand-gold/40 bg-brand-gold/10 px-4 py-3 text-xs font-bold text-brand-navy/70"><p className="flex items-center gap-2">{activeAlbumPreview.ready ? <Check size={16} className="text-brand-purple" /> : <LoaderCircle size={16} className="animate-spin text-brand-purple" />}{activeAlbumPreview.ready ? `Cele trei pagini vor fi refolosite în carte${activeAlbumPreview.qualityChecked ? " și au trecut controlul automat" : ""}.` : "Plata rămâne blocată până când mostra este completă."}</p><button type="button" onClick={() => { setAlbumPreview(null); setHasConsent(false); }} className="inline-flex min-h-9 items-center gap-2 border-b border-brand-purple text-[11px] font-black text-brand-purple"><RefreshCw size={14} /> Altă variantă</button></div>
               </div> : <div className="flex gap-4 rounded-md border border-brand-purple/25 bg-brand-purple/[0.06] p-5"><Eye size={23} className="shrink-0 text-brand-purple" /><div><p className="font-black text-brand-navy">Răsfoiește înainte de plată</p><p className="mt-1 text-xs font-semibold leading-relaxed text-brand-navy/60">Creăm coperta și două pagini reale. Plata se deschide numai după ce vezi rezultatul.</p></div></div>}
             </div>

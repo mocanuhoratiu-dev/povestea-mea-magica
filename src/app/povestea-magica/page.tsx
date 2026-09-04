@@ -8,7 +8,7 @@ import LumiOpenButton from "@/components/LumiOpenButton";
 
 export const metadata: Metadata = {
   title: "Povestea Magică | Carte ilustrată personalizată",
-  description: "Creează o poveste ilustrată premium A5 landscape, cu personaj consecvent din descriere sau fotografie, 13 scene, audio și activități.",
+  description: "Creează o poveste ilustrată premium A5 în format orizontal, cu personaj consecvent din descriere sau fotografie, 13 scene, audio și activități.",
   alternates: { canonical: "/povestea-magica" },
   openGraph: { url: "/povestea-magica", title: "Povestea Magică | Povestea Mea Magică", images: ["/examples/album/coperta.webp"] },
 };

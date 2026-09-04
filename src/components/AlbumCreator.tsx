@@ -13,7 +13,7 @@ import { commerce } from "@/lib/siteMode";
 import { prepareReferencePhoto } from "@/lib/album/clientReferencePhoto";
 import AlbumPreviewFlipbook, { type AlbumPreviewPage } from "@/components/AlbumPreviewFlipbook";
 
-const steps = ["Copilul", "Aventura", "Mesajul vostru", "Preview"];
+const steps = ["Copilul", "Aventura", "Mesajul vostru", "Mostra"];
 const colors = [
   { label: "Mov ametist", value: "mov ametist", swatch: "#8052a0" },
   { label: "Albastru ceresc", value: "albastru ceresc", swatch: "#5b93af" },
@@ -206,7 +206,7 @@ export default function AlbumCreator() {
       });
       const result = await response.json() as { orderId?: string; previewUrl?: string; statusUrl?: string; title?: string; qualityChecked?: boolean; error?: string };
       if (!response.ok || !result.orderId || !result.previewUrl || !result.statusUrl || !result.title) {
-        throw new Error(result.error || "Preview-ul nu a putut fi creat acum.");
+        throw new Error(result.error || "Mostra nu a putut fi creată acum.");
       }
       const nextPreview: AlbumPreviewState = {
         orderId: result.orderId,
@@ -222,7 +222,7 @@ export default function AlbumCreator() {
       persistDraft(nextPreview);
       setNotice("Coperta este gata. Pregătim acum două pagini reale din poveste, pe care le vei putea răsfoi înainte de plată.");
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : "Preview-ul nu a putut fi creat acum.");
+      setNotice(error instanceof Error ? error.message : "Mostra nu a putut fi creată acum.");
     } finally {
       setIsLoading(false);
     }
@@ -241,7 +241,7 @@ export default function AlbumCreator() {
         if (cancelled) return;
         if (result.status === "ready") {
           const pages = readPreviewPages(result.pages);
-          if (pages.length !== 3) throw new Error("Preview-ul nu conține toate paginile.");
+          if (pages.length !== 3) throw new Error("Mostra nu conține toate paginile.");
           const nextPreview: AlbumPreviewState = {
             ...activePreview,
             title: result.title || activePreview.title,
@@ -263,13 +263,13 @@ export default function AlbumCreator() {
           }
           return;
         }
-        if (result.status === "failed") throw new Error(result.error || "Preview-ul interior nu a putut fi creat.");
+        if (result.status === "failed") throw new Error(result.error || "Mostra interioară nu a putut fi creată.");
         setNotice(`Construim paginile de interior ${Math.max(0, result.progress || 0)} din ${Math.max(2, result.total || 2)}. Poți rămâne pe această pagină.`);
       } catch (error) {
         if (cancelled) return;
         if (attempts >= 100) {
           setPreview(null);
-          setNotice(error instanceof Error ? error.message : "Preview-ul nu a putut fi verificat.");
+          setNotice(error instanceof Error ? error.message : "Mostra nu a putut fi verificată.");
           return;
         }
       }
@@ -321,7 +321,7 @@ export default function AlbumCreator() {
       if (typeof detail.lesson === "string" && lessonMap[detail.lesson]) setLesson(lessonMap[detail.lesson]);
       if (typeof detail.storyDetail === "string" && detail.storyDetail.trim()) setPersonalDetail(detail.storyDetail.trim().slice(0, 180));
       setStep(3);
-      setNotice("Lumi a așezat toate alegerile în poveste. Verifică rezumatul și creează preview-ul.");
+      setNotice("Lumi a așezat toate alegerile în poveste. Verifică rezumatul și creează mostra.");
     };
     window.addEventListener("pmm:lumi-album-choice", applyChoice);
     const rememberedChoice = window.sessionStorage.getItem("pmm-lumi-album-choice");
@@ -508,7 +508,7 @@ export default function AlbumCreator() {
                   {[['Pentru', `${name}, ${age} ani`], ['Referință', referencePhoto ? 'Fotografie + descriere' : 'Descriere'], ['Lume', worldLabel], ['Companion', companion], ...(secondaryCharacterName ? [['Alături de', `${secondaryCharacterName}, ${secondaryCharacterRole}`]] : []), ['Temă', lesson], ['Atmosferă', mood], ['Stil', artStyle], ['Culoare', favoriteColor]].map(([label, value]) => <div key={label} className="grid grid-cols-[110px_1fr] gap-4 py-3"><span className="font-black text-brand-navy/45">{label}</span><span className="font-bold text-brand-navy">{value}</span></div>)}
                 </div>
                 <div className="mt-7 grid gap-3 sm:grid-cols-2">
-                  <div className="border border-brand-gold/60 bg-brand-gold/10 p-4"><BookHeart className="text-brand-purple" size={22} /><p className="mt-3 font-black text-brand-navy">Cartea ilustrată</p><p className="mt-1 text-xs font-semibold text-brand-navy/60">16 pagini, ilustrații 2K și layout pentru print</p></div>
+                  <div className="border border-brand-gold/60 bg-brand-gold/10 p-4"><BookHeart className="text-brand-purple" size={22} /><p className="mt-3 font-black text-brand-navy">Cartea ilustrată</p><p className="mt-1 text-xs font-semibold text-brand-navy/60">16 pagini, ilustrații 2K și așezare pregătită pentru print</p></div>
                   <div className="border border-brand-gold/60 bg-brand-gold/10 p-4"><Palette className="text-brand-purple" size={22} /><p className="mt-3 font-black text-brand-navy">Caiet inclus</p><p className="mt-1 text-xs font-semibold text-brand-navy/60">5 pagini: colorat, labirint și diferențe</p></div>
                 </div>
                 {activePreview ? (
@@ -517,14 +517,14 @@ export default function AlbumCreator() {
                       <Image
                         unoptimized
                         src={activePreview.imageUrl}
-                        alt={`Preview personalizat pentru ${name}`}
+                        alt={`Mostră personalizată pentru ${name}`}
                         width={1200}
                         height={800}
                         className="aspect-[3/2] w-full object-cover"
                         onError={() => {
                           setPreview(null);
                           setHasConsent(false);
-                          setNotice("Preview-ul a expirat. Creează unul nou pentru a continua către plată.");
+                          setNotice("Mostra a expirat. Creează una nouă pentru a continua către plată.");
                         }}
                       />
                       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(8,19,43,.58)_0%,rgba(8,19,43,.18)_42%,transparent_68%)]" />
@@ -532,17 +532,17 @@ export default function AlbumCreator() {
                         <p className="text-[9px] font-black uppercase tracking-[0.2em] text-brand-gold sm:text-[11px]">Povestea Magică</p>
                         <p className="mt-2 font-serif text-[clamp(1.25rem,4vw,2.45rem)] leading-[1.02]">{activePreview.title}</p>
                       </div>
-                      <span className="pointer-events-none absolute bottom-[7%] right-[5%] rotate-[-7deg] border-2 border-white/65 px-3 py-1 text-xs font-black uppercase tracking-[0.22em] text-white/75 sm:text-base">Preview</span>
+                      <span className="pointer-events-none absolute bottom-[7%] right-[5%] rotate-[-7deg] border-2 border-white/65 px-3 py-1 text-xs font-black uppercase tracking-[0.22em] text-white/75 sm:text-base">Mostră</span>
                     </div>}
                     <div className="flex gap-3 border-x border-b border-brand-gold/40 bg-brand-gold/10 p-4">
                       {activePreview.ready ? <Check className="mt-0.5 shrink-0 text-brand-purple" size={20} /> : <LoaderCircle className="mt-0.5 shrink-0 animate-spin text-brand-purple" size={20} />}
-                      <div><p className="text-xs font-bold leading-relaxed text-brand-navy/70">{activePreview.ready ? `Mostra nu va avea watermark în produsul final. Coperta și cele două scene devin referința vizuală pentru restul cărții.${activePreview.qualityChecked ? " Toate cele trei imagini au trecut controlul automat." : ""}` : "Coperta fixează personajul. Motorul editorial scrie acum firul poveștii și creează două pagini distincte pentru verificare."}</p><button type="button" onClick={() => { setPreview(null); setHasConsent(false); }} className="mt-3 inline-flex min-h-9 items-center gap-2 border-b border-brand-purple text-[11px] font-black text-brand-purple"><RefreshCw size={14} /> Încearcă altă variantă</button></div>
+                      <div><p className="text-xs font-bold leading-relaxed text-brand-navy/70">{activePreview.ready ? `Marcajul dispare din produsul final. Coperta și cele două scene devin referința vizuală pentru restul cărții.${activePreview.qualityChecked ? " Toate cele trei imagini au trecut controlul automat." : ""}` : "Coperta fixează personajul. Motorul editorial scrie acum firul poveștii și creează două pagini distincte pentru verificare."}</p><button type="button" onClick={() => { setPreview(null); setHasConsent(false); }} className="mt-3 inline-flex min-h-9 items-center gap-2 border-b border-brand-purple text-[11px] font-black text-brand-purple"><RefreshCw size={14} /> Încearcă altă variantă</button></div>
                     </div>
                   </div>
                 ) : (
                   <div className="mt-7 border border-brand-purple/25 bg-brand-purple/[0.06] p-5 sm:flex sm:items-center sm:gap-5">
                     <span className="grid h-12 w-12 shrink-0 place-items-center bg-brand-purple text-white"><Eye size={24} /></span>
-                    <div className="mt-4 sm:mt-0"><p className="font-black text-brand-navy">{preview ? "Alegerile s-au schimbat" : "O mostră reală înainte de checkout"}</p><p className="mt-1 text-xs font-semibold leading-relaxed text-brand-navy/60">{preview ? "Creează o mostră nouă pentru a vedea personajul și paginile actualizate înainte de plată." : "Primești coperta și două pagini interioare private, cu watermark. Durează câteva minute și rămân disponibile 24 de ore."}</p></div>
+                    <div className="mt-4 sm:mt-0"><p className="font-black text-brand-navy">{preview ? "Alegerile s-au schimbat" : "O mostră reală înainte de plată"}</p><p className="mt-1 text-xs font-semibold leading-relaxed text-brand-navy/60">{preview ? "Creează o mostră nouă pentru a vedea personajul și paginile actualizate înainte de plată." : "Primești coperta și două pagini interioare private, cu un marcaj discret. Durează câteva minute și rămân disponibile 24 de ore."}</p></div>
                   </div>
                 )}
                 <div className="mt-7 flex items-end justify-between border-y border-brand-navy/15 py-5"><div><p className="text-xs font-black uppercase tracking-[0.12em] text-brand-navy/45">Preț final</p><p className="mt-1 font-nunito text-4xl font-black text-brand-purple">{commerce.prices.illustratedAlbum}</p></div><p className="max-w-[210px] text-right text-xs font-bold leading-relaxed text-brand-navy/55">Include personajul vizual, coperta premium, 13 scene 2K și caietul de activități.</p></div>
@@ -563,7 +563,7 @@ export default function AlbumCreator() {
           <div className="mt-5 overflow-hidden border border-brand-gold/50"><Image src="/examples/album/coperta.webp" alt="Coperta modelului Povestea Magică" width={960} height={676} priority className="h-auto w-full" /></div>
           <div className="mt-3 grid grid-cols-2 gap-2"><Image src="/examples/album/aventura.webp" alt="Pagină ilustrată" width={480} height={338} className="aspect-[1.42] w-full object-cover" /><Image src="/examples/album/colorat.webp" alt="Pagină de colorat" width={480} height={338} className="aspect-[1.42] w-full object-cover" /><Image src="/examples/album/labirint.webp" alt="Pagină cu labirint" width={480} height={338} className="aspect-[1.42] w-full object-cover" /><Image src="/examples/album/diferente.webp" alt="Pagină cu joc de diferențe" width={480} height={338} className="aspect-[1.42] w-full object-cover" /></div>
           <p className="mt-5 font-serif text-2xl">O poveste construită ca o carte adevărată.</p>
-          <ul className="mt-5 space-y-3 text-sm font-semibold text-brand-cream/75">{["Personaj construit din descriere sau fotografie", "Fiecare ilustrație trece prin control de calitate", "Textul nu acoperă imaginile", "Caiet separat cu 3 activități", "Flipbook privat, audio și PDF-uri A5 landscape"].map((item) => <li key={item} className="flex gap-3"><Check size={17} className="mt-0.5 shrink-0 text-brand-gold" />{item}</li>)}</ul>
+          <ul className="mt-5 space-y-3 text-sm font-semibold text-brand-cream/75">{["Personaj construit din descriere sau fotografie", "Fiecare ilustrație trece prin control de calitate", "Textul nu acoperă imaginile", "Caiet separat cu 3 activități", "Carte digitală de răsfoit, audio și PDF-uri A5 în format orizontal"].map((item) => <li key={item} className="flex gap-3"><Check size={17} className="mt-0.5 shrink-0 text-brand-gold" />{item}</li>)}</ul>
           <div className="mt-8 grid grid-cols-3 border-y border-brand-cream/15 py-5 text-center"><div><Clock3 className="mx-auto text-brand-gold" size={19} /><p className="mt-2 text-[10px] font-black">6-10 minute</p></div><div><Mail className="mx-auto text-brand-gold" size={19} /><p className="mt-2 text-[10px] font-black">Primești email</p></div><div><Download className="mx-auto text-brand-gold" size={19} /><p className="mt-2 text-[10px] font-black">2 PDF-uri</p></div></div>
           <Link href="/modele#povestea-magica" className="mt-7 inline-flex items-center gap-2 border-b border-brand-gold pb-1 text-sm font-black text-brand-gold">Vezi paginile modelului <ArrowRight size={16} /></Link>
         </aside>

@@ -1,14 +1,15 @@
 export const checkoutProductIds = [
-  "story-short",
-  "story-long",
   "night-shield",
   "patience-kit",
-  "family-bundle",
   "complete-bundle",
   "illustrated-album-digital",
 ] as const;
 
-export type CheckoutProductId = (typeof checkoutProductIds)[number];
+export const legacyCheckoutProductIds = ["story-short", "story-long", "family-bundle"] as const;
+export const storedCheckoutProductIds = [...checkoutProductIds, ...legacyCheckoutProductIds] as const;
+
+export type ActiveCheckoutProductId = (typeof checkoutProductIds)[number];
+export type CheckoutProductId = (typeof storedCheckoutProductIds)[number];
 
 export type CheckoutProduct = {
   id: CheckoutProductId;
@@ -66,12 +67,12 @@ export const checkoutCatalog: Record<CheckoutProductId, CheckoutProduct> = {
   "illustrated-album-digital": {
     id: "illustrated-album-digital",
     name: "Povestea Magică - Digital",
-    description: "Poveste ilustrată personalizată și caiet separat de activități, în format A5 landscape.",
+    description: "Poveste ilustrată personalizată și caiet separat de activități, în format A5 orizontal.",
     amount: 5900,
     currency: "ron",
   },
 };
 
-export function isCheckoutProductId(value: unknown): value is CheckoutProductId {
-  return typeof value === "string" && checkoutProductIds.includes(value as CheckoutProductId);
+export function isCheckoutProductId(value: unknown): value is ActiveCheckoutProductId {
+  return typeof value === "string" && checkoutProductIds.includes(value as ActiveCheckoutProductId);
 }

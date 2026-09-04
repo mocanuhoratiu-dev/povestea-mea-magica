@@ -11,7 +11,7 @@ import { isAlbumPreviewReady } from "@/lib/album/previewState";
 
 export const runtime = "nodejs";
 
-const checkoutUnavailable = "Platile online nu sunt active momentan.";
+const checkoutUnavailable = "Plățile online nu sunt active momentan.";
 
 function hasFinishedAlbumPreview(order: NonNullable<Awaited<ReturnType<typeof getOrder>>>) {
   if (order.product === "album") {
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
   const limit = checkRateLimit(request, "checkout", { windowMs: 60 * 60 * 1000, maxRequests: 8 });
   if (!limit.allowed) {
     return NextResponse.json(
-      { error: "Ai incercat prea des. Reincearca putin mai tarziu." },
+      { error: "Ai încercat prea des. Reîncearcă puțin mai târziu." },
       { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } },
     );
   }
@@ -46,22 +46,22 @@ export async function POST(request: Request) {
   try {
     ({ productId, orderId } = await request.json());
   } catch {
-    return NextResponse.json({ error: "Cererea nu este valida." }, { status: 400 });
+    return NextResponse.json({ error: "Cererea nu este validă." }, { status: 400 });
   }
 
   if (!isCheckoutProductId(productId)) {
     return NextResponse.json({ error: "Produsul selectat nu este disponibil." }, { status: 400 });
   }
   if (!isOrderStoreConfigured() || typeof orderId !== "string") {
-    return NextResponse.json({ error: "Comanda nu este pregatita pentru plata." }, { status: 503 });
+    return NextResponse.json({ error: "Comanda nu este pregătită pentru plată." }, { status: 503 });
   }
 
   const order = await getOrder(orderId);
   if (!order || order.productId !== productId || !["draft", "pending_payment"].includes(order.status)) {
-    return NextResponse.json({ error: "Comanda nu mai este disponibila. Reincepe personalizarea." }, { status: 409 });
+    return NextResponse.json({ error: "Comanda nu mai este disponibilă. Reîncepe personalizarea." }, { status: 409 });
   }
   if (!hasFinishedAlbumPreview(order)) {
-    return NextResponse.json({ error: "Cele două pagini de preview sunt încă în lucru. Plata se deschide imediat ce le poți răsfoi." }, { status: 409 });
+    return NextResponse.json({ error: "Cele două pagini ale mostrei sunt încă în lucru. Plata se deschide imediat ce le poți răsfoi." }, { status: 409 });
   }
 
   const product = checkoutCatalog[productId];
@@ -71,8 +71,6 @@ export async function POST(request: Request) {
     ? `${siteUrl}/povestea-magica?plata=anulata`
     : productId === "complete-bundle"
       ? `${siteUrl}/pachet-complet?plata=anulata`
-    : productId === "family-bundle"
-      ? `${siteUrl}/pachet?plata=anulata`
       : `${siteUrl}/?plata=anulata`;
 
   try {
@@ -116,6 +114,6 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Stripe Checkout session failed", error);
     logTelemetry("pmm_checkout_failed", { result: "error", errorCode: "unknown" });
-    return NextResponse.json({ error: "Nu am putut deschide plata acum. Reincearca putin mai tarziu." }, { status: 502 });
+    return NextResponse.json({ error: "Nu am putut deschide plata acum. Reîncearcă puțin mai târziu." }, { status: 502 });
   }
 }

@@ -1,3 +1,4 @@
+// Kept only so already-paid legacy bundles can still be read and delivered.
 export const familyBundleProducts = ["story", "monster", "emergency"] as const;
 export const completeBundleProducts = ["album", "monster", "emergency"] as const;
 export const bundleProducts = ["story", "monster", "emergency", "album"] as const;

@@ -11,7 +11,7 @@ const faqs = [
   },
   {
     question: "Ce primesc?",
-    answer: "Povestea Magică include o carte ilustrată de 16 pagini și un caiet separat de 5 pagini, cu colorat, labirint și joc de diferențe. Scutul de Noapte are 6 pagini, iar Trusa de Răbdare are 7 pagini, toate personalizate și pregătite pentru print.",
+    answer: "Povestea Magică include o carte ilustrată de 16 pagini și un caiet separat de 5 pagini. Scutul de Noapte are 9 pagini cu certificat, rețetă imaginară, poveste, hartă, card, calendar și audio Lumi. Trusa de Răbdare are 10 pagini cu 8 activități. Toate sunt personalizate și pregătite pentru print.",
   },
   {
     question: "Este personalizat cu adevărat?",
@@ -23,11 +23,11 @@ const faqs = [
   },
   {
     question: "Pot modifica ceva înainte de PDF?",
-    answer: "Da. Pentru Povestea Magică răsfoiești înainte de plată coperta și două pagini interioare personalizate, cu watermark discret. Dacă schimbi alegerile, poți crea un preview nou. Coperta confirmată devine reperul vizual al personajului în întreaga carte.",
+    answer: "Da. Pentru Povestea Magică răsfoiești înainte de plată coperta și două pagini interioare personalizate, cu un marcaj discret. Dacă schimbi alegerile, poți crea o mostră nouă. Coperta confirmată devine reperul vizual al personajului în întreaga carte.",
   },
   {
     question: "Pot printa materialele?",
-    answer: "Da. Povestea Magică și caietul de activități folosesc format A5 landscape. Scutul și Trusa sunt pregătite pentru A4. Toate pot fi tipărite acasă sau la un centru de print.",
+    answer: "Da. Povestea Magică și caietul de activități folosesc format A5 orizontal. Scutul și Trusa sunt pregătite pentru A4. Toate pot fi tipărite acasă sau la un centru de print.",
   },
   {
     question: "Care sunt prețurile?",
@@ -43,7 +43,7 @@ export default function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section className="bg-white px-6 py-24">
+    <section id="intrebari-frecvente" className="bg-white px-6 py-24">
       <div className="mx-auto max-w-3xl">
         <div className="border-b border-brand-navy/15 pb-10">
           <p className="text-xs font-black uppercase tracking-[0.16em] text-brand-purple">Înainte să începi</p>
@@ -53,7 +53,10 @@ export default function FAQ() {
           {faqs.map((faq, index) => (
             <div key={faq.question}>
               <button
+                id={`faq-question-${index}`}
                 onClick={() => setOpenIndex(openIndex === index ? null : index)}
+                aria-expanded={openIndex === index}
+                aria-controls={`faq-answer-${index}`}
                 className="flex w-full items-center justify-between gap-6 py-6 text-left"
               >
                 <span className="font-serif text-xl leading-tight text-brand-navy md:text-2xl">{faq.question}</span>
@@ -61,7 +64,15 @@ export default function FAQ() {
               </button>
               <AnimatePresence initial={false}>
                 {openIndex === index && (
-                  <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                  <motion.div
+                    id={`faq-answer-${index}`}
+                    role="region"
+                    aria-labelledby={`faq-question-${index}`}
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="overflow-hidden"
+                  >
                     <p className="max-w-2xl pb-6 text-base font-medium leading-relaxed text-brand-navy/70">{faq.answer}</p>
                   </motion.div>
                 )}

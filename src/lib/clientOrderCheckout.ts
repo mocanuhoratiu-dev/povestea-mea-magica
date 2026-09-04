@@ -1,6 +1,6 @@
-import type { CheckoutProductId } from "@/lib/catalog";
+import type { ActiveCheckoutProductId } from "@/lib/catalog";
 
-export async function beginOrderCheckout(productId: CheckoutProductId, configuration: Record<string, unknown>) {
+export async function beginOrderCheckout(productId: ActiveCheckoutProductId, configuration: Record<string, unknown>) {
   const orderResponse = await fetch("/api/orders", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -12,7 +12,7 @@ export async function beginOrderCheckout(productId: CheckoutProductId, configura
   return beginPreparedOrderCheckout(productId, orderResult.orderId);
 }
 
-export async function beginPreparedOrderCheckout(productId: CheckoutProductId, orderId: string) {
+export async function beginPreparedOrderCheckout(productId: ActiveCheckoutProductId, orderId: string) {
   const checkoutResponse = await fetch("/api/checkout", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

@@ -19,11 +19,11 @@ type AlbumDelivery = {
 
 const documentPresentation = {
   storybook: {
-    description: "16 pagini A5 landscape, cu 13 ilustrații create special pentru aventură.",
+    description: "16 pagini A5 în format orizontal, cu 13 ilustrații create special pentru aventură.",
     icon: BookHeart,
   },
   activities: {
-    description: "5 pagini A5 landscape, cu colorat, labirint și joc de diferențe.",
+    description: "5 pagini A5 în format orizontal, cu colorat, labirint și joc de diferențe.",
     icon: Palette,
   },
 } as const;

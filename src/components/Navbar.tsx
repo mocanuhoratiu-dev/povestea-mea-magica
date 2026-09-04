@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { ArrowRight, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import BrandMark from "@/components/BrandMark";
@@ -14,8 +14,8 @@ export default function Navbar() {
     { label: "Povestea Magică", href: "/povestea-magica" },
     { label: "Scutul de Noapte", href: "/scutul-de-noapte" },
     { label: "Trusa de Răbdare", href: "/trusa-de-rabdare" },
-    { label: "Cum funcționează", href: "/cum-functioneaza" },
-    { label: "Despre", href: "/despre" },
+    { label: "Răsfoiește", href: "/modele" },
+    { label: "Prețuri", href: "/preturi" },
   ];
 
   useEffect(() => {
@@ -31,7 +31,7 @@ export default function Navbar() {
       <motion.nav
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="fixed inset-x-0 top-0 z-[10000] md:hidden"
+        className="fixed inset-x-0 top-0 z-[80] lg:hidden"
         aria-label="Navigare principală"
       >
         <div className={`flex h-16 items-center justify-between border-b border-brand-navy/10 px-4 backdrop-blur-xl transition-[background-color,box-shadow] duration-300 ${
@@ -65,6 +65,9 @@ export default function Navbar() {
                 {item.label}
               </Link>
             ))}
+            <Link href="/povestea-magica#configureaza-albumul" onClick={() => setIsMobileMenuOpen(false)} className="mt-3 flex min-h-12 items-center justify-center gap-2 bg-brand-navy px-5 text-sm font-black text-brand-cream">
+              Creează povestea <ArrowRight size={16} />
+            </Link>
           </motion.div>
         )}
       </motion.nav>
@@ -72,7 +75,7 @@ export default function Navbar() {
       <motion.nav
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="fixed left-1/2 top-4 z-[10000] hidden w-[calc(100%-2rem)] max-w-7xl -translate-x-1/2 md:block"
+        className="fixed left-1/2 top-4 z-[80] hidden w-[calc(100%-2rem)] max-w-7xl -translate-x-1/2 lg:block"
         aria-label="Navigare principală"
       >
         <div className={`flex items-center justify-between border border-brand-navy/10 px-6 py-3 backdrop-blur-xl transition-[background-color,box-shadow] duration-300 ${
@@ -90,7 +93,7 @@ export default function Navbar() {
             <Link 
               key={item.label} 
               href={item.href} 
-              className="relative text-sm font-bold text-brand-navy/70 transition-colors hover:text-brand-purple"
+              className="group relative text-sm font-bold text-brand-navy/70 transition-colors hover:text-brand-purple"
             >
               {item.label}
               <span className="absolute -bottom-2 left-0 h-px w-0 bg-brand-gold transition-all group-hover:w-full" />

@@ -7,6 +7,9 @@ import Reviews from "@/components/Reviews";
 import FAQ from "@/components/FAQ";
 import Footer from "@/components/Footer";
 import LumiGuideLoader from "@/components/LumiGuideLoader";
+import PersonalizationProof from "@/components/PersonalizationProof";
+import QualityTrust from "@/components/QualityTrust";
+import FinalStoryCTA from "@/components/FinalStoryCTA";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
@@ -18,10 +21,13 @@ export default function Home() {
     <main className="min-h-screen">
       <Hero />
       <AlbumFlipbook />
+      <PersonalizationProof />
       <ProductExamples />
       <HowItWorks />
+      <QualityTrust />
       <Reviews />
       <FAQ />
+      <FinalStoryCTA />
       <Footer />
       <LumiGuideLoader />
     </main>

@@ -11,11 +11,11 @@ type DeliveryItem = {
   configuration: Record<string, unknown>;
 };
 
-const productPresentation: Record<BundleProduct, { title: string; description: string; anchor: string; icon: typeof BookOpen }> = {
-  story: { title: "Povestea lungă", description: "Copertă, dedicație și patru pagini de aventură", anchor: "creator", icon: BookOpen },
-  monster: { title: "Scutul de Noapte", description: "Certificat, ritual, etichete și card pentru noptieră", anchor: "monster-away", icon: ShieldCheck },
-  emergency: { title: "Trusa de Răbdare", description: "Misiuni și activități pentru momentul ales", anchor: "emergency-kit", icon: TimerReset },
-  album: { title: "Povestea Magică", description: "Carte ilustrată de 16 pagini și caiet separat de activități", anchor: "album", icon: BookHeart },
+const productPresentation: Record<BundleProduct, { title: string; description: string; path: string; anchor: string; icon: typeof BookOpen }> = {
+  story: { title: "Povestea lungă", description: "Copertă, dedicație și patru pagini de aventură", path: "/", anchor: "creator", icon: BookOpen },
+  monster: { title: "Scutul de Noapte", description: "Nouă pagini cu poveste, hartă, ritual, respirație și card de noptieră", path: "/scutul-de-noapte", anchor: "monster-away", icon: ShieldCheck },
+  emergency: { title: "Trusa de Răbdare", description: "Zece pagini cu opt activități și trei niveluri de dificultate", path: "/trusa-de-rabdare", anchor: "emergency-kit", icon: TimerReset },
+  album: { title: "Povestea Magică", description: "Carte ilustrată de 16 pagini și caiet separat de activități", path: "/album-ilustrat", anchor: "album", icon: BookHeart },
 };
 
 function childName(item: DeliveryItem) {
@@ -121,7 +121,7 @@ export default function BundleDeliveryClient() {
               <h2 className="mt-2 font-serif text-3xl text-brand-navy">{presentation.title}</h2>
               <p className="mt-2 text-sm font-semibold leading-relaxed text-brand-navy/65">{presentation.description}</p>
             </div>
-            <a href={`/?${query}#${presentation.anchor}`} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-brand-purple px-5 text-sm font-black text-white transition-colors hover:bg-brand-navy">Deschide <ArrowRight size={17} /></a>
+            <a href={`${presentation.path}?${query}#${presentation.anchor}`} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-brand-purple px-5 text-sm font-black text-white transition-colors hover:bg-brand-navy">Deschide <ArrowRight size={17} /></a>
           </article>
         );
       })}

@@ -15,14 +15,14 @@ export async function POST(request: Request) {
   let order = orderId ? await getOrder(orderId) : null;
   if (!order) return NextResponse.json({ error: "Comanda nu a fost găsită." }, { status: 404 });
   if (!["draft", "pending_payment"].includes(order.status)) {
-    return NextResponse.json({ error: "Comanda nu mai poate primi un preview." }, { status: 409 });
+    return NextResponse.json({ error: "Comanda nu mai poate primi o mostră." }, { status: 409 });
   }
 
   try {
     if (order.product === "album") {
       const configuration = readAlbumConfiguration(order.configuration);
       const existing = readAlbumOutput(order.output);
-      if (!configuration || !existing) throw new Error("Configurația preview-ului este invalidă.");
+      if (!configuration || !existing) throw new Error("Configurația mostrei este invalidă.");
       if (isAlbumPreviewReady(existing)) return NextResponse.json({ success: true });
       await createAlbumPreviewScenes({
         orderId: order.id,
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
         existing: order.output,
         checkpoint: async (output) => {
           const saved = await setOrderStatus(order as StoredOrder, order!.status, { output });
-          if (!saved) throw new Error("Progresul preview-ului nu a putut fi salvat.");
+          if (!saved) throw new Error("Progresul mostrei nu a putut fi salvat.");
           order = saved;
         },
       });
@@ -50,12 +50,12 @@ export async function POST(request: Request) {
           const nextItem: BundleOutputItem = { product: "album", output };
           const items = [...completedItems.filter((item) => item.product !== "album"), nextItem];
           const saved = await setOrderStatus(order as StoredOrder, order!.status, { output: { items } });
-          if (!saved) throw new Error("Progresul preview-ului din pachet nu a putut fi salvat.");
+          if (!saved) throw new Error("Progresul mostrei din pachet nu a putut fi salvat.");
           order = saved;
         },
       });
     } else {
-      return NextResponse.json({ error: "Produsul nu folosește preview-ul ilustrat." }, { status: 409 });
+      return NextResponse.json({ error: "Produsul nu folosește o mostră ilustrată." }, { status: 409 });
     }
 
     logTelemetry("pmm_album_stage_completed", { product: "album", result: "success", albumStage: "preview", pageCount: 2 });
@@ -64,6 +64,6 @@ export async function POST(request: Request) {
     console.error("Album interior preview failed", error);
     await setOrderStatus(order, "failed", { errorCode: "album_preview_failed" }).catch(() => undefined);
     logTelemetry("pmm_album_stage_failed", { product: "album", result: "error", albumStage: "preview", errorCode: "ai_error" });
-    return NextResponse.json({ error: "Preview-ul interior nu a putut fi creat." }, { status: 500 });
+    return NextResponse.json({ error: "Mostra interioară nu a putut fi creată." }, { status: 500 });
   }
 }
