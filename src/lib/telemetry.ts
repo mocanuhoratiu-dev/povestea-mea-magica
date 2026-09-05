@@ -29,6 +29,8 @@ export type TelemetryFields = {
   currency?: string;
   liveMode?: boolean;
   promotionCode?: string;
+  reviewRating?: number;
+  mediaAttached?: boolean;
 };
 
 export type TelemetryEvent =
@@ -41,6 +43,7 @@ export type TelemetryEvent =
   | "pmm_album_sample_audio_played"
   | "pmm_album_sample_expanded"
   | "pmm_album_sample_cta_clicked"
+  | "pmm_album_product_cta_clicked"
   | "pmm_product_started"
   | "pmm_generation_completed"
   | "pmm_generation_failed"
@@ -84,6 +87,8 @@ export type TelemetryEvent =
   | "pmm_invoice_needs_review"
   | "pmm_order_delivered"
   | "pmm_order_failed"
+  | "pmm_verified_review_submitted"
+  | "pmm_verified_review_failed"
   | "pmm_album_stage_completed"
   | "pmm_album_stage_failed";
 
@@ -118,6 +123,8 @@ export function logTelemetry(event: TelemetryEvent, fields: TelemetryFields = {}
     currency: fields.currency,
     live_mode: fields.liveMode,
     promotion_code: fields.promotionCode,
+    review_rating: fields.reviewRating,
+    media_attached: fields.mediaAttached,
   };
 
   // Omit absent keys so log-based metric labels stay clean and predictable.

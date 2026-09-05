@@ -1,7 +1,20 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Quote } from "lucide-react";
+import Image from "next/image";
+import { Quote, ShieldCheck, Star } from "lucide-react";
+import { useEffect, useState } from "react";
+
+type VerifiedReview = {
+  id: string;
+  product: string;
+  rating: number;
+  displayName: string;
+  quote: string;
+  verifiedOrder: true;
+  hasPhoto: boolean;
+  hasVideo: boolean;
+};
 
 const testimonials = [
   {
@@ -22,6 +35,15 @@ const testimonials = [
 ];
 
 export default function Reviews() {
+  const [verifiedReviews, setVerifiedReviews] = useState<VerifiedReview[]>([]);
+
+  useEffect(() => {
+    void fetch("/api/reviews", { cache: "no-store" })
+      .then((response) => response.ok ? response.json() : { reviews: [] })
+      .then((payload: { reviews?: VerifiedReview[] }) => setVerifiedReviews(Array.isArray(payload.reviews) ? payload.reviews : []))
+      .catch(() => undefined);
+  }, []);
+
   return (
     <section id="recenzii" className="bg-brand-cream px-6 py-24">
       <div className="mx-auto max-w-7xl">
@@ -30,8 +52,22 @@ export default function Reviews() {
             <p className="text-xs font-black uppercase tracking-[0.16em] text-brand-purple">Spus de părinți</p>
             <h2 className="mt-4 font-nunito text-4xl font-black leading-tight text-brand-navy md:text-5xl">Primele povești, primele seri și primele reacții.</h2>
           </div>
-          <p className="max-w-2xl text-lg font-medium leading-relaxed text-brand-navy/70">Recenzii primite de la familiile care au testat poveștile, ritualurile și activitățile Povestea Mea Magică.</p>
+          <p className="max-w-2xl text-lg font-medium leading-relaxed text-brand-navy/70">Mesaje primite de la familiile care au folosit poveștile, ritualurile și activitățile Povestea Mea Magică. Recenziile provenite dintr-o livrare sunt marcate separat.</p>
         </div>
+        {verifiedReviews.length > 0 && <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {verifiedReviews.map((review) => (
+            <article key={review.id} className="overflow-hidden border border-brand-green/35 bg-white">
+              {review.hasPhoto && <div className="relative aspect-[4/3] overflow-hidden bg-brand-navy/5"><Image unoptimized src={`/api/reviews/${encodeURIComponent(review.id)}/media?asset=photo`} alt={`Fotografie trimisă de ${review.displayName}`} fill sizes="(min-width: 1024px) 28vw, 90vw" className="object-cover" /></div>}
+              {review.hasVideo && !review.hasPhoto && <video controls preload="metadata" className="aspect-video w-full bg-brand-navy" src={`/api/reviews/${encodeURIComponent(review.id)}/media?asset=video`} aria-label={`Testimonial video trimis de ${review.displayName}`} />}
+              <div className="p-6">
+                <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.12em] text-brand-green"><ShieldCheck size={15} /> Comandă verificată</p>
+                <div className="mt-4 flex gap-1 text-brand-gold" aria-label={`${review.rating} din 5 stele`}>{[1, 2, 3, 4, 5].map((star) => <Star key={star} size={16} fill={star <= review.rating ? "currentColor" : "none"} />)}</div>
+                <blockquote className="mt-5 font-serif text-xl leading-relaxed text-brand-navy">„{review.quote}”</blockquote>
+                <p className="mt-5 border-t border-brand-navy/10 pt-4 text-sm font-black text-brand-purple">{review.displayName}</p>
+              </div>
+            </article>
+          ))}
+        </div>}
         <motion.figure
           initial={{ opacity: 0, y: 18 }}
           whileInView={{ opacity: 1, y: 0 }}

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import { commercialProductFromMetadata, commercialTelemetryFields, promotionCodeFromSession } from "../src/lib/commercialTelemetry.ts";
 
@@ -34,4 +35,14 @@ test("promotion codes are allow-listed before they reach logs", () => {
   assert.equal(promotionCodeFromSession({ discounts: [{ promotion_code: { code: " POVESTECADOU100 " } }] }), "POVESTECADOU100");
   assert.equal(promotionCodeFromSession({ discounts: [{ promotion_code: { code: "private email@example.com" } }] }), undefined);
   assert.equal(promotionCodeFromSession({ discounts: [{ promotion_code: "promo_internal_id" }] }), undefined);
+});
+
+test("commercial monitoring provisions the complete launch funnel", () => {
+  const metrics = readFileSync(new URL("../scripts/setup-commercial-telemetry.sh", import.meta.url), "utf8");
+  const dashboard = readFileSync(new URL("../scripts/setup-commercial-dashboard.sh", import.meta.url), "utf8");
+
+  for (const metric of ["pmm_album_product_ctas", "pmm_checkout_starts", "pmm_payments_succeeded", "pmm_payment_failures", "pmm_promotion_uses", "pmm_conversions", "pmm_orders_delivered", "pmm_verified_reviews"]) {
+    assert.match(metrics, new RegExp(`\\b${metric}\\b`));
+    assert.match(dashboard, new RegExp(`\\b${metric}\\b`));
+  }
 });

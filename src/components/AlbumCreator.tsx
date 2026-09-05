@@ -35,6 +35,9 @@ type AlbumPreviewState = {
   statusUrl?: string;
   pages: AlbumPreviewPage[];
   ready: boolean;
+  progress: number;
+  total: number;
+  startedAt: number;
 };
 
 function readPreviewPages(value: unknown): AlbumPreviewPage[] {
@@ -67,6 +70,9 @@ function readStoredPreview(value: unknown): AlbumPreviewState | null {
     statusUrl: preview.statusUrl,
     pages: readPreviewPages(preview.pages),
     ready: preview.ready === true,
+    progress: typeof preview.progress === "number" ? Math.max(1, Math.min(3, preview.progress)) : preview.ready === true ? 3 : 1,
+    total: 3,
+    startedAt: typeof preview.startedAt === "number" ? preview.startedAt : Date.now(),
   };
 }
 
@@ -217,6 +223,9 @@ export default function AlbumCreator() {
         statusUrl: result.statusUrl,
         pages: [{ kind: "cover", imageUrl: result.previewUrl, eyebrow: "Povestea Magică", title: result.title, text: `O aventură creată pentru ${name.trim()}` }],
         ready: false,
+        progress: 1,
+        total: 3,
+        startedAt: Date.now(),
       };
       setPreview(nextPreview);
       persistDraft(nextPreview);
@@ -248,6 +257,8 @@ export default function AlbumCreator() {
             qualityChecked: result.qualityChecked === true,
             pages,
             ready: true,
+            progress: 3,
+            total: 3,
           };
           setPreview(nextPreview);
           setNotice("Mostra este gata. Răsfoiește coperta și cele două pagini; exact aceste imagini vor intra în carte după plată.");
@@ -264,7 +275,22 @@ export default function AlbumCreator() {
           return;
         }
         if (result.status === "failed") throw new Error(result.error || "Mostra interioară nu a putut fi creată.");
-        setNotice(`Construim paginile de interior ${Math.max(0, result.progress || 0)} din ${Math.max(2, result.total || 2)}. Poți rămâne pe această pagină.`);
+        const interiorProgress = Math.max(0, Math.min(2, result.progress || 0));
+        if (activePreview.progress !== interiorProgress + 1) {
+          const nextPreview = { ...activePreview, progress: interiorProgress + 1, total: 3 };
+          setPreview(nextPreview);
+          try {
+            window.sessionStorage.setItem(albumDraftKey, JSON.stringify({
+              ...albumConfiguration.generation,
+              dedication: albumConfiguration.dedication,
+              dedicationFrom: albumConfiguration.dedicationFrom,
+              preview: nextPreview,
+            }));
+          } catch {
+            // Progress remains visible even when browser storage is disabled.
+          }
+        }
+        setNotice(interiorProgress === 0 ? "Coperta este gata. Construim acum firul poveștii și prima scenă." : "Prima scenă este gata. Pregătim a doua pagină pentru răsfoire.");
       } catch (error) {
         if (cancelled) return;
         if (attempts >= 100) {
@@ -534,6 +560,19 @@ export default function AlbumCreator() {
                       </div>
                       <span className="pointer-events-none absolute bottom-[7%] right-[5%] rotate-[-7deg] border-2 border-white/65 px-3 py-1 text-xs font-black uppercase tracking-[0.22em] text-white/75 sm:text-base">Mostră</span>
                     </div>}
+                    <div className="border-x border-brand-gold/40 bg-white px-4 py-4" aria-live="polite">
+                      <div className="flex items-center justify-between gap-3 text-[10px] font-black uppercase tracking-[0.12em] text-brand-navy/55">
+                        <span>{activePreview.ready ? "Mostra este completă" : activePreview.progress === 1 ? "Coperta este gata" : "Prima pagină este gata"}</span>
+                        <span className="tabular-nums">{activePreview.progress} / {activePreview.total}</span>
+                      </div>
+                      <div className="mt-3 h-2 overflow-hidden bg-brand-navy/10" aria-label={`Progres mostră ${Math.round((activePreview.progress / activePreview.total) * 100)}%`}>
+                        <div className="h-full bg-brand-purple transition-[width] duration-700" style={{ width: `${(activePreview.progress / activePreview.total) * 100}%` }} />
+                      </div>
+                      <div className="mt-3 grid grid-cols-3 gap-2 text-[10px] font-bold text-brand-navy/50">
+                        {["Copertă", "Pagina 1", "Pagina 2"].map((label, index) => <span key={label} className={index < activePreview.progress ? "text-brand-purple" : ""}>{index < activePreview.progress ? "✓ " : ""}{label}</span>)}
+                      </div>
+                      {!activePreview.ready && <p className="mt-3 text-xs font-bold text-brand-navy/58">Timp estimat rămas: {activePreview.progress === 1 ? "aproximativ 3-5 minute" : "aproximativ 1-3 minute"}. Poți păstra pagina deschisă.</p>}
+                    </div>
                     <div className="flex gap-3 border-x border-b border-brand-gold/40 bg-brand-gold/10 p-4">
                       {activePreview.ready ? <Check className="mt-0.5 shrink-0 text-brand-purple" size={20} /> : <LoaderCircle className="mt-0.5 shrink-0 animate-spin text-brand-purple" size={20} />}
                       <div><p className="text-xs font-bold leading-relaxed text-brand-navy/70">{activePreview.ready ? `Marcajul dispare din produsul final. Coperta și cele două scene devin referința vizuală pentru restul cărții.${activePreview.qualityChecked ? " Toate cele trei imagini au trecut controlul automat." : ""}` : "Coperta fixează personajul. Motorul editorial scrie acum firul poveștii și creează două pagini distincte pentru verificare."}</p><button type="button" onClick={() => { setPreview(null); setHasConsent(false); }} className="mt-3 inline-flex min-h-9 items-center gap-2 border-b border-brand-purple text-[11px] font-black text-brand-purple"><RefreshCw size={14} /> Încearcă altă variantă</button></div>

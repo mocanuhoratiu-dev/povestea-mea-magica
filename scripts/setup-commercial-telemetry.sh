@@ -57,5 +57,7 @@ upsert_metric "pmm_payment_failures" "Plăți Stripe eșuate" "pmm_payment_faile
 upsert_metric "pmm_promotion_uses" "Comenzi cu reducere aplicată" "pmm_promotion_applied" true
 upsert_metric "pmm_conversions" "Comenzi comerciale confirmate" "pmm_conversion_completed"
 upsert_metric "pmm_orders_delivered" "Comenzi livrate complet" "pmm_order_delivered"
+upsert_metric "pmm_album_product_ctas" "Clickuri pe CTA-ul principal al Poveștii Magice" "pmm_album_product_cta_clicked"
+upsert_metric "pmm_verified_reviews" "Recenzii trimise din comenzi verificate" "pmm_verified_review_submitted"
 
 echo "Telemetria comercială este configurată pentru proiectul ${PROJECT_ID}."

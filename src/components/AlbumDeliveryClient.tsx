@@ -5,6 +5,7 @@ import { BookHeart, Download, LoaderCircle, Palette, RefreshCw } from "lucide-re
 import QuickRating from "@/components/QuickRating";
 import { trackEvent } from "@/lib/clientTelemetry";
 import PersonalizedAlbumFlipbook, { type PersonalizedAlbumPage } from "@/components/PersonalizedAlbumFlipbook";
+import VerifiedReviewForm from "@/components/VerifiedReviewForm";
 
 type AlbumDelivery = {
   product: "album";
@@ -123,6 +124,7 @@ export default function AlbumDeliveryClient() {
         })}
       </div>
       <div className="mx-auto max-w-md text-center"><QuickRating product="album" /></div>
+      <VerifiedReviewForm orderId={access.order} token={access.token} product="album" />
     </div>
   );
 }

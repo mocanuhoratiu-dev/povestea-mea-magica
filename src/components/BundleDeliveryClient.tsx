@@ -5,6 +5,7 @@ import { ArrowRight, BookHeart, BookOpen, Download, LoaderCircle, ShieldCheck, T
 import PersonalizedAlbumFlipbook, { type PersonalizedAlbumPage } from "@/components/PersonalizedAlbumFlipbook";
 import { trackEvent } from "@/lib/clientTelemetry";
 import type { BundleProduct } from "@/lib/bundle";
+import VerifiedReviewForm from "@/components/VerifiedReviewForm";
 
 type DeliveryItem = {
   product: BundleProduct;
@@ -105,8 +106,9 @@ export default function BundleDeliveryClient() {
   if (status === "error") return <div className="border-y border-red-300 bg-red-50 px-6 py-8 text-center text-sm font-bold text-red-700">Linkul nu este valid, a expirat sau pachetul nu este încă pregătit. Scrie-ne din pagina de contact și verificăm comanda.</div>;
 
   return (
-    <div className="divide-y divide-brand-navy/12 border-y border-brand-navy/15">
-      {items.map((item) => {
+    <div>
+      <div className="divide-y divide-brand-navy/12 border-y border-brand-navy/15">
+        {items.map((item) => {
         if (item.product === "album") {
           return <BundleAlbumDelivery key={item.product} item={item} order={access.order} token={access.token} />;
         }
@@ -124,7 +126,9 @@ export default function BundleDeliveryClient() {
             <a href={`${presentation.path}?${query}#${presentation.anchor}`} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-brand-purple px-5 text-sm font-black text-white transition-colors hover:bg-brand-navy">Deschide <ArrowRight size={17} /></a>
           </article>
         );
-      })}
+        })}
+      </div>
+      <VerifiedReviewForm orderId={access.order} token={access.token} product="bundle" />
     </div>
   );
 }
