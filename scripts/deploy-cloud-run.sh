@@ -24,11 +24,13 @@ deploy_service() {
   local order_secret_args=()
   local smartbill_secret_args=()
   local source_args=(--source .)
-  local build_args=(--update-build-env-vars "NEXT_PUBLIC_STRIPE_ENABLED=${STRIPE_ENABLED},NEXT_PUBLIC_SUPPORT_EMAIL=${SUPPORT_EMAIL}")
+  local build_args=(--quiet --update-build-env-vars "NEXT_PUBLIC_STRIPE_ENABLED=${STRIPE_ENABLED},NEXT_PUBLIC_SUPPORT_EMAIL=${SUPPORT_EMAIL}")
 
   if [[ -n "$image_uri" ]]; then
     source_args=(--image "$image_uri")
-    build_args=()
+    # Keep one harmless argument because Bash 3.2 with `set -u` rejects an
+    # expansion of an empty local array on the second (image-based) deploy.
+    build_args=(--quiet)
   fi
 
   if gcloud secrets describe "$RESEND_SECRET_NAME" --project "$PROJECT_ID" >/dev/null 2>&1; then
