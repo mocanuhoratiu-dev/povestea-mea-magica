@@ -31,6 +31,9 @@ export type TelemetryFields = {
   promotionCode?: string;
   reviewRating?: number;
   mediaAttached?: boolean;
+  webVitalName?: "CLS" | "FCP" | "FID" | "INP" | "LCP" | "TTFB";
+  webVitalValue?: number;
+  webVitalRating?: "good" | "needs-improvement" | "poor";
 };
 
 export type TelemetryEvent =
@@ -47,6 +50,9 @@ export type TelemetryEvent =
   | "pmm_product_sample_page_viewed"
   | "pmm_product_page_cta_clicked"
   | "pmm_product_started"
+  | "pmm_product_preview_opened"
+  | "pmm_product_preview_checkout_clicked"
+  | "pmm_product_video_played"
   | "pmm_generation_completed"
   | "pmm_generation_failed"
   | "pmm_story_text_completed"
@@ -92,7 +98,8 @@ export type TelemetryEvent =
   | "pmm_verified_review_submitted"
   | "pmm_verified_review_failed"
   | "pmm_album_stage_completed"
-  | "pmm_album_stage_failed";
+  | "pmm_album_stage_failed"
+  | "pmm_web_vital_recorded";
 
 /**
  * Emits aggregate product events to Cloud Run logs. Never add child names,
@@ -127,6 +134,9 @@ export function logTelemetry(event: TelemetryEvent, fields: TelemetryFields = {}
     promotion_code: fields.promotionCode,
     review_rating: fields.reviewRating,
     media_attached: fields.mediaAttached,
+    web_vital_name: fields.webVitalName,
+    web_vital_value: fields.webVitalValue,
+    web_vital_rating: fields.webVitalRating,
   };
 
   // Omit absent keys so log-based metric labels stay clean and predictable.

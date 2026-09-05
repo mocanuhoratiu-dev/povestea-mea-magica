@@ -1,17 +1,20 @@
 "use client";
 
-import { Canvas, useFrame, useLoader } from "@react-three/fiber";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Check, LoaderCircle, RotateCcw, Sparkles, Square, Volume2, X } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import dynamic from "next/dynamic";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import * as THREE from "three";
 import { albumArtStyleOptions, albumCompanionOptions, albumLessonOptions, albumMoodOptions, albumWorldOptions } from "@/lib/album/types";
 import { trackEvent } from "@/lib/clientTelemetry";
 import { playNarration, stopNarration as stopSharedNarration, subscribeToNarration } from "@/lib/narrationPlayback";
 
 const LUMI_NARRATION_OWNER = "lumi-guide";
 const totalSteps = 8;
+const LumiVisual3D = dynamic(() => import("./LumiVisual3D"), {
+  ssr: false,
+  loading: () => <div aria-hidden="true" className="h-full w-full bg-[url('/lumi-guardian.webp')] bg-contain bg-center bg-no-repeat" />,
+});
 
 type LumiDraft = {
   name: string;
@@ -73,32 +76,6 @@ const prompts = [
   "Dă-mi un detaliu pe care copilul îl va recunoaște imediat. Poți descrie și propria idee pentru aventură.",
   "Ultimul strop de magie: vrei să lăsăm o dedicație din partea familiei?",
 ] as const;
-
-function LumiSpirit() {
-  const group = useRef<THREE.Group>(null);
-  const orbit = useRef<THREE.Mesh>(null);
-  const texture = useLoader(THREE.TextureLoader, "/lumi-guardian.webp");
-  const sparkles = useMemo(() => new Float32Array([-1.15, .82, 0, -.92, -.42, .1, -.58, 1.12, -.1, .98, .72, 0, 1.18, -.34, -.1, .45, 1.28, .05, .72, -.92, .12, -.2, -1.08, .05]), []);
-
-  useFrame((state) => {
-    const time = state.clock.getElapsedTime();
-    if (group.current) {
-      group.current.position.y = Math.sin(time * 1.4) * .07;
-      group.current.rotation.y = Math.sin(time * .55) * .07 + state.pointer.x * .1;
-    }
-    if (orbit.current) orbit.current.rotation.z = time * .22;
-  });
-
-  return <group ref={group}>
-    <points><bufferGeometry><bufferAttribute attach="attributes-position" args={[sparkles, 3]} /></bufferGeometry><pointsMaterial color="#e5b84f" size={.055} sizeAttenuation transparent opacity={.9} depthWrite={false} /></points>
-    <mesh ref={orbit} position={[0, -.08, -.2]}><torusGeometry args={[1.02, .012, 8, 48]} /><meshBasicMaterial color="#e5b84f" transparent opacity={.7} /></mesh>
-    <sprite scale={[1.72, 2.58, 1]} position={[0, -.12, .15]}><spriteMaterial map={texture} transparent depthWrite={false} toneMapped={false} /></sprite>
-  </group>;
-}
-
-function LumiVisual({ className }: { className: string }) {
-  return <div aria-hidden="true" className={`pointer-events-none ${className}`}><Canvas className="!h-full !w-full" camera={{ position: [0, 0, 4], fov: 30 }} dpr={[1, 1.5]} gl={{ alpha: true, antialias: true }}><LumiSpirit /></Canvas></div>;
-}
 
 const inputClass = "mt-2 min-h-12 w-full border border-brand-navy/18 bg-white px-4 py-3 text-sm font-bold text-brand-navy outline-none transition focus:border-brand-purple focus:ring-2 focus:ring-brand-purple/15";
 const labelClass = "block text-[10px] font-black uppercase tracking-[0.12em] text-brand-navy/55";
@@ -201,7 +178,7 @@ export default function LumiGuide() {
         {isOpen ? (
           <motion.section key="guide" initial={{ opacity: 0, y: 18, scale: .97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 12, scale: .97 }} className="flex max-h-[min(660px,calc(100dvh-5rem))] min-h-0 flex-col overflow-hidden border border-brand-gold/55 bg-brand-cream shadow-[0_24px_70px_rgba(15,25,48,.35)]">
             <header className="relative shrink-0 border-b border-brand-navy/12 bg-brand-navy px-4 py-3 pr-20 text-brand-cream">
-              <LumiVisual className="absolute right-8 -top-5 h-20 w-[70px]" />
+              <LumiVisual3D className="absolute right-8 -top-5 h-20 w-[70px]" />
               <p className="text-[10px] font-black uppercase tracking-[0.15em] text-brand-gold">Lumi, păzitoarea Lanternei</p>
               <h2 className="mt-1 max-w-[245px] font-serif text-lg leading-tight">Creăm Povestea Magică</h2>
               <button type="button" onClick={() => setIsOpen(false)} className="absolute right-3 top-3 z-10 grid h-8 w-8 place-items-center border border-white/15 text-brand-cream/70 hover:bg-white/10" aria-label="Închide Lumi"><X size={17} /></button>
@@ -240,8 +217,8 @@ export default function LumiGuide() {
             </footer>
           </motion.section>
         ) : (
-          <motion.button key="launcher" type="button" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} onClick={() => { trackEvent("lumi_opened"); setIsOpen(true); }} className="ml-auto flex h-14 items-center gap-2 border border-brand-gold/55 bg-brand-navy pl-3 pr-5 text-brand-cream shadow-[0_14px_35px_rgba(15,25,48,.28)] transition hover:bg-brand-purple" aria-label="Creează Povestea Magică împreună cu Lumi">
-            <span className="relative h-12 w-12 overflow-hidden"><LumiVisual className="absolute -inset-2" /></span><span className="text-left"><span className="block text-[9px] font-black uppercase tracking-[0.12em] text-brand-gold">Cu Lumi</span><span className="block text-xs font-black">Creează povestea</span></span><Sparkles size={16} className="text-brand-gold" />
+          <motion.button key="launcher" type="button" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} onClick={() => { trackEvent("lumi_opened"); setIsOpen(true); }} className="ml-auto flex h-14 items-center gap-2 border border-brand-gold/55 bg-brand-navy pl-3 pr-5 text-brand-cream shadow-[0_14px_35px_rgba(15,25,48,.28)] transition hover:bg-brand-purple">
+            <span aria-hidden="true" className="relative h-12 w-12 overflow-hidden bg-[url('/lumi-guardian.webp')] bg-[length:150%] bg-center bg-no-repeat"/><span className="text-left"><span className="block text-[9px] font-black uppercase tracking-[0.12em] text-brand-gold">Cu Lumi</span><span className="block text-xs font-black">Creează povestea</span></span><Sparkles size={16} className="text-brand-gold" />
           </motion.button>
         )}
       </AnimatePresence>

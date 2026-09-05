@@ -38,7 +38,7 @@ export default function Navbar() {
           isLumiOpen ? "bg-brand-cream/50 shadow-[0_8px_24px_rgba(36,50,79,0.05)]" : "bg-brand-cream/95 shadow-[0_8px_24px_rgba(36,50,79,0.12)]"
         }`}>
           <Link href="/" className="flex items-center gap-2.5" onClick={() => setIsMobileMenuOpen(false)}>
-            <BrandMark className="h-8 w-8" title="Povestea Mea Magică" />
+            <BrandMark className="h-8 w-8" />
             <span className="font-serif text-[15px] leading-none text-brand-navy">
               Povestea Mea <span className="text-brand-purple italic">Magică</span>
             </span>
@@ -82,7 +82,7 @@ export default function Navbar() {
           isLumiOpen ? "bg-brand-cream/50 shadow-[0_12px_35px_rgba(36,50,79,0.07)]" : "bg-brand-cream/95 shadow-[0_12px_35px_rgba(36,50,79,0.14)]"
         }`}>
           <Link href="/" className="group flex items-center gap-3">
-            <BrandMark className="h-9 w-9 transition-transform duration-300 group-hover:-rotate-6" title="Povestea Mea Magică" />
+            <BrandMark className="h-9 w-9 transition-transform duration-300 group-hover:-rotate-6" />
             <span className="font-serif text-lg leading-none text-brand-navy">
               Povestea Mea <span className="text-brand-purple italic">Magică</span>
             </span>

@@ -8,6 +8,7 @@ import Footer from "@/components/Footer";
 import LumiGuideLoader from "@/components/LumiGuideLoader";
 import LumiOpenButton from "@/components/LumiOpenButton";
 import MobileAlbumCTA from "@/components/MobileAlbumCTA";
+import ProductWalkthroughVideo from "@/components/ProductWalkthroughVideo";
 import Reviews from "@/components/Reviews";
 import { commerce, siteUrl } from "@/lib/siteMode";
 
@@ -84,6 +85,15 @@ export default function MagicalStoryPage() {
         </div>
       </section>
       <AlbumProductGallery />
+      <ProductWalkthroughVideo
+        product="album"
+        tone="day"
+        eyebrow="Povestea, în câteva secunde"
+        title="Vezi cum prinde viață cartea copilului tău."
+        description="De la coperta personalizată la scenele ilustrate, audio și activități: o privire rapidă prin experiența pe care o primiți împreună."
+        src="/videos/povestea-magica.mp4"
+        poster="/examples/album/flipbook/page-01.webp"
+      />
       <AlbumFlipbook />
       <section id="configureaza-albumul" className="scroll-mt-28 px-0 py-12 sm:px-6 md:py-20">
         <div className="mx-auto mb-8 max-w-7xl px-5 sm:px-0"><p className="text-xs font-black uppercase tracking-[0.16em] text-brand-purple">Acum este rândul poveștii voastre</p><h2 className="mt-3 max-w-3xl font-serif text-3xl leading-tight text-brand-navy sm:text-4xl">Construiește aventura copilului tău.</h2></div>

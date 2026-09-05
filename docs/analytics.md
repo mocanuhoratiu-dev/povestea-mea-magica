@@ -18,6 +18,9 @@ The app tracks only the operational funnel needed to run the product:
 - `pmm_conversion_completed` - comanda a fost confirmată, inclusiv comenzile de 0 RON cu reducere integrală.
 - `pmm_checkout_expired` - sesiunea de plată a expirat fără conversie.
 - `pmm_order_delivered` - materialul și emailul tranzacțional au fost pregătite cu succes.
+- `pmm_product_preview_opened` / `pmm_product_preview_checkout_clicked` - măsoară dacă previzualizarea personalizată ajută familia să continue către plată.
+- `pmm_product_video_played` - prima redare a demonstrației video pentru produs în sesiunea curentă.
+- `pmm_web_vital_recorded` - valori anonime LCP, INP, CLS, FCP și TTFB măsurate în browserele reale, împreună cu evaluarea `good`, `needs-improvement` sau `poor`.
 
 Events do **not** contain a child's name, age, free-form details, dedication, story body, PDF file, IP address, cookie identifier, or account identifier. Cloud Run itself may keep standard infrastructure request logs according to the Google Cloud logging configuration.
 
@@ -47,6 +50,14 @@ gcloud logging metrics create pmm_email_delivery_errors --project="$PROJECT_ID" 
 ```
 
 Open **Google Cloud Console -> Monitoring -> Metrics Explorer**, select `Logging/User`, then plot these metrics with a daily alignment period. A practical first dashboard has daily site visits, product starts, a chart for each product, PDF downloads, story fallbacks and generation errors. Use Logs Explorer for breakdowns by `product`, `generation_mode`, `model` or `error_code`.
+
+Pentru experiența reală a vizitatorilor, folosește în Logs Explorer:
+
+```text
+jsonPayload.event="pmm_web_vital_recorded"
+```
+
+Grupează după `jsonPayload.web_vital_name` și urmărește `jsonPayload.web_vital_rating`. Evenimentele încep să apară numai după publicarea versiunii care conține raportarea și nu reconstruiesc vizitele anterioare. Pentru un verdict stabil, evaluează cel puțin șapte zile de trafic și folosește percentila 75, nu media.
 
 ## What to watch
 

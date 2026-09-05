@@ -3,14 +3,18 @@ import { checkTelemetryRateLimit, requestExceedsBodyLimit } from "@/lib/requestP
 import { isTelemetryProduct, logTelemetry, type GenerationMode, type StoryLength, type TelemetryEvent } from "@/lib/telemetry";
 
 const CLIENT_EVENTS = new Set([
-  "site_visited", "story_preview_started", "album_sample_page_viewed", "album_sample_audio_played", "album_sample_expanded", "album_sample_cta_clicked", "album_product_cta_clicked", "product_sample_page_viewed", "product_page_cta_clicked", "product_started", "generation_completed", "pdf_downloaded", "feedback_requested",
-  "pdf_render_started", "pdf_render_completed", "pdf_render_failed", "pdf_feedback_helpful", "pdf_feedback_not_helpful", "lumi_opened", "lumi_message_sent", "lumi_recommendation_applied", "lumi_moment_helpful", "lumi_moment_not_helpful", "lumi_voice_played", "lumi_response_failed",
+  "site_visited", "story_preview_started", "album_sample_page_viewed", "album_sample_audio_played", "album_sample_expanded", "album_sample_cta_clicked", "album_product_cta_clicked", "product_sample_page_viewed", "product_page_cta_clicked", "product_started", "product_preview_opened", "product_preview_checkout_clicked", "product_video_played", "generation_completed", "pdf_downloaded", "feedback_requested",
+  "pdf_render_started", "pdf_render_completed", "pdf_render_failed", "pdf_feedback_helpful", "pdf_feedback_not_helpful", "lumi_opened", "lumi_message_sent", "lumi_recommendation_applied", "lumi_moment_helpful", "lumi_moment_not_helpful", "lumi_voice_played", "lumi_response_failed", "web_vital_recorded",
 ]);
 const GENERATION_MODES = new Set<GenerationMode>(["ai", "fallback", "template"]);
 const STORY_LENGTHS = new Set<StoryLength>(["short", "long"]);
 
 function readBoundedInteger(value: unknown, max: number) {
   return typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= max ? value : undefined;
+}
+
+function readBoundedNumber(value: unknown, max: number) {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= max ? value : undefined;
 }
 
 export async function POST(request: Request) {
@@ -31,7 +35,7 @@ export async function POST(request: Request) {
     }
 
     const product = payload.product;
-    const productEvents = new Set(["story_preview_started", "album_sample_page_viewed", "album_sample_audio_played", "album_sample_expanded", "album_sample_cta_clicked", "album_product_cta_clicked", "product_sample_page_viewed", "product_page_cta_clicked", "product_started", "generation_completed", "pdf_render_started", "pdf_render_completed", "pdf_render_failed", "pdf_downloaded", "feedback_requested", "pdf_feedback_helpful", "pdf_feedback_not_helpful", "lumi_recommendation_applied", "lumi_moment_helpful", "lumi_moment_not_helpful"]);
+    const productEvents = new Set(["story_preview_started", "album_sample_page_viewed", "album_sample_audio_played", "album_sample_expanded", "album_sample_cta_clicked", "album_product_cta_clicked", "product_sample_page_viewed", "product_page_cta_clicked", "product_started", "product_preview_opened", "product_preview_checkout_clicked", "product_video_played", "generation_completed", "pdf_render_started", "pdf_render_completed", "pdf_render_failed", "pdf_downloaded", "feedback_requested", "pdf_feedback_helpful", "pdf_feedback_not_helpful", "lumi_recommendation_applied", "lumi_moment_helpful", "lumi_moment_not_helpful"]);
     if (productEvents.has(event) && !isTelemetryProduct(product)) {
       return NextResponse.json({ error: "Produs necunoscut." }, { status: 400 });
     }
@@ -46,6 +50,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Lungime de poveste necunoscută." }, { status: 400 });
     }
 
+    const webVitalNames = new Set(["CLS", "FCP", "FID", "INP", "LCP", "TTFB"]);
+    const webVitalRatings = new Set(["good", "needs-improvement", "poor"]);
+    const webVitalName = webVitalNames.has(String(payload.webVitalName)) ? payload.webVitalName as "CLS" | "FCP" | "FID" | "INP" | "LCP" | "TTFB" : undefined;
+    const webVitalRating = webVitalRatings.has(String(payload.webVitalRating)) ? payload.webVitalRating as "good" | "needs-improvement" | "poor" : undefined;
+    if (event === "web_vital_recorded" && (!webVitalName || !webVitalRating || readBoundedNumber(payload.webVitalValue, 120_000) === undefined)) {
+      return NextResponse.json({ error: "Metrică de performanță invalidă." }, { status: 400 });
+    }
+
     logTelemetry(`pmm_${event}` as TelemetryEvent, {
       ...(isTelemetryProduct(product) ? { product } : {}),
       result: "success",
@@ -55,6 +67,9 @@ export async function POST(request: Request) {
       durationMs: readBoundedInteger(payload.durationMs, 120_000),
       samplePage: readBoundedInteger(payload.samplePage, 50),
       ...(storyLength ? { storyLength: storyLength as StoryLength } : {}),
+      ...(webVitalName ? { webVitalName } : {}),
+      ...(webVitalRating ? { webVitalRating } : {}),
+      webVitalValue: readBoundedNumber(payload.webVitalValue, 120_000),
     });
 
     return new NextResponse(null, { status: 204, headers: { "Cache-Control": "no-store" } });

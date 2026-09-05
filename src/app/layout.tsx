@@ -4,6 +4,7 @@ import "./globals.css";
 import SmoothScroll from "@/components/SmoothScroll";
 import Navbar from "@/components/Navbar";
 import UsageTelemetry from "@/components/UsageTelemetry";
+import WebVitalsReporter from "@/components/WebVitalsReporter";
 import { siteUrl } from "@/lib/siteMode";
 import { legalOperator, publicContact } from "@/lib/publicContact";
 
@@ -66,6 +67,7 @@ export default function RootLayout({
       <body className="antialiased font-nunito bg-brand-cream">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }} />
         <UsageTelemetry />
+        <WebVitalsReporter />
         <Navbar />
         <SmoothScroll>{children}</SmoothScroll>
       </body>

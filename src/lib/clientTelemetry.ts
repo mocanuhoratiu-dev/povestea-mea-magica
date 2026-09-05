@@ -13,6 +13,9 @@ type ClientEvent =
   | "product_sample_page_viewed"
   | "product_page_cta_clicked"
   | "product_started"
+  | "product_preview_opened"
+  | "product_preview_checkout_clicked"
+  | "product_video_played"
   | "generation_completed"
   | "pdf_render_started"
   | "pdf_render_completed"
@@ -27,7 +30,8 @@ type ClientEvent =
   | "lumi_moment_helpful"
   | "lumi_moment_not_helpful"
   | "lumi_voice_played"
-  | "lumi_response_failed";
+  | "lumi_response_failed"
+  | "web_vital_recorded";
 
 type ClientTelemetryFields = {
   product?: TelemetryProduct;
@@ -37,6 +41,9 @@ type ClientTelemetryFields = {
   storyLength?: StoryLength;
   durationMs?: number;
   samplePage?: number;
+  webVitalName?: "CLS" | "FCP" | "FID" | "INP" | "LCP" | "TTFB";
+  webVitalValue?: number;
+  webVitalRating?: "good" | "needs-improvement" | "poor";
 };
 
 function postTelemetry(payload: Record<string, unknown>) {
@@ -66,6 +73,9 @@ export function trackEvent(event: ClientEvent, fields: ClientTelemetryFields = {
     storyLength: fields.storyLength,
     durationMs: fields.durationMs,
     samplePage: fields.samplePage,
+    webVitalName: fields.webVitalName,
+    webVitalValue: fields.webVitalValue,
+    webVitalRating: fields.webVitalRating,
   });
 }
 

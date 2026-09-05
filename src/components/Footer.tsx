@@ -11,13 +11,13 @@ export default function Footer() {
         <div className="grid gap-12 border-b border-brand-cream/15 pb-14 md:grid-cols-[1.3fr_.8fr_.8fr]">
           <div>
             <Link href="/" className="flex w-fit items-center gap-3">
-              <BrandMark className="h-11 w-11" tone="paper" title="Povestea Mea Magică" />
+              <BrandMark className="h-11 w-11" tone="paper" />
               <span className="font-serif text-2xl leading-none">Povestea Mea <span className="text-brand-gold italic">Magică</span></span>
             </Link>
             <p className="mt-6 max-w-md text-base font-medium leading-relaxed text-brand-cream/70">Povești ilustrate și ritualuri create cu grijă pentru copilul și momentele familiei tale.</p>
           </div>
           <div>
-            <h4 className="text-xs font-black uppercase tracking-[0.16em] text-brand-gold">Materiale</h4>
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-brand-gold">Materiale</p>
             <ul className="mt-5 space-y-3 text-sm font-semibold text-brand-cream/70">
               <li><Link href="/povestea-magica" className="transition-colors hover:text-brand-gold">Povestea Magică</Link></li>
               <li><Link href="/scutul-de-noapte" className="transition-colors hover:text-brand-gold">Scutul de Noapte</Link></li>
@@ -29,7 +29,7 @@ export default function Footer() {
             </ul>
           </div>
           <div>
-            <h4 className="text-xs font-black uppercase tracking-[0.16em] text-brand-gold">Încredere</h4>
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-brand-gold">Încredere</p>
             <ul className="mt-5 space-y-3 text-sm font-semibold text-brand-cream/70">
               <li><Link href="/politica-de-confidentialitate" className="transition-colors hover:text-brand-gold">Confidențialitate</Link></li>
               <li><Link href="/termeni-si-conditii" className="transition-colors hover:text-brand-gold">Termeni și condiții</Link></li>
@@ -42,7 +42,7 @@ export default function Footer() {
             </ul>
           </div>
         </div>
-        <div className="flex flex-col gap-3 pt-8 text-sm font-medium text-brand-cream/45 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-3 pt-8 text-sm font-medium text-brand-cream/65 md:flex-row md:items-center md:justify-between">
           <p>© 2026 {legalOperator.name} · CUI {legalOperator.cui}</p>
           <p>Materiale digitale pentru familii, create pentru momente de folosit împreună.</p>
         </div>

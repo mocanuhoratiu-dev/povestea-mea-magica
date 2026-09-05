@@ -12,9 +12,10 @@ export default function BrandMark({ className = "", title }: BrandMarkProps) {
       aria-hidden={title ? undefined : true}
       alt={title || ""}
       className={`block object-contain ${className}`}
-      height={810}
+      height={128}
+      sizes="80px"
       src="/brand-mark.webp"
-      width={810}
+      width={128}
     />
   );
 }

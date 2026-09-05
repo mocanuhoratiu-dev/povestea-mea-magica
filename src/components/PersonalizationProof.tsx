@@ -71,7 +71,7 @@ export default function PersonalizationProof() {
             </div>
           </motion.div>
         </div>
-        <p className="mt-4 text-right text-xs font-bold text-brand-navy/45">Poveste-model · Povestea Magică a Evei</p>
+        <p className="mt-4 text-right text-xs font-bold text-brand-navy/75">Poveste-model · Povestea Magică a Evei</p>
       </div>
     </section>
   );
