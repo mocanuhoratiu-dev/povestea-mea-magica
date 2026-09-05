@@ -18,8 +18,11 @@ scorecard() {
   jq -n --arg title "$title" --arg filter "$(metric_filter "$metric")" '{
     title: $title,
     scorecard: {
-      timeSeriesQuery: {timeSeriesFilter: {filter: $filter, aggregation: {alignmentPeriod: "3600s", perSeriesAligner: "ALIGN_SUM", crossSeriesReducer: "REDUCE_SUM"}}},
-      sparkChartType: "SPARK_BAR"
+      timeSeriesQuery: {
+        outputFullDuration: true,
+        timeSeriesFilter: {filter: $filter, aggregation: {perSeriesAligner: "ALIGN_SUM", crossSeriesReducer: "REDUCE_SUM"}}
+      },
+      blankView: {}
     }
   }'
 }
@@ -83,8 +86,12 @@ curl --fail-with-body --silent --show-error -H "Authorization: Bearer ${TOKEN}" 
 EXISTING="$(jq -r --arg displayName "$DISPLAY_NAME" '.dashboards[]? | select(.displayName == $displayName) | .name' "$LISTING" | head -n 1)"
 
 if [[ -n "$EXISTING" ]]; then
-  jq --arg name "$EXISTING" '. + {name: $name}' "$CONFIG" > "${CONFIG}.update"
-  curl --fail-with-body --silent --show-error -X PATCH -H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json" --data-binary "@${CONFIG}.update" "https://monitoring.googleapis.com/v1/${EXISTING}" >/dev/null
+  EXISTING_ETAG="$(jq -r --arg name "$EXISTING" '.dashboards[]? | select(.name == $name) | .etag' "$LISTING" | head -n 1)"
+  jq --arg name "$EXISTING" --arg etag "$EXISTING_ETAG" '. + {name: $name, etag: $etag}' "$CONFIG" > "${CONFIG}.update"
+  if ! UPDATE_RESPONSE="$(curl --fail-with-body --silent --show-error -X PATCH -H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json" --data-binary "@${CONFIG}.update" "https://monitoring.googleapis.com/v1/${EXISTING}")"; then
+    printf '%s\n' "$UPDATE_RESPONSE" >&2
+    exit 1
+  fi
   rm -f "${CONFIG}.update"
   echo "Dashboard actualizat: ${EXISTING}"
 else
