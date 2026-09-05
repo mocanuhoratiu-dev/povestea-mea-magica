@@ -21,6 +21,30 @@ export type PatienceKitInput = {
   difficulty?: PatienceDifficulty;
 };
 
+export type PatienceRouteStep = { page: string; text: string };
+
+export function patienceRoute(duration: string): PatienceRouteStep[] {
+  if (duration.startsWith("5-10")) {
+    return [
+      { page: "Pagina 2", text: "Începeți cu Radarul exploratorului." },
+      { page: "Pagina 7 sau 8", text: "Alegeți un joc verbal ori un cartonaș." },
+      { page: "Oricând", text: "Opriți-vă cât timp momentul este încă plăcut." },
+    ];
+  }
+  if (duration.startsWith("20")) {
+    return [
+      { page: "Paginile 2-4", text: "Radar, labirint și diferențe." },
+      { page: "Paginile 5-8", text: "Creație, joc pentru doi și cartonașe." },
+      { page: "Paginile 9-10", text: "Nivel suplimentar și diploma misiunii." },
+    ];
+  }
+  return [
+    { page: "Paginile 2-3", text: "Radarul și labirintul deschid misiunea." },
+    { page: "Pagina 4 sau 7", text: "Alegeți diferențele ori jocul pentru doi." },
+    { page: "Pagina 8", text: "Păstrați un cartonaș pentru data viitoare." },
+  ];
+}
+
 const contextDefaults: Record<string, { title: string; objects: string[] }> = {
   "la restaurant, asteptand mancarea": { title: "Misiunea Mesei Curioase", objects: ["un obiect rotund", "trei culori diferite", "un sunet de tacâmuri", "un număr", "ceva moale", "un obiect lucios"] },
   "la un drum lung cu masina": { title: "Expediția Kilometrilor", objects: ["un indicator albastru", "o mașină rar colorată", "un camion", "un pod", "un copac foarte înalt", "un nor cu formă interesantă"] },

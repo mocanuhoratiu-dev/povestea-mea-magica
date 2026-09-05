@@ -14,7 +14,7 @@ type DeliveryItem = {
 
 const productPresentation: Record<BundleProduct, { title: string; description: string; path: string; anchor: string; icon: typeof BookOpen }> = {
   story: { title: "Povestea lungă", description: "Copertă, dedicație și patru pagini de aventură", path: "/", anchor: "creator", icon: BookOpen },
-  monster: { title: "Scutul de Noapte", description: "Nouă pagini cu poveste, hartă, ritual, respirație și card de noptieră", path: "/scutul-de-noapte", anchor: "monster-away", icon: ShieldCheck },
+  monster: { title: "Scutul de Noapte", description: "Nouă pagini cu poveste, fișa «Camera mea», ritual, respirație și card de noptieră", path: "/scutul-de-noapte", anchor: "monster-away", icon: ShieldCheck },
   emergency: { title: "Trusa de Răbdare", description: "Zece pagini cu opt activități și trei niveluri de dificultate", path: "/trusa-de-rabdare", anchor: "emergency-kit", icon: TimerReset },
   album: { title: "Povestea Magică", description: "Carte ilustrată de 16 pagini și caiet separat de activități", path: "/album-ilustrat", anchor: "album", icon: BookHeart },
 };

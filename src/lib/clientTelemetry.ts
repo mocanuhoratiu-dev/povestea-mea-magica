@@ -10,6 +10,8 @@ type ClientEvent =
   | "album_sample_expanded"
   | "album_sample_cta_clicked"
   | "album_product_cta_clicked"
+  | "product_sample_page_viewed"
+  | "product_page_cta_clicked"
   | "product_started"
   | "generation_completed"
   | "pdf_render_started"

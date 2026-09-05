@@ -44,6 +44,8 @@ export type TelemetryEvent =
   | "pmm_album_sample_expanded"
   | "pmm_album_sample_cta_clicked"
   | "pmm_album_product_cta_clicked"
+  | "pmm_product_sample_page_viewed"
+  | "pmm_product_page_cta_clicked"
   | "pmm_product_started"
   | "pmm_generation_completed"
   | "pmm_generation_failed"

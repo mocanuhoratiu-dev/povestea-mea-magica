@@ -23,7 +23,7 @@ const products = [
     eyebrow: "Pentru nopțile cu emoții",
     title: "Scutul de Noapte",
     description: "Un joc magic și personalizat, cu certificat și rețetă imaginară, urmat de pași blânzi și repere familiare înainte de somn.",
-    features: ["Certificat, rețetă și etichete", "Poveste, hartă și respirație", "Card de noptieră, calendar și audio Lumi"],
+    features: ["Certificat, rețetă și etichete", "Poveste, fișa «Camera mea» și respirație", "Card de noptieră, calendar și audio Lumi"],
     image: "/examples/scut-classic-plus-contact.png",
     href: "/scutul-de-noapte",
     cta: "Construiește Scutul",

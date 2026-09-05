@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 const questions = [
-  ["Ce primesc?", "Povestea Magică include o carte ilustrată de 16 pagini și un caiet separat de 5 pagini. Scutul de Noapte are 9 pagini cu certificat, rețetă imaginară, poveste, hartă, card, calendar și audio Lumi. Trusa de Răbdare are 10 pagini cu 8 activități. Toate sunt personalizate și pregătite pentru print."],
+  ["Ce primesc?", "Povestea Magică include o carte ilustrată de 16 pagini și un caiet separat de 5 pagini. Scutul de Noapte are 9 pagini cu certificat, rețetă imaginară, poveste, fișa «Camera mea», card, calendar și audio Lumi. Trusa de Răbdare are 10 pagini cu 8 activități. Toate sunt personalizate și pregătite pentru print."],
   ["Este personalizat cu adevărat?", "Da. Alegerile despre copil, aspect, lume, personaje, lecție și context schimbă povestea și ilustrațiile. Povestea Magică folosește un plan narativ și o fișă vizuală pentru coerență, iar personajul poate fi construit din descriere sau cu ajutorul unei fotografii opționale."],
   ["Cât durează?", "Scutul și Trusa sunt gata, de regulă, în mai puțin de un minut. Povestea Magică poate dura 6-10 minute, deoarece personajul, coperta, cele 13 scene și activitățile sunt create și verificate separat."],
   ["Pot modifica ceva înainte de PDF?", "Da. Pentru Povestea Magică răsfoiești înainte de plată coperta și două pagini interioare personalizate, cu un marcaj discret. Dacă schimbi alegerile sau fotografia, creezi o mostră nouă. Coperta confirmată devine reperul vizual al personajului în întreaga carte."],

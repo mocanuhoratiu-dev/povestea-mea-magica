@@ -3,7 +3,7 @@ import { checkTelemetryRateLimit, requestExceedsBodyLimit } from "@/lib/requestP
 import { isTelemetryProduct, logTelemetry, type GenerationMode, type StoryLength, type TelemetryEvent } from "@/lib/telemetry";
 
 const CLIENT_EVENTS = new Set([
-  "site_visited", "story_preview_started", "album_sample_page_viewed", "album_sample_audio_played", "album_sample_expanded", "album_sample_cta_clicked", "album_product_cta_clicked", "product_started", "generation_completed", "pdf_downloaded", "feedback_requested",
+  "site_visited", "story_preview_started", "album_sample_page_viewed", "album_sample_audio_played", "album_sample_expanded", "album_sample_cta_clicked", "album_product_cta_clicked", "product_sample_page_viewed", "product_page_cta_clicked", "product_started", "generation_completed", "pdf_downloaded", "feedback_requested",
   "pdf_render_started", "pdf_render_completed", "pdf_render_failed", "pdf_feedback_helpful", "pdf_feedback_not_helpful", "lumi_opened", "lumi_message_sent", "lumi_recommendation_applied", "lumi_moment_helpful", "lumi_moment_not_helpful", "lumi_voice_played", "lumi_response_failed",
 ]);
 const GENERATION_MODES = new Set<GenerationMode>(["ai", "fallback", "template"]);
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     }
 
     const product = payload.product;
-    const productEvents = new Set(["story_preview_started", "album_sample_page_viewed", "album_sample_audio_played", "album_sample_expanded", "album_sample_cta_clicked", "album_product_cta_clicked", "product_started", "generation_completed", "pdf_render_started", "pdf_render_completed", "pdf_render_failed", "pdf_downloaded", "feedback_requested", "pdf_feedback_helpful", "pdf_feedback_not_helpful", "lumi_recommendation_applied", "lumi_moment_helpful", "lumi_moment_not_helpful"]);
+    const productEvents = new Set(["story_preview_started", "album_sample_page_viewed", "album_sample_audio_played", "album_sample_expanded", "album_sample_cta_clicked", "album_product_cta_clicked", "product_sample_page_viewed", "product_page_cta_clicked", "product_started", "generation_completed", "pdf_render_started", "pdf_render_completed", "pdf_render_failed", "pdf_downloaded", "feedback_requested", "pdf_feedback_helpful", "pdf_feedback_not_helpful", "lumi_recommendation_applied", "lumi_moment_helpful", "lumi_moment_not_helpful"]);
     if (productEvents.has(event) && !isTelemetryProduct(product)) {
       return NextResponse.json({ error: "Produs necunoscut." }, { status: 400 });
     }

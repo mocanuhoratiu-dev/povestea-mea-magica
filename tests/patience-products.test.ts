@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { buildNightShieldContent, sanitizeNightShieldContent } from "../src/lib/nightShield.ts";
 import { createPatienceMaze, solvePatienceMaze } from "../src/lib/patienceActivities.ts";
-import { buildPatienceKitContent, patienceDifferenceAnswers, sanitizePatienceKitContent } from "../src/lib/patienceKit.ts";
+import { buildPatienceKitContent, patienceDifferenceAnswers, patienceRoute, sanitizePatienceKitContent } from "../src/lib/patienceKit.ts";
 
 test("Scutul de Noapte always keeps the complete nine-page content contract", () => {
   const fallback = buildNightShieldContent({ name: "Erica", age: "3", fear: "frica de intuneric", location: "lângă perdea", helper: "mama", ritual: "o poveste" });
@@ -50,4 +50,15 @@ test("long interests are summarized without visibly clipped copy", () => {
   const allText = JSON.stringify(content);
   assert.match(allText, /rachete spațiale și dinozauri/);
   assert.doesNotMatch(allText, /\.\.\./);
+});
+
+test("Trusa recommends a usable route for every waiting duration", () => {
+  const quick = patienceRoute("5-10 minute");
+  const classic = patienceRoute("10-20 minute");
+  const complete = patienceRoute("20+ minute");
+
+  assert.equal(quick.length, 3);
+  assert.match(quick[0].text, /Radar/i);
+  assert.match(classic.map((step) => step.page).join(" "), /Pagina 4 sau 7/);
+  assert.match(complete.map((step) => step.page).join(" "), /Paginile 9-10/);
 });

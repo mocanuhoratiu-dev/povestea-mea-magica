@@ -296,7 +296,7 @@ export default function BundleConfigurator() {
           {step === 1 && <div>
             <p className="text-xs font-black uppercase tracking-[0.15em] text-brand-purple">2 din 4 · Scutul de Noapte</p>
             <h2 className="mt-3 font-serif text-4xl text-brand-navy">Un ritual pentru mai mult curaj</h2>
-            <p className="mt-3 text-sm font-semibold leading-relaxed text-brand-navy/60">Nouă pagini pentru copil și părinte: poveste scurtă, hartă, ritual, respirație, card de noptieră și certificat.</p>
+            <p className="mt-3 text-sm font-semibold leading-relaxed text-brand-navy/60">Nouă pagini pentru copil și părinte: poveste scurtă, fișa „Camera mea”, ritual, respirație, card de noptieră și certificat.</p>
             <div className="mt-8 space-y-5">
               <ChildReuse checked={monsterSameChild} onChange={setMonsterSameChild} name={album.name} />
               {!monsterSameChild && <div className="grid gap-5 sm:grid-cols-2"><label className={labelClass}>Numele copilului<input className={inputClass} value={monster.name} maxLength={40} onChange={(event) => setMonster({ ...monster, name: event.target.value })} /></label><label className={labelClass}>Vârsta<select className={inputClass} value={monster.age} onChange={(event) => setMonster({ ...monster, age: event.target.value })}>{Array.from({ length: 8 }, (_, index) => index + 2).map((value) => <option key={value} value={value}>{value} ani</option>)}</select></label></div>}

@@ -59,7 +59,8 @@ html {
 }
 
 @media (max-width: 1023px) {
-  body:has(#mobile-album-cta) aside[aria-label^="Lumi"] {
+  body:has(#mobile-album-cta) aside[aria-label^="Lumi"],
+  body:has(#mobile-product-cta) aside[aria-label^="Lumi"] {
     display: none;
   }
 }

@@ -5,7 +5,7 @@ export const faqs = [
   },
   {
     question: "Ce primesc?",
-    answer: "Povestea Magică include o carte ilustrată de 16 pagini și un caiet separat de 5 pagini. Scutul de Noapte are 9 pagini cu certificat, rețetă imaginară, poveste, hartă, card, calendar și audio Lumi. Trusa de Răbdare are 10 pagini cu 8 activități. Toate sunt personalizate și pregătite pentru print.",
+    answer: "Povestea Magică include o carte ilustrată de 16 pagini și un caiet separat de 5 pagini. Scutul de Noapte are 9 pagini cu certificat, rețetă imaginară, poveste, fișa «Camera mea», card, calendar și audio Lumi. Trusa de Răbdare are 10 pagini cu 8 activități. Toate sunt personalizate și pregătite pentru print.",
   },
   {
     question: "Este personalizat cu adevărat?",

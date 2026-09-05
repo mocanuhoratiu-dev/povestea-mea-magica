@@ -50,7 +50,7 @@ const models = [
     title: "Scutul de Noapte",
     price: commerce.prices.nightShield,
     pageCount: "9 pagini A4 + audio",
-    description: "Un ritual magic de seară, cu certificat, rețetă imaginară și etichete, completat de poveste, hartă, respirație și ghid pentru părinte.",
+    description: "Un ritual magic de seară, cu certificat, rețetă imaginară și etichete, completat de poveste, fișa «Camera mea», respirație și ghid pentru părinte.",
     readerNote: "Jocul simbolic deschide experiența, apoi copilul recunoaște camera și pașii ritualului, iar părintele primește un limbaj blând, fără promisiuni medicale sau confirmarea pericolului imaginat.",
     href: "/scutul-de-noapte",
     cta: "Creează scutul",

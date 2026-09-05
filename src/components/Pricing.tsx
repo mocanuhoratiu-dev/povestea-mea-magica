@@ -18,12 +18,12 @@ const products = [
   {
     name: "Scutul de Noapte",
     price: commerce.prices.nightShield,
-    description: "Ritual personalizat de seară, cu poveste, hartă, respirație, ghid pentru părinte și audio Lumi.",
+    description: "Ritual personalizat de seară, cu poveste, fișa «Camera mea», respirație, ghid pentru părinte și audio Lumi.",
     href: "/scutul-de-noapte",
     cta: "Creează scutul",
     accent: "border-brand-gold",
     badge: "Pentru seară",
-    features: ["Certificat, rețetă și etichete", "Poveste, hartă și card", "Audio ghidat de Lumi"],
+    features: ["Certificat, rețetă și etichete", "Poveste, fișă de desen și card", "Audio ghidat de Lumi"],
   },
   {
     name: "Trusa de Răbdare",
