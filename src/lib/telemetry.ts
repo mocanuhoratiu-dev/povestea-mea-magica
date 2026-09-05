@@ -5,7 +5,7 @@ export type TelemetryProduct = (typeof telemetryProducts)[number];
 export type GenerationMode = "ai" | "fallback" | "template";
 export type StoryLength = "short" | "long";
 
-type TelemetryFields = {
+export type TelemetryFields = {
   product?: TelemetryProduct;
   result?: "success" | "error" | "rejected" | "pending";
   generationMode?: GenerationMode;
@@ -15,7 +15,7 @@ type TelemetryFields = {
   wordCount?: number;
   pageCount?: number;
   storyLength?: StoryLength;
-  errorCode?: "ai_error" | "configuration" | "invalid_request" | "rate_limited" | "render_error" | "image_duplicate" | "image_low_resolution" | "image_quality_rejected" | "budget_limit" | "unknown";
+  errorCode?: "ai_error" | "configuration" | "invalid_request" | "rate_limited" | "render_error" | "image_duplicate" | "image_low_resolution" | "image_quality_rejected" | "budget_limit" | "payment_failed" | "checkout_expired" | "unknown";
   aiProvider?: "gemini" | "vertex";
   model?: string;
   albumStage?: "plan" | "cover" | "preview" | "scene" | "coloring" | "render" | "audio" | "delivery";
@@ -24,6 +24,11 @@ type TelemetryFields = {
   identityScore?: number;
   storyScore?: number;
   technicalScore?: number;
+  amountMinor?: number;
+  discountAmountMinor?: number;
+  currency?: string;
+  liveMode?: boolean;
+  promotionCode?: string;
 };
 
 export type TelemetryEvent =
@@ -68,6 +73,11 @@ export type TelemetryEvent =
   | "pmm_checkout_awaiting_payment"
   | "pmm_checkout_completed"
   | "pmm_checkout_failed"
+  | "pmm_checkout_expired"
+  | "pmm_payment_succeeded"
+  | "pmm_payment_failed"
+  | "pmm_promotion_applied"
+  | "pmm_conversion_completed"
   | "pmm_invoice_started"
   | "pmm_invoice_completed"
   | "pmm_invoice_failed"
@@ -103,6 +113,11 @@ export function logTelemetry(event: TelemetryEvent, fields: TelemetryFields = {}
     identity_score: fields.identityScore,
     story_score: fields.storyScore,
     technical_score: fields.technicalScore,
+    amount_minor: fields.amountMinor,
+    discount_amount_minor: fields.discountAmountMinor,
+    currency: fields.currency,
+    live_mode: fields.liveMode,
+    promotion_code: fields.promotionCode,
   };
 
   // Omit absent keys so log-based metric labels stay clean and predictable.

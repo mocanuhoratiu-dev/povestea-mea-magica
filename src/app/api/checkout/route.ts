@@ -103,17 +103,36 @@ export async function POST(request: Request) {
         order_id: order.id,
         catalog_version: "2026-09-complete-bundle",
       },
+      payment_intent_data: {
+        metadata: {
+          product_id: product.id,
+          order_id: order.id,
+          catalog_version: "2026-09-complete-bundle",
+        },
+      },
       // No child name, story text or other personalisation is sent to Stripe.
     });
 
     if (!session.url) throw new Error("Stripe did not return a Checkout URL.");
 
     await setOrderStatus(order, "pending_payment");
-    logTelemetry("pmm_checkout_started", { product: order.product, result: "success" });
+    logTelemetry("pmm_checkout_started", {
+      product: order.product,
+      result: "success",
+      amountMinor: product.amount,
+      currency: product.currency,
+      liveMode: session.livemode,
+    });
     return NextResponse.json({ url: session.url });
   } catch (error) {
     console.error("Stripe Checkout session failed", error);
-    logTelemetry("pmm_checkout_failed", { result: "error", errorCode: "unknown" });
+    logTelemetry("pmm_checkout_failed", {
+      product: order.product,
+      result: "error",
+      errorCode: "unknown",
+      amountMinor: product.amount,
+      currency: product.currency,
+    });
     return NextResponse.json({ error: "Nu am putut deschide plata acum. Reîncearcă puțin mai târziu." }, { status: 502 });
   }
 }

@@ -215,7 +215,7 @@ In Stripe Dashboard adauga endpointul live:
 https://www.povestea-mea-magica.ro/api/stripe-webhook
 ```
 
-Selecteaza cel putin `checkout.session.completed`, `checkout.session.async_payment_succeeded` si `checkout.session.async_payment_failed`.
+Selecteaza cel putin `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `checkout.session.expired` si `payment_intent.payment_failed`.
 
 In **Settings → Public details**, setează URL-ul pentru Termeni și condiții:
 

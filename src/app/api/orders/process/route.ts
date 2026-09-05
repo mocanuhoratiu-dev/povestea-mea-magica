@@ -210,7 +210,11 @@ export async function POST(request: Request) {
     });
     const delivered = await setOrderStatus(prepared, "delivered");
     if (!delivered) throw new Error("Comanda nu a putut fi finalizata.");
-    logTelemetry("pmm_order_delivered", { product: delivered.product, result: "success" });
+    logTelemetry("pmm_order_delivered", {
+      product: delivered.product,
+      result: "success",
+      durationMs: Math.max(0, Date.now() - Date.parse(delivered.createdAt)),
+    });
     if (delivered.product === "album" || delivered.product === "bundle") {
       const album = delivered.product === "album"
         ? readAlbumOutput(delivered.output)

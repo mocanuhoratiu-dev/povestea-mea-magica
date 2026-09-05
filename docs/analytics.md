@@ -12,6 +12,12 @@ The app tracks only the operational funnel needed to run the product:
 - `pmm_pdf_render_started` / `pmm_pdf_render_completed` / `pmm_pdf_render_failed` - randarea locală a PDF-ului.
 - `pmm_email_delivery_started` / `pmm_email_delivery_completed` / `pmm_email_delivery_failed` - livrarea prin email. Nu include niciodată adresa sau fișierul.
 - `pmm_pdf_downloaded` - the browser finished building a PDF.
+- `pmm_checkout_started` - Stripe Checkout a fost deschis, grupat după produs.
+- `pmm_payment_succeeded` / `pmm_payment_failed` - rezultatul unei încercări de plată cu sumă mai mare decât zero.
+- `pmm_promotion_applied` - o reducere a fost folosită; include doar codul promoțional validat și valoarea reducerii.
+- `pmm_conversion_completed` - comanda a fost confirmată, inclusiv comenzile de 0 RON cu reducere integrală.
+- `pmm_checkout_expired` - sesiunea de plată a expirat fără conversie.
+- `pmm_order_delivered` - materialul și emailul tranzacțional au fost pregătite cu succes.
 
 Events do **not** contain a child's name, age, free-form details, dedication, story body, PDF file, IP address, cookie identifier, or account identifier. Cloud Run itself may keep standard infrastructure request logs according to the Google Cloud logging configuration.
 
@@ -37,6 +43,12 @@ gcloud logging metrics create pmm_story_cover_success --project="$PROJECT_ID" --
 gcloud logging metrics create pmm_story_cover_errors --project="$PROJECT_ID" --description="Povestea Mea Magica: failed covers" --log-filter="$BASE_FILTER AND jsonPayload.event=\"pmm_story_cover_failed\""
 gcloud logging metrics create pmm_email_deliveries --project="$PROJECT_ID" --description="Povestea Mea Magica: emailed PDFs" --log-filter="$BASE_FILTER AND jsonPayload.event=\"pmm_email_delivery_completed\""
 gcloud logging metrics create pmm_email_delivery_errors --project="$PROJECT_ID" --description="Povestea Mea Magica: failed email deliveries" --log-filter="$BASE_FILTER AND jsonPayload.event=\"pmm_email_delivery_failed\""
+gcloud logging metrics create pmm_checkout_starts --project="$PROJECT_ID" --description="Povestea Mea Magica: Stripe checkouts started" --log-filter="$BASE_FILTER AND jsonPayload.event=\"pmm_checkout_started\""
+gcloud logging metrics create pmm_payments_succeeded --project="$PROJECT_ID" --description="Povestea Mea Magica: successful paid orders" --log-filter="$BASE_FILTER AND jsonPayload.event=\"pmm_payment_succeeded\""
+gcloud logging metrics create pmm_payment_failures --project="$PROJECT_ID" --description="Povestea Mea Magica: failed payment attempts" --log-filter="$BASE_FILTER AND jsonPayload.event=\"pmm_payment_failed\""
+gcloud logging metrics create pmm_promotion_uses --project="$PROJECT_ID" --description="Povestea Mea Magica: promotion code uses" --log-filter="$BASE_FILTER AND jsonPayload.event=\"pmm_promotion_applied\""
+gcloud logging metrics create pmm_conversions --project="$PROJECT_ID" --description="Povestea Mea Magica: completed commercial conversions" --log-filter="$BASE_FILTER AND jsonPayload.event=\"pmm_conversion_completed\""
+gcloud logging metrics create pmm_orders_delivered --project="$PROJECT_ID" --description="Povestea Mea Magica: delivered paid orders" --log-filter="$BASE_FILTER AND jsonPayload.event=\"pmm_order_delivered\""
 ```
 
 Open **Google Cloud Console -> Monitoring -> Metrics Explorer**, select `Logging/User`, then plot these metrics with a daily alignment period. A practical first dashboard has daily site visits, product starts, a chart for each product, PDF downloads, story fallbacks and generation errors. Use Logs Explorer for breakdowns by `product`, `generation_mode`, `model` or `error_code`.
@@ -44,6 +56,9 @@ Open **Google Cloud Console -> Monitoring -> Metrics Explorer**, select `Logging
 ## What to watch
 
 - A widening gap between product starts and completed generations points to a UX or API problem.
+- Conversia pe produs se calculează din `pmm_conversion_completed / pmm_checkout_started`, grupat după `jsonPayload.product`.
+- Diferența dintre `pmm_conversion_completed` și `pmm_order_delivered` arată comenzile plătite care nu au ajuns încă la familie.
+- `amount_minor` și `discount_amount_minor` sunt valori în bani mici (bani pentru RON); `live_mode` separă clar testele de vânzările reale.
 - A rising `fallback` share points to Vertex AI/model availability or quota issues.
 - A large gap between completed generations and `pdf_render_completed` suggests the preview or PDF-export flow needs attention.
 - A high continuation count can be healthy for a long story, but repeated continuation failures mean the model output cap or model needs review.
