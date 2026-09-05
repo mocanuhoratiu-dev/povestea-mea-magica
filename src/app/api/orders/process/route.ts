@@ -214,6 +214,7 @@ export async function POST(request: Request) {
       product: delivered.product,
       result: "success",
       durationMs: Math.max(0, Date.now() - Date.parse(delivered.createdAt)),
+      liveMode: delivered.stripeLivemode,
     });
     if (delivered.product === "album" || delivered.product === "bundle") {
       const album = delivered.product === "album"

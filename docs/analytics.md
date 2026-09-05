@@ -27,7 +27,7 @@ Run these once from authenticated Cloud Shell after the code is deployed. Log-ba
 
 ```bash
 PROJECT_ID=project-e0c2efff-d456-48f9-9fe
-BASE_FILTER='resource.type="cloud_run_revision" AND resource.labels.service_name="povestea-mea-magica"'
+BASE_FILTER='resource.type="cloud_run_revision" AND (resource.labels.service_name="povestea-mea-magica" OR resource.labels.service_name="povestea-mea-magica-domain")'
 
 gcloud logging metrics create pmm_site_visits --project="$PROJECT_ID" --description="Povestea Mea Magica: site visits" --log-filter="$BASE_FILTER AND jsonPayload.event=\"pmm_site_visited\""
 gcloud logging metrics create pmm_product_starts --project="$PROJECT_ID" --description="Povestea Mea Magica: product starts" --log-filter="$BASE_FILTER AND jsonPayload.event=\"pmm_product_started\""
@@ -43,12 +43,7 @@ gcloud logging metrics create pmm_story_cover_success --project="$PROJECT_ID" --
 gcloud logging metrics create pmm_story_cover_errors --project="$PROJECT_ID" --description="Povestea Mea Magica: failed covers" --log-filter="$BASE_FILTER AND jsonPayload.event=\"pmm_story_cover_failed\""
 gcloud logging metrics create pmm_email_deliveries --project="$PROJECT_ID" --description="Povestea Mea Magica: emailed PDFs" --log-filter="$BASE_FILTER AND jsonPayload.event=\"pmm_email_delivery_completed\""
 gcloud logging metrics create pmm_email_delivery_errors --project="$PROJECT_ID" --description="Povestea Mea Magica: failed email deliveries" --log-filter="$BASE_FILTER AND jsonPayload.event=\"pmm_email_delivery_failed\""
-gcloud logging metrics create pmm_checkout_starts --project="$PROJECT_ID" --description="Povestea Mea Magica: Stripe checkouts started" --log-filter="$BASE_FILTER AND jsonPayload.event=\"pmm_checkout_started\""
-gcloud logging metrics create pmm_payments_succeeded --project="$PROJECT_ID" --description="Povestea Mea Magica: successful paid orders" --log-filter="$BASE_FILTER AND jsonPayload.event=\"pmm_payment_succeeded\""
-gcloud logging metrics create pmm_payment_failures --project="$PROJECT_ID" --description="Povestea Mea Magica: failed payment attempts" --log-filter="$BASE_FILTER AND jsonPayload.event=\"pmm_payment_failed\""
-gcloud logging metrics create pmm_promotion_uses --project="$PROJECT_ID" --description="Povestea Mea Magica: promotion code uses" --log-filter="$BASE_FILTER AND jsonPayload.event=\"pmm_promotion_applied\""
-gcloud logging metrics create pmm_conversions --project="$PROJECT_ID" --description="Povestea Mea Magica: completed commercial conversions" --log-filter="$BASE_FILTER AND jsonPayload.event=\"pmm_conversion_completed\""
-gcloud logging metrics create pmm_orders_delivered --project="$PROJECT_ID" --description="Povestea Mea Magica: delivered paid orders" --log-filter="$BASE_FILTER AND jsonPayload.event=\"pmm_order_delivered\""
+./scripts/setup-commercial-telemetry.sh
 ```
 
 Open **Google Cloud Console -> Monitoring -> Metrics Explorer**, select `Logging/User`, then plot these metrics with a daily alignment period. A practical first dashboard has daily site visits, product starts, a chart for each product, PDF downloads, story fallbacks and generation errors. Use Logs Explorer for breakdowns by `product`, `generation_mode`, `model` or `error_code`.
@@ -56,7 +51,7 @@ Open **Google Cloud Console -> Monitoring -> Metrics Explorer**, select `Logging
 ## What to watch
 
 - A widening gap between product starts and completed generations points to a UX or API problem.
-- Conversia pe produs se calculează din `pmm_conversion_completed / pmm_checkout_started`, grupat după `jsonPayload.product`.
+- Conversia pe produs se calculează din `pmm_conversions / pmm_checkout_starts`, grupat după eticheta `product`; eticheta `live_mode` separă testele de vânzările reale.
 - Diferența dintre `pmm_conversion_completed` și `pmm_order_delivered` arată comenzile plătite care nu au ajuns încă la familie.
 - `amount_minor` și `discount_amount_minor` sunt valori în bani mici (bani pentru RON); `live_mode` separă clar testele de vânzările reale.
 - A rising `fallback` share points to Vertex AI/model availability or quota issues.
