@@ -54,6 +54,10 @@ func drawPage(_ image: CGImage, context: CGContext, progress: CGFloat, alpha: CG
     context.saveGState()
     context.setAlpha(alpha)
     context.setShadow(offset: CGSize(width: 24, height: 28), blur: 30, color: NSColor.black.withAlphaComponent(0.32).cgColor)
+    // The frame context is vertically flipped for AppKit text. Flip only the
+    // embedded page back around its own bounds so PDF artwork stays upright.
+    context.translateBy(x: 0, y: y * 2 + pageHeight)
+    context.scaleBy(x: 1, y: -1)
     context.draw(image, in: CGRect(x: x, y: y, width: pageWidth, height: pageHeight))
     context.restoreGState()
 }
