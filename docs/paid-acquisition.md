@@ -47,7 +47,7 @@ bash scripts/configure-paid-acquisition.sh
 
 Scriptul cere cele patru valori, le stochează în siguranță, publică ambele servicii Cloud Run și actualizează dashboard-ul comercial. Valorile secrete nu sunt afișate.
 
-SmartBill rămâne implicit oprit în acest script. Activează facturarea live separat numai după testul final, cu `SMARTBILL_ENABLED=true SMARTBILL_MODE=live bash scripts/configure-paid-acquisition.sh`.
+Scriptul păstrează automat starea Stripe și SmartBill din serviciul Cloud Run existent. Dacă serviciul nu are încă aceste valori, Stripe pornește pentru fluxul plătit, iar SmartBill rămâne oprit în modul test. Activează facturarea live separat numai după testul final, cu `SMARTBILL_ENABLED=true SMARTBILL_MODE=live bash scripts/configure-paid-acquisition.sh`.
 
 ## 5. Proxy și WAF Cloudflare
 

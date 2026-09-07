@@ -2,8 +2,21 @@
 set -euo pipefail
 
 PROJECT_ID="${PROJECT_ID:-project-e0c2efff-d456-48f9-9fe}"
+SERVICE="${SERVICE:-povestea-mea-magica}"
+REGION="${REGION:-europe-west3}"
 META_CAPI_SECRET_NAME="${META_CAPI_SECRET_NAME:-pmm-meta-capi-access-token}"
 TURNSTILE_SECRET_NAME="${TURNSTILE_SECRET_NAME:-pmm-turnstile-secret-key}"
+
+CURRENT_SERVICE="$(gcloud run services describe "$SERVICE" --project "$PROJECT_ID" --region "$REGION" --format=json 2>/dev/null || printf '{}')"
+current_env() {
+  jq -r --arg name "$1" '.spec.template.spec.containers[0].env[]? | select(.name == $name) | .value // empty' <<<"$CURRENT_SERVICE" | head -n 1
+}
+STRIPE_ENABLED="${STRIPE_ENABLED:-$(current_env NEXT_PUBLIC_STRIPE_ENABLED)}"
+SMARTBILL_ENABLED="${SMARTBILL_ENABLED:-$(current_env SMARTBILL_ENABLED)}"
+SMARTBILL_MODE="${SMARTBILL_MODE:-$(current_env SMARTBILL_MODE)}"
+STRIPE_ENABLED="${STRIPE_ENABLED:-true}"
+SMARTBILL_ENABLED="${SMARTBILL_ENABLED:-false}"
+SMARTBILL_MODE="${SMARTBILL_MODE:-test}"
 
 if [[ -z "${META_PIXEL_ID:-}" ]]; then
   read -r -p "Meta Pixel ID: " META_PIXEL_ID
@@ -42,9 +55,9 @@ upsert_secret "$TURNSTILE_SECRET_NAME" "$TURNSTILE_SECRET_KEY"
 
 META_PIXEL_ID="$META_PIXEL_ID" \
 TURNSTILE_SITE_KEY="$TURNSTILE_SITE_KEY" \
-STRIPE_ENABLED="${STRIPE_ENABLED:-true}" \
-SMARTBILL_ENABLED="${SMARTBILL_ENABLED:-false}" \
-SMARTBILL_MODE="${SMARTBILL_MODE:-test}" \
+STRIPE_ENABLED="$STRIPE_ENABLED" \
+SMARTBILL_ENABLED="$SMARTBILL_ENABLED" \
+SMARTBILL_MODE="$SMARTBILL_MODE" \
 bash scripts/deploy-cloud-run.sh
 
 bash scripts/setup-commercial-telemetry.sh
