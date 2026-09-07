@@ -19,6 +19,7 @@ import { sanitizeAlbumReferencePhoto } from "@/lib/album/referencePhoto";
 import { readBundleConfiguration, readBundleOutput } from "@/lib/bundle";
 import { siteUrl } from "@/lib/siteMode";
 import { isAlbumPreviewReady } from "@/lib/album/previewState";
+import { turnstileRejected, verifyTurnstileRequest } from "@/lib/turnstile";
 
 export const runtime = "nodejs";
 
@@ -63,6 +64,7 @@ export async function POST(request: Request) {
       { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } },
     );
   }
+  if (!(await verifyTurnstileRequest(request, "album_preview"))) return turnstileRejected();
 
   if (!isOrderStoreConfigured() || !process.env.VERTEX_AI_PROJECT_ID?.trim()) {
     logAlbumPreviewFailure(startedAt, "configuration");

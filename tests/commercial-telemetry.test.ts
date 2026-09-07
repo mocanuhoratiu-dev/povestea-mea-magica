@@ -41,8 +41,10 @@ test("commercial monitoring provisions the complete launch funnel", () => {
   const metrics = readFileSync(new URL("../scripts/setup-commercial-telemetry.sh", import.meta.url), "utf8");
   const dashboard = readFileSync(new URL("../scripts/setup-commercial-dashboard.sh", import.meta.url), "utf8");
 
-  for (const metric of ["pmm_album_product_ctas", "pmm_checkout_starts", "pmm_payments_succeeded", "pmm_payment_failures", "pmm_promotion_uses", "pmm_conversions", "pmm_orders_delivered", "pmm_verified_reviews"]) {
+  for (const metric of ["pmm_album_product_ctas", "pmm_checkout_starts", "pmm_payments_succeeded", "pmm_payment_failures", "pmm_promotion_uses", "pmm_conversions", "pmm_orders_delivered", "pmm_verified_reviews", "pmm_campaign_visits", "pmm_campaign_product_starts", "pmm_campaign_checkout_intent", "pmm_campaign_purchases"]) {
     assert.match(metrics, new RegExp(`\\b${metric}\\b`));
     assert.match(dashboard, new RegExp(`\\b${metric}\\b`));
   }
+  assert.match(dashboard, /utm_source/);
+  assert.match(dashboard, /utm_campaign/);
 });

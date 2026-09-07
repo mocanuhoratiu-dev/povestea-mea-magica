@@ -13,16 +13,16 @@ export const metadata: Metadata = {
     url: "/trusa-de-rabdare",
     title: "Trusa de Răbdare | Activități personalizate fără ecrane",
     description: "O misiune de 10 pagini creată pentru locul, timpul și pasiunile copilului tău.",
-    images: [{ url: "/examples/trusa-final-contact.png", width: 1200, height: 1140, alt: "Trusa de Răbdare, activități personalizate pentru copii" }],
+    images: [{ url: "/social/og-trusa-de-rabdare.webp", width: 1200, height: 630, alt: "Trusa de Răbdare, activități personalizate pentru copii" }],
   },
-  twitter: { card: "summary_large_image", title: "Trusa de Răbdare", description: "Activități personalizate, fără ecrane, pentru momentele de așteptare.", images: ["/examples/trusa-final-contact.png"] },
+  twitter: { card: "summary_large_image", title: "Trusa de Răbdare", description: "Activități personalizate, fără ecrane, pentru momentele de așteptare.", images: ["/social/og-trusa-de-rabdare.webp"] },
 };
 
 const productSchema = {
   "@context": "https://schema.org",
   "@type": "Product",
   name: "Trusa de Răbdare",
-  image: [`${siteUrl}/examples/trusa-final-contact.png`, `${siteUrl}/examples/trusa-premium/page-3.png`],
+  image: [`${siteUrl}/social/og-trusa-de-rabdare.webp`, `${siteUrl}/examples/trusa-premium/page-3-display.webp`],
   description: "Trusă digitală personalizată de 10 pagini A4, cu activități fără ecrane, trei niveluri de dificultate și trasee pentru 10-30+ minute.",
   brand: { "@type": "Brand", name: "Povestea Mea Magică" },
   sku: "PMM-TRUSA-RABDARE",

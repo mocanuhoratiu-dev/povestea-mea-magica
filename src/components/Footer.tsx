@@ -36,6 +36,7 @@ export default function Footer() {
               <li><Link href="/politica-de-rambursare" className="transition-colors hover:text-brand-gold">Politică de rambursare</Link></li>
               <li><Link href="/livrare-digitala" className="transition-colors hover:text-brand-gold">Livrare digitală</Link></li>
               <li><Link href="/politica-cookie-uri" className="transition-colors hover:text-brand-gold">Cookie-uri</Link></li>
+              <li><button type="button" onClick={() => window.dispatchEvent(new Event("pmm:privacy-settings"))} className="text-left transition-colors hover:text-brand-gold">Preferințe cookie</button></li>
               <li><Link href="/intrebari-frecvente" className="transition-colors hover:text-brand-gold">Întrebări frecvente</Link></li>
               <li><Link href="/siguranta-ai" className="transition-colors hover:text-brand-gold">Siguranța datelor</Link></li>
               <li><Link href="/contact" className="transition-colors hover:text-brand-gold">Contact</Link></li>

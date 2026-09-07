@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import Lenis from "lenis";
 
 export default function SmoothScroll({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -11,27 +10,33 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
     // Native scrolling is faster and more predictable on touch devices.
     if (reducedMotion.matches || coarsePointer.matches || window.innerWidth < 1024) return;
 
-    const lenis = new Lenis({
-      duration: 1.5,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      orientation: 'vertical',
-      gestureOrientation: 'vertical',
-      smoothWheel: true,
-      wheelMultiplier: 1,
-      infinite: false,
+    let cancelled = false;
+    let frame = 0;
+    let destroy: (() => void) | undefined;
+    void import("lenis").then(({ default: Lenis }) => {
+      if (cancelled) return;
+      const lenis = new Lenis({
+        duration: 1.5,
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        orientation: "vertical",
+        gestureOrientation: "vertical",
+        smoothWheel: true,
+        wheelMultiplier: 1,
+        infinite: false,
+      });
+
+      const raf = (time: number) => {
+        lenis.raf(time);
+        frame = requestAnimationFrame(raf);
+      };
+      frame = requestAnimationFrame(raf);
+      destroy = () => lenis.destroy();
     });
 
-    let frame = 0;
-    function raf(time: number) {
-      lenis.raf(time);
-      frame = requestAnimationFrame(raf);
-    }
-
-    frame = requestAnimationFrame(raf);
-
     return () => {
+      cancelled = true;
       cancelAnimationFrame(frame);
-      lenis.destroy();
+      destroy?.();
     };
   }, []);
 

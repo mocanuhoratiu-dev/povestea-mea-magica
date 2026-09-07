@@ -1,5 +1,7 @@
 "use client";
 
+import { protectedFetch } from "@/lib/clientTurnstile";
+
 export type NarrationKind = "story" | "lumi";
 type NarrationPhase = "idle" | "loading" | "playing";
 type NarrationState = { owner: string | null; phase: NarrationPhase };
@@ -60,11 +62,11 @@ export async function playNarration(owner: string, text: string, kind: Narration
   publish({ owner, phase: "loading" });
 
   try {
-    const response = await fetch("/api/narrate", {
+    const response = await protectedFetch("/api/narrate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text, kind }),
-    });
+    }, "narrate");
     if (!response.ok) throw new Error("Nararea nu a putut fi pregătită.");
 
     const url = URL.createObjectURL(await response.blob());

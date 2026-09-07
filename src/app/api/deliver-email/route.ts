@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { checkRateLimit, requestExceedsBodyLimit } from "@/lib/requestProtection";
 import { logTelemetry, type TelemetryProduct } from "@/lib/telemetry";
 import { createReadyEmailHtml, createReadyEmailSubject, createReadyEmailText } from "@/lib/emailTemplates";
+import { turnstileRejected, verifyTurnstileRequest } from "@/lib/turnstile";
 
 const MAX_PDF_BYTES = 9 * 1024 * 1024;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -49,6 +50,7 @@ export async function POST(request: Request) {
       { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } }
     );
   }
+  if (!(await verifyTurnstileRequest(request, "email_delivery"))) return turnstileRejected();
 
   try {
     const body = await request.json() as Record<string, unknown>;

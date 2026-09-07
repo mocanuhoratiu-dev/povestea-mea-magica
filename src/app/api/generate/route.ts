@@ -7,6 +7,7 @@ import { readBoundedDuration, withTimeout } from "@/lib/aiTimeout";
 import { isTrustedOrderWorker } from "@/lib/orders";
 import { buildNightShieldContent, sanitizeNightShieldContent } from "@/lib/nightShield";
 import { buildPatienceKitContent, recommendedDifficulty, sanitizePatienceKitContent, type PatienceDifficulty } from "@/lib/patienceKit";
+import { turnstileRejected, verifyTurnstileRequest } from "@/lib/turnstile";
 
 type GenerateRequest = {
   type?: "monster" | "story" | "emergency";
@@ -880,6 +881,7 @@ export async function POST(req: Request) {
         { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } }
       );
     }
+    if (!(await verifyTurnstileRequest(req, "generate"))) return turnstileRejected();
 
     const data = normalizeGenerateRequest(await req.json());
     if (!data) {

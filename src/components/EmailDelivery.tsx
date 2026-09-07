@@ -4,6 +4,7 @@ import { Mail, Send } from "lucide-react";
 import { FormEvent, useState } from "react";
 import { trackEvent } from "@/lib/clientTelemetry";
 import type { TelemetryProduct } from "@/lib/telemetry";
+import { protectedFetch } from "@/lib/clientTurnstile";
 
 type EmailDeliveryProps = {
   product: TelemetryProduct;
@@ -41,7 +42,7 @@ export default function EmailDelivery({ product, filename, childName, createPdf 
       pdfRendered = true;
       trackEvent("pdf_render_completed", { product, durationMs: Date.now() - renderStartedAt });
       const bytes = new Uint8Array(await pdf.arrayBuffer());
-      const response = await fetch("/api/deliver-email", {
+      const response = await protectedFetch("/api/deliver-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -52,7 +53,7 @@ export default function EmailDelivery({ product, filename, childName, createPdf 
           pdfBase64: bytesToBase64(bytes),
           deliveryId: crypto.randomUUID().replace(/-/g, ""),
         }),
-      });
+      }, "email_delivery");
       const result = await response.json() as { success?: boolean; error?: string };
       if (!response.ok || !result.success) throw new Error(result.error || "Emailul nu a putut fi trimis.");
       setNotice("A plecat. Verifică inboxul și folderul Spam.");

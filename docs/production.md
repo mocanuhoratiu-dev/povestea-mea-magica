@@ -1,6 +1,6 @@
 # Production Setup
 
-This project is ready to run as a production launch-access experience before Stripe is enabled. For production, use Vertex AI: its Gemini usage is billed through Google Cloud and can use eligible Google Cloud credits.
+This project runs as a production storefront with optional Stripe Checkout. For production, use Vertex AI: its Gemini usage is billed through Google Cloud and can use eligible Google Cloud credits.
 
 ## Pre-Deploy Checks
 
@@ -34,7 +34,7 @@ VERTEX_AI_COVER_TIMEOUT_MS=35000
 VERTEX_AI_LUMI_TIMEOUT_MS=18000
 ```
 
-The public interface currently runs with launch access: materials generate directly without an active payment step, while commercial prices remain visible for the future paid phase.
+The public interface follows `STRIPE_ENABLED`: with `true`, paid products go through Stripe and asynchronous delivery; with `false`, the controlled no-payment flow remains available for internal checks.
 
 Set `NEXT_PUBLIC_SITE_URL` to `https://www.povestea-mea-magica.ro` before deploying. It powers canonical URLs, Open Graph metadata, `robots.txt`, `sitemap.xml` and transactional emails. The application redirects both the apex domain and the direct Cloud Run URL to this primary address.
 
@@ -86,15 +86,14 @@ The app emits privacy-conscious, structured Cloud Run logs for visits, starts, c
 
 The browser renders the PDF, then the server sends it through Resend as a single transactional attachment. The app does not persist the PDF or address and deliberately excludes both from telemetry. Verify an expeditor domain in Resend, store `RESEND_API_KEY` in Cloud Secret Manager and configure `EMAIL_FROM` on Cloud Run. The exact no-guesswork steps are in [`docs/cloud-run-operations.md`](cloud-run-operations.md).
 
-## Stripe And Paid Order Phase
+## Stripe And Paid Orders
 
-Checkout, webhook verification, server-side orders and email delivery are implemented, but payments remain intentionally disabled until the Stripe account and the Google Cloud delivery resources are configured. Keep these values unset until that activation checklist is complete:
+Checkout, webhook verification, server-side orders and email delivery are implemented. Keep the secret values in Secret Manager and enable the public paid flow only after the Stripe test passes:
 
 ```bash
+NEXT_PUBLIC_STRIPE_ENABLED=true
 STRIPE_SECRET_KEY=
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
 STRIPE_WEBHOOK_SECRET=
-N8N_WEBHOOK_URL=
 ```
 
 Public production health response:
@@ -119,7 +118,7 @@ If `ready` is `false`, production is missing a required Vertex AI configuration 
 - Each text model has a bounded response time and each request has a total time budget. A long story gets at most one continuation attempt; an incomplete result switches to the complete stable story instead of keeping the parent waiting.
 - PDF rendering uses locally bundled `jspdf` and `html2canvas`, not external scripts loaded at download time.
 
-## Launch Gate Before Stripe
+## Launch Gate Before Paid Traffic
 
 - Confirm `/api/health` is ready on production.
 - Generate at least three stories with different ages/themes.
@@ -130,4 +129,6 @@ If `ready` is `false`, production is missing a required Vertex AI configuration 
 - Complete the Firestore TTL, Cloud Tasks, Cloud Storage and Secret Manager setup in [`stripe-setup.md`](stripe-setup.md).
 - Confirm the Resend domain, delivery flow and retry/error handling before switching `commerce.acceptsPayments` to `true`.
 - Test Stripe test mode from payment through receipt, PDF access, cancellation and support handling.
-- Activate production checkout only with `STRIPE_ENABLED=true ./scripts/deploy-cloud-run.sh` after the full test passes.
+- Activate production checkout only with `STRIPE_ENABLED=true bash scripts/deploy-cloud-run.sh` after the full test passes.
+- Configure campaign attribution, Meta consent/CAPI and Turnstile using [`paid-acquisition.md`](paid-acquisition.md).
+- Route the web DNS records through Cloudflare before relying on its WAF or rate limiting rules.

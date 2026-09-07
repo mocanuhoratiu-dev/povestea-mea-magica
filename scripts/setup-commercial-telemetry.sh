@@ -50,6 +50,49 @@ upsert_metric() {
   fi
 }
 
+upsert_campaign_metric() {
+  local name="$1"
+  local description="$2"
+  local event="$3"
+
+  jq -n \
+    --arg project "$PROJECT_ID" \
+    --arg name "$name" \
+    --arg description "$description" \
+    --arg filter "$BASE_FILTER AND jsonPayload.event=\"$event\"" \
+    '{
+      description: $description,
+      filter: $filter,
+      metricDescriptor: {
+        name: ("projects/" + $project + "/metricDescriptors/logging.googleapis.com/user/" + $name),
+        type: ("logging.googleapis.com/user/" + $name),
+        metricKind: "DELTA",
+        valueType: "INT64",
+        unit: "1",
+        labels: [
+          {key: "product", valueType: "STRING", description: "Produs comercial agregat"},
+          {key: "utm_source", valueType: "STRING", description: "Sursa campaniei"},
+          {key: "utm_medium", valueType: "STRING", description: "Mediul campaniei"},
+          {key: "utm_campaign", valueType: "STRING", description: "Numele campaniei"},
+          {key: "landing_path", valueType: "STRING", description: "Prima pagină a sesiunii"}
+        ]
+      },
+      labelExtractors: {
+        product: "EXTRACT(jsonPayload.product)",
+        utm_source: "EXTRACT(jsonPayload.utm_source)",
+        utm_medium: "EXTRACT(jsonPayload.utm_medium)",
+        utm_campaign: "EXTRACT(jsonPayload.utm_campaign)",
+        landing_path: "EXTRACT(jsonPayload.landing_path)"
+      }
+    }' > "$METRIC_CONFIG"
+
+  if gcloud logging metrics describe "$name" --project="$PROJECT_ID" >/dev/null 2>&1; then
+    gcloud logging metrics update "$name" --project="$PROJECT_ID" --config-from-file="$METRIC_CONFIG"
+  else
+    gcloud logging metrics create "$name" --project="$PROJECT_ID" --config-from-file="$METRIC_CONFIG"
+  fi
+}
+
 upsert_metric "pmm_checkout_starts" "Checkout-uri Stripe începute" "pmm_checkout_started"
 upsert_metric "pmm_checkout_expired" "Checkout-uri Stripe expirate fără conversie" "pmm_checkout_expired"
 upsert_metric "pmm_payments_succeeded" "Plăți Stripe reușite" "pmm_payment_succeeded"
@@ -59,5 +102,9 @@ upsert_metric "pmm_conversions" "Comenzi comerciale confirmate" "pmm_conversion_
 upsert_metric "pmm_orders_delivered" "Comenzi livrate complet" "pmm_order_delivered"
 upsert_metric "pmm_album_product_ctas" "Clickuri pe CTA-ul principal al Poveștii Magice" "pmm_album_product_cta_clicked"
 upsert_metric "pmm_verified_reviews" "Recenzii trimise din comenzi verificate" "pmm_verified_review_submitted"
+upsert_campaign_metric "pmm_campaign_visits" "Vizite atribuite campaniilor" "pmm_site_visited"
+upsert_campaign_metric "pmm_campaign_product_starts" "Produse începute din campanii" "pmm_product_started"
+upsert_campaign_metric "pmm_campaign_checkout_intent" "Checkout-uri intenționate din campanii" "pmm_product_preview_checkout_clicked"
+upsert_campaign_metric "pmm_campaign_purchases" "Achiziții atribuite campaniilor" "pmm_purchase_completed"
 
 echo "Telemetria comercială este configurată pentru proiectul ${PROJECT_ID}."

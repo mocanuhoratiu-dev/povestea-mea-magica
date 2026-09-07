@@ -34,6 +34,13 @@ export type TelemetryFields = {
   webVitalName?: "CLS" | "FCP" | "FID" | "INP" | "LCP" | "TTFB";
   webVitalValue?: number;
   webVitalRating?: "good" | "needs-improvement" | "poor";
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+  utmContent?: string;
+  utmTerm?: string;
+  landingPath?: string;
+  referrerHost?: string;
 };
 
 export type TelemetryEvent =
@@ -53,6 +60,7 @@ export type TelemetryEvent =
   | "pmm_product_preview_opened"
   | "pmm_product_preview_checkout_clicked"
   | "pmm_product_video_played"
+  | "pmm_purchase_completed"
   | "pmm_generation_completed"
   | "pmm_generation_failed"
   | "pmm_story_text_completed"
@@ -137,6 +145,13 @@ export function logTelemetry(event: TelemetryEvent, fields: TelemetryFields = {}
     web_vital_name: fields.webVitalName,
     web_vital_value: fields.webVitalValue,
     web_vital_rating: fields.webVitalRating,
+    utm_source: fields.utmSource,
+    utm_medium: fields.utmMedium,
+    utm_campaign: fields.utmCampaign,
+    utm_content: fields.utmContent,
+    utm_term: fields.utmTerm,
+    landing_path: fields.landingPath,
+    referrer_host: fields.referrerHost,
   };
 
   // Omit absent keys so log-based metric labels stay clean and predictable.

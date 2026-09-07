@@ -13,16 +13,16 @@ export const metadata: Metadata = {
     url: "/scutul-de-noapte",
     title: "Scutul de Noapte | Ritual personalizat pentru copii",
     description: "9 pagini personalizate și audio cu Lumi pentru serile în care copilul are nevoie de repere familiare.",
-    images: [{ url: "/examples/scut-classic-plus-contact.png", width: 800, height: 1140, alt: "Scutul de Noapte, ritual personalizat pentru copii" }],
+    images: [{ url: "/social/og-scutul-de-noapte.webp", width: 1200, height: 630, alt: "Scutul de Noapte, ritual personalizat pentru copii" }],
   },
-  twitter: { card: "summary_large_image", title: "Scutul de Noapte", description: "Un ritual de seară personalizat, creat pentru copil și familia sa.", images: ["/examples/scut-classic-plus-contact.png"] },
+  twitter: { card: "summary_large_image", title: "Scutul de Noapte", description: "Un ritual de seară personalizat, creat pentru copil și familia sa.", images: ["/social/og-scutul-de-noapte.webp"] },
 };
 
 const productSchema = {
   "@context": "https://schema.org",
   "@type": "Product",
   name: "Scutul de Noapte",
-  image: [`${siteUrl}/examples/scut/certificat.png`, `${siteUrl}/examples/scut/etichete.png`],
+  image: [`${siteUrl}/social/og-scutul-de-noapte.webp`, `${siteUrl}/examples/scut/certificat-display.webp`],
   description: "Ritual personalizat de seară de 9 pagini A4, cu certificat, poveste, repere pentru cameră, card pentru noptieră și ghid audio.",
   brand: { "@type": "Brand", name: "Povestea Mea Magică" },
   sku: "PMM-SCUT-NOAPTE",

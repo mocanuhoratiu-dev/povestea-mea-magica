@@ -47,6 +47,7 @@ export async function GET(request: Request) {
       status: order.status,
       product: order.product,
       productId: order.productId,
+      liveMode: session.livemode,
       ...(album?.progress ? { progress: album.progress } : {}),
       delayed: order.status === "processing" && Date.now() - Date.parse(order.updatedAt) > 20 * 60 * 1000,
     };

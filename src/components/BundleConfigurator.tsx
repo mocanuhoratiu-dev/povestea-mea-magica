@@ -9,6 +9,7 @@ import { prepareReferencePhoto } from "@/lib/album/clientReferencePhoto";
 import { albumArtStyleOptions, albumCompanionOptions, albumLessonOptions, albumMoodOptions, albumWorldOptions } from "@/lib/album/types";
 import { beginPreparedOrderCheckout } from "@/lib/clientOrderCheckout";
 import { trackEvent } from "@/lib/clientTelemetry";
+import { protectedFetch } from "@/lib/clientTurnstile";
 
 const steps = [
   { title: "Povestea", icon: BookHeart },
@@ -202,11 +203,11 @@ export default function BundleConfigurator() {
     setError("");
     setIsLoading(true);
     try {
-      const response = await fetch("/api/album-preview", {
+      const response = await protectedFetch("/api/album-preview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ productId: "complete-bundle", bundleConfiguration: { items: buildItems() }, ...(referencePhoto ? { referenceImageDataUrl: referencePhoto, photoConsent: true } : {}) }),
-      });
+      }, "album_preview");
       const payload = await response.json() as { orderId?: string; previewUrl?: string; statusUrl?: string; title?: string; qualityChecked?: boolean; error?: string };
       if (!response.ok || !payload.orderId || !payload.previewUrl || !payload.statusUrl || !payload.title) throw new Error(payload.error || "Coperta nu a putut fi creată.");
       setAlbumPreview({ orderId: payload.orderId, imageUrl: payload.previewUrl, statusUrl: payload.statusUrl, title: payload.title, fingerprint: bundleFingerprint, qualityChecked: payload.qualityChecked === true, pages: [{ kind: "cover", imageUrl: payload.previewUrl, eyebrow: "Povestea Magică", title: payload.title, text: `O aventură creată pentru ${album.name}` }], ready: false });

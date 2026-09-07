@@ -1,6 +1,8 @@
 "use client";
 
 import type { GenerationMode, StoryLength, TelemetryProduct } from "@/lib/telemetry";
+import { captureCampaignAttribution, readCampaignAttribution } from "@/lib/campaignAttribution";
+import { trackMetaClientEvent } from "@/lib/metaPixel";
 
 type ClientEvent =
   | "site_visited"
@@ -16,6 +18,7 @@ type ClientEvent =
   | "product_preview_opened"
   | "product_preview_checkout_clicked"
   | "product_video_played"
+  | "purchase_completed"
   | "generation_completed"
   | "pdf_render_started"
   | "pdf_render_completed"
@@ -44,6 +47,7 @@ type ClientTelemetryFields = {
   webVitalName?: "CLS" | "FCP" | "FID" | "INP" | "LCP" | "TTFB";
   webVitalValue?: number;
   webVitalRating?: "good" | "needs-improvement" | "poor";
+  liveMode?: boolean;
 };
 
 function postTelemetry(payload: Record<string, unknown>) {
@@ -64,6 +68,7 @@ function postTelemetry(payload: Record<string, unknown>) {
 
 /** Sends a small, allow-listed aggregate event only; no form values are sent. */
 export function trackEvent(event: ClientEvent, fields: ClientTelemetryFields = {}) {
+  const attribution = readCampaignAttribution();
   postTelemetry({
     event,
     product: fields.product,
@@ -76,11 +81,16 @@ export function trackEvent(event: ClientEvent, fields: ClientTelemetryFields = {
     webVitalName: fields.webVitalName,
     webVitalValue: fields.webVitalValue,
     webVitalRating: fields.webVitalRating,
+    liveMode: fields.liveMode,
+    ...attribution,
   });
+  trackMetaClientEvent(event, fields.product);
 }
 
 export function trackSiteVisit() {
   if (typeof window === "undefined") return;
+
+  captureCampaignAttribution();
 
   const key = "pmm-site-visit-tracked";
   if (window.sessionStorage.getItem(key)) return;

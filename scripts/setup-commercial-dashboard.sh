@@ -37,6 +37,16 @@ xy_dataset() {
   }'
 }
 
+campaign_xy_dataset() {
+  local metric="$1"
+  local legend="$2"
+  jq -n --arg filter "$(metric_filter "$metric")" --arg legend "$legend" '{
+    timeSeriesQuery: {timeSeriesFilter: {filter: $filter, aggregation: {alignmentPeriod: "3600s", perSeriesAligner: "ALIGN_SUM", crossSeriesReducer: "REDUCE_SUM", groupByFields: ["metric.label.\"utm_source\"", "metric.label.\"utm_campaign\""]}}},
+    plotType: "LINE",
+    legendTemplate: $legend
+  }'
+}
+
 CHECKOUT_SCORE="$(scorecard "Checkout-uri incepute" "pmm_checkout_starts")"
 PAYMENT_SCORE="$(scorecard "Plati reusite" "pmm_payments_succeeded")"
 DELIVERY_SCORE="$(scorecard "Livrari finalizate" "pmm_orders_delivered")"
@@ -48,6 +58,12 @@ CONVERSION_SERIES="$(xy_dataset "pmm_conversions" 'Conversie - ${metric.labels.p
 DELIVERY_SERIES="$(xy_dataset "pmm_orders_delivered" 'Livrare - ${metric.labels.product} - live:${metric.labels.live_mode}')"
 FAILURE_SERIES="$(xy_dataset "pmm_payment_failures" 'Esec plata - ${metric.labels.product} - live:${metric.labels.live_mode}')"
 PROMO_SERIES="$(xy_dataset "pmm_promotion_uses" 'Reducere - ${metric.labels.product} - live:${metric.labels.live_mode}')"
+CAMPAIGN_VISIT_SCORE="$(scorecard "Vizite din campanii" "pmm_campaign_visits")"
+CAMPAIGN_START_SCORE="$(scorecard "Produse incepute" "pmm_campaign_product_starts")"
+CAMPAIGN_CHECKOUT_SCORE="$(scorecard "Intentii de checkout" "pmm_campaign_checkout_intent")"
+CAMPAIGN_PURCHASE_SCORE="$(scorecard "Achizitii din campanii" "pmm_campaign_purchases")"
+CAMPAIGN_VISIT_SERIES="$(campaign_xy_dataset "pmm_campaign_visits" 'Vizite - ${metric.labels.utm_source} / ${metric.labels.utm_campaign}')"
+CAMPAIGN_PURCHASE_SERIES="$(campaign_xy_dataset "pmm_campaign_purchases" 'Achizitii - ${metric.labels.utm_source} / ${metric.labels.utm_campaign}')"
 
 jq -n \
   --arg displayName "$DISPLAY_NAME" \
@@ -62,6 +78,12 @@ jq -n \
   --argjson deliverySeries "$DELIVERY_SERIES" \
   --argjson failureSeries "$FAILURE_SERIES" \
   --argjson promoSeries "$PROMO_SERIES" \
+  --argjson campaignVisitScore "$CAMPAIGN_VISIT_SCORE" \
+  --argjson campaignStartScore "$CAMPAIGN_START_SCORE" \
+  --argjson campaignCheckoutScore "$CAMPAIGN_CHECKOUT_SCORE" \
+  --argjson campaignPurchaseScore "$CAMPAIGN_PURCHASE_SCORE" \
+  --argjson campaignVisitSeries "$CAMPAIGN_VISIT_SERIES" \
+  --argjson campaignPurchaseSeries "$CAMPAIGN_PURCHASE_SERIES" \
   '{
     displayName: $displayName,
     mosaicLayout: {
@@ -76,7 +98,13 @@ jq -n \
         {xPos: 0, yPos: 6, width: 32, height: 14, widget: {title: "Checkout vs conversii per produs", xyChart: {dataSets: [$checkoutSeries, $conversionSeries], timeshiftDuration: "0s", yAxis: {label: "Evenimente", scale: "LINEAR"}, chartOptions: {mode: "COLOR"}}}},
         {xPos: 32, yPos: 6, width: 16, height: 14, widget: {title: "Livrari finalizate", xyChart: {dataSets: [$deliverySeries], yAxis: {label: "Livrari", scale: "LINEAR"}, chartOptions: {mode: "COLOR"}}}},
         {xPos: 0, yPos: 20, width: 24, height: 12, widget: {title: "Plati esuate", xyChart: {dataSets: [$failureSeries], yAxis: {label: "Erori", scale: "LINEAR"}, chartOptions: {mode: "COLOR"}}}},
-        {xPos: 24, yPos: 20, width: 24, height: 12, widget: {title: "Coduri promotionale folosite", xyChart: {dataSets: [$promoSeries], yAxis: {label: "Utilizari", scale: "LINEAR"}, chartOptions: {mode: "COLOR"}}}}
+        {xPos: 24, yPos: 20, width: 24, height: 12, widget: {title: "Coduri promotionale folosite", xyChart: {dataSets: [$promoSeries], yAxis: {label: "Utilizari", scale: "LINEAR"}, chartOptions: {mode: "COLOR"}}}},
+        {xPos: 0, yPos: 32, width: 12, height: 6, widget: $campaignVisitScore},
+        {xPos: 12, yPos: 32, width: 12, height: 6, widget: $campaignStartScore},
+        {xPos: 24, yPos: 32, width: 12, height: 6, widget: $campaignCheckoutScore},
+        {xPos: 36, yPos: 32, width: 12, height: 6, widget: $campaignPurchaseScore},
+        {xPos: 0, yPos: 38, width: 24, height: 14, widget: {title: "Vizite per campanie", xyChart: {dataSets: [$campaignVisitSeries], yAxis: {label: "Vizite", scale: "LINEAR"}, chartOptions: {mode: "COLOR"}}}},
+        {xPos: 24, yPos: 38, width: 24, height: 14, widget: {title: "Achizitii per campanie", xyChart: {dataSets: [$campaignPurchaseSeries], yAxis: {label: "Achizitii", scale: "LINEAR"}, chartOptions: {mode: "COLOR"}}}}
       ]
     }
   }' > "$CONFIG"

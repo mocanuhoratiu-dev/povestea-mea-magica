@@ -4,6 +4,7 @@ import { isCheckoutProductId } from "@/lib/catalog";
 import { bundleVariantForProductId, readBundleConfiguration } from "@/lib/bundle";
 import { createOrder, isOrderStoreConfigured } from "@/lib/orders";
 import { checkRateLimit, requestExceedsBodyLimit } from "@/lib/requestProtection";
+import { turnstileRejected, verifyTurnstileRequest } from "@/lib/turnstile";
 
 export const runtime = "nodejs";
 
@@ -23,6 +24,7 @@ export async function POST(request: Request) {
   if (requestExceedsBodyLimit(request, 32_000)) return NextResponse.json({ error: "Cererea este prea mare." }, { status: 413 });
   const limit = checkRateLimit(request, "order-create", { windowMs: 60 * 60 * 1000, maxRequests: 8 });
   if (!limit.allowed) return NextResponse.json({ error: "Reincearca putin mai tarziu." }, { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } });
+  if (!(await verifyTurnstileRequest(request, "order_create"))) return turnstileRejected();
   if (!isOrderStoreConfigured()) return NextResponse.json({ error: "Comenzile online nu sunt active momentan." }, { status: 503 });
 
   try {

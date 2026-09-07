@@ -21,6 +21,7 @@ The app tracks only the operational funnel needed to run the product:
 - `pmm_product_preview_opened` / `pmm_product_preview_checkout_clicked` - măsoară dacă previzualizarea personalizată ajută familia să continue către plată.
 - `pmm_product_video_played` - prima redare a demonstrației video pentru produs în sesiunea curentă.
 - `pmm_web_vital_recorded` - valori anonime LCP, INP, CLS, FCP și TTFB măsurate în browserele reale, împreună cu evaluarea `good`, `needs-improvement` sau `poor`.
+- `pmm_purchase_completed` - confirmarea din browser după ce Stripe raportează plata, folosită pentru atribuirea UTM per campanie.
 
 Events do **not** contain a child's name, age, free-form details, dedication, story body, PDF file, IP address, cookie identifier, or account identifier. Cloud Run itself may keep standard infrastructure request logs according to the Google Cloud logging configuration.
 
@@ -47,6 +48,7 @@ gcloud logging metrics create pmm_story_cover_errors --project="$PROJECT_ID" --d
 gcloud logging metrics create pmm_email_deliveries --project="$PROJECT_ID" --description="Povestea Mea Magica: emailed PDFs" --log-filter="$BASE_FILTER AND jsonPayload.event=\"pmm_email_delivery_completed\""
 gcloud logging metrics create pmm_email_delivery_errors --project="$PROJECT_ID" --description="Povestea Mea Magica: failed email deliveries" --log-filter="$BASE_FILTER AND jsonPayload.event=\"pmm_email_delivery_failed\""
 ./scripts/setup-commercial-telemetry.sh
+./scripts/setup-commercial-dashboard.sh
 ```
 
 Open **Google Cloud Console -> Monitoring -> Metrics Explorer**, select `Logging/User`, then plot these metrics with a daily alignment period. A practical first dashboard has daily site visits, product starts, a chart for each product, PDF downloads, story fallbacks and generation errors. Use Logs Explorer for breakdowns by `product`, `generation_mode`, `model` or `error_code`.
@@ -63,6 +65,7 @@ Grupează după `jsonPayload.web_vital_name` și urmărește `jsonPayload.web_vi
 
 - A widening gap between product starts and completed generations points to a UX or API problem.
 - Conversia pe produs se calculează din `pmm_conversions / pmm_checkout_starts`, grupat după eticheta `product`; eticheta `live_mode` separă testele de vânzările reale.
+- Secțiunea de campanii din dashboard urmărește vizite, produse începute, intenții de checkout și achiziții, grupate după `utm_source` și `utm_campaign`.
 - Diferența dintre `pmm_conversion_completed` și `pmm_order_delivered` arată comenzile plătite care nu au ajuns încă la familie.
 - `amount_minor` și `discount_amount_minor` sunt valori în bani mici (bani pentru RON); `live_mode` separă clar testele de vânzările reale.
 - A rising `fallback` share points to Vertex AI/model availability or quota issues.

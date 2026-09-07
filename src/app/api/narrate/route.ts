@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { synthesizeRomanianSpeech, type NarrationKind } from "@/lib/googleTextToSpeech";
 import { checkRateLimit, requestExceedsBodyLimit } from "@/lib/requestProtection";
+import { turnstileRejected, verifyTurnstileRequest } from "@/lib/turnstile";
 
 export async function POST(request: Request) {
   try {
@@ -11,6 +12,7 @@ export async function POST(request: Request) {
     if (!limit.allowed) {
       return NextResponse.json({ error: "Ai ajuns la limita de ascultări audio. Încearcă din nou mai târziu." }, { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } });
     }
+    if (!(await verifyTurnstileRequest(request, "narrate"))) return turnstileRejected();
 
     const body = (await request.json()) as { text?: unknown; kind?: unknown };
     const text = typeof body.text === "string" ? body.text.replace(/\s+/g, " ").trim().slice(0, 4_000) : "";

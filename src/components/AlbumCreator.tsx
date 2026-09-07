@@ -12,6 +12,7 @@ import { trackEvent } from "@/lib/clientTelemetry";
 import { commerce } from "@/lib/siteMode";
 import { prepareReferencePhoto } from "@/lib/album/clientReferencePhoto";
 import AlbumPreviewFlipbook, { type AlbumPreviewPage } from "@/components/AlbumPreviewFlipbook";
+import { protectedFetch } from "@/lib/clientTurnstile";
 
 const steps = ["Copilul", "Aventura", "Mesajul vostru", "Mostra"];
 const colors = [
@@ -205,11 +206,11 @@ export default function AlbumCreator() {
     setHasConsent(false);
     trackEvent("product_started", { product: "album" });
     try {
-      const response = await fetch("/api/album-preview", {
+      const response = await protectedFetch("/api/album-preview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ configuration: albumConfiguration, ...(referencePhoto ? { referenceImageDataUrl: referencePhoto, photoConsent: photoConsent === true } : {}) }),
-      });
+      }, "album_preview");
       const result = await response.json() as { orderId?: string; previewUrl?: string; statusUrl?: string; title?: string; qualityChecked?: boolean; error?: string };
       if (!response.ok || !result.orderId || !result.previewUrl || !result.statusUrl || !result.title) {
         throw new Error(result.error || "Mostra nu a putut fi creată acum.");

@@ -3,6 +3,7 @@ import { checkRateLimit, requestExceedsBodyLimit } from "@/lib/requestProtection
 import { logTelemetry } from "@/lib/telemetry";
 import { generateVertexStoryCover } from "@/lib/vertexImage";
 import { isTrustedOrderWorker } from "@/lib/orders";
+import { turnstileRejected, verifyTurnstileRequest } from "@/lib/turnstile";
 
 function readPrompt(value: unknown) {
   if (typeof value !== "string") return "";
@@ -25,6 +26,7 @@ export async function POST(req: Request) {
       { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } }
     );
   }
+  if (!(await verifyTurnstileRequest(req, "generate_cover"))) return turnstileRejected();
 
   try {
     const body = await req.json();

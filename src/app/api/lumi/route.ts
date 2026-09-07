@@ -4,6 +4,7 @@ import { readBoundedDuration, withTimeout } from "@/lib/aiTimeout";
 import { wantsLumiMaterialRecommendation } from "@/lib/lumiIntent";
 import { checkRateLimit, requestExceedsBodyLimit } from "@/lib/requestProtection";
 import { logTelemetry } from "@/lib/telemetry";
+import { turnstileRejected, verifyTurnstileRequest } from "@/lib/turnstile";
 
 type LumiRole = "user" | "model";
 type LumiMessage = { role: LumiRole; text: string };
@@ -209,6 +210,7 @@ export async function POST(request: Request) {
   if (requestExceedsBodyLimit(request, 8_000)) return NextResponse.json({ error: "Mesajul este prea lung." }, { status: 413 });
   const limit = checkRateLimit(request, "lumi", { windowMs: Number.parseInt(process.env.LUMI_RATE_LIMIT_WINDOW_MS || "3600000", 10) || 3_600_000, maxRequests: Number.parseInt(process.env.LUMI_RATE_LIMIT_MAX || "30", 10) || 30 });
   if (!limit.allowed) return NextResponse.json({ error: "Lumi se odihnește puțin. Încearcă din nou mai târziu." }, { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } });
+  if (!(await verifyTurnstileRequest(request, "lumi"))) return turnstileRejected();
 
   try {
     const body = await request.json() as Record<string, unknown>;

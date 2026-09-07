@@ -11,6 +11,7 @@ Produs digital Next.js în limba română: povești personalizate pentru copii, 
 - Generare AI: Vertex AI (Gemini) pentru text și imagini, control vizual automat și Google Cloud Text-to-Speech pentru audio în română.
 - Album premium: Story Bible V3, Character Lock din descriere sau fotografie opțională, preview răsfoibil cu copertă și două pagini reale înainte de plată, flipbook privat și două PDF-uri A5 landscape.
 - Observabilitate: evenimente agregate fără conținut personalizat pentru vizite, generări, fallback-uri, erori și descărcări PDF. Vezi [`docs/analytics.md`](docs/analytics.md).
+- Campanii: atribuire UTM first-party, Meta Pixel cu consimțământ, Purchase verificat prin Conversions API și Turnstile pentru operațiunile costisitoare. Vezi [`docs/paid-acquisition.md`](docs/paid-acquisition.md).
 - Domeniu principal: `https://www.povestea-mea-magica.ro`; domeniul fără `www` și URL-ul Cloud Run se redirecționează aici în producție.
 - PDF: exportul folosește biblioteci incluse în aplicație, fără scripturi externe încărcate în momentul descărcării.
 

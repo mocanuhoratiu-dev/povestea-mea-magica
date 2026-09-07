@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, CheckCircle2, Clock3, LoaderCircle, Mail, RefreshCw } from "lucide-react";
 import { albumProgressPresentation, type AlbumPublicProgress } from "@/lib/album/presentation";
+import { trackEvent } from "@/lib/clientTelemetry";
+import { trackMetaPurchase } from "@/lib/metaPixel";
 
 type OrderProduct = "story" | "monster" | "emergency" | "bundle" | "album";
 type OrderStatus = "draft" | "pending_payment" | "paid" | "processing" | "delivered" | "failed";
@@ -14,6 +16,7 @@ type CheckoutStatus = {
   progress?: AlbumPublicProgress;
   deliveryUrl?: string;
   delayed?: boolean;
+  liveMode?: boolean;
 };
 
 const productNames: Record<OrderProduct, string> = {
@@ -60,6 +63,14 @@ export default function OrderConfirmationClient() {
       const payload = await response.json() as CheckoutStatus;
       if (cancelled) return;
       setOrder(payload);
+      if (payload.product && ["paid", "processing", "delivered"].includes(payload.status)) {
+        const trackingKey = `pmm-purchase-tracked:${sessionId}`;
+        if (!window.sessionStorage.getItem(trackingKey)) {
+          window.sessionStorage.setItem(trackingKey, "1");
+          trackEvent("purchase_completed", { product: payload.product, liveMode: payload.liveMode });
+          void trackMetaPurchase(sessionId, payload.product);
+        }
+      }
       if (payload.status === "delivered" && payload.deliveryUrl) {
         if (payload.product === "album") window.sessionStorage.removeItem("pmm-album-draft");
         setState("ready");

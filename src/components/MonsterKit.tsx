@@ -17,6 +17,7 @@ import QuickRating from "./QuickRating";
 import VerifiedReviewForm from "./VerifiedReviewForm";
 import { beginOrderCheckout } from "@/lib/clientOrderCheckout";
 import { trackEvent } from "@/lib/clientTelemetry";
+import { protectedFetch } from "@/lib/clientTurnstile";
 import { buildNightShieldContent, nightShieldNarration, sanitizeNightShieldContent, type NightShieldContent } from "@/lib/nightShield";
 import { playNarration, stopNarration, subscribeToNarration } from "@/lib/narrationPlayback";
 import { commerce } from "@/lib/siteMode";
@@ -189,7 +190,7 @@ export default function MonsterKit() {
     const generation = { type: "monster", name, age, monster: fear, context: location, interest: helper, tone: ritual };
     if (commerce.acceptsPayments) { try { await beginOrderCheckout("night-shield", { generation }); } catch (error) { alert(error instanceof Error ? error.message : "Nu am putut pregăti plata."); } finally { setIsGenerating(false); } return; }
     setShowPreview(false);
-    try { const response = await fetch("/api/generate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(generation) }); const payload = await response.json() as { success?: boolean; data?: unknown }; if (!response.ok || !payload.success || !payload.data) throw new Error("generation"); setContent(sanitizeNightShieldContent(payload.data, fallback)); trackEvent("generation_completed", { product: "monster", generationMode: "ai", pageCount: PAGE_COUNT }); }
+    try { const response = await protectedFetch("/api/generate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(generation) }, "generate"); const payload = await response.json() as { success?: boolean; data?: unknown }; if (!response.ok || !payload.success || !payload.data) throw new Error("generation"); setContent(sanitizeNightShieldContent(payload.data, fallback)); trackEvent("generation_completed", { product: "monster", generationMode: "ai", pageCount: PAGE_COUNT }); }
     catch { setContent(fallback); setResultNote("Ritualul este pregătit într-o variantă sigură și personalizată. Îl poți regenera pentru o formulare nouă."); trackEvent("generation_completed", { product: "monster", generationMode: "template", pageCount: PAGE_COUNT }); }
     finally { setIsGenerating(false); setShowResult(true); }
   };
@@ -230,12 +231,12 @@ export default function MonsterKit() {
     </div>
 
     <ProductSampleGallery product="monster" tone="night" eyebrow="Primele trei pagini rămân exact cum le iubești" title="Răsfoiește începutul ritualului." description="Certificatul, rețeta imaginară și etichetele deschid experiența. Urmează povestea serii, fișa «Camera mea», respirația, cardul pentru noptieră și calendarul de șapte seri." facts={["Conținut personalizat cu numele copilului","Repere familiare din camera lui","Card și etichete gata de decupat","Vocea lui Lumi pentru ritual"]} ctaHref="#configureaza-scutul" ctaLabel="Personalizează Scutul" pages={[
-      {image:"/examples/scut/certificat.png",eyebrow:"Pagina 1",title:"Certificatul oficial",description:"Momentul în care copilul primește propriul Scut de Noapte.",alt:"Certificat oficial personalizat pentru Eva"},
-      {image:"/examples/scut/reteta.png",eyebrow:"Pagina 2",title:"Rețeta secretă",description:"Un joc simbolic pregătit pentru ritualul vostru de seară.",alt:"Rețeta secretă din Scutul de Noapte"},
-      {image:"/examples/scut/etichete.png",eyebrow:"Pagina 3",title:"Etichetele detașabile",description:"Piese printabile care transformă ritualul într-un obiect real.",alt:"Etichete detașabile pentru Scutul de Noapte"},
+      {image:"/examples/scut/certificat-display.webp",eyebrow:"Pagina 1",title:"Certificatul oficial",description:"Momentul în care copilul primește propriul Scut de Noapte.",alt:"Certificat oficial personalizat pentru Eva"},
+      {image:"/examples/scut/reteta-display.webp",eyebrow:"Pagina 2",title:"Rețeta secretă",description:"Un joc simbolic pregătit pentru ritualul vostru de seară.",alt:"Rețeta secretă din Scutul de Noapte"},
+      {image:"/examples/scut/etichete-display.webp",eyebrow:"Pagina 3",title:"Etichetele detașabile",description:"Piese printabile care transformă ritualul într-un obiect real.",alt:"Etichete detașabile pentru Scutul de Noapte"},
     ]}/>
 
-    <ProductWalkthroughVideo product="monster" tone="night" eyebrow="Scutul, în câteva secunde" title="Vezi cum intră ritualul în seara voastră." description="De la certificat la etichete și ghidul lui Lumi: o privire rapidă asupra materialului pe care îl personalizezi, îl printezi și îl folosiți împreună." src="/videos/scutul-de-noapte.mp4" poster="/examples/scut/certificat.png" />
+    <ProductWalkthroughVideo product="monster" tone="night" eyebrow="Scutul, în câteva secunde" title="Vezi cum intră ritualul în seara voastră." description="De la certificat la etichete și ghidul lui Lumi: o privire rapidă asupra materialului pe care îl personalizezi, îl printezi și îl folosiți împreună." src="/videos/scutul-de-noapte.mp4" poster="/examples/scut/certificat-display.webp" />
 
     <div className="px-4 py-16 sm:px-6 md:py-24">
       <div className="mx-auto max-w-7xl">
