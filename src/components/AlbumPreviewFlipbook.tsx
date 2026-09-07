@@ -24,7 +24,7 @@ export default function AlbumPreviewFlipbook({ pages, childName }: { pages: Albu
         {page.kind === "cover" ? (
           <>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={page.imageUrl} alt={`Coperta personalizată pentru ${childName}`} className="absolute inset-0 h-full w-full object-cover" />
+            <img src={page.imageUrl} alt={`Coperta personalizată pentru ${childName}`} className="absolute inset-0 h-full w-full object-contain" />
             <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,24,44,.9),rgba(7,24,44,.28)_52%,transparent_76%)]" />
             <div className="absolute inset-y-0 left-0 flex w-[58%] flex-col justify-center p-[7cqw] text-brand-cream [text-shadow:0_2px_16px_rgba(4,12,30,.75)]">
               <p className="text-[1.2cqw] font-black uppercase tracking-[0.16em] text-brand-gold">{page.eyebrow}</p>
@@ -36,7 +36,7 @@ export default function AlbumPreviewFlipbook({ pages, childName }: { pages: Albu
           <div className={`grid h-full ${layout === "cinematic" ? "grid-rows-[62%_38%]" : layout === "image-left" ? "grid-cols-[59%_41%]" : "grid-cols-[41%_59%]"}`}>
             <div className={`${layout === "image-right" ? "order-2" : ""} overflow-hidden bg-brand-navy`}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={page.imageUrl} alt={page.title} className="h-full w-full object-cover" />
+              <img src={page.imageUrl} alt={page.title} className="h-full w-full object-contain" />
             </div>
             <div className={`${layout === "image-right" ? "order-1" : ""} flex flex-col justify-center bg-brand-cream ${layout === "cinematic" ? "border-t-[.55cqw] border-brand-gold px-[6.5cqw] py-[2.3cqw]" : layout === "image-left" ? "border-l-[.55cqw] border-brand-gold px-[3.2cqw]" : "border-r-[.55cqw] border-brand-gold px-[3.2cqw]"}`}>
               <p className="text-[1cqw] font-black uppercase tracking-[0.14em] text-brand-purple">{page.eyebrow}</p>

@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowRight, Check, ScanFace, Sparkles } from "lucide-react";
+import PremiumBookMockup from "@/components/PremiumBookMockup";
 
 const childDetails = ["numele Eva", "păr șaten, ondulat", "salopetă cărămizie", "iubește stelele"];
 
@@ -56,16 +56,12 @@ export default function PersonalizationProof() {
             initial={{ opacity: 0, x: 18 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, amount: 0.25 }}
-            className="relative min-h-[430px] overflow-hidden bg-brand-navy sm:min-h-[560px]"
+            className="relative flex min-h-[390px] flex-col overflow-hidden bg-brand-navy sm:min-h-[560px]"
           >
-            <Image
-              src="/examples/album/coperta.webp"
-              alt="Coperta personalizată a poveștii Evei, cu personajul ilustrat"
-              fill
-              sizes="(min-width: 1024px) 58vw, 100vw"
-              className="object-cover object-[78%_50%] sm:object-center"
-            />
-            <div className="absolute inset-x-0 bottom-0 bg-brand-navy/92 px-6 py-5 text-brand-cream backdrop-blur-sm sm:px-8">
+            <div className="flex flex-1 items-center px-4 py-7 sm:px-8 sm:py-10">
+              <PremiumBookMockup src="/examples/album/coperta.webp" alt="Cartea personalizată a Evei, cu personajul ilustrat pe copertă" sizes="(min-width: 1024px) 52vw, 94vw" className="max-w-[720px]" />
+            </div>
+            <div className="relative border-t border-white/12 bg-brand-navy px-6 py-5 text-brand-cream sm:px-8">
               <p className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-brand-gold"><Sparkles size={15} /> După · personajul în carte</p>
               <p className="mt-2 max-w-2xl text-sm font-semibold leading-relaxed text-brand-cream/78">Aceleași trăsături, haine și repere sunt urmărite în copertă și în fiecare scenă a poveștii.</p>
             </div>

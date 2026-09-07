@@ -547,7 +547,7 @@ export default function AlbumCreator() {
                         alt={`Mostră personalizată pentru ${name}`}
                         width={1200}
                         height={800}
-                        className="aspect-[3/2] w-full object-cover"
+                        className="aspect-[210/148] w-full bg-brand-navy object-contain"
                         onError={() => {
                           setPreview(null);
                           setHasConsent(false);
@@ -601,7 +601,7 @@ export default function AlbumCreator() {
         <aside className="border-t border-brand-navy/15 bg-brand-navy px-5 py-9 text-brand-cream sm:px-8 lg:border-l lg:border-t-0 lg:px-10 lg:py-12">
           <p className="text-xs font-black uppercase tracking-[0.15em] text-brand-gold">Vezi ce primești</p>
           <div className="mt-5 overflow-hidden border border-brand-gold/50"><Image src="/examples/album/coperta.webp" alt="Coperta modelului Povestea Magică" width={960} height={676} className="h-auto w-full" /></div>
-          <div className="mt-3 grid grid-cols-2 gap-2"><Image src="/examples/album/aventura.webp" alt="Pagină ilustrată" width={480} height={338} className="aspect-[1.42] w-full object-cover" /><Image src="/examples/album/colorat.webp" alt="Pagină de colorat" width={480} height={338} className="aspect-[1.42] w-full object-cover" /><Image src="/examples/album/labirint.webp" alt="Pagină cu labirint" width={480} height={338} className="aspect-[1.42] w-full object-cover" /><Image src="/examples/album/diferente.webp" alt="Pagină cu joc de diferențe" width={480} height={338} className="aspect-[1.42] w-full object-cover" /></div>
+          <div className="mt-3 grid grid-cols-2 gap-2"><Image src="/examples/album/aventura.webp" alt="Pagină ilustrată" width={480} height={338} className="aspect-[1.42] w-full bg-brand-cream object-contain" /><Image src="/examples/album/colorat.webp" alt="Pagină de colorat" width={480} height={338} className="aspect-[1.42] w-full bg-brand-cream object-contain" /><Image src="/examples/album/labirint.webp" alt="Pagină cu labirint" width={480} height={338} className="aspect-[1.42] w-full bg-brand-cream object-contain" /><Image src="/examples/album/diferente.webp" alt="Pagină cu joc de diferențe" width={480} height={338} className="aspect-[1.42] w-full bg-brand-cream object-contain" /></div>
           <p className="mt-5 font-serif text-2xl">O poveste construită ca o carte adevărată.</p>
           <ul className="mt-5 space-y-3 text-sm font-semibold text-brand-cream/75">{["Personaj construit din descriere sau fotografie", "Fiecare ilustrație trece prin control de calitate", "Textul nu acoperă imaginile", "Caiet separat cu 3 activități", "Carte digitală de răsfoit, audio și PDF-uri A5 în format orizontal"].map((item) => <li key={item} className="flex gap-3"><Check size={17} className="mt-0.5 shrink-0 text-brand-gold" />{item}</li>)}</ul>
           <div className="mt-8 grid grid-cols-3 border-y border-brand-cream/15 py-5 text-center"><div><Clock3 className="mx-auto text-brand-gold" size={19} /><p className="mt-2 text-[10px] font-black">6-10 minute</p></div><div><Mail className="mx-auto text-brand-gold" size={19} /><p className="mt-2 text-[10px] font-black">Primești email</p></div><div><Download className="mx-auto text-brand-gold" size={19} /><p className="mt-2 text-[10px] font-black">2 PDF-uri</p></div></div>

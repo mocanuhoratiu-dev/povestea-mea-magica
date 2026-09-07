@@ -93,7 +93,7 @@ export default function PersonalizedAlbumFlipbook({ pages, audioUrl, title, qual
           >
             {page.kind === "cover" && <>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={page.imageUrl} alt="Coperta Poveștii Magice" className="absolute inset-0 h-full w-full object-cover" />
+              <img src={page.imageUrl} alt="Coperta Poveștii Magice" className="absolute inset-0 h-full w-full object-contain" />
               <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,24,44,.9),rgba(7,24,44,.3)_52%,transparent_76%)]" />
               <div className="absolute inset-y-0 left-0 flex w-[58%] flex-col justify-center p-[7cqw] text-brand-cream">
                 <p className="text-[1.25cqw] font-black uppercase tracking-[0.16em] text-brand-gold">{page.eyebrow}</p>
@@ -105,7 +105,7 @@ export default function PersonalizedAlbumFlipbook({ pages, audioUrl, title, qual
             {page.kind === "story" && <div className={`grid h-full ${storyLayout === "cinematic" ? "grid-rows-[62%_38%]" : storyLayout === "image-left" ? "grid-cols-[59%_41%]" : "grid-cols-[41%_59%]"}`}>
               <div className={`${storyLayout === "image-right" ? "order-2" : ""} overflow-hidden bg-brand-navy`}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={page.imageUrl} alt={page.title} className="h-full w-full object-cover" />
+                <img src={page.imageUrl} alt={page.title} className="h-full w-full object-contain" />
               </div>
               <div className={`${storyLayout === "image-right" ? "order-1" : ""} flex flex-col justify-center border-brand-gold bg-brand-cream ${storyLayout === "cinematic" ? "border-t-[.55cqw] px-[6.5cqw] py-[2.3cqw]" : storyLayout === "image-left" ? "border-l-[.55cqw] px-[3.2cqw]" : "border-r-[.55cqw] px-[3.2cqw]"}`}>
                 <p className="text-[1.05cqw] font-black uppercase tracking-[0.14em] text-brand-purple">{page.eyebrow}</p>

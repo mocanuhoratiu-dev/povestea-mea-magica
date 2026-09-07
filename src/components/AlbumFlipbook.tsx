@@ -23,7 +23,7 @@ function AlbumPage({ index, priority = false }: { index: number; priority?: bool
         fill
         priority={priority}
         sizes="(min-width: 1280px) 1120px, (min-width: 768px) 88vw, 96vw"
-        className="object-cover"
+        className="object-contain"
       />
       <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-0 w-[3%] bg-gradient-to-r from-brand-navy/18 to-transparent" />
       <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 w-px bg-white/50" />

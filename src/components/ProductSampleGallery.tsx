@@ -64,7 +64,8 @@ export default function ProductSampleGallery({
   };
 
   const pagePreview = (large = false) => (
-    <div className={`relative mx-auto aspect-[.707] w-full overflow-hidden border shadow-[0_28px_80px_rgba(5,12,28,.34)] ${large ? "max-h-[82dvh] max-w-[58dvh]" : "max-w-[520px]"} ${isNight ? "border-brand-gold/55 bg-brand-navy" : "border-brand-navy/20 bg-white"}`}>
+    <div className={`relative mx-auto border p-2 shadow-[0_28px_80px_rgba(5,12,28,.34)] sm:p-3 ${large ? "w-[min(92vw,58dvh)]" : "w-full max-w-[540px]"} ${isNight ? "border-brand-gold/55 bg-[#111a35]" : "border-brand-navy/20 bg-[#eee9df]"}`}>
+      <div className={`relative aspect-[.707] w-full overflow-hidden ${isNight ? "bg-brand-navy" : "bg-white"}`}>
       <AnimatePresence mode="wait">
         <motion.div
           key={activePage.image}
@@ -74,12 +75,13 @@ export default function ProductSampleGallery({
           transition={{ duration: reduceMotion ? 0.12 : 0.32, ease: [0.22, 1, 0.36, 1] }}
           className="absolute inset-0"
         >
-          <Image src={activePage.image} alt={activePage.alt} fill sizes={large ? "60dvh" : "(min-width: 1024px) 42vw, 88vw"} className="object-cover" />
+          <Image src={activePage.image} alt={activePage.alt} fill sizes={large ? "58dvh" : "(min-width: 1024px) 42vw, 88vw"} className="object-contain" />
         </motion.div>
       </AnimatePresence>
       <button type="button" onClick={() => goTo(activeIndex - 1)} disabled={activeIndex === 0} aria-label="Pagina anterioară" className="absolute left-2 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center border border-white/30 bg-brand-navy/82 text-white backdrop-blur-sm transition hover:bg-brand-purple disabled:pointer-events-none disabled:opacity-20"><ChevronLeft size={21} /></button>
       <button type="button" onClick={() => goTo(activeIndex + 1)} disabled={activeIndex === pages.length - 1} aria-label="Pagina următoare" className="absolute right-2 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center border border-white/30 bg-brand-navy/82 text-white backdrop-blur-sm transition hover:bg-brand-purple disabled:pointer-events-none disabled:opacity-20"><ChevronRight size={21} /></button>
       {!large && <button type="button" onClick={() => setExpanded(true)} aria-label="Mărește mostra" className="absolute right-2 top-2 grid h-10 w-10 place-items-center border border-white/30 bg-brand-navy/82 text-white backdrop-blur-sm transition hover:bg-brand-purple"><Maximize2 size={17} /></button>}
+      </div>
     </div>
   );
 
@@ -105,8 +107,8 @@ export default function ProductSampleGallery({
           {pagePreview()}
           <div className="mx-auto mt-5 grid max-w-[520px] grid-cols-3 gap-2" aria-label="Alege pagina din mostră">
             {pages.map((page, index) => (
-              <button key={page.image} type="button" onClick={() => goTo(index)} aria-label={`Arată ${page.title}`} aria-current={activeIndex === index ? "page" : undefined} className={`relative aspect-[1.2] overflow-hidden border bg-white transition sm:aspect-[.95] ${activeIndex === index ? "border-brand-gold ring-2 ring-brand-gold" : "border-brand-navy/15 opacity-65 hover:opacity-100"}`}>
-                <Image src={page.image} alt="" fill sizes="170px" className="object-cover object-top" />
+              <button key={page.image} type="button" onClick={() => goTo(index)} aria-label={`Arată ${page.title}`} aria-current={activeIndex === index ? "page" : undefined} className={`relative aspect-[.707] overflow-hidden border bg-white transition ${activeIndex === index ? "border-brand-gold ring-2 ring-brand-gold" : "border-brand-navy/15 opacity-65 hover:opacity-100"}`}>
+                <Image src={page.image} alt="" fill sizes="170px" className="object-contain" />
               </button>
             ))}
           </div>

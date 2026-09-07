@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { BookOpen, Check, Headphones, Mail, Palette, ShieldCheck, Sparkles } from "lucide-react";
 import AlbumCreator, { AlbumPrintTeaser } from "@/components/AlbumCreator";
 import AlbumFlipbook from "@/components/AlbumFlipbook";
@@ -9,6 +8,7 @@ import LumiGuideLoader from "@/components/LumiGuideLoader";
 import LumiOpenButton from "@/components/LumiOpenButton";
 import MobileAlbumCTA from "@/components/MobileAlbumCTA";
 import ProductWalkthroughVideo from "@/components/ProductWalkthroughVideo";
+import PremiumBookMockup from "@/components/PremiumBookMockup";
 import Reviews from "@/components/Reviews";
 import { commerce, siteUrl } from "@/lib/siteMode";
 
@@ -77,11 +77,9 @@ export default function MagicalStoryPage() {
             <a href="#recenzii" className="mt-5 inline-flex items-center gap-2 text-xs font-black text-brand-navy/70 underline decoration-brand-gold decoration-2 underline-offset-4">Citește reacțiile primelor familii</a>
             </div>
           </div>
-          <div className="relative order-2 mx-auto w-full max-w-[760px] pb-6 pl-4 pt-2 [perspective:1600px] sm:pl-8 lg:order-none">
-            <div aria-hidden="true" className="absolute inset-[12%_3%_0_12%] bg-brand-navy/20 blur-2xl" />
-            <div className="relative aspect-[1.419] origin-left overflow-hidden border border-brand-gold/70 bg-brand-navy shadow-[18px_24px_55px_rgba(18,27,52,.28)] [transform:rotateY(-5deg)_rotateZ(-.5deg)] sm:shadow-[24px_32px_70px_rgba(18,27,52,.32)] sm:[transform:rotateY(-7deg)_rotateZ(-.5deg)]"><Image src="/examples/album/coperta.webp" alt="Coperta modelului Povestea Magică" fill priority fetchPriority="high" quality={78} sizes="(min-width: 1024px) 55vw, 100vw" className="object-cover" /></div>
-            <span aria-hidden="true" className="absolute bottom-[7%] left-[2.5%] top-[4%] w-4 bg-gradient-to-r from-brand-gold/75 via-brand-cream to-brand-gold/45 shadow-xl sm:left-[5%] sm:w-5" />
-            <div className="absolute -bottom-2 right-0 border border-brand-gold/55 bg-brand-cream px-4 py-3 shadow-xl sm:right-3">
+          <div className="relative order-2 mx-auto w-full max-w-[760px] py-2 lg:order-none">
+            <PremiumBookMockup src="/examples/album/coperta.webp" alt="Povestea Magică prezentată ca o carte ilustrată cu copertă tare" priority className="w-[92%] sm:w-full" />
+            <div className="absolute bottom-[3%] right-[6%] max-w-[46%] border border-brand-gold/55 bg-brand-cream px-3 py-2.5 shadow-xl sm:right-[4%] sm:px-4 sm:py-3">
               <p className="text-[9px] font-black uppercase tracking-[0.14em] text-brand-purple">Primești pe email</p>
               <p className="mt-1 text-xs font-black text-brand-navy">Carte + caiet + audio</p>
             </div>

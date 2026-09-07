@@ -75,8 +75,8 @@ export default function ProductWalkthroughVideo({ product, eyebrow, title, descr
             <span>Personalizezi</span><span aria-hidden="true">→</span><span>Printezi</span><span aria-hidden="true">→</span><span>Folosiți împreună</span>
           </div>
         </div>
-        <div ref={containerRef} className="relative order-1 aspect-video w-full overflow-hidden bg-brand-navy shadow-[0_22px_55px_rgba(12,20,42,.22)] lg:order-2 lg:shadow-[0_30px_80px_rgba(12,20,42,.25)]">
-          <video ref={videoRef} src={shouldLoad ? src : undefined} poster={poster} autoPlay={allowAutoplay} loop muted playsInline preload={shouldLoad ? "metadata" : "none"} onPlay={onPlay} onPause={() => setPlaying(false)} className="h-full w-full object-cover" aria-label={`Prezentare video ${title}`} />
+        <div ref={containerRef} className="relative order-1 aspect-video w-full overflow-hidden border border-white/10 bg-brand-navy shadow-[0_22px_55px_rgba(12,20,42,.22)] lg:order-2 lg:shadow-[0_30px_80px_rgba(12,20,42,.25)]">
+          <video ref={videoRef} src={shouldLoad ? src : undefined} poster={poster} autoPlay={allowAutoplay} loop muted playsInline preload={shouldLoad ? "metadata" : "none"} onPlay={onPlay} onPause={() => setPlaying(false)} className="h-full w-full object-contain" aria-label={`Prezentare video ${title}`} />
           <button type="button" onClick={() => void toggle()} className="absolute bottom-3 right-3 grid h-11 w-11 place-items-center border border-white/35 bg-brand-navy/78 text-white backdrop-blur-sm transition hover:bg-brand-purple" aria-label={playing ? "Pauză video" : "Redă video"}>{playing ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" />}</button>
         </div>
       </div>

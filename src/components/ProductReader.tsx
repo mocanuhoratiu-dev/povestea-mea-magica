@@ -139,7 +139,6 @@ export default function ProductReader({ title, source, pages, orientation = "por
             >
               <CropPage source={activePage.source ?? source} crop={activePage.crop} alt={`${title}: ${activePage.title}`} orientation={orientation} className="w-full" />
               <button type="button" onClick={() => setExpanded(false)} className="absolute right-3 top-3 bg-brand-cream px-3 py-2 text-xs font-black text-brand-navy shadow-sm">Închide</button>
-              <div className="absolute bottom-0 left-0 right-0 bg-brand-navy/85 px-5 py-4 text-brand-cream"><p className="font-serif text-2xl">{activePage.title}</p></div>
             </motion.div>
           </motion.div>
         )}

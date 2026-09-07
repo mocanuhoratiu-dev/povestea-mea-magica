@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowRight, BookHeart, Check, MoonStar, PackageCheck, TimerReset } from "lucide-react";
 import { commerce } from "@/lib/siteMode";
+import PremiumBookMockup from "@/components/PremiumBookMockup";
 
 const products = [
   {
@@ -13,6 +14,7 @@ const products = [
     description: "O carte ilustrată în care copilul tău este eroul. Chipul, lumea, companionii și detaliile familiei schimbă cu adevărat aventura.",
     features: ["16 pagini A5, format orizontal", "13 ilustrații create pentru poveste", "Previzualizare personalizată înainte de plată", "Audio și caiet de activități inclus"],
     image: "/examples/album/coperta.webp",
+    visual: "book",
     href: "/povestea-magica",
     cta: "Descoperă Povestea Magică",
     price: commerce.prices.illustratedAlbum,
@@ -24,7 +26,8 @@ const products = [
     title: "Scutul de Noapte",
     description: "Un joc magic și personalizat, cu certificat și rețetă imaginară, urmat de pași blânzi și repere familiare înainte de somn.",
     features: ["Certificat, rețetă și etichete", "Poveste, fișa «Camera mea» și respirație", "Card de noptieră, calendar și audio Lumi"],
-    image: "/examples/scut-classic-plus-contact.png",
+    image: "/examples/scut/certificat-display.webp",
+    visual: "paper",
     href: "/scutul-de-noapte",
     cta: "Construiește Scutul",
     price: commerce.prices.nightShield,
@@ -36,7 +39,8 @@ const products = [
     title: "Trusa de Răbdare",
     description: "Un caiet printabil cu misiuni potrivite locului, vârstei și lucrurilor care îl captivează pe copil.",
     features: ["10 pagini A4, 8 activități", "Labirint și diferențe validate", "Cartonașe și 3 niveluri"],
-    image: "/examples/trusa-final-contact.png",
+    image: "/examples/trusa-premium/page-1-display.webp",
+    visual: "paper",
     href: "/trusa-de-rabdare",
     cta: "Pregătește Trusa",
     price: commerce.prices.patienceKit,
@@ -63,8 +67,15 @@ export default function ProductExamples() {
             const dark = product.tone === "navy";
             return (
               <motion.article key={product.title} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ delay: index * 0.08 }} className={`grid gap-0 py-10 lg:grid-cols-2 lg:py-16 ${index % 2 ? "lg:[&>*:first-child]:order-2" : ""}`}>
-                <div className="relative min-h-[300px] overflow-hidden bg-brand-navy sm:min-h-[420px]">
-                  <Image src={product.image} alt={`Model pentru ${product.title}`} fill sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />
+                <div className={`relative flex min-h-[330px] items-center justify-center overflow-hidden px-5 py-7 sm:min-h-[460px] sm:px-8 ${product.tone === "navy" ? "bg-[#e8e1d4]" : "bg-brand-navy"}`}>
+                  {product.visual === "book" ? (
+                    <PremiumBookMockup src={product.image} alt={`Model complet pentru ${product.title}`} sizes="(min-width: 1024px) 46vw, 94vw" className="max-w-[680px]" />
+                  ) : (
+                    <div className="relative aspect-[.707] h-auto w-[58%] max-w-[300px] border border-brand-gold/45 bg-white shadow-[16px_22px_44px_rgba(3,10,24,.38)] sm:w-[54%]">
+                      <Image src={product.image} alt={`Coperta completă pentru ${product.title}`} fill sizes="(min-width: 1024px) 25vw, 58vw" className="object-contain" />
+                      <div aria-hidden="true" className="absolute -bottom-2 -right-2 left-2 top-2 -z-10 border border-brand-gold/30 bg-brand-cream" />
+                    </div>
+                  )}
                 </div>
                 <div className={`flex flex-col justify-center px-6 py-9 sm:px-10 lg:px-14 ${dark ? "bg-brand-navy text-brand-cream" : product.tone === "gold" ? "bg-[#f2e5bd] text-brand-navy" : "bg-white text-brand-navy"}`}>
                   <div className={`flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] ${dark ? "text-brand-gold" : product.tone === "orange" ? "text-brand-orange" : "text-brand-purple"}`}><Icon size={18} /> {product.eyebrow}</div>
