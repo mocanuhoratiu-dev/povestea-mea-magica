@@ -1,28 +1,45 @@
 "use client";
 
 import { ArrowRight } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import LumiOpenButton from "@/components/LumiOpenButton";
 import { trackEvent } from "@/lib/clientTelemetry";
 
 export default function MobileAlbumCTA({ price }: { price: string }) {
   const [isConfiguratorVisible, setConfiguratorVisible] = useState(false);
+  const [isPrimaryVisible, setPrimaryVisible] = useState(true);
+  const [hasReachedConfigurator, setReachedConfigurator] = useState(false);
   const [isLumiOpen, setLumiOpen] = useState(false);
+  const hasSeenPrimary = useRef(false);
 
   useEffect(() => {
     const configurator = document.getElementById("configureaza-albumul");
     if (!configurator) return;
-    const observer = new IntersectionObserver(([entry]) => setConfiguratorVisible(entry.isIntersecting), { threshold: 0.05 });
+    const observer = new IntersectionObserver(([entry]) => {
+      setConfiguratorVisible(entry.isIntersecting);
+      if (entry.isIntersecting) setReachedConfigurator(true);
+    }, { threshold: 0.05 });
     observer.observe(configurator);
+    const primaryCta = document.getElementById("album-primary-cta");
+    const primaryObserver = primaryCta ? new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        hasSeenPrimary.current = true;
+        setPrimaryVisible(true);
+      } else if (hasSeenPrimary.current) {
+        setPrimaryVisible(false);
+      }
+    }, { threshold: 0.2 }) : null;
+    if (primaryCta && primaryObserver) primaryObserver.observe(primaryCta);
     const onLumi = (event: Event) => setLumiOpen((event as CustomEvent<{ isOpen: boolean }>).detail.isOpen);
     window.addEventListener("pmm:lumi-open-change", onLumi);
     return () => {
       observer.disconnect();
+      primaryObserver?.disconnect();
       window.removeEventListener("pmm:lumi-open-change", onLumi);
     };
   }, []);
 
-  if (isConfiguratorVisible || isLumiOpen) return null;
+  if (isPrimaryVisible || isConfiguratorVisible || hasReachedConfigurator || isLumiOpen) return null;
 
   return (
     <div id="mobile-album-cta" className="fixed inset-x-0 bottom-0 z-[70] border-t border-brand-navy/15 bg-brand-cream/96 px-4 pb-[max(.75rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-12px_30px_rgba(36,50,79,.15)] backdrop-blur-xl lg:hidden">

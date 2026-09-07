@@ -105,13 +105,13 @@ export default function PersonalizedProductPreview(props: PersonalizedProductPre
     : "Așa va începe trusa personalizată. În materialul final primești activitățile adaptate momentului, timpului și nivelului ales.";
 
   return <AnimatePresence>{props.open && (
-    <motion.div role="dialog" aria-modal="true" aria-label={`Previzualizare ${title}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[110] overflow-y-auto bg-brand-navy/92 px-3 py-4 backdrop-blur-md sm:px-5 sm:py-8" onMouseDown={(event) => { if (event.currentTarget === event.target) props.onClose(); }}>
-      <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className={`relative mx-auto grid min-h-[calc(100dvh-2rem)] w-full max-w-5xl overflow-hidden bg-brand-cream shadow-2xl sm:min-h-0 lg:grid-cols-[1.12fr_.88fr] ${props.kind === "night" ? "border border-brand-gold/55" : "border border-white/60"}`}>
+    <motion.div role="dialog" aria-modal="true" aria-label={`Previzualizare ${title}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[110] flex items-end justify-center overflow-hidden bg-brand-navy/92 p-0 backdrop-blur-md sm:items-center sm:px-5 sm:py-8" onMouseDown={(event) => { if (event.currentTarget === event.target) props.onClose(); }}>
+      <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className={`relative grid max-h-[calc(100dvh-.5rem)] w-full max-w-5xl overflow-y-auto overscroll-contain bg-brand-cream shadow-2xl sm:max-h-[calc(100dvh-4rem)] lg:grid-cols-[1.12fr_.88fr] lg:overflow-hidden ${props.kind === "night" ? "border border-brand-gold/55" : "border border-white/60"}`} data-lenis-prevent>
         <button type="button" onClick={props.onClose} className="absolute right-3 top-3 z-30 grid h-10 w-10 place-items-center border border-brand-navy/15 bg-white/90 text-brand-navy backdrop-blur-sm" aria-label="Închide previzualizarea"><X size={19} /></button>
-        <div className={`flex items-center justify-center p-4 pt-16 sm:p-8 lg:min-h-[720px] lg:p-10 ${props.kind === "night" ? "bg-[#111b37]" : "bg-[#efe7d8]"}`}>
-          <div className="w-full max-w-[470px]">{props.kind === "night" ? <NightCertificate {...props} /> : <PatienceCover {...props} />}</div>
+        <div className={`flex items-center justify-center p-3 pt-14 sm:p-8 lg:min-h-[720px] lg:p-10 ${props.kind === "night" ? "bg-[#111b37]" : "bg-[#efe7d8]"}`}>
+          <div className="w-full max-w-[270px] sm:max-w-[470px]">{props.kind === "night" ? <NightCertificate {...props} /> : <PatienceCover {...props} />}</div>
         </div>
-        <div className="flex flex-col justify-center px-5 py-8 text-brand-navy sm:px-9 sm:py-10 lg:px-12">
+        <div className="flex flex-col justify-center px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-7 text-brand-navy sm:px-9 sm:py-10 lg:px-12">
           <p className="text-xs font-black uppercase tracking-[0.16em] text-brand-purple">Previzualizare gratuită</p>
           <h2 className="mt-3 font-serif text-3xl leading-tight sm:text-4xl">{title}</h2>
           <p className="mt-4 text-sm font-semibold leading-relaxed text-brand-navy/65 sm:text-base">{description}</p>

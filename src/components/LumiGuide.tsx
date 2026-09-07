@@ -173,12 +173,12 @@ export default function LumiGuide() {
   ];
 
   return (
-    <aside className="fixed bottom-3 left-2 right-2 z-[80] sm:bottom-5 sm:left-auto sm:right-6 sm:w-[400px]" aria-label="Lumi, ghidul pentru Povestea Magică">
+    <aside className="fixed bottom-0 left-0 right-0 z-[80] sm:bottom-5 sm:left-auto sm:right-6 sm:w-[400px]" aria-label="Lumi, ghidul pentru Povestea Magică">
       <AnimatePresence mode="wait">
         {isOpen ? (
-          <motion.section key="guide" initial={{ opacity: 0, y: 18, scale: .97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 12, scale: .97 }} className="flex max-h-[min(660px,calc(100dvh-5rem))] min-h-0 flex-col overflow-hidden border border-brand-gold/55 bg-brand-cream shadow-[0_24px_70px_rgba(15,25,48,.35)]">
+          <motion.section key="guide" initial={{ opacity: 0, y: 18, scale: .97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 12, scale: .97 }} className="flex max-h-[calc(100dvh-4.5rem)] min-h-0 flex-col overflow-hidden border border-brand-gold/55 bg-brand-cream shadow-[0_24px_70px_rgba(15,25,48,.35)] sm:max-h-[min(660px,calc(100dvh-5rem))]">
             <header className="relative shrink-0 border-b border-brand-navy/12 bg-brand-navy px-4 py-3 pr-20 text-brand-cream">
-              <LumiVisual3D className="absolute right-8 -top-5 h-20 w-[70px]" />
+              <LumiVisual3D className="absolute right-9 -top-3 h-16 w-[58px] sm:right-8 sm:-top-5 sm:h-20 sm:w-[70px]" />
               <p className="text-[10px] font-black uppercase tracking-[0.15em] text-brand-gold">Lumi, păzitoarea Lanternei</p>
               <h2 className="mt-1 max-w-[245px] font-serif text-lg leading-tight">Creăm Povestea Magică</h2>
               <button type="button" onClick={() => setIsOpen(false)} className="absolute right-3 top-3 z-10 grid h-8 w-8 place-items-center border border-white/15 text-brand-cream/70 hover:bg-white/10" aria-label="Închide Lumi"><X size={17} /></button>
@@ -208,7 +208,7 @@ export default function LumiGuide() {
               {error && <p role="alert" className="mt-4 border-l-4 border-brand-pink bg-brand-pink/10 px-3 py-2 text-xs font-bold text-brand-navy">{error}</p>}
             </div>
 
-            <footer className="shrink-0 border-t border-brand-navy/12 bg-white px-4 py-3">
+            <footer className="shrink-0 border-t border-brand-navy/12 bg-white px-4 pb-[max(.75rem,env(safe-area-inset-bottom))] pt-3 sm:py-3">
               <div className="flex items-center justify-between gap-3">
                 <button type="button" onClick={() => step > 0 ? setStep((current) => current - 1) : reset()} className="inline-flex min-h-10 items-center gap-2 px-1 text-xs font-black text-brand-navy/65"><ArrowLeft size={15} /> {step > 0 ? "Înapoi" : "Reîncepe"}</button>
                 {step < totalSteps ? <button type="button" onClick={next} className="inline-flex min-h-11 items-center gap-2 bg-brand-navy px-5 text-xs font-black text-brand-cream">Continuă <ArrowRight size={16} /></button> : <button type="button" onClick={apply} disabled={isApplying} className="inline-flex min-h-11 items-center gap-2 bg-brand-purple px-5 text-xs font-black text-white disabled:opacity-60">{isApplying ? <LoaderCircle size={16} className="animate-spin" /> : <Check size={16} />} Așază în poveste</button>}
@@ -217,7 +217,7 @@ export default function LumiGuide() {
             </footer>
           </motion.section>
         ) : (
-          <motion.button key="launcher" type="button" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} onClick={() => { trackEvent("lumi_opened"); setIsOpen(true); }} className="ml-auto flex h-14 items-center gap-2 border border-brand-gold/55 bg-brand-navy pl-3 pr-5 text-brand-cream shadow-[0_14px_35px_rgba(15,25,48,.28)] transition hover:bg-brand-purple">
+          <motion.button key="launcher" type="button" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} onClick={() => { trackEvent("lumi_opened"); setIsOpen(true); }} className="mb-[max(.5rem,env(safe-area-inset-bottom))] mr-2 ml-auto flex h-14 items-center gap-2 border border-brand-gold/55 bg-brand-navy pl-3 pr-5 text-brand-cream shadow-[0_14px_35px_rgba(15,25,48,.28)] transition hover:bg-brand-purple sm:mb-0 sm:mr-0">
             <span aria-hidden="true" className="relative h-12 w-12 overflow-hidden bg-[url('/lumi-guardian.webp')] bg-[length:150%] bg-center bg-no-repeat"/><span className="text-left"><span className="block text-[9px] font-black uppercase tracking-[0.12em] text-brand-gold">Cu Lumi</span><span className="block text-xs font-black">Creează povestea</span></span><Sparkles size={16} className="text-brand-gold" />
           </motion.button>
         )}

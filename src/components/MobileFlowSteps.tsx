@@ -7,7 +7,7 @@ export default function MobileFlowSteps({ items, accentClass }: MobileFlowStepsP
   return (
     <ol className="mb-6 grid grid-cols-3 border-y border-brand-navy/10 py-3 md:hidden" aria-label="Etapele materialului">
       {items.map((item, index) => (
-        <li key={item} className="flex min-h-12 min-w-0 flex-col items-center justify-center gap-1 px-1 text-center text-[11px] font-black leading-tight text-brand-navy/60">
+        <li key={item} className="flex min-h-12 min-w-0 flex-col items-center justify-center gap-1 px-1 text-center text-[11px] font-black leading-tight text-brand-navy">
           <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full text-[10px] text-white ${accentClass}`}>{index + 1}</span>
           <span>{item}</span>
         </li>

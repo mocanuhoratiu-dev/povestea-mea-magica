@@ -85,32 +85,32 @@ export default function ProductSampleGallery({
 
   return (
     <section className={`overflow-hidden px-4 py-14 sm:px-6 md:py-20 ${isNight ? "bg-[#f7f0df] text-brand-navy" : "bg-brand-navy text-brand-cream"}`} aria-labelledby={`${product}-sample-title`}>
-      <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[.78fr_1.22fr] lg:items-center lg:gap-16">
-        <div className="max-w-xl">
+      <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[.78fr_1.22fr] lg:items-center lg:gap-16">
+        <div className="order-2 max-w-xl lg:order-1">
           <p className={`flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] ${isNight ? "text-brand-purple" : "text-brand-gold"}`}><Sparkles size={16} /> {eyebrow}</p>
-          <h2 id={`${product}-sample-title`} className="mt-4 font-serif text-4xl leading-tight sm:text-5xl">{title}</h2>
-          <p className={`mt-5 text-base font-semibold leading-relaxed sm:text-lg ${isNight ? "text-brand-navy/68" : "text-brand-cream/72"}`}>{description}</p>
+          <h2 id={`${product}-sample-title`} className="mt-4 font-serif text-3xl leading-tight sm:text-5xl">{title}</h2>
+          <p className={`mt-5 text-base font-semibold leading-relaxed sm:text-lg ${isNight ? "text-brand-navy/75" : "text-brand-cream/78"}`}>{description}</p>
           <div className={`mt-7 grid gap-3 border-y py-5 text-sm font-bold sm:grid-cols-2 ${isNight ? "border-brand-navy/15 text-brand-navy/72" : "border-white/15 text-brand-cream/72"}`}>
             {facts.map((fact) => <span key={fact} className="flex items-center gap-2"><span className={`h-1.5 w-1.5 shrink-0 ${isNight ? "bg-brand-purple" : "bg-brand-gold"}`} />{fact}</span>)}
           </div>
           <div className="mt-7">
             <p className={`text-[10px] font-black uppercase tracking-[0.14em] ${isNight ? "text-brand-purple" : "text-brand-gold"}`}>{activePage.eyebrow}</p>
             <h3 className="mt-2 font-serif text-2xl">{activePage.title}</h3>
-            <p className={`mt-2 text-sm font-semibold leading-relaxed ${isNight ? "text-brand-navy/62" : "text-brand-cream/62"}`}>{activePage.description}</p>
+            <p className={`mt-2 text-sm font-semibold leading-relaxed ${isNight ? "text-brand-navy/72" : "text-brand-cream/75"}`}>{activePage.description}</p>
           </div>
           <a href={ctaHref} className={`mt-7 inline-flex min-h-12 items-center px-6 text-sm font-black transition ${isNight ? "bg-brand-navy text-brand-cream hover:bg-brand-purple" : "bg-brand-gold text-brand-navy hover:bg-brand-cream"}`}>{ctaLabel}<ChevronRight className="ml-2" size={18} /></a>
         </div>
 
-        <div>
+        <div className="order-1 lg:order-2">
           {pagePreview()}
           <div className="mx-auto mt-5 grid max-w-[520px] grid-cols-3 gap-2" aria-label="Alege pagina din mostră">
             {pages.map((page, index) => (
-              <button key={page.image} type="button" onClick={() => goTo(index)} aria-label={`Arată ${page.title}`} aria-current={activeIndex === index ? "page" : undefined} className={`relative aspect-[.95] overflow-hidden border bg-white transition ${activeIndex === index ? "border-brand-gold ring-2 ring-brand-gold" : "border-brand-navy/15 opacity-65 hover:opacity-100"}`}>
+              <button key={page.image} type="button" onClick={() => goTo(index)} aria-label={`Arată ${page.title}`} aria-current={activeIndex === index ? "page" : undefined} className={`relative aspect-[1.2] overflow-hidden border bg-white transition sm:aspect-[.95] ${activeIndex === index ? "border-brand-gold ring-2 ring-brand-gold" : "border-brand-navy/15 opacity-65 hover:opacity-100"}`}>
                 <Image src={page.image} alt="" fill sizes="170px" className="object-cover object-top" />
               </button>
             ))}
           </div>
-          <div className={`mx-auto mt-4 flex max-w-[520px] items-center justify-between border-t pt-4 text-xs font-black ${isNight ? "border-brand-navy/12 text-brand-navy/55" : "border-white/12 text-brand-cream/55"}`}><span>Răsfoiește produsul real</span><span className="tabular-nums">{activeIndex + 1} / {pages.length}</span></div>
+          <div className={`mx-auto mt-4 flex max-w-[520px] items-center justify-between border-t pt-4 text-xs font-black ${isNight ? "border-brand-navy/12 text-brand-navy/72" : "border-white/12 text-brand-cream/72"}`}><span>Răsfoiește produsul real</span><span className="tabular-nums">{activeIndex + 1} / {pages.length}</span></div>
         </div>
       </div>
 

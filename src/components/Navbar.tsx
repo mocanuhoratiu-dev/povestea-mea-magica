@@ -28,9 +28,7 @@ export default function Navbar() {
 
   return (
     <>
-      <motion.nav
-        initial={{ y: -100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
+      <nav
         className="fixed inset-x-0 top-0 z-[80] lg:hidden"
         aria-label="Navigare principală"
       >
@@ -70,11 +68,9 @@ export default function Navbar() {
             </Link>
           </motion.div>
         )}
-      </motion.nav>
+      </nav>
 
-      <motion.nav
-        initial={{ y: -100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
+      <nav
         className="fixed left-1/2 top-4 z-[80] hidden w-[calc(100%-2rem)] max-w-7xl -translate-x-1/2 lg:block"
         aria-label="Navigare principală"
       >
@@ -108,7 +104,7 @@ export default function Navbar() {
           Creează povestea
           </Link>
         </div>
-      </motion.nav>
+      </nav>
     </>
   );
 }

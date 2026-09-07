@@ -151,7 +151,7 @@ export default function AlbumFlipbook() {
             transition={{ duration: reduceMotion ? 0.12 : 0.38, ease: [0.22, 1, 0.36, 1] }}
             style={{ transformOrigin: direction > 0 ? "left center" : "right center", transformStyle: "preserve-3d" }}
           >
-            <AlbumPage index={activeIndex} priority={activeIndex < 2} />
+            <AlbumPage index={activeIndex} />
           </motion.div>
         </AnimatePresence>
         <button
