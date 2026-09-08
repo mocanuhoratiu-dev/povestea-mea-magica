@@ -56,12 +56,15 @@ deploy_service() {
   local service="$1"
   local region="$2"
   local image_uri="${3:-}"
-  local resend_secret_args=()
-  local stripe_secret_args=()
-  local order_secret_args=()
-  local smartbill_secret_args=()
-  local marketing_secret_args=()
-  local turnstile_secret_args=()
+  # Bash 3.2 treats an expansion of an empty local array as an unbound
+  # variable under `set -u`. `--quiet` is a harmless sentinel and is replaced
+  # whenever the corresponding secret exists.
+  local resend_secret_args=(--quiet)
+  local stripe_secret_args=(--quiet)
+  local order_secret_args=(--quiet)
+  local smartbill_secret_args=(--quiet)
+  local marketing_secret_args=(--quiet)
+  local turnstile_secret_args=(--quiet)
   local source_args=(--source .)
   local build_args=(--quiet --update-build-env-vars "NEXT_PUBLIC_STRIPE_ENABLED=${STRIPE_ENABLED},NEXT_PUBLIC_SUPPORT_EMAIL=${SUPPORT_EMAIL},NEXT_PUBLIC_META_PIXEL_ID=${META_PIXEL_ID},NEXT_PUBLIC_TURNSTILE_SITE_KEY=${TURNSTILE_SITE_KEY}")
 
