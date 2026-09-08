@@ -55,6 +55,11 @@ const organizationSchema = {
   url: siteUrl,
   logo: `${siteUrl}/icon.png`,
   email: publicContact.email,
+  sameAs: [
+    "https://www.instagram.com/povesteameamagica/",
+    "https://www.facebook.com/povesteameamagica",
+    "https://www.tiktok.com/@povesteameamagica",
+  ],
   address: { "@type": "PostalAddress", addressLocality: "Balotești", addressRegion: "Ilfov", addressCountry: "RO" },
 };
 
