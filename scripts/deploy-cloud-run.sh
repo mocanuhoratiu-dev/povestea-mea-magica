@@ -8,16 +8,49 @@ DOMAIN_SERVICE="${DOMAIN_SERVICE:-povestea-mea-magica-domain}"
 DOMAIN_REGION="${DOMAIN_REGION:-europe-west1}"
 SERVICE_ACCOUNT="${SERVICE_ACCOUNT:-povestea-mea-magica-ai@${PROJECT_ID}.iam.gserviceaccount.com}"
 SITE_URL="${SITE_URL:-https://www.povestea-mea-magica.ro}"
-STRIPE_ENABLED="${STRIPE_ENABLED:-false}"
-SMARTBILL_ENABLED="${SMARTBILL_ENABLED:-false}"
+REQUESTED_STRIPE_ENABLED="${STRIPE_ENABLED:-}"
+REQUESTED_SMARTBILL_ENABLED="${SMARTBILL_ENABLED:-}"
 SMARTBILL_MODE="${SMARTBILL_MODE:-test}"
 SUPPORT_EMAIL="${SUPPORT_EMAIL:-office@povestea-mea-magica.ro}"
 RESEND_SECRET_NAME="${RESEND_SECRET_NAME:-pmm-resend-api-key}"
 SMARTBILL_SECRET_NAME="${SMARTBILL_SECRET_NAME:-pmm-smartbill-test-token}"
-META_PIXEL_ID="${META_PIXEL_ID:-}"
+REQUESTED_META_PIXEL_ID="${META_PIXEL_ID:-}"
 META_CAPI_SECRET_NAME="${META_CAPI_SECRET_NAME:-pmm-meta-capi-access-token}"
-TURNSTILE_SITE_KEY="${TURNSTILE_SITE_KEY:-}"
+REQUESTED_TURNSTILE_SITE_KEY="${TURNSTILE_SITE_KEY:-}"
 TURNSTILE_SECRET_NAME="${TURNSTILE_SECRET_NAME:-pmm-turnstile-secret-key}"
+
+read_service_env() {
+  local name="$1"
+  gcloud run services describe "$SERVICE" \
+    --project "$PROJECT_ID" \
+    --region "$REGION" \
+    --format=json \
+    2>/dev/null | python3 -c 'import json, sys
+name = sys.argv[1]
+data = json.load(sys.stdin)
+items = data.get("spec", {}).get("template", {}).get("spec", {}).get("containers", [{}])[0].get("env", [])
+print(next((item.get("value", "") for item in items if item.get("name") == name), ""))' "$name" || true
+}
+
+CURRENT_STRIPE_ENABLED="$(read_service_env NEXT_PUBLIC_STRIPE_ENABLED)"
+CURRENT_SMARTBILL_ENABLED="$(read_service_env SMARTBILL_ENABLED)"
+CURRENT_META_PIXEL_ID="$(read_service_env META_PIXEL_ID)"
+CURRENT_TURNSTILE_SITE_KEY="$(read_service_env NEXT_PUBLIC_TURNSTILE_SITE_KEY)"
+
+STRIPE_ENABLED="${REQUESTED_STRIPE_ENABLED:-${CURRENT_STRIPE_ENABLED:-false}}"
+SMARTBILL_ENABLED="${REQUESTED_SMARTBILL_ENABLED:-${CURRENT_SMARTBILL_ENABLED:-false}}"
+META_PIXEL_ID="${REQUESTED_META_PIXEL_ID:-${CURRENT_META_PIXEL_ID:-}}"
+TURNSTILE_SITE_KEY="${REQUESTED_TURNSTILE_SITE_KEY:-${CURRENT_TURNSTILE_SITE_KEY:-}}"
+
+if [[ -n "$CURRENT_STRIPE_ENABLED" && "$STRIPE_ENABLED" != "$CURRENT_STRIPE_ENABLED" && "${ALLOW_COMMERCE_CONFIG_CHANGE:-false}" != "true" ]]; then
+  echo "Deploy oprit: STRIPE_ENABLED diferă de configurația live. Setează ALLOW_COMMERCE_CONFIG_CHANGE=true numai pentru o schimbare intenționată." >&2
+  exit 1
+fi
+
+if [[ -n "$CURRENT_SMARTBILL_ENABLED" && "$SMARTBILL_ENABLED" != "$CURRENT_SMARTBILL_ENABLED" && "${ALLOW_COMMERCE_CONFIG_CHANGE:-false}" != "true" ]]; then
+  echo "Deploy oprit: SMARTBILL_ENABLED diferă de configurația live. Setează ALLOW_COMMERCE_CONFIG_CHANGE=true numai pentru o schimbare intenționată." >&2
+  exit 1
+fi
 
 deploy_service() {
   local service="$1"
