@@ -3,10 +3,11 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Check, LoaderCircle, RotateCcw, Sparkles, Square, Volume2, X } from "lucide-react";
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { albumArtStyleOptions, albumCompanionOptions, albumLessonOptions, albumMoodOptions, albumWorldOptions } from "@/lib/album/types";
 import { trackEvent } from "@/lib/clientTelemetry";
+import { lumiContextPrompt, lumiGenerationCopy, lumiStateCopy, lumiStateForGuideStep, type LumiGenerationDetail } from "@/lib/lumiExperience";
 import { playNarration, stopNarration as stopSharedNarration, subscribeToNarration } from "@/lib/narrationPlayback";
 
 const LUMI_NARRATION_OWNER = "lumi-guide";
@@ -67,14 +68,14 @@ const initialDraft: LumiDraft = {
 };
 
 const prompts = [
-  "Bună, sunt Lumi. Sunt aici să te ajut să creăm Povestea Magică a copilului tău. Începem cu cel mai important detaliu: cum îl cheamă?",
-  "Ce vârstă are? Voi potrivi ritmul, vocabularul și lungimea scenelor pentru el.",
-  "Cum arată eroul nostru? Fixăm chipul și ținuta pe care le păstrăm de la copertă până la ultima pagină.",
-  "În ce lume intră și ce culoare o face să pară a lui? Poți alege un loc sau inventa unul nou.",
-  "Cine merge alături de el? Poate avea un companion magic și, opțional, o persoană dragă în poveste.",
-  "Ce descoperă în aventură și cum vrei să arate cartea? Alegem sensul, atmosfera și stilul ilustrațiilor.",
-  "Dă-mi un detaliu pe care copilul îl va recunoaște imediat. Poți descrie și propria idee pentru aventură.",
-  "Ultimul strop de magie: vrei să lăsăm o dedicație din partea familiei?",
+  "Bună, sunt Lumi. Cum îl cheamă pe eroul nostru?",
+  "Câți ani are? Voi potrivi povestea vârstei lui.",
+  "Cum arată? Păstrăm aceste trăsături în fiecare scenă.",
+  "În ce lume începe aventura? Poți alege sau inventa una.",
+  "Cine îl însoțește? Alegem un companion și, dacă vrei, o persoană dragă.",
+  "Ce descoperă și ce atmosferă va avea cartea?",
+  "Spune-mi un detaliu pe care îl va recunoaște imediat.",
+  "Lăsăm și un mesaj din partea familiei?",
 ] as const;
 
 const inputClass = "mt-2 min-h-12 w-full border border-brand-navy/18 bg-white px-4 py-3 text-sm font-bold text-brand-navy outline-none transition focus:border-brand-purple focus:ring-2 focus:ring-brand-purple/15";
@@ -86,17 +87,90 @@ function choiceClass(active: boolean) {
 
 export default function LumiGuide() {
   const router = useRouter();
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState<LumiDraft>(initialDraft);
   const [error, setError] = useState("");
   const [isApplying, setIsApplying] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [contextStep, setContextStep] = useState(0);
+  const [contextName, setContextName] = useState("");
+  const [showNudge, setShowNudge] = useState(false);
+  const [generation, setGeneration] = useState<LumiGenerationDetail>({ phase: "idle", progress: 0 });
+  const generationResetTimer = useRef<number | null>(null);
+
+  const guideVisualState = lumiStateForGuideStep(step, totalSteps);
+  const visualState = generation.phase !== "idle" ? lumiGenerationCopy[generation.phase].visualState : guideVisualState;
+  const visualTitle = generation.phase !== "idle" ? lumiGenerationCopy[generation.phase].title : lumiStateCopy[visualState].label;
+  const contextualLauncherLabel = pathname === "/povestea-magica"
+    ? ["Începem cu eroul", "Alegem lumea", "Adăugăm detaliul vostru", "Verificăm mostra"][contextStep]
+    : "Construim povestea";
+  const launcherCopy = useMemo(() => {
+    if (generation.phase !== "idle") return generation.message || lumiGenerationCopy[generation.phase].message;
+    if (pathname === "/povestea-magica") return lumiContextPrompt(contextStep, contextName);
+    return "Bună, sunt Lumi. Construim împreună o poveste numai a copilului tău?";
+  }, [contextName, contextStep, generation, pathname]);
 
   useEffect(() => {
-    const openGuide = () => { trackEvent("lumi_opened"); setIsOpen(true); };
+    const openGuide = () => {
+      trackEvent("lumi_opened");
+      setIsOpen(true);
+      setShowNudge(false);
+      try { window.sessionStorage.setItem("pmm-lumi-nudge-seen", "1"); } catch {}
+      window.setTimeout(() => window.dispatchEvent(new CustomEvent("pmm:lumi-request-context")), 0);
+    };
     window.addEventListener("pmm:lumi-open", openGuide);
     return () => window.removeEventListener("pmm:lumi-open", openGuide);
+  }, []);
+
+  useEffect(() => {
+    const receiveContext = (event: Event) => {
+      const detail = (event as CustomEvent<Record<string, unknown>>).detail || {};
+      if (typeof detail.step === "number") setContextStep(Math.max(0, Math.min(3, detail.step)));
+      if (typeof detail.name === "string") setContextName(detail.name.slice(0, 40));
+      const incoming = detail.draft;
+      if (!incoming || typeof incoming !== "object") return;
+      const next = incoming as Partial<LumiDraft>;
+      setDraft((current) => {
+        const merged = { ...current };
+        for (const key of Object.keys(current) as (keyof LumiDraft)[]) {
+          const value = next[key];
+          if (typeof value === "string") Object.assign(merged, { [key]: value });
+        }
+        return merged;
+      });
+    };
+    const receiveGeneration = (event: Event) => {
+      const detail = (event as CustomEvent<LumiGenerationDetail>).detail;
+      if (!detail || !lumiGenerationCopy[detail.phase]) return;
+      if (generationResetTimer.current !== null) {
+        window.clearTimeout(generationResetTimer.current);
+        generationResetTimer.current = null;
+      }
+      setGeneration({ phase: detail.phase, progress: Math.max(0, Math.min(100, detail.progress)), message: detail.message });
+      if (detail.phase === "ready") {
+        generationResetTimer.current = window.setTimeout(() => {
+          setGeneration({ phase: "idle", progress: 0 });
+          generationResetTimer.current = null;
+        }, 8_000);
+      }
+    };
+    window.addEventListener("pmm:album-context-change", receiveContext);
+    window.addEventListener("pmm:lumi-generation-state", receiveGeneration);
+    return () => {
+      window.removeEventListener("pmm:album-context-change", receiveContext);
+      window.removeEventListener("pmm:lumi-generation-state", receiveGeneration);
+      if (generationResetTimer.current !== null) window.clearTimeout(generationResetTimer.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const dismissed = window.sessionStorage.getItem("pmm-lumi-nudge-seen");
+    if (dismissed) return;
+    const timer = window.setTimeout(() => setShowNudge(true), 2_800);
+    return () => window.clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -108,6 +182,14 @@ export default function LumiGuide() {
     const unsubscribe = subscribeToNarration(({ owner, phase }) => setIsSpeaking(owner === LUMI_NARRATION_OWNER && phase !== "idle"));
     return () => { unsubscribe(); stopSharedNarration(LUMI_NARRATION_OWNER); };
   }, []);
+
+  useEffect(() => {
+    if (!isOpen || !draft.name.trim() || pathname !== "/povestea-magica") return;
+    const timer = window.setTimeout(() => {
+      window.dispatchEvent(new CustomEvent("pmm:lumi-album-draft", { detail: { ...draft, partial: true } }));
+    }, 120);
+    return () => window.clearTimeout(timer);
+  }, [draft, isOpen, pathname]);
 
   const update = <K extends keyof LumiDraft>(key: K, value: LumiDraft[K]) => setDraft((current) => ({ ...current, [key]: value }));
 
@@ -130,6 +212,11 @@ export default function LumiGuide() {
     setDraft(initialDraft);
     setStep(0);
     setError("");
+  };
+
+  const dismissNudge = () => {
+    setShowNudge(false);
+    try { window.sessionStorage.setItem("pmm-lumi-nudge-seen", "1"); } catch {}
   };
 
   const toggleVoice = async () => {
@@ -173,14 +260,15 @@ export default function LumiGuide() {
   ];
 
   return (
-    <aside className="fixed bottom-0 left-0 right-0 z-[80] sm:bottom-5 sm:left-auto sm:right-6 sm:w-[400px]" aria-label="Lumi, ghidul pentru Povestea Magică">
+    <aside className="fixed bottom-3 left-3 right-3 z-[80] sm:bottom-5 sm:left-auto sm:right-6 sm:w-[400px]" aria-label="Lumi, ghidul pentru Povestea Magică" data-lumi-state={visualState}>
       <AnimatePresence mode="wait">
         {isOpen ? (
-          <motion.section key="guide" initial={{ opacity: 0, y: 18, scale: .97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 12, scale: .97 }} className="flex max-h-[calc(100dvh-4.5rem)] min-h-0 flex-col overflow-hidden border border-brand-gold/55 bg-brand-cream shadow-[0_24px_70px_rgba(15,25,48,.35)] sm:max-h-[min(660px,calc(100dvh-5rem))]">
-            <header className="relative shrink-0 border-b border-brand-navy/12 bg-brand-navy px-4 py-3 pr-20 text-brand-cream">
-              <LumiVisual3D className="absolute right-9 -top-3 h-16 w-[58px] sm:right-8 sm:-top-5 sm:h-20 sm:w-[70px]" />
+          <motion.section key="guide" initial={{ opacity: 0, y: 18, scale: .97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 12, scale: .97 }} className="flex max-h-[calc(100dvh-5rem)] min-h-0 flex-col overflow-hidden border border-brand-gold/55 bg-brand-cream shadow-[0_24px_70px_rgba(15,25,48,.35)] sm:max-h-[min(620px,calc(100dvh-6rem))]">
+            <header className="relative shrink-0 overflow-visible border-b border-brand-navy/12 bg-brand-navy px-4 py-3 pr-24 text-brand-cream">
+              <LumiVisual3D state={visualState} className="absolute right-8 -top-5 h-20 w-[72px] sm:right-7 sm:-top-7 sm:h-24 sm:w-[82px]" />
               <p className="text-[10px] font-black uppercase tracking-[0.15em] text-brand-gold">Lumi, păzitoarea Lanternei</p>
               <h2 className="mt-1 max-w-[245px] font-serif text-lg leading-tight">Creăm Povestea Magică</h2>
+              <p className="mt-1 text-[10px] font-bold text-brand-cream/60">{visualTitle}</p>
               <button type="button" onClick={() => setIsOpen(false)} className="absolute right-3 top-3 z-10 grid h-8 w-8 place-items-center border border-white/15 text-brand-cream/70 hover:bg-white/10" aria-label="Închide Lumi"><X size={17} /></button>
             </header>
 
@@ -217,9 +305,23 @@ export default function LumiGuide() {
             </footer>
           </motion.section>
         ) : (
-          <motion.button key="launcher" type="button" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} onClick={() => { trackEvent("lumi_opened"); setIsOpen(true); }} className="mb-[max(.5rem,env(safe-area-inset-bottom))] mr-2 ml-auto flex h-14 items-center gap-2 border border-brand-gold/55 bg-brand-navy pl-3 pr-5 text-brand-cream shadow-[0_14px_35px_rgba(15,25,48,.28)] transition hover:bg-brand-purple sm:mb-0 sm:mr-0">
-            <span aria-hidden="true" className="relative h-12 w-12 overflow-hidden bg-[url('/lumi-guardian.webp')] bg-[length:150%] bg-center bg-no-repeat"/><span className="text-left"><span className="block text-[9px] font-black uppercase tracking-[0.12em] text-brand-gold">Cu Lumi</span><span className="block text-xs font-black">Creează povestea</span></span><Sparkles size={16} className="text-brand-gold" />
-          </motion.button>
+          <motion.div key="launcher" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="ml-auto w-fit max-w-full">
+            <AnimatePresence>
+              {showNudge && generation.phase === "idle" && (
+                <motion.div initial={{ opacity: 0, y: 8, scale: .97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 6, scale: .98 }} className="relative mb-2 ml-auto w-[min(330px,calc(100vw-1.5rem))] border border-brand-gold/45 bg-brand-cream p-3 pr-9 shadow-[0_15px_35px_rgba(15,25,48,.2)]">
+                  <button type="button" onClick={dismissNudge} aria-label="Închide mesajul lui Lumi" className="absolute right-2 top-2 grid h-6 w-6 place-items-center text-brand-navy/45 hover:text-brand-navy"><X size={14} /></button>
+                  <p className="text-xs font-bold leading-relaxed text-brand-navy">{launcherCopy}</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            <motion.button type="button" onClick={() => { trackEvent("lumi_opened"); setIsOpen(true); dismissNudge(); window.setTimeout(() => window.dispatchEvent(new CustomEvent("pmm:lumi-request-context")), 0); }} whileHover={{ y: -2 }} whileTap={{ scale: .98 }} className="group ml-auto flex min-h-16 max-w-full items-center gap-2 border border-brand-gold/55 bg-brand-navy py-1 pl-1 pr-4 text-brand-cream shadow-[0_14px_35px_rgba(15,25,48,.28)] transition-colors hover:bg-brand-purple">
+              <span aria-hidden="true" className="relative h-14 w-14 shrink-0 overflow-hidden">
+                <span className="lumi-launcher-character absolute inset-0 bg-[url('/lumi-guardian.webp')] bg-[length:145%] bg-center bg-no-repeat" />
+              </span>
+              <span className="min-w-0 text-left"><span className="block text-[9px] font-black uppercase tracking-[0.12em] text-brand-gold">{generation.phase === "idle" ? "Creează cu Lumi" : "Lumi lucrează"}</span><span className="block max-w-[190px] truncate text-xs font-black">{generation.phase === "idle" ? contextualLauncherLabel : visualTitle}</span></span>
+              <Sparkles size={16} className="shrink-0 text-brand-gold transition-transform group-hover:rotate-12" />
+            </motion.button>
+          </motion.div>
         )}
       </AnimatePresence>
     </aside>

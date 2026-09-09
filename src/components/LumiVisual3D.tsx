@@ -2,9 +2,15 @@
 
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
+import type { LumiVisualState } from "@/lib/lumiExperience";
 
-export default function LumiVisual3D({ className }: { className: string }) {
+export default function LumiVisual3D({ className, state = "greeting" }: { className: string; state?: LumiVisualState }) {
   const hostRef = useRef<HTMLDivElement>(null);
+  const stateRef = useRef<LumiVisualState>(state);
+
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -28,6 +34,12 @@ export default function LumiVisual3D({ className }: { className: string }) {
     camera.position.set(0, 0, 4);
     const group = new THREE.Group();
     scene.add(group);
+
+    const glowGeometry = new THREE.CircleGeometry(1.08, 48);
+    const glowMaterial = new THREE.MeshBasicMaterial({ color: 0xe5b84f, transparent: true, opacity: .1, depthWrite: false });
+    const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+    glow.position.set(0, -.08, -.35);
+    group.add(glow);
 
     const sparkleGeometry = new THREE.BufferGeometry();
     sparkleGeometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array([-1.15, .82, 0, -.92, -.42, .1, -.58, 1.12, -.1, .98, .72, 0, 1.18, -.34, -.1, .45, 1.28, .05, .72, -.92, .12, -.2, -1.08, .05]), 3));
@@ -54,10 +66,10 @@ export default function LumiVisual3D({ className }: { className: string }) {
 
     const pointer = new THREE.Vector2();
     const onPointerMove = (event: PointerEvent) => {
-      const bounds = host.getBoundingClientRect();
-      pointer.x = bounds.width ? ((event.clientX - bounds.left) / bounds.width) * 2 - 1 : 0;
+      pointer.x = (event.clientX / Math.max(1, window.innerWidth)) * 2 - 1;
+      pointer.y = -((event.clientY / Math.max(1, window.innerHeight)) * 2 - 1);
     };
-    host.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
 
     const resize = () => {
       const nextWidth = Math.max(1, host.clientWidth);
@@ -77,9 +89,27 @@ export default function LumiVisual3D({ className }: { className: string }) {
     const render = () => {
       timer.update();
       const time = timer.getElapsed();
-      group.position.y = reducedMotion ? 0 : Math.sin(time * 1.4) * .07;
-      group.rotation.y = reducedMotion ? 0 : Math.sin(time * .55) * .07 + pointer.x * .1;
-      orbit.rotation.z = reducedMotion ? 0 : time * .22;
+      const activeState = stateRef.current;
+      const creating = activeState === "creating";
+      const celebrating = activeState === "celebrating";
+      const curious = activeState === "curious";
+      const encouraging = activeState === "encouraging";
+      const speed = creating ? 2.15 : celebrating ? 2.55 : .95;
+      const lift = creating ? .09 : celebrating ? .12 : .055;
+      const pulse = Math.sin(time * speed) * .5 + .5;
+
+      group.position.y = reducedMotion ? 0 : Math.sin(time * speed) * lift + (celebrating ? pulse * .035 : 0);
+      group.position.x = reducedMotion ? 0 : curious ? Math.sin(time * .7) * .025 : 0;
+      group.rotation.y = reducedMotion ? 0 : Math.sin(time * .52) * .055 + pointer.x * .075;
+      group.rotation.x = reducedMotion ? 0 : pointer.y * .025;
+      group.rotation.z = reducedMotion ? 0 : encouraging ? Math.sin(time * .8) * .018 : curious ? -.025 + Math.sin(time * .7) * .012 : 0;
+      const scale = reducedMotion ? 1 : 1 + (celebrating ? pulse * .035 : creating ? pulse * .012 : 0);
+      group.scale.setScalar(scale);
+      orbit.rotation.z = reducedMotion ? 0 : time * (creating ? .72 : celebrating ? .48 : .2);
+      orbitMaterial.opacity = reducedMotion ? .55 : .38 + pulse * (creating || celebrating ? .5 : .22);
+      sparkleMaterial.opacity = reducedMotion ? .72 : .42 + pulse * (creating || celebrating ? .58 : .34);
+      sparkleMaterial.size = creating || celebrating ? .065 + pulse * .018 : .055;
+      glowMaterial.opacity = reducedMotion ? .09 : .055 + pulse * (creating || celebrating ? .2 : .09);
       renderer.render(scene, camera);
       if (!reducedMotion) frame = window.requestAnimationFrame(render);
     };
@@ -89,8 +119,10 @@ export default function LumiVisual3D({ className }: { className: string }) {
       if (frame) window.cancelAnimationFrame(frame);
       timer.disconnect();
       resizeObserver.disconnect();
-      host.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointermove", onPointerMove);
       texture.dispose();
+      glowGeometry.dispose();
+      glowMaterial.dispose();
       sparkleGeometry.dispose();
       sparkleMaterial.dispose();
       orbitGeometry.dispose();

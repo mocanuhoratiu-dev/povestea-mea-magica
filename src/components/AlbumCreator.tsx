@@ -12,7 +12,9 @@ import { trackEvent } from "@/lib/clientTelemetry";
 import { commerce } from "@/lib/siteMode";
 import { prepareReferencePhoto } from "@/lib/album/clientReferencePhoto";
 import AlbumPreviewFlipbook, { type AlbumPreviewPage } from "@/components/AlbumPreviewFlipbook";
+import LumiGenerationStage from "@/components/LumiGenerationStage";
 import { protectedFetch } from "@/lib/clientTurnstile";
+import type { LumiGenerationDetail, LumiGenerationPhase } from "@/lib/lumiExperience";
 
 const steps = ["Copilul", "Aventura", "Mesajul vostru", "Mostra"];
 const colors = [
@@ -139,6 +141,18 @@ export default function AlbumCreator() {
   }), [name, age, hairStyle, hairColor, eyeColor, skinTone, outfit, appearanceDetail, favoriteColor, world, customWorld, companion, secondaryCharacterName, secondaryCharacterRole, secondaryCharacterAppearance, lesson, mood, artStyle, personalDetail, storyContext, dedication, dedicationFrom, referencePhoto]);
   const configurationFingerprint = useMemo(() => JSON.stringify(albumConfiguration), [albumConfiguration]);
   const activePreview = preview?.configurationFingerprint === configurationFingerprint ? preview : null;
+  const lumiPreviewPhase: LumiGenerationPhase = activePreview?.ready
+    ? "ready"
+    : activePreview?.progress === 3
+      ? "layout"
+      : activePreview?.progress === 2
+        ? "illustrations"
+        : activePreview
+          ? "story"
+          : isLoading
+            ? "character"
+            : "idle";
+  const lumiPreviewProgress = activePreview?.ready ? 100 : activePreview?.progress === 3 ? 92 : activePreview?.progress === 2 ? 72 : activePreview ? 42 : isLoading ? 14 : 0;
   const canContinue = step === 0
     ? Boolean(name.trim() && age && hairStyle && hairColor && eyeColor && skinTone && outfit.trim() && (!referencePhoto || photoConsent))
     : step === 1
@@ -186,6 +200,30 @@ export default function AlbumCreator() {
     }, 0);
     return () => window.clearTimeout(restoreTimer);
   }, []);
+
+  useEffect(() => {
+    const detail: LumiGenerationDetail = { phase: lumiPreviewPhase, progress: lumiPreviewProgress };
+    window.dispatchEvent(new CustomEvent("pmm:lumi-generation-state", { detail }));
+  }, [lumiPreviewPhase, lumiPreviewProgress]);
+
+  useEffect(() => {
+    const emitContext = () => {
+      window.dispatchEvent(new CustomEvent("pmm:album-context-change", {
+        detail: {
+          step,
+          name,
+          draft: {
+            ...albumConfiguration.generation,
+            dedication: albumConfiguration.dedication,
+            dedicationFrom: albumConfiguration.dedicationFrom,
+          },
+        },
+      }));
+    };
+    emitContext();
+    window.addEventListener("pmm:lumi-request-context", emitContext);
+    return () => window.removeEventListener("pmm:lumi-request-context", emitContext);
+  }, [albumConfiguration, name, step]);
 
   const persistDraft = (currentPreview: AlbumPreviewState | null = activePreview) => {
     try {
@@ -252,11 +290,21 @@ export default function AlbumCreator() {
         if (result.status === "ready") {
           const pages = readPreviewPages(result.pages);
           if (pages.length !== 3) throw new Error("Mostra nu conține toate paginile.");
-          const nextPreview: AlbumPreviewState = {
+          const layoutPreview: AlbumPreviewState = {
             ...activePreview,
             title: result.title || activePreview.title,
             qualityChecked: result.qualityChecked === true,
             pages,
+            ready: false,
+            progress: 3,
+            total: 3,
+          };
+          setPreview(layoutPreview);
+          setNotice("Ilustrațiile sunt gata. Lumi așază acum textul și imaginile în paginile mostrei.");
+          await new Promise((resolve) => window.setTimeout(resolve, 700));
+          if (cancelled) return;
+          const nextPreview: AlbumPreviewState = {
+            ...layoutPreview,
             ready: true,
             progress: 3,
             total: 3,
@@ -319,6 +367,7 @@ export default function AlbumCreator() {
     };
     const applyChoice = (event: Event) => {
       const detail = (event as CustomEvent<Record<string, unknown>>).detail || {};
+      const partial = detail.partial === true;
       if (typeof detail.theme === "string") {
         const recommendedWorld = albumWorldFromLumi(detail.theme);
         if (recommendedWorld) setWorld(recommendedWorld);
@@ -347,10 +396,13 @@ export default function AlbumCreator() {
       if (typeof detail.dedicationFrom === "string") setDedicationFrom(detail.dedicationFrom.slice(0, 80));
       if (typeof detail.lesson === "string" && lessonMap[detail.lesson]) setLesson(lessonMap[detail.lesson]);
       if (typeof detail.storyDetail === "string" && detail.storyDetail.trim()) setPersonalDetail(detail.storyDetail.trim().slice(0, 180));
-      setStep(3);
-      setNotice("Lumi a așezat toate alegerile în poveste. Verifică rezumatul și creează mostra.");
+      if (!partial) {
+        setStep(3);
+        setNotice("Lumi a așezat toate alegerile în poveste. Verifică rezumatul și creează mostra.");
+      }
     };
     window.addEventListener("pmm:lumi-album-choice", applyChoice);
+    window.addEventListener("pmm:lumi-album-draft", applyChoice);
     const rememberedChoice = window.sessionStorage.getItem("pmm-lumi-album-choice");
     if (rememberedChoice) {
       window.sessionStorage.removeItem("pmm-lumi-album-choice");
@@ -360,7 +412,10 @@ export default function AlbumCreator() {
         // The configurator remains usable if browser storage contains invalid data.
       }
     }
-    return () => window.removeEventListener("pmm:lumi-album-choice", applyChoice);
+    return () => {
+      window.removeEventListener("pmm:lumi-album-choice", applyChoice);
+      window.removeEventListener("pmm:lumi-album-draft", applyChoice);
+    };
   }, []);
 
   const goNext = () => {
@@ -538,8 +593,11 @@ export default function AlbumCreator() {
                   <div className="border border-brand-gold/60 bg-brand-gold/10 p-4"><BookHeart className="text-brand-purple" size={22} /><p className="mt-3 font-black text-brand-navy">Cartea ilustrată</p><p className="mt-1 text-xs font-semibold text-brand-navy/72">16 pagini, ilustrații 2K și așezare pregătită pentru print</p></div>
                   <div className="border border-brand-gold/60 bg-brand-gold/10 p-4"><Palette className="text-brand-purple" size={22} /><p className="mt-3 font-black text-brand-navy">Caiet inclus</p><p className="mt-1 text-xs font-semibold text-brand-navy/72">5 pagini: colorat, labirint și diferențe</p></div>
                 </div>
+                {isLoading && !activePreview && <div className="mt-7"><LumiGenerationStage phase="character" progress={14} /></div>}
                 {activePreview ? (
                   <div className="mt-7">
+                    <LumiGenerationStage phase={lumiPreviewPhase} progress={lumiPreviewProgress} />
+                    <div className="mt-3">
                     {activePreview.ready && activePreview.pages.length === 3 ? <AlbumPreviewFlipbook pages={activePreview.pages} childName={name} /> : <div className="relative isolate overflow-hidden border border-brand-gold/70 bg-brand-navy shadow-[0_18px_45px_rgba(9,20,45,.18)]">
                       <Image
                         unoptimized
@@ -577,6 +635,7 @@ export default function AlbumCreator() {
                     <div className="flex gap-3 border-x border-b border-brand-gold/40 bg-brand-gold/10 p-4">
                       {activePreview.ready ? <Check className="mt-0.5 shrink-0 text-brand-purple" size={20} /> : <LoaderCircle className="mt-0.5 shrink-0 animate-spin text-brand-purple" size={20} />}
                       <div><p className="text-xs font-bold leading-relaxed text-brand-navy/70">{activePreview.ready ? `Marcajul dispare din produsul final. Coperta și cele două scene devin referința vizuală pentru restul cărții.${activePreview.qualityChecked ? " Toate cele trei imagini au trecut controlul automat." : ""}` : "Coperta fixează personajul. Motorul editorial scrie acum firul poveștii și creează două pagini distincte pentru verificare."}</p><button type="button" onClick={() => { setPreview(null); setHasConsent(false); }} className="mt-3 inline-flex min-h-9 items-center gap-2 border-b border-brand-purple text-[11px] font-black text-brand-purple"><RefreshCw size={14} /> Încearcă altă variantă</button></div>
+                    </div>
                     </div>
                   </div>
                 ) : (

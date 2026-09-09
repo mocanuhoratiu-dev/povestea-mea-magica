@@ -65,8 +65,35 @@ html {
   }
 
   body:has(#mobile-album-cta) aside[aria-label^="Lumi"],
-  body:has(#mobile-product-page-marker) aside[aria-label^="Lumi"] {
-    display: none;
+  body:has(#mobile-product-cta) aside[aria-label^="Lumi"] {
+    bottom: calc(4.75rem + env(safe-area-inset-bottom));
+  }
+}
+
+@keyframes lumi-character-hover {
+  0%, 100% { transform: translateY(1px) rotate(-1deg); filter: drop-shadow(0 0 7px rgba(229, 184, 79, .28)); }
+  50% { transform: translateY(-4px) rotate(1.5deg); filter: drop-shadow(0 0 13px rgba(229, 184, 79, .52)); }
+}
+
+@keyframes lumi-character-create {
+  0%, 100% { transform: translateY(0) scale(1); filter: drop-shadow(0 0 8px rgba(229, 184, 79, .36)); }
+  50% { transform: translateY(-5px) scale(1.035); filter: drop-shadow(0 0 17px rgba(229, 184, 79, .68)); }
+}
+
+.lumi-launcher-character {
+  animation: lumi-character-hover 3.8s ease-in-out infinite;
+  will-change: transform, filter;
+}
+
+[data-lumi-state="creating"] .lumi-launcher-character,
+[data-lumi-state="celebrating"] .lumi-launcher-character {
+  animation-name: lumi-character-create;
+  animation-duration: 1.8s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lumi-launcher-character {
+    animation: none;
   }
 }
 
