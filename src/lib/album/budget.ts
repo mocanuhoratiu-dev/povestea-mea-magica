@@ -8,16 +8,23 @@ function bounded(value: string | undefined, fallback: number, min: number, max: 
 }
 
 export function createAlbumBudget(existing?: AlbumBudget): AlbumBudget {
-  if (existing) return existing;
-  return {
+  const configured = {
     textCalls: 0,
     imageCalls: 0,
     qualityCalls: 0,
     maxTextCalls: bounded(process.env.ALBUM_MAX_TEXT_CALLS, 2, 1, 4),
-    maxImageCalls: bounded(process.env.ALBUM_MAX_IMAGE_CALLS, 36, 16, 44),
-    maxQualityCalls: bounded(process.env.ALBUM_MAX_QC_CALLS, 36, 0, 44),
+    maxImageCalls: bounded(process.env.ALBUM_MAX_IMAGE_CALLS, 44, 16, 60),
+    maxQualityCalls: bounded(process.env.ALBUM_MAX_QC_CALLS, 44, 0, 60),
     estimatedCostMicros: 0,
-    maxEstimatedCostMicros: bounded(process.env.ALBUM_MAX_ESTIMATED_COST_MICROS, 2_200_000, 200_000, 5_000_000),
+    maxEstimatedCostMicros: bounded(process.env.ALBUM_MAX_ESTIMATED_COST_MICROS, 3_200_000, 200_000, 5_000_000),
+  };
+  if (!existing) return configured;
+  return {
+    ...existing,
+    maxTextCalls: Math.max(existing.maxTextCalls, configured.maxTextCalls),
+    maxImageCalls: Math.max(existing.maxImageCalls, configured.maxImageCalls),
+    maxQualityCalls: Math.max(existing.maxQualityCalls, configured.maxQualityCalls),
+    maxEstimatedCostMicros: Math.max(existing.maxEstimatedCostMicros, configured.maxEstimatedCostMicros),
   };
 }
 

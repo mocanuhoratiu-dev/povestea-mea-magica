@@ -49,6 +49,7 @@ export async function GET(request: Request) {
       productId: order.productId,
       liveMode: session.livemode,
       ...(album?.progress ? { progress: album.progress } : {}),
+      ...(order.deliveryEmailStatus ? { deliveryEmailStatus: order.deliveryEmailStatus } : {}),
       delayed: order.status === "processing" && Date.now() - Date.parse(order.updatedAt) > 20 * 60 * 1000,
     };
 

@@ -5,6 +5,7 @@ import type { CheckoutProductId } from "@/lib/catalog";
 export type OrderProduct = "story" | "monster" | "emergency" | "bundle" | "album";
 export type OrderStatus = "draft" | "pending_payment" | "paid" | "processing" | "delivered" | "failed";
 export type InvoiceStatus = "pending" | "issuing" | "issued" | "failed" | "needs_review" | "not_required";
+export type DeliveryEmailStatus = "sending" | "sent" | "failed";
 
 export type StoredOrder = {
   id: string;
@@ -27,6 +28,10 @@ export type StoredOrder = {
   updatedAt: string;
   expiresAt: string;
   deliveryExpiresAt?: string;
+  deliveryEmailStatus?: DeliveryEmailStatus;
+  deliveryEmailProviderId?: string;
+  deliveryEmailErrorCode?: string;
+  deliveryEmailUpdatedAt?: string;
   errorCode?: string;
   updateTime?: string;
 };
@@ -75,6 +80,10 @@ function firestoreFields(order: StoredOrder) {
   if (order.invoiceErrorCode) values.invoiceErrorCode = { stringValue: order.invoiceErrorCode };
   if (order.invoiceUpdatedAt) values.invoiceUpdatedAt = { stringValue: order.invoiceUpdatedAt };
   if (order.deliveryExpiresAt) values.deliveryExpiresAt = { stringValue: order.deliveryExpiresAt };
+  if (order.deliveryEmailStatus) values.deliveryEmailStatus = { stringValue: order.deliveryEmailStatus };
+  if (order.deliveryEmailProviderId) values.deliveryEmailProviderId = { stringValue: order.deliveryEmailProviderId };
+  if (order.deliveryEmailErrorCode) values.deliveryEmailErrorCode = { stringValue: order.deliveryEmailErrorCode };
+  if (order.deliveryEmailUpdatedAt) values.deliveryEmailUpdatedAt = { stringValue: order.deliveryEmailUpdatedAt };
   if (order.errorCode) values.errorCode = { stringValue: order.errorCode };
   return values;
 }
@@ -106,6 +115,7 @@ function fromFirestore(document: { name?: string; updateTime?: string; fields?: 
   const status = readString(fields, "status") as OrderStatus;
   const configuration = readJson(fields, "configuration");
   const invoiceStatus = readString(fields, "invoiceStatus") as InvoiceStatus;
+  const deliveryEmailStatus = readString(fields, "deliveryEmailStatus") as DeliveryEmailStatus;
   if (!orderIdPattern.test(id) || !configuration || !["story", "monster", "emergency", "bundle", "album"].includes(product) || !["draft", "pending_payment", "paid", "processing", "delivered", "failed"].includes(status)) return null;
 
   return {
@@ -129,6 +139,10 @@ function fromFirestore(document: { name?: string; updateTime?: string; fields?: 
     updatedAt: readString(fields, "updatedAt"),
     expiresAt: readTimestamp(fields, "expiresAt") || readString(fields, "expiresAt"),
     ...(readString(fields, "deliveryExpiresAt") ? { deliveryExpiresAt: readString(fields, "deliveryExpiresAt") } : {}),
+    ...(["sending", "sent", "failed"].includes(deliveryEmailStatus) ? { deliveryEmailStatus } : {}),
+    ...(readString(fields, "deliveryEmailProviderId") ? { deliveryEmailProviderId: readString(fields, "deliveryEmailProviderId") } : {}),
+    ...(readString(fields, "deliveryEmailErrorCode") ? { deliveryEmailErrorCode: readString(fields, "deliveryEmailErrorCode") } : {}),
+    ...(readString(fields, "deliveryEmailUpdatedAt") ? { deliveryEmailUpdatedAt: readString(fields, "deliveryEmailUpdatedAt") } : {}),
     ...(readString(fields, "errorCode") ? { errorCode: readString(fields, "errorCode") } : {}),
     updateTime: document.updateTime,
   };
@@ -208,7 +222,7 @@ const orderStatusRank: Record<OrderStatus, number> = {
   failed: 5,
 };
 
-export async function setOrderStatus(order: StoredOrder, status: OrderStatus, fields: Partial<Pick<StoredOrder, "customerEmail" | "output" | "coverObjectName" | "deliveryExpiresAt" | "expiresAt" | "errorCode" | "stripeSessionId" | "stripeLivemode" | "invoiceStatus" | "invoiceSeries" | "invoiceNumber" | "invoiceDocumentUrl" | "invoiceErrorCode" | "invoiceUpdatedAt">> = {}) {
+export async function setOrderStatus(order: StoredOrder, status: OrderStatus, fields: Partial<Pick<StoredOrder, "customerEmail" | "output" | "coverObjectName" | "deliveryExpiresAt" | "deliveryEmailStatus" | "deliveryEmailProviderId" | "deliveryEmailErrorCode" | "deliveryEmailUpdatedAt" | "expiresAt" | "errorCode" | "stripeSessionId" | "stripeLivemode" | "invoiceStatus" | "invoiceSeries" | "invoiceNumber" | "invoiceDocumentUrl" | "invoiceErrorCode" | "invoiceUpdatedAt">> = {}) {
   let current = order;
   for (let attempt = 0; attempt < 4; attempt += 1) {
     const nextStatus = orderStatusRank[current.status] > orderStatusRank[status] ? current.status : status;

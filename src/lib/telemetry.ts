@@ -24,6 +24,7 @@ export type TelemetryFields = {
   identityScore?: number;
   storyScore?: number;
   technicalScore?: number;
+  qualityFallback?: boolean;
   amountMinor?: number;
   discountAmountMinor?: number;
   currency?: string;
@@ -135,6 +136,7 @@ export function logTelemetry(event: TelemetryEvent, fields: TelemetryFields = {}
     identity_score: fields.identityScore,
     story_score: fields.storyScore,
     technical_score: fields.technicalScore,
+    quality_fallback: fields.qualityFallback,
     amount_minor: fields.amountMinor,
     discount_amount_minor: fields.discountAmountMinor,
     currency: fields.currency,

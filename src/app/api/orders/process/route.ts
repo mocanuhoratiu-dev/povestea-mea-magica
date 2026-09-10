@@ -37,7 +37,13 @@ async function sendReadyEmail({ email, product, deliveryUrl, orderId, childName 
       text: createReadyEmailText({ product, childName, deliveryUrl, deliveryMode: "secure-link" }),
     }),
   });
-  if (!response.ok) throw new Error(`Email delivery failed (${response.status}).`);
+  const payload = await response.json().catch(() => ({})) as { id?: string };
+  if (!response.ok) throw new Error(`email_delivery_${response.status}`);
+  return payload.id?.trim().slice(0, 160) || "accepted";
+}
+
+function emailTelemetryProduct(product: TransactionalEmailProduct): OrderProduct {
+  return product === "complete_bundle" ? "bundle" : product;
 }
 
 async function generateMaterial({ orderId, product, configuration, secret, coverBasename = "cover" }: { orderId: string; product: Exclude<OrderProduct, "bundle" | "album">; configuration: Record<string, unknown>; secret: string; coverBasename?: string }) {
@@ -201,15 +207,53 @@ export async function POST(request: Request) {
         : await prepareSingleOrder(order, secret);
     if (!prepared.customerEmail || !prepared.deliveryExpiresAt) throw new Error("Comanda platita nu este pregatita pentru livrare.");
     const token = createDeliveryTokenForExpiry(prepared.id, prepared.deliveryExpiresAt);
-    await sendReadyEmail({
-      email: prepared.customerEmail,
-      product: prepared.productId === "complete-bundle" ? "complete_bundle" : prepared.product,
-      deliveryUrl: createOrderDeliveryUrl(prepared, token, siteUrl),
-      orderId: prepared.id,
-      childName: prepared.product === "bundle" ? "" : readChildName(prepared.configuration),
+    const emailProduct: TransactionalEmailProduct = prepared.productId === "complete-bundle" ? "complete_bundle" : prepared.product;
+    const emailStartedAt = Date.now();
+    const emailPending = await setOrderStatus(prepared, "processing", {
+      deliveryEmailStatus: "sending",
+      deliveryEmailErrorCode: "",
+      deliveryEmailUpdatedAt: new Date().toISOString(),
     });
-    const delivered = await setOrderStatus(prepared, "delivered");
+    if (!emailPending) throw new Error("Starea livrării pe email nu a putut fi salvată.");
+    logTelemetry("pmm_email_delivery_started", { product: emailTelemetryProduct(emailProduct), result: "pending" });
+
+    let providerId = "";
+    try {
+      providerId = await sendReadyEmail({
+        email: emailPending.customerEmail as string,
+        product: emailProduct,
+        deliveryUrl: createOrderDeliveryUrl(emailPending, token, siteUrl),
+        orderId: emailPending.id,
+        childName: emailPending.product === "bundle" ? "" : readChildName(emailPending.configuration),
+      });
+    } catch (error) {
+      const errorCode = error instanceof Error ? error.message.slice(0, 120) : "email_delivery_unknown";
+      await setOrderStatus(emailPending, "processing", {
+        deliveryEmailStatus: "failed",
+        deliveryEmailErrorCode: errorCode,
+        deliveryEmailUpdatedAt: new Date().toISOString(),
+      });
+      logTelemetry("pmm_email_delivery_failed", {
+        product: emailTelemetryProduct(emailProduct),
+        result: "error",
+        durationMs: Date.now() - emailStartedAt,
+        errorCode: "unknown",
+      });
+      throw error;
+    }
+
+    const delivered = await setOrderStatus(emailPending, "delivered", {
+      deliveryEmailStatus: "sent",
+      deliveryEmailProviderId: providerId,
+      deliveryEmailErrorCode: "",
+      deliveryEmailUpdatedAt: new Date().toISOString(),
+    });
     if (!delivered) throw new Error("Comanda nu a putut fi finalizata.");
+    logTelemetry("pmm_email_delivery_completed", {
+      product: emailTelemetryProduct(emailProduct),
+      result: "success",
+      durationMs: Date.now() - emailStartedAt,
+    });
     logTelemetry("pmm_order_delivered", {
       product: delivered.product,
       result: "success",
@@ -229,7 +273,8 @@ export async function POST(request: Request) {
     console.error("Order processing failed", error);
     // Checkpoints keep completed bundle items. A retry resumes at the first
     // missing material and Resend idempotency prevents duplicate ready emails.
-    logTelemetry("pmm_order_failed", { product: order.product, result: "error", errorCode: "unknown" });
+    const errorCode = error instanceof Error && error.message.startsWith("album_budget_") ? "budget_limit" : "unknown";
+    logTelemetry("pmm_order_failed", { product: order.product, result: "error", errorCode });
     return NextResponse.json({ error: "Procesarea comenzii a esuat." }, { status: 500 });
   }
 }

@@ -9,6 +9,7 @@ import sharp from "sharp";
 import { createAlbumBudget, reserveAlbumBudgetCall, type AlbumBudgetCall } from "@/lib/album/budget";
 import { evaluateAlbumImage, isAlbumAiQualityEnabled } from "@/lib/album/quality";
 import { synthesizeRomanianSpeech } from "@/lib/googleTextToSpeech";
+import { acceptBestSafeCandidate, buildAlbumImageRetryPrompt, chooseBetterAlbumCandidate, isSafeSoftQualityCandidate, type AlbumImageCandidate } from "@/lib/album/imageQualityPolicy";
 
 type Checkpoint = (output: AlbumOrderOutput) => Promise<void>;
 type VisualFingerprint = Uint8Array;
@@ -111,12 +112,43 @@ async function generateAndStoreImage({
 }) {
   const startedAt = Date.now();
   const maxAttempts = readBoundedInteger(process.env.ALBUM_IMAGE_MAX_ATTEMPTS, 4, 1, 6);
+  const softFallbackAfter = readBoundedInteger(process.env.ALBUM_IMAGE_SOFT_FALLBACK_AFTER, 2, 1, maxAttempts);
   const retryDelayMs = readBoundedInteger(process.env.ALBUM_IMAGE_RETRY_DELAY_MS, 15_000, 2_000, 60_000);
   let lastError: unknown;
+  let bestSafeCandidate: AlbumImageCandidate<{
+    imageDataUrl: string;
+    model: string;
+    fingerprint: VisualFingerprint;
+  }> | undefined;
+  let activePrompt = prompt;
+
+  const saveCandidate = async (
+    candidate: NonNullable<typeof bestSafeCandidate>,
+    generationAttempt: number,
+    qualityFallback: boolean,
+  ) => {
+    const quality = qualityFallback ? acceptBestSafeCandidate(candidate.quality) : candidate.quality;
+    const objectName = await saveOrderCover(orderId, candidate.value.imageDataUrl, basename);
+    logTelemetry("pmm_album_stage_completed", {
+      product: "album",
+      result: "success",
+      durationMs: Date.now() - startedAt,
+      continuationCount: generationAttempt - 1,
+      aiProvider: "vertex",
+      model: candidate.value.model,
+      albumStage: stage,
+      attempt,
+      identityScore: quality.identityScore,
+      storyScore: quality.storyScore,
+      technicalScore: quality.technicalScore,
+      qualityFallback,
+    });
+    return { objectName, model: candidate.value.model, fingerprint: candidate.value.fingerprint, quality };
+  };
 
   for (let generationAttempt = 1; generationAttempt <= maxAttempts; generationAttempt += 1) {
     try {
-      const generated = await generateVertexAlbumIllustration(prompt, reference, aspectRatio, { beforeAttempt: beforeCall });
+      const generated = await generateVertexAlbumIllustration(activePrompt, reference, aspectRatio, { beforeAttempt: beforeCall });
       if ("error" in generated) throw new Error(generated.error);
       const fingerprint = await inspectGeneratedImage(generated.imageDataUrl, avoidFingerprints);
       const quality = await evaluateAlbumImage({
@@ -128,24 +160,23 @@ async function generateAndStoreImage({
         identityRequired: Boolean(reference),
         beforeAiCheck: beforeQualityCall,
       });
-      if (!quality.accepted) throw new AlbumImageQualityError("image_quality_rejected", "Ilustrația nu a trecut controlul editorial.");
-      const objectName = await saveOrderCover(orderId, generated.imageDataUrl, basename);
-      logTelemetry("pmm_album_stage_completed", {
-        product: "album",
-        result: "success",
-        durationMs: Date.now() - startedAt,
-        continuationCount: generationAttempt - 1,
-        aiProvider: "vertex",
-        model: generated.model,
-        albumStage: stage,
-        attempt,
-        identityScore: quality.identityScore,
-        storyScore: quality.storyScore,
-        technicalScore: quality.technicalScore,
-      });
-      return { objectName, model: generated.model, fingerprint, quality };
+      const candidate = { value: { imageDataUrl: generated.imageDataUrl, model: generated.model, fingerprint }, quality };
+      if (quality.accepted) return saveCandidate(candidate, generationAttempt, false);
+
+      if (isSafeSoftQualityCandidate(quality, Boolean(reference))) {
+        bestSafeCandidate = chooseBetterAlbumCandidate(bestSafeCandidate, candidate, Boolean(reference));
+        if (generationAttempt >= softFallbackAfter) {
+          return saveCandidate(bestSafeCandidate, generationAttempt, true);
+        }
+      }
+
+      activePrompt = buildAlbumImageRetryPrompt(prompt, quality, Boolean(reference));
+      throw new AlbumImageQualityError("image_quality_rejected", "Ilustrația nu a trecut controlul editorial.");
     } catch (error) {
       lastError = error;
+      if (isBudgetLimitError(error) && bestSafeCandidate) {
+        return saveCandidate(bestSafeCandidate, generationAttempt, true);
+      }
       const retryable = !isBudgetLimitError(error) && isRetryableImageError(error);
       const isLastAttempt = generationAttempt === maxAttempts;
       const errorCode = isBudgetLimitError(error) ? "budget_limit" : error instanceof AlbumImageQualityError ? error.code : retryable ? "rate_limited" : "ai_error";
@@ -163,6 +194,7 @@ async function generateAndStoreImage({
     }
   }
 
+  if (bestSafeCandidate) return saveCandidate(bestSafeCandidate, maxAttempts, true);
   throw lastError instanceof Error ? lastError : new Error("Ilustrația nu a putut fi generată.");
 }
 
@@ -227,6 +259,7 @@ export async function createAlbumPreviewScenes({
 }) {
   let output = readAlbumOutput(existing);
   if (!output?.assets.cover) throw new Error("Coperta aprobată lipsește din preview.");
+  output = { ...output, budget: createAlbumBudget(output.budget) };
 
   const reserve = async (kind: AlbumBudgetCall) => {
     output = { ...output as AlbumOrderOutput, budget: reserveAlbumBudgetCall((output as AlbumOrderOutput).budget, kind) };
@@ -297,6 +330,7 @@ export async function createAlbumOrderOutput({
   checkpoint: Checkpoint;
 }) {
   let output = readAlbumOutput(existing) || initialOutput();
+  output = { ...output, budget: createAlbumBudget(output.budget) };
   const reserve = async (kind: AlbumBudgetCall) => {
     output = { ...output, budget: reserveAlbumBudgetCall(output.budget, kind) };
     await checkpoint(output);
@@ -356,7 +390,7 @@ export async function createAlbumOrderOutput({
   const coverObjectName = output.assets.cover;
   if (!coverObjectName) throw new Error("Coperta albumului lipsește după etapa de generare.");
   const pacingMs = readBoundedInteger(process.env.ALBUM_IMAGE_PACING_MS, 4_000, 0, 30_000);
-  const sceneFingerprints = await Promise.all(
+  const sceneFingerprints: VisualFingerprint[] = await Promise.all(
     output.assets.scenes.filter(Boolean).map(async (objectName) => createVisualFingerprint((await readOrderFile(objectName)).buffer)),
   );
   for (let index = 0; index < ALBUM_SCENE_COUNT; index += 1) {
