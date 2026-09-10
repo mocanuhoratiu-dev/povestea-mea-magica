@@ -1,11 +1,13 @@
 import { GoogleAuth, OAuth2Client } from "google-auth-library";
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import type { CheckoutProductId } from "@/lib/catalog";
+import type { OrderRecoveryStage } from "@/lib/orderWatchdog";
 
 export type OrderProduct = "story" | "monster" | "emergency" | "bundle" | "album";
 export type OrderStatus = "draft" | "pending_payment" | "paid" | "processing" | "delivered" | "failed";
 export type InvoiceStatus = "pending" | "issuing" | "issued" | "failed" | "needs_review" | "not_required";
 export type DeliveryEmailStatus = "sending" | "sent" | "failed";
+export type WatchdogAlertStatus = "sending" | "sent" | "failed";
 
 export type StoredOrder = {
   id: string;
@@ -32,6 +34,12 @@ export type StoredOrder = {
   deliveryEmailProviderId?: string;
   deliveryEmailErrorCode?: string;
   deliveryEmailUpdatedAt?: string;
+  watchdogRecoveryCount?: number;
+  watchdogLastRecoveryAt?: string;
+  watchdogLastStage?: OrderRecoveryStage;
+  watchdogAlertStatus?: WatchdogAlertStatus;
+  watchdogAlertUpdatedAt?: string;
+  watchdogAlertErrorCode?: string;
   errorCode?: string;
   updateTime?: string;
 };
@@ -54,7 +62,7 @@ function firestoreDocumentUrl(id: string) {
   return `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(project)}/databases/(default)/documents/orders/${encodeURIComponent(id)}`;
 }
 
-type FirestoreField = { stringValue?: string; timestampValue?: string };
+type FirestoreField = { stringValue?: string; timestampValue?: string; integerValue?: string };
 
 function firestoreFields(order: StoredOrder) {
   const values: Record<string, FirestoreField> = {
@@ -84,6 +92,12 @@ function firestoreFields(order: StoredOrder) {
   if (order.deliveryEmailProviderId) values.deliveryEmailProviderId = { stringValue: order.deliveryEmailProviderId };
   if (order.deliveryEmailErrorCode) values.deliveryEmailErrorCode = { stringValue: order.deliveryEmailErrorCode };
   if (order.deliveryEmailUpdatedAt) values.deliveryEmailUpdatedAt = { stringValue: order.deliveryEmailUpdatedAt };
+  if (typeof order.watchdogRecoveryCount === "number") values.watchdogRecoveryCount = { integerValue: String(Math.max(0, Math.floor(order.watchdogRecoveryCount))) };
+  if (order.watchdogLastRecoveryAt) values.watchdogLastRecoveryAt = { stringValue: order.watchdogLastRecoveryAt };
+  if (order.watchdogLastStage) values.watchdogLastStage = { stringValue: order.watchdogLastStage };
+  if (order.watchdogAlertStatus) values.watchdogAlertStatus = { stringValue: order.watchdogAlertStatus };
+  if (order.watchdogAlertUpdatedAt) values.watchdogAlertUpdatedAt = { stringValue: order.watchdogAlertUpdatedAt };
+  if (order.watchdogAlertErrorCode) values.watchdogAlertErrorCode = { stringValue: order.watchdogAlertErrorCode };
   if (order.errorCode) values.errorCode = { stringValue: order.errorCode };
   return values;
 }
@@ -94,6 +108,11 @@ function readString(fields: Record<string, FirestoreField> | undefined, name: st
 
 function readTimestamp(fields: Record<string, FirestoreField> | undefined, name: string) {
   return fields?.[name]?.timestampValue || "";
+}
+
+function readInteger(fields: Record<string, FirestoreField> | undefined, name: string) {
+  const value = Number.parseInt(fields?.[name]?.integerValue || "", 10);
+  return Number.isFinite(value) ? value : undefined;
 }
 
 function readJson(fields: Record<string, FirestoreField> | undefined, name: string) {
@@ -116,6 +135,8 @@ function fromFirestore(document: { name?: string; updateTime?: string; fields?: 
   const configuration = readJson(fields, "configuration");
   const invoiceStatus = readString(fields, "invoiceStatus") as InvoiceStatus;
   const deliveryEmailStatus = readString(fields, "deliveryEmailStatus") as DeliveryEmailStatus;
+  const watchdogLastStage = readString(fields, "watchdogLastStage") as OrderRecoveryStage;
+  const watchdogAlertStatus = readString(fields, "watchdogAlertStatus") as WatchdogAlertStatus;
   if (!orderIdPattern.test(id) || !configuration || !["story", "monster", "emergency", "bundle", "album"].includes(product) || !["draft", "pending_payment", "paid", "processing", "delivered", "failed"].includes(status)) return null;
 
   return {
@@ -143,6 +164,12 @@ function fromFirestore(document: { name?: string; updateTime?: string; fields?: 
     ...(readString(fields, "deliveryEmailProviderId") ? { deliveryEmailProviderId: readString(fields, "deliveryEmailProviderId") } : {}),
     ...(readString(fields, "deliveryEmailErrorCode") ? { deliveryEmailErrorCode: readString(fields, "deliveryEmailErrorCode") } : {}),
     ...(readString(fields, "deliveryEmailUpdatedAt") ? { deliveryEmailUpdatedAt: readString(fields, "deliveryEmailUpdatedAt") } : {}),
+    ...(readInteger(fields, "watchdogRecoveryCount") !== undefined ? { watchdogRecoveryCount: readInteger(fields, "watchdogRecoveryCount") } : {}),
+    ...(readString(fields, "watchdogLastRecoveryAt") ? { watchdogLastRecoveryAt: readString(fields, "watchdogLastRecoveryAt") } : {}),
+    ...(["generation", "rendering", "audio", "email", "delivery"].includes(watchdogLastStage) ? { watchdogLastStage } : {}),
+    ...(["sending", "sent", "failed"].includes(watchdogAlertStatus) ? { watchdogAlertStatus } : {}),
+    ...(readString(fields, "watchdogAlertUpdatedAt") ? { watchdogAlertUpdatedAt: readString(fields, "watchdogAlertUpdatedAt") } : {}),
+    ...(readString(fields, "watchdogAlertErrorCode") ? { watchdogAlertErrorCode: readString(fields, "watchdogAlertErrorCode") } : {}),
     ...(readString(fields, "errorCode") ? { errorCode: readString(fields, "errorCode") } : {}),
     updateTime: document.updateTime,
   };
@@ -205,6 +232,33 @@ export async function getOrder(id: string) {
     if (error instanceof Error && error.message.includes("(404)")) return null;
     throw error;
   }
+}
+
+export async function listOrdersForWatchdog(limit = 100) {
+  const project = projectId();
+  if (!project) throw new Error("ORDER_STORE_PROJECT_ID nu este configurat.");
+  const queryUrl = `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(project)}/databases/(default)/documents:runQuery`;
+  const perStatusLimit = Math.min(200, Math.max(1, Math.floor(limit)));
+  const statusRows = await Promise.all((["paid", "processing"] as const).map(async (status) => {
+    const response = await firestoreFetch(queryUrl, {
+      method: "POST",
+      body: JSON.stringify({
+        structuredQuery: {
+          from: [{ collectionId: "orders" }],
+          where: { fieldFilter: { field: { fieldPath: "status" }, op: "EQUAL", value: { stringValue: status } } },
+          limit: perStatusLimit,
+        },
+      }),
+    });
+    return response.json() as Promise<Array<{ document?: { name?: string; updateTime?: string; fields?: Record<string, FirestoreField> } }>>;
+  }));
+
+  const unique = new Map<string, StoredOrder>();
+  for (const row of statusRows.flat()) {
+    const order = row.document ? fromFirestore(row.document) : null;
+    if (order) unique.set(order.id, order);
+  }
+  return [...unique.values()];
 }
 
 export async function saveOrder(order: StoredOrder, expectedUpdateTime?: string) {
@@ -358,6 +412,11 @@ export async function enqueueOrderProcessing(orderId: string, siteUrl: string) {
   return enqueueOrderTask(orderId, siteUrl, "process");
 }
 
+export async function enqueueOrderRecovery(orderId: string, siteUrl: string, recoveryCount: number) {
+  const safeCount = Math.max(1, Math.floor(recoveryCount));
+  return enqueueOrderTask(orderId, siteUrl, "process", `recovery-${safeCount}`);
+}
+
 export async function enqueueOrderPreview(orderId: string, siteUrl: string) {
   return enqueueOrderTask(orderId, siteUrl, "preview");
 }
@@ -366,14 +425,15 @@ export async function enqueueOrderInvoicing(orderId: string, siteUrl: string) {
   return enqueueOrderTask(orderId, siteUrl, "invoice");
 }
 
-async function enqueueOrderTask(orderId: string, siteUrl: string, taskType: "preview" | "process" | "invoice") {
+async function enqueueOrderTask(orderId: string, siteUrl: string, taskType: "preview" | "process" | "invoice", suffix = "") {
   const project = projectId();
   const location = process.env.ORDER_TASKS_LOCATION?.trim() || "europe-west3";
   const queue = process.env.ORDER_TASKS_QUEUE?.trim() || "pmm-order-processing";
   const serviceAccountEmail = process.env.ORDER_TASKS_SERVICE_ACCOUNT?.trim();
   if (!project || !serviceAccountEmail) throw new Error("Cloud Tasks nu este configurat pentru comenzi.");
 
-  const taskName = `projects/${project}/locations/${location}/queues/${queue}/tasks/${taskType}-${orderId}`;
+  const taskId = `${taskType}${suffix ? `-${suffix}` : ""}-${orderId}`;
+  const taskName = `projects/${project}/locations/${location}/queues/${queue}/tasks/${taskId}`;
   const url = `https://cloudtasks.googleapis.com/v2/projects/${encodeURIComponent(project)}/locations/${encodeURIComponent(location)}/queues/${encodeURIComponent(queue)}/tasks`;
   const token = await accessToken(TASKS_SCOPES);
   const response = await fetch(url, {

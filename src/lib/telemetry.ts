@@ -4,6 +4,7 @@ export type TelemetryProduct = (typeof telemetryProducts)[number];
 
 export type GenerationMode = "ai" | "fallback" | "template";
 export type StoryLength = "short" | "long";
+export type OperationalOrderStage = "generation" | "rendering" | "audio" | "email" | "delivery";
 
 export type TelemetryFields = {
   product?: TelemetryProduct;
@@ -42,6 +43,8 @@ export type TelemetryFields = {
   utmTerm?: string;
   landingPath?: string;
   referrerHost?: string;
+  orderStage?: OperationalOrderStage;
+  staleMinutes?: number;
 };
 
 export type TelemetryEvent =
@@ -104,6 +107,10 @@ export type TelemetryEvent =
   | "pmm_invoice_needs_review"
   | "pmm_order_delivered"
   | "pmm_order_failed"
+  | "pmm_order_watchdog_checked"
+  | "pmm_order_recovery_enqueued"
+  | "pmm_order_recovery_failed"
+  | "pmm_order_attention_required"
   | "pmm_verified_review_submitted"
   | "pmm_verified_review_failed"
   | "pmm_album_stage_completed"
@@ -154,6 +161,8 @@ export function logTelemetry(event: TelemetryEvent, fields: TelemetryFields = {}
     utm_term: fields.utmTerm,
     landing_path: fields.landingPath,
     referrer_host: fields.referrerHost,
+    order_stage: fields.orderStage,
+    stale_minutes: fields.staleMinutes,
   };
 
   // Omit absent keys so log-based metric labels stay clean and predictable.

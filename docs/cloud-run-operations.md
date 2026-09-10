@@ -138,7 +138,34 @@ gcloud run services update povestea-mea-magica-domain --project=project-e0c2efff
 
 Trimite apoi un PDF spre adresa ta și confirmă că ajunge cu atașamentul. Aplicația limitează fișierul la 9 MB, sub limita de 40 MB pentru un email cu atașamente la Resend.
 
-## H. Urmărește erorile și utilizarea
+## H. Watchdog pentru comenzile plătite
+
+Watchdog-ul verifică automat la fiecare 10 minute comenzile aflate în `paid` sau `processing`. Dacă o comandă nu a salvat progres timp de 35 de minute, o retrimite în coada de procesare din ultimul checkpoint. Sunt permise maximum trei recuperări automate. După aceea, trimite o singură alertă operațională la `office@povestea-mea-magica.ro`, fără numele copilului, emailul clientului sau textul poveștii.
+
+După primul deploy care conține endpointul watchdog, instalează sau actualizează programarea:
+
+```bash
+cd ~/povestea-mea-magica
+git pull --ff-only origin main
+bash scripts/setup-order-watchdog.sh
+```
+
+Verifică programarea și ultima execuție:
+
+```bash
+gcloud scheduler jobs describe pmm-order-watchdog --project=project-e0c2efff-d456-48f9-9fe --location=europe-west3
+gcloud scheduler jobs run pmm-order-watchdog --project=project-e0c2efff-d456-48f9-9fe --location=europe-west3
+```
+
+Pentru o relansare manuală, folosește ID-ul comenzii din Stripe sau din alerta operațională:
+
+```bash
+./scripts/retry-paid-order.sh ID_COMANDA
+```
+
+Relansarea este sigură pentru materialele deja începute: pornește din checkpoint, fișierele sunt rescrise pe aceleași căi, iar emailul final folosește aceeași cheie de idempotency. Nu relansa o comandă marcată deja `delivered`.
+
+## I. Urmărește erorile și utilizarea
 
 În Google Cloud Console:
 
@@ -158,7 +185,9 @@ jsonPayload.event="pmm_story_cover_failed"
 
 Pentru facturare folosește evenimentele `pmm_invoice_started`, `pmm_invoice_completed`, `pmm_invoice_failed` și `pmm_invoice_needs_review`. Orice `needs_review` se verifică mai întâi în seria SmartBill după ID-ul comenzii din observațiile facturii; nu retrimite automat cererea înainte să excluzi existența unei facturi deja emise.
 
-## I. Rollback imediat
+Pentru watchdog urmărește `pmm_order_watchdog_checked`, `pmm_order_recovery_enqueued`, `pmm_order_recovery_failed` și `pmm_order_attention_required`. Ultimul eveniment indică o comandă care a epuizat recuperările automate și trebuie verificată.
+
+## J. Rollback imediat
 
 Înainte de o schimbare mare, notează revizia sănătoasă. Dacă o versiune nouă are probleme:
 

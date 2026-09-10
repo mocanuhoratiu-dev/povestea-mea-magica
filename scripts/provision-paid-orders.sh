@@ -75,4 +75,7 @@ for service_region in "povestea-mea-magica:europe-west3" "povestea-mea-magica-do
     --update-secrets="ORDER_ACCESS_SECRET=pmm-order-access-secret:latest,ORDER_WORKER_SECRET=pmm-order-worker-secret:latest"
 done
 
+PROJECT_ID="$PROJECT_ID" REGION="$REGION" ORDER_WORKER_SERVICE_ACCOUNT="$WORKER_SA" \
+  bash "$(dirname "$0")/setup-order-watchdog.sh"
+
 printf '\nPaid-order infrastructure is ready. Bucket: gs://%s\n' "$BUCKET"

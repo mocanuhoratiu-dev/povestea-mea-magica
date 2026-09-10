@@ -46,6 +46,15 @@ function emailTelemetryProduct(product: TransactionalEmailProduct): OrderProduct
   return product === "complete_bundle" ? "bundle" : product;
 }
 
+function processingFailureCode(error: unknown) {
+  const message = error instanceof Error ? error.message.toLowerCase() : "";
+  if (message.startsWith("album_budget_")) return "budget_limit";
+  if (message.startsWith("email_delivery_")) return "email_delivery_failed";
+  if (message.includes("timeout") || message.includes("timed out")) return "provider_timeout";
+  if (message.includes("429") || message.includes("rate") || message.includes("demand")) return "provider_rate_limited";
+  return "processing_failed";
+}
+
 async function generateMaterial({ orderId, product, configuration, secret, coverBasename = "cover" }: { orderId: string; product: Exclude<OrderProduct, "bundle" | "album">; configuration: Record<string, unknown>; secret: string; coverBasename?: string }) {
   const generation = configuration.generation;
   if (!generation || typeof generation !== "object" || Array.isArray(generation)) throw new Error("Configuratia materialului este invalida.");
@@ -247,6 +256,7 @@ export async function POST(request: Request) {
       deliveryEmailProviderId: providerId,
       deliveryEmailErrorCode: "",
       deliveryEmailUpdatedAt: new Date().toISOString(),
+      errorCode: "",
     });
     if (!delivered) throw new Error("Comanda nu a putut fi finalizata.");
     logTelemetry("pmm_email_delivery_completed", {
@@ -273,8 +283,20 @@ export async function POST(request: Request) {
     console.error("Order processing failed", error);
     // Checkpoints keep completed bundle items. A retry resumes at the first
     // missing material and Resend idempotency prevents duplicate ready emails.
-    const errorCode = error instanceof Error && error.message.startsWith("album_budget_") ? "budget_limit" : "unknown";
-    logTelemetry("pmm_order_failed", { product: order.product, result: "error", errorCode });
+    const failureCode = processingFailureCode(error);
+    try {
+      const current = await getOrder(order.id);
+      if (current && (current.status === "paid" || current.status === "processing")) {
+        await setOrderStatus(current, current.status, { errorCode: failureCode });
+      }
+    } catch (checkpointError) {
+      console.error("Order processing failure checkpoint failed", checkpointError);
+    }
+    logTelemetry("pmm_order_failed", {
+      product: order.product,
+      result: "error",
+      errorCode: failureCode === "budget_limit" ? "budget_limit" : failureCode === "provider_rate_limited" ? "rate_limited" : "unknown",
+    });
     return NextResponse.json({ error: "Procesarea comenzii a esuat." }, { status: 500 });
   }
 }
