@@ -16,24 +16,24 @@ const products = [
     features: ["16 pagini A5, format orizontal", "Previzualizare înainte de plată", "Audio și caiet de activități"],
   },
   {
-    name: "Scutul de Noapte",
+    name: "Atelierul Scutului Magic",
     price: commerce.prices.nightShield,
     description: "Ritual personalizat de seară, cu poveste, fișa «Camera mea», respirație, ghid pentru părinte și audio Lumi.",
     href: "/scutul-de-noapte",
     cta: "Creează scutul",
     accent: "border-brand-gold",
     badge: "Pentru seară",
-    features: ["Certificat, rețetă și etichete", "Poveste, fișă de desen și card", "Audio ghidat de Lumi"],
+    features: ["13 pagini și două ilustrații originale", "Scut de construit și paginile clasice", "Audio ghidat de Lumi"],
   },
   {
-    name: "Trusa de Răbdare",
+    name: "Dosarul Micului Explorator",
     price: commerce.prices.patienceKit,
     description: "Activități rapide pentru restaurant, drum, doctor, casă, aeroport sau stat la coadă.",
     href: "/trusa-de-rabdare",
-    cta: "Creează trusa",
+    cta: "Deschide dosarul",
     accent: "border-orange-400",
     badge: "Practic",
-    features: ["10 pagini PDF", "8 activități validate", "3 niveluri și cartonașe"],
+    features: ["10 pagini PDF", "Mister ilustrat și jocuri validate", "3 niveluri și cartonașe"],
   },
 ];
 
@@ -103,7 +103,7 @@ export default function Pricing() {
         <div className="mt-8">
           <article className="grid gap-6 bg-brand-purple px-6 py-8 text-white sm:grid-cols-[auto_1fr]">
             <span className="grid h-14 w-14 place-items-center rounded-md bg-brand-gold text-brand-navy"><BookHeart size={26} /></span>
-            <div><p className="text-xs font-black uppercase tracking-[0.14em] text-brand-gold">Economisești 18 lei</p><h3 className="mt-2 font-serif text-3xl">Pachetul Complet</h3><p className="mt-2 text-sm font-semibold leading-relaxed text-white/75">Povestea Magică, Scutul de Noapte și Trusa de Răbdare. Patru PDF-uri personalizate, o singură plată.</p><div className="mt-5 flex flex-wrap items-center justify-between gap-4"><p className="font-nunito text-4xl font-black text-brand-gold">{commerce.prices.completeBundle}</p><a href="/pachet-complet" className="inline-flex min-h-11 items-center gap-2 rounded-md bg-brand-gold px-5 text-sm font-black text-brand-navy">Alege pachetul <ArrowRight size={16} /></a></div></div>
+            <div><p className="text-xs font-black uppercase tracking-[0.14em] text-brand-gold">Economisești 18 lei</p><h3 className="mt-2 font-serif text-3xl">Pachetul Complet</h3><p className="mt-2 text-sm font-semibold leading-relaxed text-white/75">Povestea Magică, Atelierul Scutului Magic și Dosarul Micului Explorator. Patru PDF-uri personalizate, o singură plată.</p><div className="mt-5 flex flex-wrap items-center justify-between gap-4"><p className="font-nunito text-4xl font-black text-brand-gold">{commerce.prices.completeBundle}</p><a href="/pachet-complet" className="inline-flex min-h-11 items-center gap-2 rounded-md bg-brand-gold px-5 text-sm font-black text-brand-navy">Alege pachetul <ArrowRight size={16} /></a></div></div>
           </article>
         </div>
       </div>

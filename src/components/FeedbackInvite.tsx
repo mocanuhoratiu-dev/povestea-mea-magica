@@ -12,8 +12,8 @@ type FeedbackInviteProps = {
 
 const productNames: Record<TelemetryProduct, string> = {
   story: "Povestea de Seară",
-  monster: "Scutul de Noapte",
-  emergency: "Trusa de Răbdare",
+  monster: "Atelierul Scutului Magic",
+  emergency: "Dosarul Micului Explorator",
   bundle: "Pachetul Familiei Magice",
   album: "Povestea Magică",
 };

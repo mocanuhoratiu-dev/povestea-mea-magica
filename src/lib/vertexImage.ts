@@ -5,7 +5,7 @@ export type CoverGenerationResult =
   | { imageDataUrl: string; model: string; error?: never }
   | { imageDataUrl?: never; model?: never; error: string };
 
-type ImageAspectRatio = "1:1" | "4:3" | "3:2" | "16:9";
+type ImageAspectRatio = "1:1" | "4:3" | "3:2" | "3:4" | "16:9";
 
 function getVertexCredentials() {
   const encodedCredentials = process.env.VERTEX_AI_SERVICE_ACCOUNT_JSON_BASE64?.trim();
@@ -57,6 +57,7 @@ async function generateVertexImage({
   timeoutEnvironment,
   imageSize,
   beforeAttempt,
+  referencePurpose = "character",
 }: {
   prompt: string;
   aspectRatio: ImageAspectRatio;
@@ -64,6 +65,7 @@ async function generateVertexImage({
   timeoutEnvironment: "cover" | "album";
   imageSize: "1K" | "2K";
   beforeAttempt?: () => Promise<void>;
+  referencePurpose?: "character" | "mascot";
 }): Promise<CoverGenerationResult> {
   const project = process.env.VERTEX_AI_PROJECT_ID?.trim();
   const cleanPrompt = cleanCoverPrompt(prompt);
@@ -110,6 +112,9 @@ async function generateVertexImage({
         ],
       }]
     : cleanPrompt;
+  if (reference && referencePurpose === "mascot" && Array.isArray(contents)) {
+    contents[0].parts = [{ inlineData: reference }, { text: "The reference shows ONLY our mascot Lumi. Preserve her face, golden flame hair, plum cloak and handheld lantern. Invent the CHILD separately using the requested human child description; do not turn the child into Lumi. Create a fully volumetric animated-film scene. " + cleanPrompt }];
+  }
 
   for (const model of getImageModels()) {
     try {
@@ -174,4 +179,8 @@ export async function generateVertexAlbumIllustration(
     imageSize: "2K",
     beforeAttempt: options.beforeAttempt,
   });
+}
+
+export function generateVertexKitIllustration(prompt: string, referenceImageDataUrl: string | undefined, cover: boolean, beforeAttempt: () => Promise<void>) {
+  return generateVertexImage({ prompt, referenceImageDataUrl, referencePurpose: cover ? "mascot" : "character", aspectRatio: cover ? "3:4" : "3:2", timeoutEnvironment: "cover", imageSize: "1K", beforeAttempt });
 }

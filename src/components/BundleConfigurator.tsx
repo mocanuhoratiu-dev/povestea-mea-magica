@@ -68,9 +68,9 @@ export default function BundleConfigurator() {
     personalDetail: "", storyContext: "", dedication: "", dedicationFrom: "",
   });
   const [monsterSameChild, setMonsterSameChild] = useState(true);
-  const [monster, setMonster] = useState({ name: "", age: "5", type: "frica de intuneric", location: "", helper: "", ritual: "" });
+  const [monster, setMonster] = useState({ name: "", age: "5", type: "frica de intuneric", location: "", helper: "", ritual: "", appearance: "", trustedAdult: "" });
   const [emergencySameChild, setEmergencySameChild] = useState(true);
-  const [emergency, setEmergency] = useState({ name: "", age: "5", context: contexts[0][0] as string, interest: "", duration: "10-20 minute", difficulty: "medium" });
+  const [emergency, setEmergency] = useState({ name: "", age: "5", context: contexts[0][0] as string, interest: "", duration: "10-20 minute", difficulty: "medium", appearance: "", trustedAdult: "" });
 
   const effectiveMonsterName = monsterSameChild ? album.name : monster.name;
   const effectiveMonsterAge = monsterSameChild ? album.age : monster.age;
@@ -163,8 +163,8 @@ export default function BundleConfigurator() {
 
   const summaries = useMemo(() => [
     { icon: BookHeart, title: "Povestea Magică", name: album.name, detail: albumWorldOptions.find((option) => option.id === album.world)?.label || "Lume magică" },
-    { icon: ShieldCheck, title: "Scutul de Noapte", name: effectiveMonsterName, detail: monsters.find(([id]) => id === monster.type)?.[1] || "Ritual de noapte" },
-    { icon: TimerReset, title: "Trusa de Răbdare", name: effectiveEmergencyName, detail: contexts.find(([id]) => id === emergency.context)?.[1] || "Moment de așteptare" },
+    { icon: ShieldCheck, title: "Atelierul Scutului Magic", name: effectiveMonsterName, detail: monsters.find(([id]) => id === monster.type)?.[1] || "Ritual de noapte" },
+    { icon: TimerReset, title: "Dosarul Micului Explorator", name: effectiveEmergencyName, detail: contexts.find(([id]) => id === emergency.context)?.[1] || "Moment de așteptare" },
   ], [album.name, album.world, effectiveEmergencyName, effectiveMonsterName, emergency.context, monster.type]);
 
   function goToStep(next: number) {
@@ -193,8 +193,8 @@ export default function BundleConfigurator() {
         },
         dedication: album.dedication.trim(), dedicationFrom: album.dedicationFrom.trim(),
       } },
-      { product: "monster" as const, configuration: { generation: { type: "monster", name: effectiveMonsterName.trim(), age: effectiveMonsterAge, monster: monster.type, context: monster.location.trim(), interest: monster.helper.trim(), tone: monster.ritual.trim() } } },
-      { product: "emergency" as const, configuration: { generation: { type: "emergency", name: effectiveEmergencyName.trim(), age: effectiveEmergencyAge, context: emergency.context, interest: emergency.interest.trim(), duration: emergency.duration, difficulty: emergency.difficulty } } },
+      { product: "monster" as const, configuration: { generation: { kitVersion: 2, type: "monster", name: effectiveMonsterName.trim(), age: effectiveMonsterAge, monster: monster.type, context: monster.location.trim(), interest: monster.helper.trim(), tone: monster.ritual.trim(), appearance: monsterSameChild ? `${album.hairStyle}, ${album.hairColor}, ochi ${album.eyeColor}, ${album.outfit}, ${album.appearanceDetail}`.slice(0,240) : monster.appearance, trustedAdult: monster.trustedAdult } } },
+      { product: "emergency" as const, configuration: { generation: { kitVersion: 2, type: "emergency", name: effectiveEmergencyName.trim(), age: effectiveEmergencyAge, context: emergency.context, interest: emergency.interest.trim(), duration: emergency.duration, difficulty: emergency.difficulty, appearance: emergencySameChild ? `${album.hairStyle}, ${album.hairColor}, ochi ${album.eyeColor}, ${album.outfit}, ${album.appearanceDetail}`.slice(0,240) : emergency.appearance, trustedAdult: emergency.trustedAdult } } },
     ];
   }
 
@@ -295,12 +295,14 @@ export default function BundleConfigurator() {
           </div>}
 
           {step === 1 && <div>
-            <p className="text-xs font-black uppercase tracking-[0.15em] text-brand-purple">2 din 4 · Scutul de Noapte</p>
+            <p className="text-xs font-black uppercase tracking-[0.15em] text-brand-purple">2 din 4 · Atelierul Scutului Magic</p>
             <h2 className="mt-3 font-serif text-4xl text-brand-navy">Un ritual pentru mai mult curaj</h2>
-            <p className="mt-3 text-sm font-semibold leading-relaxed text-brand-navy/60">Nouă pagini pentru copil și părinte: poveste scurtă, fișa „Camera mea”, ritual, respirație, card de noptieră și certificat.</p>
+            <p className="mt-3 text-sm font-semibold leading-relaxed text-brand-navy/60">Cele trei pagini clasice, urmate de zece pagini ilustrate: poveste, scut de construit, camera de desenat, carduri și scrisoarea lui Lumi.</p>
             <div className="mt-8 space-y-5">
               <ChildReuse checked={monsterSameChild} onChange={setMonsterSameChild} name={album.name} />
               {!monsterSameChild && <div className="grid gap-5 sm:grid-cols-2"><label className={labelClass}>Numele copilului<input className={inputClass} value={monster.name} maxLength={40} onChange={(event) => setMonster({ ...monster, name: event.target.value })} /></label><label className={labelClass}>Vârsta<select className={inputClass} value={monster.age} onChange={(event) => setMonster({ ...monster, age: event.target.value })}>{Array.from({ length: 8 }, (_, index) => index + 2).map((value) => <option key={value} value={value}>{value} ani</option>)}</select></label></div>}
+              {!monsterSameChild && <label className={labelClass}>Aspectul copilului (opțional)<input className={inputClass} value={monster.appearance} maxLength={240} onChange={event => setMonster({ ...monster, appearance: event.target.value })} /></label>}
+              <label className={labelClass}>Adultul de încredere<input className={inputClass} value={monster.trustedAdult} maxLength={40} placeholder="Mama, tata, bunica..." onChange={event => setMonster({ ...monster, trustedAdult: event.target.value })} /></label>
               <label className={labelClass}>Ce vrem să îmblânzim<select className={inputClass} value={monster.type} onChange={(event) => setMonster({ ...monster, type: event.target.value })}>{monsters.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
               <label className={labelClass}>Unde apare cel mai des<input className={inputClass} value={monster.location} maxLength={180} onChange={(event) => setMonster({ ...monster, location: event.target.value })} placeholder="Lângă pat, în colțul camerei..." /></label>
               <label className={labelClass}>Ce îl liniștește<input className={inputClass} value={monster.helper} maxLength={180} onChange={(event) => setMonster({ ...monster, helper: event.target.value })} placeholder="O lumină de veghe, o îmbrățișare..." /></label>
@@ -309,15 +311,17 @@ export default function BundleConfigurator() {
           </div>}
 
           {step === 2 && <div>
-            <p className="text-xs font-black uppercase tracking-[0.15em] text-brand-purple">3 din 4 · Trusa de Răbdare</p>
+            <p className="text-xs font-black uppercase tracking-[0.15em] text-brand-purple">3 din 4 · Dosarul Micului Explorator</p>
             <h2 className="mt-3 font-serif text-4xl text-brand-navy">Misiuni pentru următoarea așteptare</h2>
-            <p className="mt-3 text-sm font-semibold leading-relaxed text-brand-navy/60">Zece pagini economice la imprimare, cu opt activități și trei niveluri de dificultate.</p>
+            <p className="mt-3 text-sm font-semibold leading-relaxed text-brand-navy/60">Zece pagini cu un mister ilustrat, labirint, diferențe, desen și misiuni detașabile. Trei niveluri de dificultate.</p>
             <div className="mt-8 grid gap-5 sm:grid-cols-2">
               <div className="sm:col-span-2"><ChildReuse checked={emergencySameChild} onChange={setEmergencySameChild} name={album.name} /></div>
               {!emergencySameChild && <><label className={labelClass}>Numele copilului<input className={inputClass} value={emergency.name} maxLength={40} onChange={(event) => setEmergency({ ...emergency, name: event.target.value })} /></label><label className={labelClass}>Vârsta<select className={inputClass} value={emergency.age} onChange={(event) => setEmergency({ ...emergency, age: event.target.value })}>{Array.from({ length: 9 }, (_, index) => index + 2).map((value) => <option key={value} value={value}>{value} ani</option>)}</select></label></>}
-              <label className={`${labelClass} sm:col-span-2`}>Unde va fi folosită<select className={inputClass} value={emergency.context} onChange={(event) => setEmergency({ ...emergency, context: event.target.value })}>{contexts.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+              {!emergencySameChild && <label className={`${labelClass} sm:col-span-2`}>Aspectul copilului (opțional)<input className={inputClass} value={emergency.appearance} maxLength={240} onChange={event => setEmergency({ ...emergency, appearance: event.target.value })} /></label>}
+              <label className={`${labelClass} sm:col-span-2`}>Adultul de încredere<input className={inputClass} value={emergency.trustedAdult} maxLength={40} placeholder="Mama, tata, bunicul..." onChange={event => setEmergency({ ...emergency, trustedAdult: event.target.value })} /></label>
+              <label className={`${labelClass} sm:col-span-2`}>Unde va fi folosit<select className={inputClass} value={emergency.context} onChange={(event) => setEmergency({ ...emergency, context: event.target.value })}>{contexts.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
               <label className={`${labelClass} sm:col-span-2`}>Ce îl pasionează<input className={inputClass} value={emergency.interest} maxLength={180} onChange={(event) => setEmergency({ ...emergency, interest: event.target.value })} placeholder="Dinozauri, mașini, desen, animale..." /></label>
-              <label className={labelClass}>Cât durează așteptarea<select className={inputClass} value={emergency.duration} onChange={(event) => setEmergency({ ...emergency, duration: event.target.value })}><option>5-10 minute</option><option>10-20 minute</option><option>20+ minute</option></select></label>
+              <label className={labelClass}>Cât durează așteptarea<select className={inputClass} value={emergency.duration} onChange={(event) => setEmergency({ ...emergency, duration: event.target.value })}><option>5-10 minute</option><option>10-20 minute</option><option>20-30 minute</option></select></label>
               <label className={labelClass}>Dificultate<select className={inputClass} value={emergency.difficulty} onChange={(event) => setEmergency({ ...emergency, difficulty: event.target.value })}><option value="easy">Explorator</option><option value="medium">Detectiv</option><option value="advanced">Maestru</option></select></label>
             </div>
           </div>}
@@ -328,7 +332,7 @@ export default function BundleConfigurator() {
             <div className="mt-8 divide-y divide-brand-navy/12 border-y border-brand-navy/15">
               {summaries.map((item, index) => <div key={item.title} className="grid gap-3 py-6 sm:grid-cols-[auto_1fr_auto] sm:items-center"><item.icon className="text-brand-purple" size={25} /><div><h3 className="font-serif text-2xl text-brand-navy">{item.title}</h3><p className="mt-1 text-sm font-bold text-brand-navy/65">Pentru {item.name} · {item.detail}</p></div><button type="button" onClick={() => goToStep(index)} className="w-fit border-b border-brand-purple pb-1 text-sm font-black text-brand-purple">Editează</button></div>)}
             </div>
-            <div className="mt-8 flex flex-col gap-4 border-b border-brand-gold/50 bg-brand-gold/12 px-5 py-5 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-black uppercase tracking-[0.12em] text-brand-navy/55">Valoare individuală 97 lei · economisești 18 lei</p><p className="mt-1 font-serif text-2xl text-brand-navy">Pachetul Complet</p><p className="mt-2 text-xs font-bold text-brand-navy/55">Include cartea ilustrată, caietul de activități, Scutul de Noapte și Trusa de Răbdare.</p></div><p className="font-nunito text-4xl font-black text-brand-purple">79 lei</p></div>
+            <div className="mt-8 flex flex-col gap-4 border-b border-brand-gold/50 bg-brand-gold/12 px-5 py-5 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-black uppercase tracking-[0.12em] text-brand-navy/55">Valoare individuală 97 lei · economisești 18 lei</p><p className="mt-1 font-serif text-2xl text-brand-navy">Pachetul Complet</p><p className="mt-2 text-xs font-bold text-brand-navy/55">Include cartea ilustrată, caietul de activități, Atelierul Scutului Magic și Dosarul Micului Explorator.</p></div><p className="font-nunito text-4xl font-black text-brand-purple">79 lei</p></div>
 
             <div className="mt-7">
               {activeAlbumPreview ? <div>

@@ -12,8 +12,8 @@ export const metadata: Metadata = {
 
 const offers = [
   { title: "Povestea Magică", price: commerce.prices.illustratedAlbum, description: "Cartea ilustrată în care copilul devine personajul principal, creată în jurul lumii și aventurii alese de familie.", details: ["16 pagini A5 în format orizontal și 13 scene ilustrate", "Personaj consecvent din descriere sau fotografie", "Caiet separat cu colorat, labirint și găsește diferențele"], href: "/povestea-magica", cta: "Creează Povestea Magică", icon: BookHeart },
-  { title: "Scutul de Noapte", price: commerce.prices.nightShield, description: "Un joc magic și un ritual blând pentru serile în care întunericul sau o teamă au nevoie de cuvinte și repere familiare.", details: ["Certificat, rețetă imaginară și etichete", "Poveste, fișa «Camera mea», respirație și ghid pentru părinte", "Card de noptieră, calendar și audio Lumi"], href: "/scutul-de-noapte", cta: "Creează Scutul", icon: ShieldCheck },
-  { title: "Trusa de Răbdare", price: commerce.prices.patienceKit, description: "Activități personalizate pentru restaurant, drum, medic sau orice moment în care timpul trece mai greu.", details: ["10 pagini A4 economice la imprimare", "8 activități, inclusiv labirint și diferențe validate", "Cartonașe detașabile și trei niveluri"], href: "/trusa-de-rabdare", cta: "Pregătește Trusa", icon: TimerReset },
+  { title: "Atelierul Scutului Magic", price: commerce.prices.nightShield, description: "Un joc magic și un ritual blând pentru serile în care întunericul sau o teamă au nevoie de cuvinte și repere familiare.", details: ["Certificat, rețetă imaginară și etichete", "Poveste, fișa «Camera mea», respirație și ghid pentru părinte", "Card de noptieră, calendar și audio Lumi"], href: "/scutul-de-noapte", cta: "Creează Scutul", icon: ShieldCheck },
+  { title: "Dosarul Micului Explorator", price: commerce.prices.patienceKit, description: "Activități personalizate pentru restaurant, drum, medic sau orice moment în care timpul trece mai greu.", details: ["10 pagini A4 economice la imprimare", "8 activități, inclusiv labirint și diferențe validate", "Cartonașe detașabile și trei niveluri"], href: "/trusa-de-rabdare", cta: "Pregătește Trusa", icon: TimerReset },
 ];
 
 export default function PricingPage() {
@@ -34,7 +34,7 @@ export default function PricingPage() {
         </div>
         <article className="mx-auto mt-12 grid max-w-5xl gap-7 bg-brand-navy px-7 py-9 text-brand-cream md:grid-cols-[auto_1fr_auto] md:items-center md:px-10">
           <PackageCheck className="text-brand-gold" size={36} />
-          <div><p className="text-xs font-black uppercase tracking-[0.14em] text-brand-gold">Pachetul Complet · economisești 18 lei</p><h2 className="mt-2 font-serif text-3xl">Toate cele trei produse, într-o singură comandă</h2><p className="mt-3 max-w-2xl text-sm font-semibold leading-relaxed text-brand-cream/70">Primești cartea ilustrată, caietul de activități, Scutul de Noapte și Trusa de Răbdare. Fiecare poate fi personalizat separat.</p></div>
+          <div><p className="text-xs font-black uppercase tracking-[0.14em] text-brand-gold">Pachetul Complet · economisești 18 lei</p><h2 className="mt-2 font-serif text-3xl">Toate cele trei produse, într-o singură comandă</h2><p className="mt-3 max-w-2xl text-sm font-semibold leading-relaxed text-brand-cream/70">Primești cartea ilustrată, caietul de activități, Atelierul Scutului Magic și Dosarul Micului Explorator. Fiecare poate fi personalizat separat.</p></div>
           <div className="md:text-right"><p className="font-nunito text-4xl font-black text-brand-gold">{commerce.prices.completeBundle}</p><Link href="/pachet-complet" className="mt-4 inline-flex min-h-11 items-center gap-2 bg-brand-gold px-5 text-sm font-black text-brand-navy">Alege pachetul<ArrowRight size={16} /></Link></div>
         </article>
       </section>

@@ -8,8 +8,15 @@ import { isTrustedOrderWorker } from "@/lib/orders";
 import { buildNightShieldContent, sanitizeNightShieldContent } from "@/lib/nightShield";
 import { buildPatienceKitContent, recommendedDifficulty, sanitizePatienceKitContent, type PatienceDifficulty } from "@/lib/patienceKit";
 import { turnstileRejected, verifyTurnstileRequest } from "@/lib/turnstile";
+import { buildKitPrompt, KIT_TEXT_SCHEMA, readKitInput, readKitText, type PremiumKit } from "@/lib/kits/content";
+import { completeKitArtwork } from "@/lib/kits/artwork";
+import { commerce } from "@/lib/siteMode";
 
 type GenerateRequest = {
+  kitVersion?: number;
+  appearance?: string;
+  trustedAdult?: string;
+  favoriteColor?: string;
   type?: "monster" | "story" | "emergency";
   storyLength?: StoryLength;
   name?: string;
@@ -136,6 +143,10 @@ function normalizeGenerateRequest(value: unknown): GenerateRequest | null {
   if (!SUPPORTED_TYPES.has(data.type as NonNullable<GenerateRequest["type"]>)) return null;
 
   const normalized: GenerateRequest = {
+    kitVersion: data.kitVersion === 2 ? 2 : undefined,
+    appearance: cleanRequestText(data.appearance, 240),
+    trustedAdult: cleanRequestText(data.trustedAdult, 40),
+    favoriteColor: cleanRequestText(data.favoriteColor, 12),
     type: data.type as GenerateRequest["type"],
     storyLength: data.storyLength === "long" ? "long" : "short",
     name: cleanRequestText(data.name, 80),
@@ -818,11 +829,13 @@ async function generateWithModelFallback({
   responseJsonSchema,
   maxOutputTokens,
   temperature = 0.75,
+  validate,
 }: {
   prompt: string;
   responseJsonSchema: Record<string, unknown>;
   maxOutputTokens: number;
   temperature?: number;
+  validate?: (text: string) => boolean;
 }): Promise<GeminiTextResult> {
   const errors: string[] = [];
   const startedAt = Date.now();
@@ -845,7 +858,9 @@ async function generateWithModelFallback({
     });
 
     if (!("error" in generated)) {
-      return generated;
+      if (!validate || validate(generated.text)) return generated;
+      errors.push(`${model}: conținutul nu a trecut validarea.`);
+      continue;
     }
 
     errors.push(`${model}: ${generated.error}`);
@@ -892,6 +907,26 @@ export async function POST(req: Request) {
     }
 
     product = data.type;
+
+    if (data.kitVersion === 2) {
+      const input = readKitInput(data);
+      if (!input) return NextResponse.json({ success: false, error: "Verifică detaliile copilului." }, { status: 400 });
+      const worker = isTrustedOrderWorker(req);
+      if (commerce.acceptsPayments && !worker) return NextResponse.json({ success: false, error: "Materialul complet se generează după confirmarea plății." }, { status: 402 });
+      if (!isAiConfigured()) return NextResponse.json({ success: false, error: "Generarea ilustrată nu este disponibilă momentan. Încearcă din nou mai târziu." }, { status: 503 });
+      const generated = await generateWithModelFallback({ prompt: buildKitPrompt(input), responseJsonSchema: KIT_TEXT_SCHEMA, maxOutputTokens: 3200, temperature: .78, validate: text => {
+        try { return Boolean(readKitText(parseJsonObject(text))); } catch { return false; }
+      } });
+      if ("error" in generated) return NextResponse.json({ success: false, error: "Povestea are nevoie de puțin timp. Încearcă din nou." }, { status: 503 });
+      let text;
+      try { text = readKitText(parseJsonObject(generated.text)); } catch { text = null; }
+      if (!text) return NextResponse.json({ success: false, error: "Materialul nu a trecut verificarea de conținut. Încearcă din nou." }, { status: 502 });
+      let premium: PremiumKit = { ...text, version: 2, kind: input.type, assets: {}, imageAttempts: 0 };
+      // Paid orders persist text before images so retries resume instead of regenerating it.
+      if (!worker) premium = await completeKitArtwork(premium, { checkpoint: async () => {}, save: async image => image, read: async asset => asset });
+      logTelemetry("pmm_generation_completed", { product, result: "success", generationMode: "ai", model: generated.model, durationMs: Date.now() - startedAt });
+      return NextResponse.json({ success: true, data: { premium }, generationMode: "ai" });
+    }
 
     if (!isAiConfigured()) {
       if (data.type === "story") {

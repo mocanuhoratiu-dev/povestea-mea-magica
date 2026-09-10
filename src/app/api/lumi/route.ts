@@ -120,16 +120,16 @@ function fallbackFor(message: string, allowRecommendation: boolean) {
   }
   if (/(fric|întuneric|intuneric|coșmar|cosmar|sub pat|zgomot|somn)/.test(text)) {
     return {
-      reply: "Începeți cu lumină blândă și trei respirații împreună. Scutul de Noapte transformă acest mic ritual într-un pas simplu, repetabil.",
+      reply: "Începeți cu lumină blândă și trei respirații împreună. Atelierul Scutului Magic transformă acest mic ritual într-un pas simplu, repetabil.",
       suggestions: ["O lumină mică", "O îmbrățișare"],
-      recommendation: { ...emptyRecommendation(), product: "monster" as const, monsterType: /coșmar|cosmar|vis/.test(text) ? "vise urate" : "frica de intuneric", fearLocation: "camera copilului", calmingHelper: "o lumină de veghe sau o îmbrățișare", bedtimeRitual: "trei respirații lente înainte de somn", label: "Deschide Scutul de Noapte" },
+      recommendation: { ...emptyRecommendation(), product: "monster" as const, monsterType: /coșmar|cosmar|vis/.test(text) ? "vise urate" : "frica de intuneric", fearLocation: "camera copilului", calmingHelper: "o lumină de veghe sau o îmbrățișare", bedtimeRitual: "trei respirații lente înainte de somn", label: "Deschide Atelierul Scutului Magic" },
     };
   }
   if (/(restaurant|drum|mașin|masin|doctor|aeroport|avion|coad|aștept|astept)/.test(text)) {
     return {
-      reply: "Pentru așteptare, ajută o activitate care începe imediat. Trusa de Răbdare pregătește misiuni calme, potrivite locului în care sunteți.",
+      reply: "Pentru așteptare, ajută o activitate care începe imediat. Dosarul Micului Explorator pregătește misiuni calme, potrivite locului în care sunteți.",
       suggestions: ["Suntem la restaurant", "Suntem în mașină"],
-      recommendation: { ...emptyRecommendation(), product: "emergency" as const, emergencyContext: /restaurant/.test(text) ? "la restaurant, asteptand mancarea" : /doctor/.test(text) ? "in sala de asteptare la doctor" : /aeroport|avion/.test(text) ? "in aeroport sau avion" : /coad/.test(text) ? "la coada sau institutii" : "la un drum lung cu masina", duration: "10-20 minute", activityMode: "mix", label: "Deschide Trusa de Răbdare" },
+      recommendation: { ...emptyRecommendation(), product: "emergency" as const, emergencyContext: /restaurant/.test(text) ? "la restaurant, asteptand mancarea" : /doctor/.test(text) ? "in sala de asteptare la doctor" : /aeroport|avion/.test(text) ? "in aeroport sau avion" : /coad/.test(text) ? "la coada sau institutii" : "la un drum lung cu masina", duration: "10-20 minute", activityMode: "mix", label: "Deschide Dosarul Micului Explorator" },
     };
   }
   if (/(album|foarte vizual|multe imagini|multe ilustra|puțin text|putin text|carte ilustrat)/.test(text)) {

@@ -82,8 +82,8 @@ export default function Footer() {
             <p className="text-xs font-black uppercase tracking-[0.16em] text-brand-gold">Materiale</p>
             <ul className="mt-5 space-y-3 text-sm font-semibold text-brand-cream/70">
               <li><Link href="/povestea-magica" className="transition-colors hover:text-brand-gold">Povestea Magică</Link></li>
-              <li><Link href="/scutul-de-noapte" className="transition-colors hover:text-brand-gold">Scutul de Noapte</Link></li>
-              <li><Link href="/trusa-de-rabdare" className="transition-colors hover:text-brand-gold">Trusa de Răbdare</Link></li>
+              <li><Link href="/scutul-de-noapte" className="transition-colors hover:text-brand-gold">Atelierul Scutului Magic</Link></li>
+              <li><Link href="/trusa-de-rabdare" className="transition-colors hover:text-brand-gold">Dosarul Micului Explorator</Link></li>
               <li><Link href="/modele" className="transition-colors hover:text-brand-gold">Răsfoiește modelele</Link></li>
               <li><Link href="/preturi" className="transition-colors hover:text-brand-gold">Prețuri</Link></li>
               <li><Link href="/cum-functioneaza" className="transition-colors hover:text-brand-gold">Cum funcționează</Link></li>

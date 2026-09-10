@@ -5,6 +5,7 @@ import { bundleVariantForProductId, readBundleConfiguration } from "@/lib/bundle
 import { createOrder, isOrderStoreConfigured } from "@/lib/orders";
 import { checkRateLimit, requestExceedsBodyLimit } from "@/lib/requestProtection";
 import { turnstileRejected, verifyTurnstileRequest } from "@/lib/turnstile";
+import { readKitInput } from "@/lib/kits/content";
 
 export const runtime = "nodejs";
 
@@ -32,11 +33,21 @@ export async function POST(request: Request) {
     if (!isCheckoutProductId(productId)) return NextResponse.json({ error: "Produsul selectat nu este disponibil." }, { status: 400 });
     const clean = cleanConfiguration(configuration);
     if (!clean) return NextResponse.json({ error: "Datele materialului nu sunt valide." }, { status: 400 });
+    if (productId === "night-shield" || productId === "patience-kit") {
+      const input = readKitInput(clean.generation);
+      if (!input || input.type !== (productId === "night-shield" ? "monster" : "emergency")) return NextResponse.json({ error: "Verifică personalizarea materialului înainte de plată." }, { status: 400 });
+      clean.generation = input;
+    }
     const bundleVariant = bundleVariantForProductId(productId);
     if (bundleVariant) {
       const bundle = readBundleConfiguration(clean, bundleVariant);
       if (!bundle) {
         return NextResponse.json({ error: "Pachetul trebuie să conțină toate cele trei produse personalizate." }, { status: 400 });
+      }
+      for (const item of bundle.filter(item => item.product === "monster" || item.product === "emergency")) {
+        const input = readKitInput(item.configuration.generation);
+        if (!input || input.type !== item.product) return NextResponse.json({ error: "Verifică detaliile Scutului și Dosarului din pachet." }, { status: 400 });
+        item.configuration.generation = input;
       }
       const album = bundle.find((item) => item.product === "album");
       if (bundleVariant === "complete" && (!album || !readAlbumConfiguration(album.configuration))) {

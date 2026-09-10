@@ -3,6 +3,7 @@ import { readAlbumConfiguration, readAlbumOutput } from "@/lib/album/schema";
 import type { AlbumOrderOutput } from "@/lib/album/types";
 import { bundleProducts, bundleVariantForProductId, readBundleConfiguration, readBundleOutput, type BundleProduct } from "@/lib/bundle";
 import { getOrder, isValidDeliveryToken, readOrderCover } from "@/lib/orders";
+import { kitDeliveryOutput } from "@/lib/kits/delivery";
 
 export const runtime = "nodejs";
 
@@ -83,11 +84,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ orde
       return payload ? NextResponse.json(payload) : NextResponse.json({ error: "Povestea Magică nu este completă." }, { status: 409 });
     }
     const coverImageDataUrl = generated.coverObjectName ? await readOrderCover(generated.coverObjectName) : "";
-    return NextResponse.json({ product: generated.product, configuration: configured.configuration, output: generated.output, coverImageDataUrl });
+    return NextResponse.json({ product: generated.product, configuration: configured.configuration, output: kitDeliveryOutput(generated.output, orderId, token, generated.product), coverImageDataUrl }, { headers: { "Cache-Control": "private, no-store" } });
   }
 
   if (requestedItem && requestedItem !== order.product) return NextResponse.json({ error: "Materialul nu apartine comenzii." }, { status: 404 });
 
   const coverImageDataUrl = order.coverObjectName ? await readOrderCover(order.coverObjectName) : "";
-  return NextResponse.json({ product: order.product, configuration: order.configuration, output: order.output, coverImageDataUrl });
+  return NextResponse.json({ product: order.product, configuration: order.configuration, output: kitDeliveryOutput(order.output, orderId, token), coverImageDataUrl }, { headers: { "Cache-Control": "private, no-store" } });
 }

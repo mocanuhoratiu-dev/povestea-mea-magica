@@ -8,10 +8,12 @@ test("night shield and patience kit show a personalized preview before checkout"
   const night = read("../src/components/MonsterKit.tsx");
   const patience = read("../src/components/EmergencyKit.tsx");
   for (const source of [night, patience]) {
-    assert.match(source, /product_preview_opened/);
-    assert.match(source, /PersonalizedProductPreview/);
-    assert.ok(source.indexOf("setShowPreview(true)") < source.indexOf("await beginOrderCheckout"), "preview must be opened before checkout code");
+    assert.match(source, /PremiumKitCreator/);
   }
+  const creator = read("../src/components/PremiumKitCreator.tsx");
+  assert.match(creator, /product_preview_opened/);
+  assert.match(creator, /Copertă orientativă/);
+  assert.ok(creator.indexOf("setPreview(true)") < creator.indexOf("await beginOrderCheckout"), "preview must be opened before checkout code");
 });
 
 test("real-user web vitals are allow-listed without collecting personal data", () => {
@@ -26,8 +28,8 @@ test("real-user web vitals are allow-listed without collecting personal data", (
 test("product videos are local, muted and mobile-safe", () => {
   const component = read("../src/components/ProductWalkthroughVideo.tsx");
   const album = read("../src/app/povestea-magica/page.tsx");
-  const night = read("../src/components/MonsterKit.tsx");
-  const patience = read("../src/components/EmergencyKit.tsx");
+  const night = read("../src/components/LegacyMonsterKit.tsx");
+  const patience = read("../src/components/LegacyEmergencyKit.tsx");
   assert.match(component, /autoPlay/);
   assert.match(component, /muted/);
   assert.match(component, /playsInline/);

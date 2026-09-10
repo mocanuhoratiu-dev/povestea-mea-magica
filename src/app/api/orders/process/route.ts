@@ -6,6 +6,9 @@ import { createReadyEmailHtml, createReadyEmailSubject, createReadyEmailText, ty
 import { createDeliveryToken, createDeliveryTokenForExpiry, createOrderDeliveryUrl, getOrder, saveOrderCover, setOrderStatus, verifyTaskIdentity, type OrderProduct, type StoredOrder } from "@/lib/orders";
 import { siteUrl } from "@/lib/siteMode";
 import { logTelemetry } from "@/lib/telemetry";
+import { readPremiumKit } from "@/lib/kits/content";
+import { completeKitArtwork } from "@/lib/kits/artwork";
+import { readOrderCover } from "@/lib/orders";
 
 export const runtime = "nodejs";
 
@@ -48,7 +51,7 @@ function emailTelemetryProduct(product: TransactionalEmailProduct): OrderProduct
 
 function processingFailureCode(error: unknown) {
   const message = error instanceof Error ? error.message.toLowerCase() : "";
-  if (message.startsWith("album_budget_")) return "budget_limit";
+  if (message.startsWith("album_budget_") || message.startsWith("kit_budget_")) return "budget_limit";
   if (message.startsWith("email_delivery_")) return "email_delivery_failed";
   if (message.includes("timeout") || message.includes("timed out")) return "provider_timeout";
   if (message.includes("429") || message.includes("rate") || message.includes("demand")) return "provider_rate_limited";
@@ -104,6 +107,18 @@ async function prepareSingleOrder(order: StoredOrder, secret: string) {
     prepared = saved;
   }
 
+  const premium = readPremiumKit(prepared.output?.premium);
+  if (premium && (!premium.assets.cover || !premium.assets.scene)) {
+    await completeKitArtwork(premium, {
+      save: (image, role) => saveOrderCover(prepared!.id, image, `kit-${prepared!.product}-${role}`),
+      read: readOrderCover,
+      checkpoint: async (next) => {
+        const saved = await setOrderStatus(prepared!, "processing", { output: { ...prepared!.output, premium: next } });
+        if (!saved) throw new Error("Kit checkpoint failed");
+        prepared = saved;
+      },
+    });
+  }
   return ensureDeliveryExpiry(prepared);
 }
 
@@ -174,6 +189,19 @@ async function prepareBundleOrder(order: StoredOrder, secret: string) {
 
   for (const item of configuredItems) {
     const existing = completedItems.find((completed) => completed.product === item.product);
+    const premium = readPremiumKit(existing?.output.premium);
+    if (premium && (!premium.assets.cover || !premium.assets.scene)) {
+      await completeKitArtwork(premium, {
+        save: (image, role) => saveOrderCover(prepared!.id, image, `kit-${item.product}-${role}`),
+        read: readOrderCover,
+        checkpoint: async (next) => {
+          completedItems = upsertItem({ product: item.product, output: { ...existing!.output, premium: next } });
+          const saved = await setOrderStatus(prepared!, "processing", { output: { items: completedItems } });
+          if (!saved) throw new Error("Bundle kit checkpoint failed");
+          prepared = saved;
+        },
+      });
+    }
     if (item.product === "album") {
       const albumConfiguration = readAlbumConfiguration(item.configuration);
       if (!albumConfiguration) throw new Error("Configuratia albumului din pachet este invalida.");

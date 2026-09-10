@@ -75,7 +75,7 @@ export default function AboutPage() {
             <h2 className="mt-4 font-nunito text-4xl font-black leading-tight text-brand-navy">Un material pentru folosit împreună, nu un fișier uitat într-un folder.</h2>
           </div>
           <div className="space-y-7 text-lg font-medium leading-relaxed text-brand-navy/70">
-            <p>Fiecare produs are o structură proprie: povestea are o aventură și o dedicație, Scutul de Noapte are un ritual simbolic, iar Trusa de Răbdare are activități legate de contextul ales.</p>
+            <p>Fiecare produs are o structură proprie: povestea are o aventură și o dedicație, Atelierul Scutului Magic are un ritual simbolic, iar Dosarul Micului Explorator are activități legate de contextul ales.</p>
             <p>Poți vedea exemplele înainte de a începe și poți ajusta povestea înainte de descărcarea PDF-ului. Povestea Magică poate fi creată din descriere sau, opțional, cu o fotografie folosită privat ca reper vizual. Materialele generate nu sunt păstrate într-o bibliotecă de conturi.</p>
             <p>Păstrăm promisiunea simplă: conținut cald, clar și potrivit pentru timpul petrecut în familie.</p>
           </div>

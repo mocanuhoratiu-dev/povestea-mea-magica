@@ -12,8 +12,8 @@ export default function Navbar() {
 
   const navigationItems = [
     { label: "Povestea Magică", href: "/povestea-magica" },
-    { label: "Scutul de Noapte", href: "/scutul-de-noapte" },
-    { label: "Trusa de Răbdare", href: "/trusa-de-rabdare" },
+    { label: "Scutul Magic", href: "/scutul-de-noapte" },
+    { label: "Micul Explorator", href: "/trusa-de-rabdare" },
     { label: "Răsfoiește", href: "/modele" },
     { label: "Prețuri", href: "/preturi" },
   ];

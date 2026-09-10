@@ -11,8 +11,8 @@ type LumiMomentCheckProps = {
 
 const productQuestions: Record<TelemetryProduct, string> = {
   story: "povestea potrivită",
-  monster: "Scutul de Noapte potrivit",
-  emergency: "Trusa de Răbdare potrivită",
+  monster: "Atelierul Scutului Magic potrivit",
+  emergency: "Dosarul Micului Explorator potrivită",
   bundle: "pachetul potrivit",
   album: "Povestea Magică potrivită",
 };

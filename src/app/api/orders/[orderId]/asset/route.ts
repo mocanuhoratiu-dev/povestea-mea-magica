@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { readAlbumOutput } from "@/lib/album/schema";
 import { readBundleOutput } from "@/lib/bundle";
 import { getOrder, isValidDeliveryToken, readOrderFile } from "@/lib/orders";
+import { readPremiumKit } from "@/lib/kits/content";
 
 export const runtime = "nodejs";
 
@@ -13,6 +14,19 @@ export async function GET(request: Request, { params }: { params: Promise<{ orde
 
   const order = await getOrder(orderId);
   if (!order || order.status !== "delivered") return NextResponse.json({ error: "Povestea Magică nu este pregătită." }, { status: 404 });
+  const requestedAsset = url.searchParams.get("asset");
+  if (requestedAsset === "kit-cover" || requestedAsset === "kit-scene") {
+    const item = url.searchParams.get("item");
+    const output = order.product === "bundle"
+      ? readBundleOutput(order.output).find(part => part.product === item && (item === "monster" || item === "emergency"))?.output
+      : (!item || item === order.product) && (order.product === "monster" || order.product === "emergency") ? order.output : undefined;
+    const kit = readPremiumKit(output?.premium);
+    const objectName = requestedAsset === "kit-cover" ? kit?.assets.cover : kit?.assets.scene;
+    if (!objectName || !objectName.startsWith(`orders/${orderId}/kit-`)) return NextResponse.json({ error: "Imaginea nu există în această comandă." }, { status: 404 });
+    const file = await readOrderFile(objectName);
+    if (!file.contentType.startsWith("image/")) return NextResponse.json({ error: "Format invalid." }, { status: 409 });
+    return new Response(new Uint8Array(file.buffer), { headers: { "Content-Type": file.contentType, "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff" } });
+  }
   const bundleAlbum = order.product === "bundle" && url.searchParams.get("item") === "album"
     ? readBundleOutput(order.output).find((item) => item.product === "album")
     : null;

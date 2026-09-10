@@ -21,8 +21,8 @@ const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID?.trim() || "";
 
 const productData: Record<TelemetryProduct, { id: string; name: string; value: number }> = {
   story: { id: "legacy-story", name: "Poveste personalizată", value: 0 },
-  monster: { id: "night-shield", name: "Scutul de Noapte", value: 19 },
-  emergency: { id: "patience-kit", name: "Trusa de Răbdare", value: 19 },
+  monster: { id: "night-shield", name: "Atelierul Scutului Magic", value: 19 },
+  emergency: { id: "patience-kit", name: "Dosarul Micului Explorator", value: 19 },
   bundle: { id: "complete-bundle", name: "Pachetul Complet", value: 79 },
   album: { id: "illustrated-album-digital", name: "Povestea Magică", value: 59 },
 };

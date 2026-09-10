@@ -20,6 +20,7 @@ export type TelemetryFields = {
   aiProvider?: "gemini" | "vertex";
   model?: string;
   albumStage?: "plan" | "cover" | "preview" | "scene" | "coloring" | "render" | "audio" | "delivery";
+  kitStage?: "text" | "cover" | "scene";
   samplePage?: number;
   estimatedCostMicros?: number;
   identityScore?: number;
@@ -115,6 +116,8 @@ export type TelemetryEvent =
   | "pmm_verified_review_failed"
   | "pmm_album_stage_completed"
   | "pmm_album_stage_failed"
+  | "pmm_kit_stage_completed"
+  | "pmm_kit_stage_failed"
   | "pmm_web_vital_recorded";
 
 /**
@@ -138,6 +141,7 @@ export function logTelemetry(event: TelemetryEvent, fields: TelemetryFields = {}
     ai_provider: fields.aiProvider,
     model: fields.model,
     album_stage: fields.albumStage,
+    kit_stage: fields.kitStage,
     sample_page: fields.samplePage,
     estimated_cost_micros: fields.estimatedCostMicros,
     identity_score: fields.identityScore,

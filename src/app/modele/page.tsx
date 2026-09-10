@@ -4,16 +4,20 @@ import { ArrowRight, BookHeart, ShieldCheck, TimerReset } from "lucide-react";
 import BrandMark from "@/components/BrandMark";
 import Footer from "@/components/Footer";
 import ProductReader from "@/components/ProductReader";
+import PremiumKitReader from "@/components/PremiumKitReader";
+import { kitSample } from "@/lib/kits/sample";
+import { buildKitPages } from "@/lib/kits/template";
+import "@/components/premium-kit.css";
 import { commerce } from "@/lib/siteMode";
 
 export const metadata: Metadata = {
   title: "Modele PDF | Povestea Mea Magică",
-  description: "Răsfoiește pagini din Povestea Magică, Scutul de Noapte și Trusa de Răbdare.",
+  description: "Răsfoiește pagini din Povestea Magică, Atelierul Scutului Magic și Dosarul Micului Explorator.",
   alternates: { canonical: "/modele" },
   openGraph: {
     url: "/modele",
     title: "Modele PDF | Povestea Mea Magică",
-    description: "Răsfoiește pagini din Povestea Magică, Scutul de Noapte și Trusa de Răbdare.",
+    description: "Răsfoiește pagini din Povestea Magică, Atelierul Scutului Magic și Dosarul Micului Explorator.",
   },
 };
 
@@ -47,47 +51,36 @@ const models = [
   {
     id: "scutul-de-noapte",
     moment: "Pentru noapte",
-    title: "Scutul de Noapte",
+    title: "Atelierul Scutului Magic",
     price: commerce.prices.nightShield,
-    pageCount: "9 pagini A4 + audio",
-    description: "Un ritual magic de seară, cu certificat, rețetă imaginară și etichete, completat de poveste, fișa «Camera mea», respirație și ghid pentru părinte.",
-    readerNote: "Jocul simbolic deschide experiența, apoi copilul recunoaște camera și pașii ritualului, iar părintele primește un limbaj blând, fără promisiuni medicale sau confirmarea pericolului imaginat.",
+    pageCount: "13 pagini A4 + audio",
+    description: "Un atelier ilustrat de apropiere: poveste, scut de construit, carduri de seară, camera de desenat și o scrisoare de la Lumi.",
+    readerNote: "Răsfoiești cele zece pagini noi. PDF-ul începe cu certificatul, rețeta imaginară și etichetele clasice, păstrate integral. Fără promisiuni medicale sau confirmarea unui pericol imaginar.",
     href: "/scutul-de-noapte",
     cta: "Creează scutul",
     accent: "text-brand-gold",
     rule: "bg-brand-gold",
     icon: ShieldCheck,
     choices: ["numele copilului și teama aleasă", "locul din cameră și semnul de liniștire", "ritualul propriu al familiei"],
-    source: "/examples/scut-classic-plus-contact.png",
-    pages: [
-      { title: "Certificatul de protecție magică", caption: "Copilul primește certificatul oficial original, cu clauze magice și sigiliul Dragonului Somnoros.", crop: { left: 2.5, top: 2.6, width: 45, height: 44.6 } },
-      { title: "Rețeta imaginară", caption: "Ingredientele fantastice și formula personalizată fac ritualul memorabil.", crop: { left: 52.5, top: 2.6, width: 45, height: 44.6 } },
-      { title: "Etichetele Scutului", caption: "Etichetele detașabile transformă un flacon gol într-un obiect de joacă simbolică.", crop: { left: 2.5, top: 52.6, width: 45, height: 44.6 } },
-    ],
+    source: "/examples/kits-v2/atelier-preview.webp",
+    pages: [],
   },
   {
     id: "trusa-de-rabdare",
     moment: "Pentru așteptare",
-    title: "Trusa de Răbdare",
+    title: "Dosarul Micului Explorator",
     price: commerce.prices.patienceKit,
     pageCount: "10 pagini A4",
-    description: "Opt activități pentru drum, restaurant, medic sau alte momente în care timpul pare să treacă mai greu.",
+    description: "Un mister ilustrat pentru copil, cu radar, labirint, diferențe, desen, misiuni detașabile și un plic de construit.",
     readerNote: "Paginile alternează între observare, logică, desen, colorat și joc verbal. Labirintul și diferențele folosesc structuri validate, iar AI-ul personalizează restul selecției.",
     href: "/trusa-de-rabdare",
-    cta: "Pregătește trusa",
+    cta: "Deschide dosarul",
     accent: "text-brand-orange",
     rule: "bg-brand-orange",
     icon: TimerReset,
     choices: ["numele și vârsta copilului", "locul și durata așteptării", "interesele și nivelul de dificultate"],
-    source: "/examples/trusa-final-contact.png",
-    pages: [
-      { title: "Coperta-ghid", caption: "Momentul, durata, nivelul și modul de folosire sunt clare de la început.", crop: { left: 1.7, top: 2.6, width: 30, height: 44.6 } },
-      { title: "Radarul exploratorului", caption: "Locul ales devine punctul de plecare pentru observații reale.", crop: { left: 35, top: 2.6, width: 30, height: 44.6 } },
-      { title: "Labirint validat", caption: "Traseul este construit controlat și are o soluție clară.", crop: { left: 68.3, top: 2.6, width: 30, height: 44.6 } },
-      { title: "Găsește diferențele", caption: "Cele cinci diferențe sunt intenționate și apar în pagina de răspunsuri.", crop: { left: 1.7, top: 52.6, width: 30, height: 44.6 } },
-      { title: "Cartonașele", caption: "Opt misiuni scurte pot fi decupate și refolosite.", crop: { left: 35, top: 52.6, width: 30, height: 44.6 } },
-      { title: "Soluții și certificat", caption: "Adultul are răspunsurile, iar copilul încheie trusa cu un certificat personalizat.", crop: { left: 68.3, top: 52.6, width: 30, height: 44.6 } },
-    ],
+    source: "/examples/kits-v2/explorer-preview.webp",
+    pages: [],
   },
 ];
 
@@ -135,7 +128,10 @@ export default function ModelsPage() {
                   </div>
 
                   <div>
-                    <ProductReader title={model.title} source={model.source} pages={model.pages} orientation={"orientation" in model ? model.orientation : undefined} />
+                    {model.id === "povestea-magica" ? <ProductReader title={model.title} source={model.source} pages={model.pages} orientation={"orientation" in model ? model.orientation : undefined} /> : (() => {
+                      const sample = kitSample(model.id === "scutul-de-noapte" ? "monster" : "emergency");
+                      return <PremiumKitReader pages={buildKitPages(sample.input, sample.kit)} label={`Model · ${sample.input.name}`} />;
+                    })()}
                     <p className="mt-5 max-w-2xl text-sm font-medium leading-relaxed text-brand-navy/60">{model.readerNote}</p>
                   </div>
                 </div>
