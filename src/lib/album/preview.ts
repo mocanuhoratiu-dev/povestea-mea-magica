@@ -7,6 +7,7 @@ import { logTelemetry } from "@/lib/telemetry";
 import { generateVertexAlbumIllustration } from "@/lib/vertexImage";
 import { createAlbumBudget, reserveAlbumBudgetCall } from "@/lib/album/budget";
 import { evaluateAlbumImage, isAlbumAiQualityEnabled } from "@/lib/album/quality";
+import { AlbumQualityUnavailableError } from "./qualityPolicy";
 
 function decodePreview(imageDataUrl: string) {
   const match = /^data:image\/(?:png|jpeg|webp);base64,([a-zA-Z0-9+/=]+)$/.exec(imageDataUrl);
@@ -49,8 +50,8 @@ export async function generateAlbumPreview(orderId: string, configuration: Album
         throw new Error("Preview-ul primit nu are rezoluția necesară pentru album.");
       }
 
-      if (isAlbumAiQualityEnabled()) budget = reserveAlbumBudgetCall(budget, "quality");
       const quality = await evaluateAlbumImage({
+        beforeAiCheck: async () => { if (isAlbumAiQualityEnabled()) budget = reserveAlbumBudgetCall(budget, "quality"); },
         asset: `cover-preview-attempt-${attempt}`,
         candidateDataUrl: generated.imageDataUrl,
         referenceDataUrl: options.referenceImageDataUrl,
@@ -76,6 +77,7 @@ export async function generateAlbumPreview(orderId: string, configuration: Album
       lastError = new Error("Preview-ul nu a trecut controlul de calitate vizuală.");
       attemptPrompt = buildAlbumPreviewRetryPrompt(prompt, quality);
     } catch (error) {
+      if (error instanceof AlbumQualityUnavailableError) throw error;
       lastError = error;
       console.warn("Album preview generation attempt failed", JSON.stringify({
         attempt,

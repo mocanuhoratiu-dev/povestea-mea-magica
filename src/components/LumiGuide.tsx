@@ -91,6 +91,13 @@ export default function LumiGuide() {
   const router = useRouter();
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const [isAlbumEditing, setAlbumEditing] = useState(false);
+  useEffect(() => {
+    const node = document.getElementById("configureaza-albumul");
+    if (!node) { setAlbumEditing(false); return; }
+    const observer = new IntersectionObserver(([entry]) => setAlbumEditing(entry.isIntersecting), {threshold:0});
+    observer.observe(node); return () => observer.disconnect();
+  }, [pathname]);
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState<LumiDraft>(initialDraft);
   const [error, setError] = useState("");
@@ -262,7 +269,7 @@ export default function LumiGuide() {
   ];
 
   return (
-    <aside className="fixed bottom-3 left-3 right-3 z-[80] sm:bottom-5 sm:left-auto sm:right-6 sm:w-[400px]" aria-label="Lumi, ghidul pentru Povestea Magică" data-lumi-state={visualState}>
+    <aside className={`fixed z-[80] ${isAlbumEditing && !isOpen ? "hidden" : "bottom-3 left-3 right-3 sm:bottom-5 sm:left-auto sm:right-6 sm:w-[400px]"}`} aria-label="Lumi, ghidul pentru Povestea Magică" data-lumi-state={visualState} data-lumi-compact={isAlbumEditing && !isOpen}>
       <AnimatePresence mode="wait">
         {isOpen ? (
           <motion.section key="guide" initial={{ opacity: 0, y: 18, scale: .97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 12, scale: .97 }} className="relative min-h-0">
@@ -318,6 +325,7 @@ export default function LumiGuide() {
           </motion.section>
         ) : (
           <motion.div key="launcher" initial={{ opacity: 0, y: 12, scale: .97 }} animate={{ opacity: 1, y: 0, scale: 1 }} className="ml-auto w-fit max-w-full">
+            {isAlbumEditing ? <button type="button" title="Ajutor de la Lumi" aria-label="Deschide ghidul Lumi și creează povestea" onClick={()=>{setIsOpen(true);dismissNudge();trackEvent("lumi_opened");}} className="flex h-11 items-center gap-2 rounded-full border border-brand-purple/25 bg-white px-3 text-xs font-bold text-brand-purple shadow-md"><img src="/lumi-guardian.webp" alt="" className="h-9 w-6 object-contain"/>Lumi</button> : <>
             <motion.button type="button" aria-label={generation.phase === "idle" ? "Deschide ghidul Lumi și creează povestea" : `Deschide Lumi. ${visualTitle}`} title={showNudge && generation.phase === "idle" ? launcherCopy : undefined} onClick={() => { trackEvent("lumi_opened"); setIsOpen(true); dismissNudge(); window.setTimeout(() => window.dispatchEvent(new CustomEvent("pmm:lumi-request-context")), 0); }} whileHover={{ y: -4 }} whileTap={{ scale: .98 }} className="group relative ml-auto h-[92px] w-[min(292px,calc(100vw-1.5rem))] border-0 bg-transparent text-left text-brand-navy drop-shadow-[0_17px_20px_rgba(15,25,48,.24)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-purple focus-visible:ring-offset-4 sm:h-[108px] sm:w-[330px]">
               <span aria-hidden="true" className="absolute bottom-0 left-0 h-[68px] w-[58%] border border-brand-navy/14 bg-brand-cream [clip-path:polygon(0_0,90%_7%,100%_100%,0_91%)] transition-colors group-hover:border-brand-gold sm:h-20" />
               <span aria-hidden="true" className="absolute bottom-0 right-0 h-[68px] w-[58%] border border-brand-navy/14 bg-brand-cream [clip-path:polygon(10%_7%,100%_0,100%_91%,0_100%)] transition-colors group-hover:border-brand-gold sm:h-20" />
@@ -330,7 +338,7 @@ export default function LumiGuide() {
                 <span className={`mt-0.5 block truncate text-[9px] font-bold text-brand-navy/50 transition-opacity sm:text-[10px] ${showNudge ? "opacity-100" : "opacity-75"}`}>{generation.phase === "idle" ? contextualLauncherLabel : "Urmărește progresul"}</span>
               </span>
               <span aria-hidden="true" className="absolute bottom-[25px] right-2.5 z-20 text-lg font-bold text-brand-purple transition-transform group-hover:translate-x-1 sm:bottom-[30px] sm:right-3.5">→</span>
-            </motion.button>
+            </motion.button></>}
           </motion.div>
         )}
       </AnimatePresence>

@@ -15,6 +15,8 @@ import AlbumPreviewFlipbook, { type AlbumPreviewPage } from "@/components/AlbumP
 import LumiGenerationStage from "@/components/LumiGenerationStage";
 import { protectedFetch } from "@/lib/clientTurnstile";
 import type { LumiGenerationDetail, LumiGenerationPhase } from "@/lib/lumiExperience";
+import "./album-editorial.css";
+import LumiOpenButton from "./LumiOpenButton";
 
 const steps = ["Copilul", "Aventura", "Mesajul vostru", "Mostra"];
 const colors = [
@@ -81,6 +83,7 @@ function readStoredPreview(value: unknown): AlbumPreviewState | null {
 
 export default function AlbumCreator() {
   const [step, setStep] = useState(0);
+  const [appearanceExpanded, setAppearanceExpanded] = useState(false);
   const [name, setName] = useState("");
   const [age, setAge] = useState("5");
   const [hairStyle, setHairStyle] = useState("ondulat până la umeri");
@@ -479,7 +482,8 @@ export default function AlbumCreator() {
   };
 
   return (
-    <form onSubmit={submit} className="border-y border-brand-navy/15 bg-white">
+    <form onSubmit={submit} className="album-configurator" data-album-configuring="true">
+      <div className="flex justify-end border-b border-brand-navy/10 px-5 py-3"><LumiOpenButton label="Ajutor de la Lumi" className="inline-flex min-h-11 items-center gap-2 rounded-full border border-brand-purple/25 px-4 text-xs font-bold text-brand-purple"/></div>
       <div className="grid lg:grid-cols-[minmax(0,1.1fr)_minmax(340px,.9fr)]">
         <div className="px-5 py-8 sm:px-8 md:px-12 md:py-12">
           <div className="sticky top-16 z-20 -mx-5 grid grid-cols-4 border-y border-brand-navy/12 bg-white sm:static sm:mx-0" aria-label="Pașii configurării">
@@ -497,7 +501,7 @@ export default function AlbumCreator() {
             ))}
           </div>
 
-          <div className="min-h-[470px] pt-9">
+          <div className="pt-9">
             {step === 0 && (
               <fieldset>
                 <legend className="font-serif text-3xl text-brand-navy sm:text-4xl">Cum apare copilul în poveste?</legend>
@@ -505,12 +509,14 @@ export default function AlbumCreator() {
                 <div className="mt-8 grid gap-5 sm:grid-cols-2">
                   <label className={labelClass}>Prenume<input className={inputClass} value={name} onChange={(event) => setName(event.target.value)} maxLength={40} placeholder="Exemplu: Eva" autoComplete="off" required /></label>
                   <label className={labelClass}>Vârsta<select className={inputClass} value={age} onChange={(event) => setAge(event.target.value)}>{Array.from({ length: 9 }, (_, index) => index + 2).map((value) => <option key={value} value={value}>{value} ani</option>)}</select></label>
+                </div><details className="optional-details" open={appearanceExpanded} onToggle={event => setAppearanceExpanded(event.currentTarget.open)}><summary>Aspectul și ținuta personajului</summary><div className="grid gap-5 sm:grid-cols-2">
                   <label className={labelClass}>Coafura<select className={inputClass} value={hairStyle} onChange={(event) => setHairStyle(event.target.value)}><option>scurt și drept</option><option>ondulat până la umeri</option><option>lung și drept</option><option>creț</option><option>două împletituri</option></select></label>
                   <label className={labelClass}>Culoarea părului<select className={inputClass} value={hairColor} onChange={(event) => setHairColor(event.target.value)}><option>șaten</option><option>blond</option><option>brunet</option><option>roșcat</option><option>negru</option></select></label>
                   <label className={labelClass}>Culoarea ochilor<select className={inputClass} value={eyeColor} onChange={(event) => setEyeColor(event.target.value)}><option>căprui</option><option>albaștri</option><option>verzi</option><option>cenușii</option><option>negri</option></select></label>
                   <label className={labelClass}>Nuanța pielii<select className={inputClass} value={skinTone} onChange={(event) => setSkinTone(event.target.value)}><option>deschisă</option><option>medie</option><option>măslinie</option><option>închisă</option></select></label>
                   <label className={`${labelClass} sm:col-span-2`}>Ținuta personajului<input className={inputClass} value={outfit} onChange={(event) => setOutfit(event.target.value)} maxLength={100} placeholder="Exemplu: rochiță galbenă și cizme mov" /></label>
                   <label className={`${labelClass} sm:col-span-2`}>Alte detalii de aspect, opțional<textarea className={`${inputClass} min-h-20 resize-y`} value={appearanceDetail} onChange={(event) => setAppearanceDetail(event.target.value)} maxLength={240} placeholder="Ochelari rotunzi, pistrui, un semn din naștere sau accesoriul preferat" /><span className="mt-1 block text-right text-[10px] text-brand-navy/72">{appearanceDetail.length}/240</span></label>
+                </div></details><details className="optional-details" open={Boolean(referencePhoto)}><summary>Pornește de la o fotografie (opțional)</summary><div className="grid gap-5">
                   <div className="border border-brand-gold/55 bg-brand-gold/[0.08] p-5 sm:col-span-2">
                     <div className="flex items-start gap-4">
                       <span className="grid h-11 w-11 shrink-0 place-items-center bg-brand-navy text-brand-gold"><Camera size={21} /></span>
@@ -540,7 +546,7 @@ export default function AlbumCreator() {
                     )}
                     <div className="mt-4 flex gap-2 border-t border-brand-navy/10 pt-4 text-[11px] font-semibold leading-relaxed text-brand-navy/72"><ShieldCheck size={17} className="shrink-0 text-brand-purple" />Fișierul este redimensionat înainte de încărcare și curățat din nou pe server. Poți crea povestea și numai din descriere.</div>
                   </div>
-                </div>
+                </div></details>
               </fieldset>
             )}
 
@@ -550,8 +556,8 @@ export default function AlbumCreator() {
                 <p className="mt-3 max-w-xl text-sm font-semibold leading-relaxed text-brand-navy/72">Alegerile devin întâmplări, decoruri și momente reale din poveste.</p>
                 <div className="mt-8">
                   <p className={labelClass}>Lumea poveștii</p>
-                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                    {albumWorldOptions.map((option) => <button key={option.id} type="button" onClick={() => setWorld(option.id)} className={`min-h-12 border px-4 py-3 text-left text-sm font-black ${world === option.id ? "border-brand-purple bg-brand-purple text-white" : "border-brand-navy/15 bg-brand-cream text-brand-navy"}`}>{option.label}</button>)}
+                  <div className="album-world-grid">
+                    {albumWorldOptions.map((option, index) => <button key={option.id} type="button" aria-pressed={world === option.id} onClick={() => setWorld(option.id)} className="album-world-option"><span aria-hidden="true" style={{backgroundPosition:`${(index%4)*100/3}% ${Math.floor(index/4)*50}%`}}/><span>{option.label}</span></button>)}
                   </div>
                   {world === "custom" && <label className={`${labelClass} mt-4`}>Descrie lumea inventată<textarea className={`${inputClass} min-h-24 resize-y`} value={customWorld} onChange={(event) => setCustomWorld(event.target.value)} maxLength={280} placeholder="O lume roz a zânelor, cu poduri din flori și stele care cântă..." /></label>}
                 </div>
@@ -651,20 +657,19 @@ export default function AlbumCreator() {
           </div>
 
           {notice && <p role="alert" className="mb-5 border-l-4 border-brand-purple bg-brand-purple/8 px-4 py-3 text-sm font-bold text-brand-navy">{notice}</p>}
-          <div className="flex items-center justify-between gap-3 border-t border-brand-navy/12 pt-6">
+          <div className="album-form-actions flex items-center justify-between gap-3 border-t border-brand-navy/12 pt-6">
             <button type="button" onClick={() => setStep((current) => Math.max(0, current - 1))} disabled={step === 0 || isLoading} className="inline-flex min-h-12 items-center gap-2 px-2 text-sm font-black text-brand-navy disabled:opacity-25"><ArrowLeft size={17} /> Înapoi</button>
             {step < 3 ? <button type="submit" className="inline-flex min-h-12 items-center gap-2 bg-brand-navy px-6 text-sm font-black text-brand-cream transition hover:bg-brand-purple">Continuă <ArrowRight size={17} /></button> : <button type="submit" disabled={isLoading || Boolean(activePreview && (!activePreview.ready || !commerce.acceptsPayments))} className="inline-flex min-h-14 items-center gap-2 bg-brand-purple px-6 text-sm font-black text-white transition hover:bg-brand-navy disabled:cursor-not-allowed disabled:opacity-45">{isLoading ? (activePreview ? "Deschidem plata..." : "Creăm coperta...") : activePreview ? (activePreview.ready ? "Continuă către plată" : "Pregătim paginile...") : "Vezi mostra personalizată"} <Sparkles size={18} /></button>}
           </div>
         </div>
 
-        <aside className="border-t border-brand-navy/15 bg-brand-navy px-5 py-9 text-brand-cream sm:px-8 lg:border-l lg:border-t-0 lg:px-10 lg:py-12">
-          <p className="text-xs font-black uppercase tracking-[0.15em] text-brand-gold">Vezi ce primești</p>
-          <div className="mt-5 overflow-hidden border border-brand-gold/50"><Image src="/examples/album/coperta.webp" alt="Coperta modelului Povestea Magică" width={960} height={676} className="h-auto w-full" /></div>
-          <div className="mt-3 grid grid-cols-2 gap-2"><Image src="/examples/album/aventura.webp" alt="Pagină ilustrată" width={480} height={338} className="aspect-[1.42] w-full bg-brand-cream object-contain" /><Image src="/examples/album/colorat.webp" alt="Pagină de colorat" width={480} height={338} className="aspect-[1.42] w-full bg-brand-cream object-contain" /><Image src="/examples/album/labirint.webp" alt="Pagină cu labirint" width={480} height={338} className="aspect-[1.42] w-full bg-brand-cream object-contain" /><Image src="/examples/album/diferente.webp" alt="Pagină cu joc de diferențe" width={480} height={338} className="aspect-[1.42] w-full bg-brand-cream object-contain" /></div>
-          <p className="mt-5 font-serif text-2xl">O poveste construită ca o carte adevărată.</p>
-          <ul className="mt-5 space-y-3 text-sm font-semibold text-brand-cream/75">{["Personaj construit din descriere sau fotografie", "Fiecare ilustrație trece prin control de calitate", "Textul nu acoperă imaginile", "Caiet separat cu 3 activități", "Carte digitală de răsfoit, audio și PDF-uri A5 în format orizontal"].map((item) => <li key={item} className="flex gap-3"><Check size={17} className="mt-0.5 shrink-0 text-brand-gold" />{item}</li>)}</ul>
-          <div className="mt-8 grid grid-cols-3 border-y border-brand-cream/15 py-5 text-center"><div><Clock3 className="mx-auto text-brand-gold" size={19} /><p className="mt-2 text-[10px] font-black">6-10 minute</p></div><div><Mail className="mx-auto text-brand-gold" size={19} /><p className="mt-2 text-[10px] font-black">Primești email</p></div><div><Download className="mx-auto text-brand-gold" size={19} /><p className="mt-2 text-[10px] font-black">2 PDF-uri</p></div></div>
-          <Link href="/modele#povestea-magica" className="mt-7 inline-flex items-center gap-2 border-b border-brand-gold pb-1 text-sm font-black text-brand-gold">Vezi paginile modelului <ArrowRight size={16} /></Link>
+        <aside className="album-character-summary" aria-label="Reperele personajului">
+          <p className="album-eyebrow">{activePreview ? "Personajul vostru prinde viață" : "Reperele personajului"}</p>
+          {(activePreview?.imageUrl || referencePhoto) && <img src={activePreview?.imageUrl || referencePhoto} alt={activePreview ? `Mostra personajului ${name}` : "Fotografia de referință aleasă"}/>}
+          <h3>{name || "Eroul vostru"}</h3><dl><dt>Vârsta</dt><dd>{age} ani</dd><dt>Aspect</dt><dd>{hairColor}, {hairStyle}; ochi {eyeColor}; piele {skinTone}</dd><dt>Ținuta</dt><dd>{outfit || "Aleasă pentru aventură"}{appearanceDetail ? ` · ${appearanceDetail}` : ""}</dd><dt>Lumea</dt><dd>{world === "custom" ? customWorld || "Lumea voastră" : albumWorldOptions.find(item=>item.id===world)?.label}</dd><dt>Împreună cu</dt><dd>{companion}{secondaryCharacterName ? ` și ${secondaryCharacterName}` : ""}</dd></dl>
+          {activePreview && <button type="button" className="album-inline-link" onClick={()=>{setAppearanceExpanded(true);setStep(0);document.getElementById("configureaza-albumul")?.scrollIntoView({behavior:"smooth"});}}>Corectează aspectul <ArrowLeft size={16}/></button>}
+          <p className="mt-6 text-xs leading-relaxed">Verifică detaliile înainte de a crea mostra. O schimbare a aspectului cere o mostră nouă; limita zilnică de generare se aplică și corecturilor.</p>
+          <p className="mt-4 text-xs leading-relaxed">{commerce.prices.illustratedAlbum} · Carte digitală, caiet și audio. Plata urmează după mostra completă.</p>
         </aside>
       </div>
     </form>

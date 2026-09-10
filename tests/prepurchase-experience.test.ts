@@ -36,7 +36,8 @@ test("product videos are local, muted and mobile-safe", () => {
   assert.match(component, /IntersectionObserver/);
   assert.match(component, /preload=\{shouldLoad \? "metadata" : "none"\}/);
   assert.match(component, /saveData/);
-  assert.match(album, /povestea-magica\.mp4/);
+  assert.match(album, /<AlbumFlipbook/);
+  assert.doesNotMatch(album, /ProductWalkthroughVideo/);
   assert.match(night, /scutul-de-noapte\.mp4/);
   assert.match(patience, /trusa-de-rabdare\.mp4/);
 });

@@ -9,7 +9,8 @@ import sharp from "sharp";
 import { createAlbumBudget, reserveAlbumBudgetCall, type AlbumBudgetCall } from "@/lib/album/budget";
 import { evaluateAlbumImage, isAlbumAiQualityEnabled } from "@/lib/album/quality";
 import { synthesizeRomanianSpeech } from "@/lib/googleTextToSpeech";
-import { acceptBestSafeCandidate, buildAlbumImageRetryPrompt, chooseBetterAlbumCandidate, isSafeSoftQualityCandidate, type AlbumImageCandidate } from "@/lib/album/imageQualityPolicy";
+import { AlbumQualityUnavailableError } from "./qualityPolicy";
+import { buildAlbumImageRetryPrompt, type AlbumImageCandidate } from "@/lib/album/imageQualityPolicy";
 
 type Checkpoint = (output: AlbumOrderOutput) => Promise<void>;
 type VisualFingerprint = Uint8Array;
@@ -98,6 +99,7 @@ async function generateAndStoreImage({
   avoidFingerprints = [],
   beforeCall,
   beforeQualityCall,
+  pending,
 }: {
   orderId: string;
   basename: string;
@@ -109,25 +111,25 @@ async function generateAndStoreImage({
   avoidFingerprints?: VisualFingerprint[];
   beforeCall: () => Promise<void>;
   beforeQualityCall: () => Promise<void>;
+  pending?: { read: (key: string) => { objectName: string; model: string } | undefined; write: (key: string, value?: { objectName: string; model: string }) => Promise<void> };
 }) {
   const startedAt = Date.now();
   const maxAttempts = readBoundedInteger(process.env.ALBUM_IMAGE_MAX_ATTEMPTS, 4, 1, 6);
-  const softFallbackAfter = readBoundedInteger(process.env.ALBUM_IMAGE_SOFT_FALLBACK_AFTER, 2, 1, maxAttempts);
   const retryDelayMs = readBoundedInteger(process.env.ALBUM_IMAGE_RETRY_DELAY_MS, 15_000, 2_000, 60_000);
   let lastError: unknown;
-  let bestSafeCandidate: AlbumImageCandidate<{
+  type Candidate = AlbumImageCandidate<{
     imageDataUrl: string;
     model: string;
     fingerprint: VisualFingerprint;
-  }> | undefined;
+  }>;
   let activePrompt = prompt;
 
   const saveCandidate = async (
-    candidate: NonNullable<typeof bestSafeCandidate>,
+    candidate: Candidate,
     generationAttempt: number,
-    qualityFallback: boolean,
   ) => {
-    const quality = qualityFallback ? acceptBestSafeCandidate(candidate.quality) : candidate.quality;
+    const quality = candidate.quality;
+    if (!quality.accepted || quality.mode !== "ai") throw new Error("image_quality_rejected");
     const objectName = await saveOrderCover(orderId, candidate.value.imageDataUrl, basename);
     logTelemetry("pmm_album_stage_completed", {
       product: "album",
@@ -141,16 +143,23 @@ async function generateAndStoreImage({
       identityScore: quality.identityScore,
       storyScore: quality.storyScore,
       technicalScore: quality.technicalScore,
-      qualityFallback,
+      qualityFallback: false,
     });
     return { objectName, model: candidate.value.model, fingerprint: candidate.value.fingerprint, quality };
   };
 
   for (let generationAttempt = 1; generationAttempt <= maxAttempts; generationAttempt += 1) {
     try {
-      const generated = await generateVertexAlbumIllustration(activePrompt, reference, aspectRatio, { beforeAttempt: beforeCall });
+      const savedCandidate = pending?.read(basename);
+      const generated = savedCandidate
+        ? { imageDataUrl: await readOrderCover(savedCandidate.objectName), model: savedCandidate.model }
+        : await generateVertexAlbumIllustration(activePrompt, reference, aspectRatio, { beforeAttempt: beforeCall });
       if ("error" in generated) throw new Error(generated.error);
       const fingerprint = await inspectGeneratedImage(generated.imageDataUrl, avoidFingerprints);
+      if (!savedCandidate && pending) {
+        const objectName = await saveOrderCover(orderId, generated.imageDataUrl, `${basename}-pending`);
+        await pending.write(basename, { objectName, model: generated.model });
+      }
       const quality = await evaluateAlbumImage({
         asset: basename,
         candidateDataUrl: generated.imageDataUrl,
@@ -161,22 +170,14 @@ async function generateAndStoreImage({
         beforeAiCheck: beforeQualityCall,
       });
       const candidate = { value: { imageDataUrl: generated.imageDataUrl, model: generated.model, fingerprint }, quality };
-      if (quality.accepted) return saveCandidate(candidate, generationAttempt, false);
-
-      if (isSafeSoftQualityCandidate(quality, Boolean(reference))) {
-        bestSafeCandidate = chooseBetterAlbumCandidate(bestSafeCandidate, candidate, Boolean(reference));
-        if (generationAttempt >= softFallbackAfter) {
-          return saveCandidate(bestSafeCandidate, generationAttempt, true);
-        }
-      }
+      if (quality.accepted) return saveCandidate(candidate, generationAttempt);
+      await pending?.write(basename);
 
       activePrompt = buildAlbumImageRetryPrompt(prompt, quality, Boolean(reference));
       throw new AlbumImageQualityError("image_quality_rejected", "Ilustrația nu a trecut controlul editorial.");
     } catch (error) {
       lastError = error;
-      if (isBudgetLimitError(error) && bestSafeCandidate) {
-        return saveCandidate(bestSafeCandidate, generationAttempt, true);
-      }
+      if (error instanceof AlbumQualityUnavailableError) throw error;
       const retryable = !isBudgetLimitError(error) && isRetryableImageError(error);
       const isLastAttempt = generationAttempt === maxAttempts;
       const errorCode = isBudgetLimitError(error) ? "budget_limit" : error instanceof AlbumImageQualityError ? error.code : retryable ? "rate_limited" : "ai_error";
@@ -194,7 +195,6 @@ async function generateAndStoreImage({
     }
   }
 
-  if (bestSafeCandidate) return saveCandidate(bestSafeCandidate, maxAttempts, true);
   throw lastError instanceof Error ? lastError : new Error("Ilustrația nu a putut fi generată.");
 }
 
@@ -266,6 +266,14 @@ export async function createAlbumPreviewScenes({
     await checkpoint(output);
   };
   const beforeImageCall = () => reserve("image");
+  const pending = {
+    read: (key: string) => output?.pendingImages?.[key],
+    write: async (key: string, value?: { objectName: string; model: string }) => {
+      const pendingImages = { ...output!.pendingImages };
+      if (value) pendingImages[key] = value; else delete pendingImages[key];
+      output = { ...output!, pendingImages }; await checkpoint(output);
+    },
+  };
   const beforeQualityCall = async () => {
     if (isAlbumAiQualityEnabled()) await reserve("quality");
   };
@@ -299,6 +307,7 @@ export async function createAlbumPreviewScenes({
       attempt: index + 1,
       aspectRatio: "3:2",
       avoidFingerprints: fingerprints,
+      pending,
       beforeCall: beforeImageCall,
       beforeQualityCall,
     });
@@ -336,6 +345,14 @@ export async function createAlbumOrderOutput({
     await checkpoint(output);
   };
   const beforeImageCall = () => reserve("image");
+  const pending = {
+    read: (key: string) => output.pendingImages?.[key],
+    write: async (key: string, value?: { objectName: string; model: string }) => {
+      const pendingImages = { ...output.pendingImages };
+      if (value) pendingImages[key] = value; else delete pendingImages[key];
+      output = { ...output, pendingImages }; await checkpoint(output);
+    },
+  };
   const beforeQualityCall = async () => {
     if (isAlbumAiQualityEnabled()) await reserve("quality");
   };
@@ -357,6 +374,7 @@ export async function createAlbumOrderOutput({
     const characterReference = await generateAndStoreImage({
       orderId,
       basename: "album-character-reference",
+      pending,
       prompt: plan.characterPrompt,
       stage: "cover",
       beforeCall: beforeImageCall,
@@ -376,7 +394,7 @@ export async function createAlbumOrderOutput({
   const reference = await readOrderCover(referenceObjectName);
 
   if (!output.assets.cover) {
-    const cover = await generateAndStoreImage({ orderId, basename: "album-cover", prompt: plan.coverPrompt, reference, stage: "cover", beforeCall: beforeImageCall, beforeQualityCall });
+    const cover = await generateAndStoreImage({ orderId, basename: "album-cover", prompt: plan.coverPrompt, reference, stage: "cover", beforeCall: beforeImageCall, beforeQualityCall, pending });
     output = {
       ...output,
       assets: { ...output.assets, cover: cover.objectName },
@@ -404,6 +422,7 @@ export async function createAlbumOrderOutput({
       attempt: index + 1,
       aspectRatio: "3:2",
       avoidFingerprints: sceneFingerprints,
+      pending,
       beforeCall: beforeImageCall,
       beforeQualityCall,
     });
@@ -431,6 +450,7 @@ export async function createAlbumOrderOutput({
     const coloring = await generateAndStoreImage({
       orderId,
       basename: "album-coloring",
+      pending,
       prompt: plan.coloringPrompt,
       reference,
       stage: "coloring",
@@ -449,24 +469,11 @@ export async function createAlbumOrderOutput({
   }
 
   if (!output.assets.differences) {
-    if (pacingMs > 0) await wait(pacingMs);
-    const differences = await generateAndStoreImage({
-      orderId,
-      basename: "album-differences",
-      prompt: plan.differencesPrompt,
-      reference,
-      stage: "coloring",
-      attempt: 2,
-      aspectRatio: "4:3",
-      avoidFingerprints: sceneFingerprints,
-      beforeCall: beforeImageCall,
-      beforeQualityCall,
-    });
+    // The five-differences puzzle is geometrically validated by the renderer.
+    // Keep the legacy asset pointer for existing order readers, without another AI call.
     output = {
       ...output,
-      assets: { ...output.assets, differences: differences.objectName },
-      imageModels: withModel(output, differences.model),
-      quality: addQuality(differences.quality),
+      assets: { ...output.assets, differences: output.assets.cover },
       progress: { stage: "rendering", current: ALBUM_SCENE_COUNT, total: ALBUM_SCENE_COUNT },
     };
     await checkpoint(output);

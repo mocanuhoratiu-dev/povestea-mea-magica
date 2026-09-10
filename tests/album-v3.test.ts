@@ -39,7 +39,7 @@ test("album coloring pages still reject a blank white image", () => {
   assert.equal(isUsableLineArtStatistics({ average: 255, contrast: 0, inkCoverage: 0 }), false);
 });
 
-test("a paid album can reuse the best safe candidate after a soft editorial rejection", () => {
+test("a paid album must not promote a weak identity after exhausting attempts", () => {
   const first = {
     asset: "album-scene-05",
     mode: "ai" as const,
@@ -53,11 +53,11 @@ test("a paid album can reuse the best safe candidate after a soft editorial reje
   };
   const second = { ...first, identityScore: 57, storyScore: 56, technicalScore: 62 };
 
-  assert.equal(isSafeSoftQualityCandidate(first, true), true);
+  assert.equal(isSafeSoftQualityCandidate(first, true), false);
   const selected = chooseBetterAlbumCandidate({ value: "first", quality: first }, { value: "second", quality: second }, true);
   assert.equal(selected.value, "second");
   const accepted = acceptBestSafeCandidate(selected.quality);
-  assert.equal(accepted.accepted, true);
+  assert.equal(accepted.accepted, false);
   assert.match(accepted.notes.at(-1) || "", /cea mai bună variantă sigură/);
 });
 

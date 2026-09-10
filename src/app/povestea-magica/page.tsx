@@ -1,111 +1,49 @@
 import type { Metadata } from "next";
-import { BookOpen, Check, Headphones, Mail, Palette, ShieldCheck, Sparkles } from "lucide-react";
+import Image from "next/image";
+import { ArrowRight, BookOpen, Headphones, Mail, Palette, ShieldCheck } from "lucide-react";
 import AlbumCreator, { AlbumPrintTeaser } from "@/components/AlbumCreator";
 import AlbumFlipbook from "@/components/AlbumFlipbook";
-import AlbumProductGallery from "@/components/AlbumProductGallery";
 import Footer from "@/components/Footer";
 import LumiGuideLoader from "@/components/LumiGuideLoader";
 import LumiOpenButton from "@/components/LumiOpenButton";
 import MobileAlbumCTA from "@/components/MobileAlbumCTA";
-import ProductWalkthroughVideo from "@/components/ProductWalkthroughVideo";
-import PremiumBookMockup from "@/components/PremiumBookMockup";
 import Reviews from "@/components/Reviews";
 import { commerce, siteUrl } from "@/lib/siteMode";
+import "@/components/album-editorial.css";
 
 export const metadata: Metadata = {
-  title: "Povestea Magică | Carte ilustrată personalizată",
-  description: "Creează o poveste ilustrată premium A5 în format orizontal, cu personaj consecvent din descriere sau fotografie, 13 scene, audio și activități.",
+  title: "Povestea Magică | Cartea ilustrată a copilului tău",
+  description: "16 pagini A5 orizontale, 13 scene ilustrate plus copertă, audio în română și un caiet de activități. Vezi o mostră personalizată înainte de plată.",
   alternates: { canonical: "/povestea-magica" },
-  openGraph: {
-    url: "/povestea-magica",
-    title: "Povestea Magică | Carte ilustrată personalizată",
-    description: "16 pagini, 13 ilustrații, audio în română, activități și mostră personalizată înainte de plată.",
-    images: [{ url: "/examples/album/coperta.webp", width: 960, height: 676, alt: "Povestea Magică, carte ilustrată personalizată" }],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Povestea Magică | Carte ilustrată personalizată",
-    description: "16 pagini, 13 ilustrații și o aventură creată în jurul copilului tău.",
-    images: ["/examples/album/coperta.webp"],
-  },
+  openGraph: { url: "/povestea-magica", title: "Povestea Magică", description: "Copilul tău, într-o aventură numai a lui. Carte digitală, audio și activități.", images: [{ url: "/social/og-povestea-magica.webp", width: 1200, height: 630 }] },
+  twitter: { card: "summary_large_image", images: ["/social/og-povestea-magica.webp"] },
 };
-
 const productSchema = {
-  "@context": "https://schema.org",
-  "@type": "Product",
-  name: "Povestea Magică - Digital",
-  image: [`${siteUrl}/examples/album/coperta.webp`, `${siteUrl}/examples/album/aventura.webp`],
-  description: "Carte ilustrată personalizată de 16 pagini, cu 13 ilustrații, narațiune audio în limba română și caiet separat de activități.",
-  brand: { "@type": "Brand", name: "Povestea Mea Magică" },
-  sku: "PMM-ALBUM-DIGITAL",
-  category: "Carte digitală personalizată pentru copii",
-  offers: {
-    "@type": "Offer",
-    url: `${siteUrl}/povestea-magica`,
-    priceCurrency: "RON",
-    price: "59.00",
-    availability: "https://schema.org/InStock",
-    itemCondition: "https://schema.org/NewCondition",
-  },
+  "@context": "https://schema.org", "@type": "Product", name: "Povestea Magică - Digital",
+  image: [`${siteUrl}/examples/album/coperta.webp`], description: "16 pagini, 13 scene ilustrate plus copertă, audio în română și caiet separat de activități.",
+  brand: { "@type": "Brand", name: "Povestea Mea Magică" }, sku: "PMM-ALBUM-DIGITAL",
+  offers: { "@type": "Offer", url: `${siteUrl}/povestea-magica`, priceCurrency: "RON", price: "59.00", availability: "https://schema.org/InStock" },
 };
-
 export default function MagicalStoryPage() {
-  return (
-    <main className="min-h-screen bg-brand-cream pt-16 md:pt-24">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }} />
-      <section className="relative overflow-hidden px-5 pb-12 pt-9 sm:px-6 md:pb-16 md:pt-12">
-        <div aria-hidden="true" className="absolute inset-x-0 top-0 h-px bg-brand-gold/45" />
-        <div className="mx-auto grid max-w-7xl gap-8 border-b border-brand-navy/15 pb-12 lg:min-h-[650px] lg:grid-cols-[.88fr_1.12fr] lg:items-center lg:gap-9">
-          <div className="contents lg:block">
-            <div className="order-1">
-            <p className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-brand-purple"><Sparkles size={16} /> Cartea copilului tău</p>
-            <h1 className="mt-4 max-w-2xl font-nunito text-5xl font-black leading-[1.02] text-brand-navy sm:text-6xl md:text-7xl">Povestea<br /><span className="text-brand-purple">Magică</span></h1>
-            <p className="mt-5 max-w-xl text-base font-semibold leading-relaxed text-brand-navy/68 sm:text-lg">O carte ilustrată construită în jurul copilului tău, cu personaj consecvent de la copertă până la ultima scenă.</p>
-            </div>
-            <div className="order-3">
-            <div className="flex items-end gap-4 border-y border-brand-navy/15 py-5 lg:mt-7">
-              <div><p className="text-[10px] font-black uppercase tracking-[0.14em] text-brand-navy/70">Preț digital</p><p className="mt-1 font-nunito text-4xl font-black leading-none text-brand-purple">{commerce.prices.illustratedAlbum}</p></div>
-              <p className="max-w-[250px] pb-0.5 text-xs font-bold leading-relaxed text-brand-navy/70">Mostra personalizată este creată înainte să plătești.</p>
-            </div>
-            <div className="mt-5 grid grid-cols-2 gap-x-4 gap-y-3 text-sm font-bold text-brand-navy/72 sm:grid-cols-3">
-              {[{ icon: BookOpen, label: "16 pagini" }, { icon: Palette, label: "13 ilustrații" }, { icon: Headphones, label: "Audio în română" }, { icon: Check, label: "Activități incluse" }, { icon: ShieldCheck, label: "Preview înainte de plată" }, { icon: Mail, label: "Livrare pe email" }].map(({ icon: Icon, label }) => <span key={label} className="flex items-center gap-2"><Icon size={16} className="shrink-0 text-brand-purple" />{label}</span>)}
-            </div>
-            <div className="mt-7 flex flex-wrap gap-3">
-              <a id="album-primary-cta" href="#configureaza-albumul" className="inline-flex min-h-13 items-center bg-brand-navy px-6 text-sm font-black text-brand-cream transition-colors hover:bg-brand-purple">Creează Povestea Magică</a>
-              <LumiOpenButton className="hidden min-h-13 items-center gap-2 border border-brand-purple px-6 text-sm font-black text-brand-purple transition-colors hover:bg-brand-purple hover:text-white sm:inline-flex" />
-            </div>
-            <a href="#recenzii" className="mt-5 inline-flex items-center gap-2 text-xs font-black text-brand-navy/70 underline decoration-brand-gold decoration-2 underline-offset-4">Citește reacțiile primelor familii</a>
-            </div>
-          </div>
-          <div className="relative order-2 mx-auto w-full max-w-[760px] py-2 lg:order-none">
-            <PremiumBookMockup src="/examples/album/coperta.webp" alt="Povestea Magică prezentată ca o carte ilustrată cu copertă tare" priority className="w-[92%] sm:w-full" />
-            <div className="absolute bottom-[3%] right-[6%] max-w-[46%] border border-brand-gold/55 bg-brand-cream px-3 py-2.5 shadow-xl sm:right-[4%] sm:px-4 sm:py-3">
-              <p className="text-[9px] font-black uppercase tracking-[0.14em] text-brand-purple">Primești pe email</p>
-              <p className="mt-1 text-xs font-black text-brand-navy">Carte + caiet + audio</p>
-            </div>
-          </div>
-        </div>
-      </section>
-      <AlbumProductGallery />
-      <ProductWalkthroughVideo
-        product="album"
-        tone="day"
-        eyebrow="Povestea, în câteva secunde"
-        title="Vezi cum prinde viață cartea copilului tău."
-        description="De la coperta personalizată la scenele ilustrate, audio și activități: o privire rapidă prin experiența pe care o primiți împreună."
-        src="/videos/povestea-magica.mp4"
-        poster="/examples/album/flipbook/page-01.webp"
-      />
-      <AlbumFlipbook />
-      <section id="configureaza-albumul" className="scroll-mt-28 px-0 py-12 sm:px-6 md:py-20">
-        <div className="mx-auto mb-8 max-w-7xl px-5 sm:px-0"><p className="text-xs font-black uppercase tracking-[0.16em] text-brand-purple">Acum este rândul poveștii voastre</p><h2 className="mt-3 max-w-3xl font-serif text-3xl leading-tight text-brand-navy sm:text-4xl">Construiește aventura copilului tău.</h2></div>
-        <div className="mx-auto max-w-7xl"><AlbumCreator /></div>
-      </section>
-      <Reviews />
-      <AlbumPrintTeaser />
-      <Footer />
-      <LumiGuideLoader />
-      <MobileAlbumCTA price={commerce.prices.illustratedAlbum} />
-    </main>
-  );
+  return <main className="album-editorial">
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}/>
+    <header className="album-hero">
+      <Image src="/examples/album/hero-v2.webp" alt="Eva și steluța ei, pe cărarea luminoasă din poveste" fill priority sizes="100vw" className="album-hero-art"/>
+      <div className="album-hero-copy"><p>O aventură pe care o va recunoaște ca fiind a lui.</p><h1>Povestea Magică</h1><p className="album-hero-description">Chipul, lumea și micile lui bucurii devin o carte de citit împreună.</p><a id="album-primary-cta" href="#configureaza-albumul" className="album-action">Creează Povestea Magică <ArrowRight size={18}/></a><a href="#rasfoieste-povestea" className="album-hero-link">Răsfoiește povestea</a></div>
+    </header>
+    <div className="album-facts"><strong>{commerce.prices.illustratedAlbum} <small>ediția digitală</small></strong><span><BookOpen size={18}/>16 pagini · 13 scene + copertă</span><span><Headphones size={18}/>Audio în română</span><span><Palette size={18}/>Caiet de activități</span><span><Mail size={18}/>Pe email</span></div>
+    <div id="rasfoieste-povestea" className="album-sample"><AlbumFlipbook/></div>
+    <section className="album-family-band"><div><p className="album-eyebrow">Nu doar numele pe copertă</p><h2>Detaliile mici fac<br/>povestea lor.</h2><p>O bicicletă albastră. Sora mai mare. Un rucsac care merge peste tot. Tu ne spui ce contează, iar aventura începe de acolo.</p><LumiOpenButton label="Construim împreună cu Lumi" className="album-inline-link"/></div><ol><li><b>01</b><div><h3>Îl cunoaștem pe erou</h3><p>Din descriere sau dintr-o fotografie opțională.</p></div></li><li><b>02</b><div><h3>Deschideți o lume</h3><p>Alegeți un univers sau povestiți-ne ideea voastră.</p></div></li><li><b>03</b><div><h3>Vedeți, apoi alegeți</h3><p>Coperta și două pagini personalizate, înainte de plată.</p></div></li></ol></section>
+    <section id="configureaza-albumul" className="album-configure"><div className="album-section-heading"><p className="album-eyebrow">Acum începe povestea voastră</p><h2>Pe cine întâlnim în prima pagină?</h2></div><AlbumCreator/></section>
+    <section className="album-included"><div><p className="album-eyebrow">Dincolo de ultima pagină</p><h2>Povestea se termină.<br/>Joaca, nu.</h2><p>Cartea și caietul sosesc separat: răsfoiți aventura pe tabletă, apoi imprimați doar paginile pe care vreți să desenați.</p><p>Colorat, un labirint cu soluție și diferențe de descoperit inclusiv pe hârtie alb-negru.</p></div><Image src="/examples/album/colorat.webp" alt="O pagină reală din caietul de activități al Evei" width={960} height={676} sizes="(max-width: 700px) 90vw, 45vw"/></section>
+    <section className="album-trust"><ShieldCheck size={26}/><div><h2>O lume inventată. Grijă reală.</h2><p>Fotografia este opțională. Materialele sunt livrate prin link privat. Ilustrațiile sunt verificate înainte de a intra în album.</p></div><a href="/politica-de-confidentialitate">Despre confidențialitate <ArrowRight size={17}/></a></section>
+    <Reviews/>
+    <section className="album-questions"><h2>Înainte de prima pagină</h2>{[
+      ["Primesc o carte tipărită?", "În prezent primești ediția digitală: cartea PDF, caietul PDF și audio. Variantele tipărite vor fi disponibile ulterior."],
+      ["Ce văd înainte să plătesc?", "O copertă și două pagini interioare create pentru copil, cu marcaj de mostră. Poți reveni la detalii dacă vrei să corectezi aspectul. Mostrele sunt limitate pentru a păstra generarea disponibilă tuturor."],
+      ["Cât durează?", "Mostra și albumul complet se creează în mai multe etape și pot dura câteva minute. După plată, povestea continuă să se pregătească și dacă închizi pagina; primești livrarea pe email."],
+      ["Pot folosi o idee proprie?", "Da. Poți inventa lumea, firul poveștii și poți include o persoană dragă. AI-ul construiește o aventură nouă din alegerile tale, fără un scenariu unic pentru toate familiile."],
+    ].map(([q,a])=><details key={q}><summary>{q}</summary><p>{a}</p></details>)}</section>
+    <AlbumPrintTeaser/><Footer/><LumiGuideLoader/><MobileAlbumCTA price={commerce.prices.illustratedAlbum}/>
+  </main>;
 }

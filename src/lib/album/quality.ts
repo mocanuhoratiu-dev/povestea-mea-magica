@@ -3,6 +3,7 @@ import sharp from "sharp";
 import { readBoundedDuration, withTimeout } from "@/lib/aiTimeout";
 import { isUsableLineArtStatistics } from "@/lib/album/qualityMetrics";
 import type { AlbumQualityResult } from "@/lib/album/types";
+import { ALBUM_QUALITY_MINIMUM, AlbumQualityUnavailableError, retryAlbumQuality } from "./qualityPolicy";
 
 const QUALITY_SCHEMA = {
   type: "object",
@@ -81,25 +82,14 @@ export function isAlbumAiQualityEnabled() {
   return process.env.ALBUM_AI_QC_ENABLED?.trim().toLowerCase() !== "false" && Boolean(process.env.VERTEX_AI_PROJECT_ID?.trim());
 }
 
-export async function evaluateAlbumImage(input: AlbumQualityInput): Promise<AlbumQualityResult> {
+async function evaluateOnce(input: AlbumQualityInput): Promise<AlbumQualityResult> {
   const deterministic = await deterministicCheck(input.candidateDataUrl, input.expectedAspectRatio, input.asset === "album-coloring");
-  const fallback: AlbumQualityResult = {
-    asset: input.asset,
-    mode: "deterministic",
-    accepted: true,
-    hardFailure: false,
-    identityScore: input.identityRequired ? 70 : 100,
-    storyScore: 75,
-    technicalScore: deterministic.technicalScore,
-    checkedAt: new Date().toISOString(),
-    notes: ["Rezoluția, proporțiile, luminozitatea și contrastul sunt conforme."],
-  };
-  if (!isAlbumAiQualityEnabled()) return fallback;
+  if (!isAlbumAiQualityEnabled()) throw new AlbumQualityUnavailableError();
 
   try {
     await input.beforeAiCheck?.();
     const project = process.env.VERTEX_AI_PROJECT_ID?.trim();
-    if (!project) return fallback;
+    if (!project) throw new AlbumQualityUnavailableError();
     const auth = credentials();
     const client = new GoogleGenAI({
       vertexai: true,
@@ -127,20 +117,25 @@ export async function evaluateAlbumImage(input: AlbumQualityInput): Promise<Albu
       },
     }), readBoundedDuration(process.env.ALBUM_QC_TIMEOUT_MS, 22_000, 8_000, 45_000), "Controlul vizual a depășit timpul de răspuns.");
     const text = response.candidates?.flatMap((candidate) => candidate.content?.parts || []).map((part) => part.text || "").join("").trim();
-    if (!text) return fallback;
+    if (!text) throw new AlbumQualityUnavailableError();
     const parsed = JSON.parse(text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "")) as Record<string, unknown>;
+    if (typeof parsed.unsafe !== "boolean" || typeof parsed.hasText !== "boolean" || [parsed.identityScore, parsed.storyScore, parsed.technicalScore].some(value => !Number.isInteger(value) || Number(value) < 0 || Number(value) > 100)) throw new AlbumQualityUnavailableError();
     const identityScore = score(parsed.identityScore);
     const storyScore = score(parsed.storyScore);
     const technicalScore = Math.min(deterministic.technicalScore, score(parsed.technicalScore));
     const notes = Array.isArray(parsed.notes) ? parsed.notes.map((note) => String(note).replace(/\s+/g, " ").trim().slice(0, 180)).filter(Boolean).slice(0, 4) : [];
     const hardFailure = parsed.unsafe === true || parsed.hasText === true;
     const accepted = !hardFailure
-      && technicalScore >= (input.thresholds?.technical ?? 62)
-      && storyScore >= (input.thresholds?.story ?? 58)
-      && (!input.identityRequired || identityScore >= (input.thresholds?.identity ?? 58));
+      && technicalScore >= Math.max(ALBUM_QUALITY_MINIMUM.technical, input.thresholds?.technical ?? 0)
+      && storyScore >= Math.max(ALBUM_QUALITY_MINIMUM.story, input.thresholds?.story ?? 0)
+      && (!input.identityRequired || identityScore >= Math.max(ALBUM_QUALITY_MINIMUM.identity, input.thresholds?.identity ?? 0));
     return { asset: input.asset, mode: "ai", accepted, hardFailure, identityScore, storyScore, technicalScore, checkedAt: new Date().toISOString(), notes };
   } catch (error) {
     if (error instanceof Error && error.message.startsWith("album_budget_")) throw error;
-    return { ...fallback, notes: [...fallback.notes, "Controlul semantic a fost indisponibil; s-a folosit verificarea tehnică strictă."] };
+    throw new AlbumQualityUnavailableError();
   }
+}
+
+export function evaluateAlbumImage(input: AlbumQualityInput): Promise<AlbumQualityResult> {
+  return retryAlbumQuality(() => evaluateOnce(input), () => new Promise(resolve => setTimeout(resolve, 1200)));
 }

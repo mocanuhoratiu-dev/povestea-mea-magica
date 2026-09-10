@@ -2,11 +2,13 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { renderAlbumDocuments } from "../src/lib/album/renderer.ts";
 import type { AlbumConfiguration, AlbumPlan } from "../src/lib/album/types.ts";
+import sharp from "sharp";
+import { execFileSync } from 'node:child_process';
 
-const workspace = path.resolve(process.cwd(), "..");
+const workspace = process.env.ALBUM_SAMPLE_ROOT || path.resolve(process.cwd(), "..");
 const assetsRoot = path.join(workspace, "tmp", "pdfs", "album-premium", "assets");
 const extractedRoot = path.join(workspace, "tmp", "pdfs", "album-assets");
-const outputRoot = path.join(workspace, "output", "pdf");
+const outputRoot = process.env.ALBUM_SAMPLE_OUTPUT || path.join(workspace, "output", "pdf");
 
 const sceneNames = [
   "scene-02-firefly-map.png",
@@ -103,13 +105,29 @@ const plan: AlbumPlan = {
   textModel: "sample",
 };
 
+if(process.env.ALBUM_SAMPLE_STRESS){
+ configuration.generation.name='Alexandra Ștefania Maria Constantinescu';
+ configuration.dedication='Împreună descoperim o lume minunată și păstrăm toate amintirile aproape. '.repeat(5).slice(0,320);
+ configuration.dedicationFrom='Cu toată dragostea, familia noastră și toți cei care îți sunt aproape';
+ plan.title='Alexandra Ștefania și extraordinara călătorie prin lumea stelelor';
+ for(const scene of plan.scenes){scene.heading='O aventură extraordinară dincolo de hotarele lumii cunoscute';scene.text=Array(50).fill('extraordinară').join(' ');}
+}
 await mkdir(outputRoot, { recursive: true });
-const cover = await readFile(path.join(extractedRoot, "asset-000.jpg"));
-const scenes = await Promise.all([
+const publishedSample = process.env.ALBUM_PUBLISHED_SAMPLE_ROOT;
+const legacyRef = process.env.ALBUM_LEGACY_SAMPLE_REF;
+const demoFile = (name:string) => legacyRef ? Promise.resolve(execFileSync('git',['show',`${legacyRef}:public/examples/album/${name}`],{maxBuffer:8*1024*1024})) : readFile(path.join(publishedSample!,name));
+const cover = process.env.ALBUM_SAMPLE_COVER ? await readFile(process.env.ALBUM_SAMPLE_COVER) : await readFile(publishedSample ? path.join(publishedSample, "hero-v2.webp") : path.join(extractedRoot, "asset-000.jpg"));
+const scenes = publishedSample ? await Promise.all(Array.from({length:13}, async (_,index) => {
+  const image = await demoFile(`flipbook/page-${String(index+3).padStart(2,'0')}.webp`);
+  const metadata = await sharp(image).metadata();
+  return sharp(image).extract({left:0,top:0,width:metadata.width!,height:Math.round(metadata.height!*730/1049)}).toBuffer();
+})) : await Promise.all([
   ...sceneNames.map((name) => readFile(path.join(assetsRoot, name))),
   ...extractedNames.map((name) => readFile(path.join(extractedRoot, name))),
 ]);
-const coloring = await readFile(path.join(assetsRoot, "coloring-moon-garden.png"));
+const coloring = publishedSample
+  ? await sharp(await demoFile('colorat.webp')).extract({left:65,top:178,width:829,height:429}).toBuffer()
+  : await readFile(path.join(assetsRoot, "coloring-moon-garden.png"));
 const documents = await renderAlbumDocuments(configuration, plan, {
   cover,
   scenes,

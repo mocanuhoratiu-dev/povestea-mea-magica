@@ -184,6 +184,7 @@ export type AlbumOrderOutput = {
     narration?: string;
   };
   quality: AlbumQualityResult[];
+  pendingImages?: Record<string, { objectName: string; model: string }>;
   budget: AlbumBudget;
   progress: {
     stage: AlbumProgressStage;

@@ -204,6 +204,7 @@ export function readAlbumOutput(value: unknown): AlbumOrderOutput | null {
       ...(typeof assets.differences === "string" && assets.differences ? { differences: assets.differences } : {}),
     },
     ...(documents ? { documents } : {}),
+    pendingImages: isRecord(value.pendingImages) ? Object.fromEntries(Object.entries(value.pendingImages).filter(([key, item]) => /^[a-z0-9-]+$/.test(key) && isRecord(item) && typeof item.objectName === "string" && typeof item.model === "string")) as AlbumOrderOutput["pendingImages"] : {},
     quality: Array.isArray(value.quality) ? value.quality.flatMap((item) => {
       if (!isRecord(item)) return [];
       const mode: "ai" | "deterministic" = item.mode === "ai" ? "ai" : "deterministic";

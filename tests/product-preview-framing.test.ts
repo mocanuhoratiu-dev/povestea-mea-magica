@@ -12,7 +12,8 @@ test("the flagship cover is presented as a complete hardcover book", () => {
   assert.match(mockup, /aspect-\[1\.419\]/);
   assert.match(mockup, /repeating-linear-gradient/);
   assert.match(mockup, /object-contain/);
-  assert.match(productPage, /PremiumBookMockup/);
+  assert.match(productPage, /<AlbumFlipbook/);
+  assert.match(productPage, /ediția digitală/);
   assert.match(collection, /PremiumBookMockup/);
 });
 
