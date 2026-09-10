@@ -78,11 +78,13 @@ const prompts = [
   "Lăsăm și un mesaj din partea familiei?",
 ] as const;
 
-const inputClass = "mt-2 min-h-12 w-full border border-brand-navy/18 bg-white px-4 py-3 text-sm font-bold text-brand-navy outline-none transition focus:border-brand-purple focus:ring-2 focus:ring-brand-purple/15";
+const chapterLabels = ["Eroul", "Vârsta", "Portretul", "Lumea", "Companionii", "Firul poveștii", "Detaliul vostru", "Dedicația"] as const;
+
+const inputClass = "mt-2 min-h-12 w-full rounded-[4px] border border-brand-navy/18 bg-white px-4 py-3 text-sm font-bold text-brand-navy outline-none transition focus:border-brand-purple focus:ring-2 focus:ring-brand-purple/15";
 const labelClass = "block text-[10px] font-black uppercase tracking-[0.12em] text-brand-navy/55";
 
 function choiceClass(active: boolean) {
-  return `min-h-11 border px-3 py-2 text-left text-xs font-black transition ${active ? "border-brand-purple bg-brand-purple text-white" : "border-brand-navy/14 bg-white text-brand-navy hover:border-brand-purple/50"}`;
+  return `min-h-11 rounded-[4px] border px-3 py-2 text-left text-xs font-black transition ${active ? "border-brand-purple bg-brand-purple text-white" : "border-brand-navy/14 bg-white text-brand-navy hover:border-brand-purple/50"}`;
 }
 
 export default function LumiGuide() {
@@ -263,24 +265,33 @@ export default function LumiGuide() {
     <aside className="fixed bottom-3 left-3 right-3 z-[80] sm:bottom-5 sm:left-auto sm:right-6 sm:w-[400px]" aria-label="Lumi, ghidul pentru Povestea Magică" data-lumi-state={visualState}>
       <AnimatePresence mode="wait">
         {isOpen ? (
-          <motion.section key="guide" initial={{ opacity: 0, y: 18, scale: .97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 12, scale: .97 }} className="flex max-h-[calc(100dvh-5rem)] min-h-0 flex-col overflow-hidden border border-brand-gold/55 bg-brand-cream shadow-[0_24px_70px_rgba(15,25,48,.35)] sm:max-h-[min(620px,calc(100dvh-6rem))]">
-            <header className="relative shrink-0 overflow-visible border-b border-brand-navy/12 bg-brand-navy px-4 py-3 pr-24 text-brand-cream">
-              <LumiVisual3D state={visualState} className="absolute right-8 -top-5 h-20 w-[72px] sm:right-7 sm:-top-7 sm:h-24 sm:w-[82px]" />
-              <p className="text-[10px] font-black uppercase tracking-[0.15em] text-brand-gold">Lumi, păzitoarea Lanternei</p>
-              <h2 className="mt-1 max-w-[245px] font-serif text-lg leading-tight">Creăm Povestea Magică</h2>
-              <p className="mt-1 text-[10px] font-bold text-brand-cream/60">{visualTitle}</p>
-              <button type="button" onClick={() => setIsOpen(false)} className="absolute right-3 top-3 z-10 grid h-8 w-8 place-items-center border border-white/15 text-brand-cream/70 hover:bg-white/10" aria-label="Închide Lumi"><X size={17} /></button>
-            </header>
+          <motion.section key="guide" initial={{ opacity: 0, y: 18, scale: .97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 12, scale: .97 }} className="relative min-h-0">
+            <span aria-hidden="true" className="pointer-events-none absolute -inset-x-1 bottom-0 top-4 bg-brand-cream/70 [clip-path:polygon(0_1%,48%_0,50%_1%,52%_0,100%_1%,100%_98%,52%_100%,50%_99%,48%_100%,0_98%)] shadow-[0_24px_70px_rgba(15,25,48,.28)]" />
+            <div className="relative flex max-h-[calc(100dvh-1.5rem)] min-h-0 flex-col overflow-hidden rounded-[8px] border border-brand-gold/55 bg-brand-cream shadow-[0_24px_70px_rgba(15,25,48,.32)] sm:max-h-[min(650px,calc(100dvh-4rem))]">
+              <header className="relative min-h-[138px] shrink-0 overflow-hidden border-b border-brand-navy/10 bg-brand-cream px-5 pb-5 pt-4 pr-28">
+                <span aria-hidden="true" className="absolute inset-y-4 left-1/2 w-px bg-brand-navy/[.05]" />
+                <p className="text-[9px] font-black uppercase tracking-[0.15em] text-brand-purple">Povestea voastră</p>
+                <p className="mt-2 inline-flex border border-brand-navy/12 bg-white px-2.5 py-1.5 text-[8px] font-black uppercase tracking-[0.12em] text-brand-navy/55">{step < totalSteps ? `Capitolul ${step + 1} · ${chapterLabels[step]}` : "Verificarea finală"}</p>
+                <h2 className="mt-3 max-w-[240px] font-serif text-[21px] font-bold leading-[1.08] text-brand-navy">{step < totalSteps ? "Creăm Povestea Magică" : "Povestea este conturată"}</h2>
+                <p className="mt-1 text-[9px] font-bold text-brand-navy/45">{visualTitle}</p>
+                <LumiVisual3D state={visualState} className="absolute -bottom-3 right-4 h-[128px] w-[108px]" />
+                <button type="button" onClick={() => setIsOpen(false)} className="absolute right-3 top-3 z-10 grid h-8 w-8 place-items-center rounded-[4px] border border-brand-navy/15 bg-white/80 text-brand-navy/55 transition-colors hover:border-brand-purple hover:text-brand-purple" aria-label="Închide Lumi"><X size={17} /></button>
+              </header>
 
-            <div className="shrink-0 border-b border-brand-navy/10 px-4 py-3">
-              <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-[0.12em] text-brand-navy/48"><span>{step < totalSteps ? `Pasul ${step + 1} din ${totalSteps}` : "Povestea este conturată"}</span><span>{Math.round((step / totalSteps) * 100)}%</span></div>
-              <div className="mt-2 h-1 bg-brand-navy/10"><div className="h-full bg-brand-gold transition-[width]" style={{ width: `${Math.max(4, (step / totalSteps) * 100)}%` }} /></div>
-            </div>
-
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 custom-scrollbar" data-lenis-prevent>
-              <div className="border-l-2 border-brand-gold pl-3 pr-1">
-                <div className="flex items-start justify-between gap-3"><p className="text-sm font-bold leading-relaxed text-brand-navy">{step < totalSteps ? prompts[step] : `Am adunat toate firele poveștii lui ${draft.name}. Verifică-le și schimbă orice detaliu înainte să le așez în configurator.`}</p><button type="button" onClick={() => void toggleVoice()} className="grid h-8 w-8 shrink-0 place-items-center border border-brand-purple/20 text-brand-purple" aria-label={isSpeaking ? "Oprește vocea" : "Ascultă mesajul"}>{isSpeaking ? <Square size={12} fill="currentColor" /> : <Volume2 size={15} />}</button></div>
+              <div className="relative z-10 flex shrink-0 items-center gap-3 border-b border-brand-navy/10 bg-white/45 px-5 py-3">
+                <span className="whitespace-nowrap font-serif text-[11px] italic text-brand-navy/52">{step < totalSteps ? `Pasul ${step + 1} din ${totalSteps}` : "Ultima filă"}</span>
+                <span className="flex flex-1 items-center justify-center gap-1.5" aria-label={`${Math.round((step / totalSteps) * 100)}% complet`}>
+                  {Array.from({ length: totalSteps }, (_, index) => <span key={index} className={`h-1.5 w-1.5 rounded-full border transition-colors ${index < step || step === totalSteps ? "border-brand-gold bg-brand-gold" : index === step ? "border-brand-purple bg-brand-purple shadow-[0_0_0_3px_rgba(128,82,160,.12)]" : "border-brand-navy/20 bg-transparent"}`} />)}
+                </span>
+                <span className="w-7 text-right text-[9px] font-black text-brand-navy/42">{Math.round((step / totalSteps) * 100)}%</span>
               </div>
+
+              <div className="relative z-10 min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 custom-scrollbar" data-lenis-prevent>
+                <div className="border-b border-brand-navy/10 pb-5">
+                  <div className="flex items-center justify-between gap-3"><p className="text-[9px] font-black uppercase tracking-[0.14em] text-brand-purple">Lumi întreabă</p><button type="button" onClick={() => void toggleVoice()} className="grid h-8 w-8 shrink-0 place-items-center rounded-[4px] border border-brand-purple/20 bg-white text-brand-purple transition-colors hover:border-brand-purple hover:bg-brand-purple hover:text-white" aria-label={isSpeaking ? "Oprește vocea" : "Ascultă mesajul"}>{isSpeaking ? <Square size={12} fill="currentColor" /> : <Volume2 size={15} />}</button></div>
+                  <p className="mt-2 font-serif text-[19px] font-bold leading-[1.25] text-brand-navy">{step < totalSteps ? prompts[step] : `Am adunat toate firele poveștii lui ${draft.name}. Verifică-le înainte să le așez în configurator.`}</p>
+                  <div aria-hidden="true" className="mt-4 flex items-center gap-3 text-[9px] text-brand-gold"><span className="h-px flex-1 bg-brand-navy/10" /><span>✦ ✦ ✦</span><span className="h-px flex-1 bg-brand-navy/10" /></div>
+                </div>
 
               <div className="mt-5">
                 {step === 0 && <label className={labelClass}>Prenumele copilului<input autoFocus className={inputClass} value={draft.name} onChange={(event) => update("name", event.target.value.slice(0, 40))} placeholder="Exemplu: Erica" onKeyDown={(event) => { if (event.key === "Enter") next(); }} /></label>}
@@ -296,30 +307,29 @@ export default function LumiGuide() {
               {error && <p role="alert" className="mt-4 border-l-4 border-brand-pink bg-brand-pink/10 px-3 py-2 text-xs font-bold text-brand-navy">{error}</p>}
             </div>
 
-            <footer className="shrink-0 border-t border-brand-navy/12 bg-white px-4 pb-[max(.75rem,env(safe-area-inset-bottom))] pt-3 sm:py-3">
-              <div className="flex items-center justify-between gap-3">
-                <button type="button" onClick={() => step > 0 ? setStep((current) => current - 1) : reset()} className="inline-flex min-h-10 items-center gap-2 px-1 text-xs font-black text-brand-navy/65"><ArrowLeft size={15} /> {step > 0 ? "Înapoi" : "Reîncepe"}</button>
-                {step < totalSteps ? <button type="button" onClick={next} className="inline-flex min-h-11 items-center gap-2 bg-brand-navy px-5 text-xs font-black text-brand-cream">Continuă <ArrowRight size={16} /></button> : <button type="button" onClick={apply} disabled={isApplying} className="inline-flex min-h-11 items-center gap-2 bg-brand-purple px-5 text-xs font-black text-white disabled:opacity-60">{isApplying ? <LoaderCircle size={16} className="animate-spin" /> : <Check size={16} />} Așază în poveste</button>}
-              </div>
-              {step > 0 && <button type="button" onClick={reset} className="mx-auto mt-2 flex items-center gap-1.5 text-[10px] font-black text-brand-navy/42"><RotateCcw size={12} /> Începe din nou</button>}
-            </footer>
+              <footer className="relative z-10 shrink-0 border-t border-brand-navy/12 bg-brand-cream px-5 pb-[max(.8rem,env(safe-area-inset-bottom))] pt-3 sm:pb-4">
+                <div className="flex items-center justify-between gap-3">
+                  <button type="button" onClick={() => step > 0 ? setStep((current) => current - 1) : reset()} className="inline-flex min-h-10 items-center gap-2 px-1 font-serif text-[11px] italic text-brand-navy/55 transition-colors hover:text-brand-purple"><ArrowLeft size={14} /> {step > 0 ? "Fila anterioară" : "Reîncepe"}</button>
+                  {step < totalSteps ? <button type="button" onClick={next} className="inline-flex min-h-11 items-center gap-2 rounded-[4px] bg-brand-navy px-5 text-xs font-black text-brand-cream transition-colors hover:bg-brand-purple">Întoarce pagina <ArrowRight size={16} /></button> : <button type="button" onClick={apply} disabled={isApplying} className="inline-flex min-h-11 items-center gap-2 rounded-[4px] bg-brand-purple px-5 text-xs font-black text-white transition-colors hover:bg-brand-navy disabled:opacity-60">{isApplying ? <LoaderCircle size={16} className="animate-spin" /> : <Check size={16} />} Așază în poveste</button>}
+                </div>
+                {step > 0 && <button type="button" onClick={reset} className="mx-auto mt-2 flex items-center gap-1.5 text-[9px] font-black text-brand-navy/38 transition-colors hover:text-brand-purple"><RotateCcw size={11} /> Începe din nou</button>}
+              </footer>
+            </div>
           </motion.section>
         ) : (
-          <motion.div key="launcher" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="ml-auto w-fit max-w-full">
-            <AnimatePresence>
-              {showNudge && generation.phase === "idle" && (
-                <motion.div initial={{ opacity: 0, y: 8, scale: .97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 6, scale: .98 }} className="relative mb-2 ml-auto w-[min(330px,calc(100vw-1.5rem))] border border-brand-gold/45 bg-brand-cream p-3 pr-9 shadow-[0_15px_35px_rgba(15,25,48,.2)]">
-                  <button type="button" onClick={dismissNudge} aria-label="Închide mesajul lui Lumi" className="absolute right-2 top-2 grid h-6 w-6 place-items-center text-brand-navy/45 hover:text-brand-navy"><X size={14} /></button>
-                  <p className="text-xs font-bold leading-relaxed text-brand-navy">{launcherCopy}</p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-            <motion.button type="button" onClick={() => { trackEvent("lumi_opened"); setIsOpen(true); dismissNudge(); window.setTimeout(() => window.dispatchEvent(new CustomEvent("pmm:lumi-request-context")), 0); }} whileHover={{ y: -2 }} whileTap={{ scale: .98 }} className="group ml-auto flex min-h-16 max-w-full items-center gap-2 border border-brand-gold/55 bg-brand-navy py-1 pl-1 pr-4 text-brand-cream shadow-[0_14px_35px_rgba(15,25,48,.28)] transition-colors hover:bg-brand-purple">
-              <span aria-hidden="true" className="relative h-14 w-14 shrink-0 overflow-hidden">
-                <span className="lumi-launcher-character absolute inset-0 bg-[url('/lumi-guardian.webp')] bg-[length:145%] bg-center bg-no-repeat" />
+          <motion.div key="launcher" initial={{ opacity: 0, y: 12, scale: .97 }} animate={{ opacity: 1, y: 0, scale: 1 }} className="ml-auto w-fit max-w-full">
+            <motion.button type="button" aria-label={generation.phase === "idle" ? "Deschide ghidul Lumi și creează povestea" : `Deschide Lumi. ${visualTitle}`} title={showNudge && generation.phase === "idle" ? launcherCopy : undefined} onClick={() => { trackEvent("lumi_opened"); setIsOpen(true); dismissNudge(); window.setTimeout(() => window.dispatchEvent(new CustomEvent("pmm:lumi-request-context")), 0); }} whileHover={{ y: -4 }} whileTap={{ scale: .98 }} className="group relative ml-auto h-[92px] w-[min(292px,calc(100vw-1.5rem))] border-0 bg-transparent text-left text-brand-navy drop-shadow-[0_17px_20px_rgba(15,25,48,.24)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-purple focus-visible:ring-offset-4 sm:h-[108px] sm:w-[330px]">
+              <span aria-hidden="true" className="absolute bottom-0 left-0 h-[68px] w-[58%] border border-brand-navy/14 bg-brand-cream [clip-path:polygon(0_0,90%_7%,100%_100%,0_91%)] transition-colors group-hover:border-brand-gold sm:h-20" />
+              <span aria-hidden="true" className="absolute bottom-0 right-0 h-[68px] w-[58%] border border-brand-navy/14 bg-brand-cream [clip-path:polygon(10%_7%,100%_0,100%_91%,0_100%)] transition-colors group-hover:border-brand-gold sm:h-20" />
+              <span aria-hidden="true" className="absolute bottom-2 left-1/2 z-10 h-[53px] w-px -translate-x-1/2 bg-brand-navy/10 sm:h-16" />
+              <span aria-hidden="true" className="absolute left-[68px] top-0 z-30 flex items-center gap-1 text-brand-gold sm:left-[78px]"><Sparkles size={15} /><span className="text-[10px]">✦</span><span className="text-[8px]">✦</span></span>
+              <span aria-hidden="true" className="lumi-launcher-character absolute bottom-1 left-2 z-20 h-[84px] w-[72px] bg-[url('/lumi-guardian.webp')] bg-contain bg-bottom bg-no-repeat sm:left-3 sm:h-[102px] sm:w-[86px]" />
+              <span className="absolute bottom-[13px] left-[86px] right-8 z-20 min-w-0 sm:bottom-[15px] sm:left-[104px] sm:right-10">
+                <span className="block truncate text-[8px] font-black uppercase tracking-[0.12em] text-brand-purple sm:text-[9px]">{generation.phase === "idle" ? "Creează alături de Lumi" : "Lumi lucrează"}</span>
+                <span className="mt-1 block font-serif text-[14px] font-bold leading-tight text-brand-navy sm:text-[16px]">{generation.phase === "idle" ? "Deschidem povestea?" : visualTitle}</span>
+                <span className={`mt-0.5 block truncate text-[9px] font-bold text-brand-navy/50 transition-opacity sm:text-[10px] ${showNudge ? "opacity-100" : "opacity-75"}`}>{generation.phase === "idle" ? contextualLauncherLabel : "Urmărește progresul"}</span>
               </span>
-              <span className="min-w-0 text-left"><span className="block text-[9px] font-black uppercase tracking-[0.12em] text-brand-gold">{generation.phase === "idle" ? "Creează cu Lumi" : "Lumi lucrează"}</span><span className="block max-w-[190px] truncate text-xs font-black">{generation.phase === "idle" ? contextualLauncherLabel : visualTitle}</span></span>
-              <Sparkles size={16} className="shrink-0 text-brand-gold transition-transform group-hover:rotate-12" />
+              <span aria-hidden="true" className="absolute bottom-[25px] right-2.5 z-20 text-lg font-bold text-brand-purple transition-transform group-hover:translate-x-1 sm:bottom-[30px] sm:right-3.5">→</span>
             </motion.button>
           </motion.div>
         )}
