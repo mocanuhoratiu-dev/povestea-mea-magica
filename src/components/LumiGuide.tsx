@@ -91,6 +91,14 @@ export default function LumiGuide() {
   const router = useRouter();
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const [launcherCompact, setLauncherCompact] = useState(false);
+  useEffect(() => {
+    if (window.matchMedia("(max-width: 700px)").matches) setLauncherCompact(true);
+    const compact = () => { if (window.scrollY > 160) setLauncherCompact(true); };
+    const timer = window.setTimeout(() => setLauncherCompact(true), 8000);
+    window.addEventListener("scroll", compact, {passive:true});
+    return () => {window.clearTimeout(timer); window.removeEventListener("scroll", compact);};
+  }, []);
   const [isAlbumEditing, setAlbumEditing] = useState(false);
   useEffect(() => {
     const node = document.getElementById("configureaza-albumul");
@@ -185,6 +193,12 @@ export default function LumiGuide() {
   useEffect(() => {
     window.dispatchEvent(new CustomEvent("pmm:lumi-open-change", { detail: { isOpen } }));
     if (!isOpen) stopSharedNarration(LUMI_NARRATION_OWNER);
+    if (!isOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") { setIsOpen(false); setLauncherCompact(true); }
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
   }, [isOpen]);
 
   useEffect(() => {
@@ -274,15 +288,13 @@ export default function LumiGuide() {
         {isOpen ? (
           <motion.section key="guide" initial={{ opacity: 0, y: 18, scale: .97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 12, scale: .97 }} className="relative min-h-0">
             <span aria-hidden="true" className="pointer-events-none absolute -inset-x-1 bottom-0 top-4 bg-brand-cream/70 [clip-path:polygon(0_1%,48%_0,50%_1%,52%_0,100%_1%,100%_98%,52%_100%,50%_99%,48%_100%,0_98%)] shadow-[0_24px_70px_rgba(15,25,48,.28)]" />
-            <div className="relative flex max-h-[calc(100dvh-1.5rem)] min-h-0 flex-col overflow-hidden rounded-[8px] border border-brand-gold/55 bg-brand-cream shadow-[0_24px_70px_rgba(15,25,48,.32)] sm:max-h-[min(650px,calc(100dvh-4rem))]">
-              <header className="relative min-h-[138px] shrink-0 overflow-hidden border-b border-brand-navy/10 bg-brand-cream px-5 pb-5 pt-4 pr-28">
+            <div role="dialog" aria-label="Creează povestea cu Lumi" className="relative flex max-h-[min(640px,calc(100dvh-5rem))] min-h-0 flex-col overflow-hidden rounded-[8px] border border-brand-gold/55 bg-brand-cream shadow-[0_24px_70px_rgba(15,25,48,.32)]">
+              <header className="relative min-h-[96px] shrink-0 overflow-hidden border-b border-brand-navy/10 bg-brand-cream px-5 pb-4 pt-4 pr-28">
                 <span aria-hidden="true" className="absolute inset-y-4 left-1/2 w-px bg-brand-navy/[.05]" />
-                <p className="text-[9px] font-black uppercase tracking-[0.15em] text-brand-purple">Povestea voastră</p>
-                <p className="mt-2 inline-flex border border-brand-navy/12 bg-white px-2.5 py-1.5 text-[8px] font-black uppercase tracking-[0.12em] text-brand-navy/55">{step < totalSteps ? `Capitolul ${step + 1} · ${chapterLabels[step]}` : "Verificarea finală"}</p>
-                <h2 className="mt-3 max-w-[240px] font-serif text-[21px] font-bold leading-[1.08] text-brand-navy">{step < totalSteps ? "Creăm Povestea Magică" : "Povestea este conturată"}</h2>
-                <p className="mt-1 text-[9px] font-bold text-brand-navy/45">{visualTitle}</p>
-                <LumiVisual3D state={visualState} className="absolute -bottom-3 right-4 h-[128px] w-[108px]" />
-                <button type="button" onClick={() => setIsOpen(false)} className="absolute right-3 top-3 z-10 grid h-8 w-8 place-items-center rounded-[4px] border border-brand-navy/15 bg-white/80 text-brand-navy/55 transition-colors hover:border-brand-purple hover:text-brand-purple" aria-label="Închide Lumi"><X size={17} /></button>
+                <p className="text-xs text-brand-purple">Povestea voastră, cu Lumi</p>
+                <h2 className="mt-2 max-w-[240px] font-serif text-[25px] leading-tight text-brand-navy">{step < totalSteps ? chapterLabels[step] : "Ultima privire"}</h2>
+                <LumiVisual3D state={visualState} className="absolute -bottom-2 right-12 h-[88px] w-[65px]" />
+                <button type="button" onClick={() => {setIsOpen(false);setLauncherCompact(true);}} className="absolute right-2 top-2 z-10 grid h-11 w-11 place-items-center rounded-[4px] text-brand-navy/70 transition-colors hover:bg-white hover:text-brand-purple" aria-label="Închide Lumi"><X size={20} /></button>
               </header>
 
               <div className="relative z-10 flex shrink-0 items-center gap-3 border-b border-brand-navy/10 bg-white/45 px-5 py-3">
@@ -290,14 +302,12 @@ export default function LumiGuide() {
                 <span className="flex flex-1 items-center justify-center gap-1.5" aria-label={`${Math.round((step / totalSteps) * 100)}% complet`}>
                   {Array.from({ length: totalSteps }, (_, index) => <span key={index} className={`h-1.5 w-1.5 rounded-full border transition-colors ${index < step || step === totalSteps ? "border-brand-gold bg-brand-gold" : index === step ? "border-brand-purple bg-brand-purple shadow-[0_0_0_3px_rgba(128,82,160,.12)]" : "border-brand-navy/20 bg-transparent"}`} />)}
                 </span>
-                <span className="w-7 text-right text-[9px] font-black text-brand-navy/42">{Math.round((step / totalSteps) * 100)}%</span>
               </div>
 
               <div className="relative z-10 min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 custom-scrollbar" data-lenis-prevent>
                 <div className="border-b border-brand-navy/10 pb-5">
-                  <div className="flex items-center justify-between gap-3"><p className="text-[9px] font-black uppercase tracking-[0.14em] text-brand-purple">Lumi întreabă</p><button type="button" onClick={() => void toggleVoice()} className="grid h-8 w-8 shrink-0 place-items-center rounded-[4px] border border-brand-purple/20 bg-white text-brand-purple transition-colors hover:border-brand-purple hover:bg-brand-purple hover:text-white" aria-label={isSpeaking ? "Oprește vocea" : "Ascultă mesajul"}>{isSpeaking ? <Square size={12} fill="currentColor" /> : <Volume2 size={15} />}</button></div>
+                  <div className="float-right ml-3"><button type="button" onClick={() => void toggleVoice()} className="grid h-11 w-11 shrink-0 place-items-center rounded-[4px] border border-brand-purple/20 bg-white text-brand-purple transition-colors hover:border-brand-purple hover:bg-brand-purple hover:text-white" title={isSpeaking ? "Oprește vocea" : "Ascultă mesajul"} aria-label={isSpeaking ? "Oprește vocea" : "Ascultă mesajul"}>{isSpeaking ? <Square size={12} fill="currentColor" /> : <Volume2 size={18} />}</button></div>
                   <p className="mt-2 font-serif text-[19px] font-bold leading-[1.25] text-brand-navy">{step < totalSteps ? prompts[step] : `Am adunat toate firele poveștii lui ${draft.name}. Verifică-le înainte să le așez în configurator.`}</p>
-                  <div aria-hidden="true" className="mt-4 flex items-center gap-3 text-[9px] text-brand-gold"><span className="h-px flex-1 bg-brand-navy/10" /><span>✦ ✦ ✦</span><span className="h-px flex-1 bg-brand-navy/10" /></div>
                 </div>
 
               <div className="mt-5">
@@ -324,20 +334,20 @@ export default function LumiGuide() {
             </div>
           </motion.section>
         ) : (
-          <motion.div key="launcher" initial={{ opacity: 0, y: 12, scale: .97 }} animate={{ opacity: 1, y: 0, scale: 1 }} className="ml-auto w-fit max-w-full">
+          <motion.div key="launcher" data-launcher-compact={launcherCompact && generation.phase === "idle"} initial={{ opacity: 0, y: 12, scale: .97 }} animate={{ opacity: 1, y: 0, scale: 1 }} className="lumi-launcher ml-auto w-fit max-w-full">
             {isAlbumEditing ? <button type="button" title="Ajutor de la Lumi" aria-label="Deschide ghidul Lumi și creează povestea" onClick={()=>{setIsOpen(true);dismissNudge();trackEvent("lumi_opened");}} className="flex h-11 items-center gap-2 rounded-full border border-brand-purple/25 bg-white px-3 text-xs font-bold text-brand-purple shadow-md"><img src="/lumi-guardian.webp" alt="" className="h-9 w-6 object-contain"/>Lumi</button> : <>
             <motion.button type="button" aria-label={generation.phase === "idle" ? "Deschide ghidul Lumi și creează povestea" : `Deschide Lumi. ${visualTitle}`} title={showNudge && generation.phase === "idle" ? launcherCopy : undefined} onClick={() => { trackEvent("lumi_opened"); setIsOpen(true); dismissNudge(); window.setTimeout(() => window.dispatchEvent(new CustomEvent("pmm:lumi-request-context")), 0); }} whileHover={{ y: -4 }} whileTap={{ scale: .98 }} className="group relative ml-auto h-[92px] w-[min(292px,calc(100vw-1.5rem))] border-0 bg-transparent text-left text-brand-navy drop-shadow-[0_17px_20px_rgba(15,25,48,.24)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-purple focus-visible:ring-offset-4 sm:h-[108px] sm:w-[330px]">
-              <span aria-hidden="true" className="absolute bottom-0 left-0 h-[68px] w-[58%] border border-brand-navy/14 bg-brand-cream [clip-path:polygon(0_0,90%_7%,100%_100%,0_91%)] transition-colors group-hover:border-brand-gold sm:h-20" />
-              <span aria-hidden="true" className="absolute bottom-0 right-0 h-[68px] w-[58%] border border-brand-navy/14 bg-brand-cream [clip-path:polygon(10%_7%,100%_0,100%_91%,0_100%)] transition-colors group-hover:border-brand-gold sm:h-20" />
-              <span aria-hidden="true" className="absolute bottom-2 left-1/2 z-10 h-[53px] w-px -translate-x-1/2 bg-brand-navy/10 sm:h-16" />
-              <span aria-hidden="true" className="absolute left-[68px] top-0 z-30 flex items-center gap-1 text-brand-gold sm:left-[78px]"><Sparkles size={15} /><span className="text-[10px]">✦</span><span className="text-[8px]">✦</span></span>
+              <span aria-hidden="true" className="lumi-page-left absolute bottom-0 left-0 h-[68px] w-[58%] border border-brand-navy/14 bg-brand-cream [clip-path:polygon(0_0,90%_7%,100%_100%,0_91%)] transition-colors group-hover:border-brand-gold sm:h-20" />
+              <span aria-hidden="true" className="lumi-page-right absolute bottom-0 right-0 h-[68px] w-[58%] border border-brand-navy/14 bg-brand-cream [clip-path:polygon(10%_7%,100%_0,100%_91%,0_100%)] transition-colors group-hover:border-brand-gold sm:h-20" />
+              <span aria-hidden="true" className="lumi-page-fold absolute bottom-2 left-1/2 z-10 h-[53px] w-px -translate-x-1/2 bg-brand-navy/10 sm:h-16" />
+              <span aria-hidden="true" className="lumi-page-sparkles absolute left-[68px] top-0 z-30 flex items-center gap-1 text-brand-gold sm:left-[78px]"><Sparkles size={15} /><span className="text-[10px]">✦</span><span className="text-[8px]">✦</span></span>
               <span aria-hidden="true" className="lumi-launcher-character absolute bottom-1 left-2 z-20 h-[84px] w-[72px] bg-[url('/lumi-guardian.webp')] bg-contain bg-bottom bg-no-repeat sm:left-3 sm:h-[102px] sm:w-[86px]" />
-              <span className="absolute bottom-[13px] left-[86px] right-8 z-20 min-w-0 sm:bottom-[15px] sm:left-[104px] sm:right-10">
+              <span className="lumi-page-copy absolute bottom-[13px] left-[86px] right-8 z-20 min-w-0 sm:bottom-[15px] sm:left-[104px] sm:right-10">
                 <span className="block truncate text-[8px] font-black uppercase tracking-[0.12em] text-brand-purple sm:text-[9px]">{generation.phase === "idle" ? "Creează alături de Lumi" : "Lumi lucrează"}</span>
                 <span className="mt-1 block font-serif text-[14px] font-bold leading-tight text-brand-navy sm:text-[16px]">{generation.phase === "idle" ? "Deschidem povestea?" : visualTitle}</span>
                 <span className={`mt-0.5 block truncate text-[9px] font-bold text-brand-navy/50 transition-opacity sm:text-[10px] ${showNudge ? "opacity-100" : "opacity-75"}`}>{generation.phase === "idle" ? contextualLauncherLabel : "Urmărește progresul"}</span>
               </span>
-              <span aria-hidden="true" className="absolute bottom-[25px] right-2.5 z-20 text-lg font-bold text-brand-purple transition-transform group-hover:translate-x-1 sm:bottom-[30px] sm:right-3.5">→</span>
+              <span aria-hidden="true" className="lumi-page-arrow absolute bottom-[25px] right-2.5 z-20 text-lg font-bold text-brand-purple transition-transform group-hover:translate-x-1 sm:bottom-[30px] sm:right-3.5">→</span>
             </motion.button></>}
           </motion.div>
         )}

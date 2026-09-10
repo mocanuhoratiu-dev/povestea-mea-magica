@@ -9,8 +9,13 @@ test("the flagship cover is presented as a complete hardcover book", () => {
   const productPage = read("../src/app/povestea-magica/page.tsx");
   const collection = read("../src/components/ProductExamples.tsx");
 
-  assert.match(mockup, /aspect-\[1\.419\]/);
-  assert.match(mockup, /repeating-linear-gradient/);
+  assert.match(mockup, /aspect-\[1\.42\]/);
+  assert.match(mockup, /book-mockup\.webp/);
+  const render = read("../scripts/render-book-mockup.mjs");
+  assert.match(render, /BoxGeometry/);
+  assert.match(render, /shadowMap.enabled=true/);
+  assert.match(render, /cover\.webp/);
+  assert.ok(readFileSync(new URL("../public/examples/album/collection/book-mockup.webp", import.meta.url)).length > 10000);
   assert.match(mockup, /object-contain/);
   assert.match(productPage, /<AlbumFlipbook/);
   assert.match(productPage, /ediția digitală/);

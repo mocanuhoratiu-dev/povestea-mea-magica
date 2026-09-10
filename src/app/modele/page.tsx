@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, BookHeart, ShieldCheck, TimerReset } from "lucide-react";
-import BrandMark from "@/components/BrandMark";
 import Footer from "@/components/Footer";
 import ProductReader from "@/components/ProductReader";
 import PremiumKitReader from "@/components/PremiumKitReader";
@@ -39,13 +38,13 @@ const models = [
     rule: "bg-brand-gold",
     icon: BookHeart,
     choices: ["aspectul, ținuta și semnele distinctive", "lumea, companionul și personajele apropiate", "propria idee de poveste, un detaliu din familie și dedicația"],
-    source: "/examples/album/coperta.webp",
+    source: "/examples/album/collection/coperta.webp",
     pages: [
-      { title: "Coperta", caption: "Copilul și lumea aleasă devin semnalul vizual principal.", crop: fullPage, source: "/examples/album/coperta.webp" },
-      { title: "În mijlocul aventurii", caption: "Fiecare scenă are o compoziție proprie și continuă povestea.", crop: fullPage, source: "/examples/album/aventura.webp" },
-      { title: "Pagina de colorat", caption: "Caietul separat păstrează spațiu real pentru creioane și joacă.", crop: fullPage, source: "/examples/album/colorat.webp" },
-      { title: "Labirintul", caption: "Activitățile preiau simboluri și misiuni din universul poveștii.", crop: fullPage, source: "/examples/album/labirint.webp" },
-      { title: "Găsește diferențele", caption: "Două imagini din aceeași aventură devin un joc de observație clar și printabil.", crop: fullPage, source: "/examples/album/diferente.webp" },
+      { title: "Coperta", caption: "Copilul și lumea aleasă devin semnalul vizual principal.", crop: fullPage, source: "/examples/album/collection/coperta.webp" },
+      { title: "În mijlocul aventurii", caption: "Fiecare scenă are o compoziție proprie și continuă povestea.", crop: fullPage, source: "/examples/album/collection/aventura.webp" },
+      { title: "Pagina de colorat", caption: "Caietul separat păstrează spațiu real pentru creioane și joacă.", crop: fullPage, source: "/examples/album/collection/colorat.webp" },
+      { title: "Labirintul", caption: "Activitățile preiau simboluri și misiuni din universul poveștii.", crop: fullPage, source: "/examples/album/collection/labirint.webp" },
+      { title: "Găsește diferențele", caption: "Două imagini din aceeași aventură devin un joc de observație clar și printabil.", crop: fullPage, source: "/examples/album/collection/diferente.webp" },
     ],
   },
   {
@@ -87,15 +86,15 @@ const models = [
 export default function ModelsPage() {
   return (
     <>
-      <main className="min-h-screen bg-brand-cream pb-24 pt-32">
+      <main className="editorial-index min-h-screen bg-brand-cream pb-12 pt-24">
       <section className="px-6">
         <div className="mx-auto max-w-7xl border-b border-brand-navy/15 pb-14">
-          <div className="grid max-w-5xl gap-8 md:grid-cols-[auto_1fr] md:items-start">
-            <BrandMark className="h-16 w-16" title="Lanterna Magică" />
+          <div className="page-intro">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.16em] text-brand-purple">Răsfoiește înainte să alegi</p>
-              <h1 className="mt-4 font-nunito text-4xl font-black leading-tight text-brand-navy md:text-6xl">Nu alegi o promisiune. Vezi paginile.</h1>
-              <p className="mt-5 max-w-3xl text-lg font-medium leading-relaxed text-brand-navy/70">Fiecare model de mai jos arată pagini reale ale produsului. La generare, structura rămâne clară, iar textul, misiunile și detaliile sunt construite pentru copilul vostru.</p>
+              <h1 className="mt-4 text-brand-navy">Răsfoiește colecția</h1>
+              <p className="mt-4 text-base leading-relaxed text-brand-navy/70">Pagini din cele trei materiale. Povestea voastră va porni din alegerile copilului.</p>
+              <nav aria-label="Alege un model" className="mt-6 flex flex-wrap gap-x-6 gap-y-3 text-sm text-brand-purple">{models.map(model=><a key={model.id} href={`#${model.id}`} className="border-b border-current pb-1">{model.title}</a>)}</nav>
             </div>
           </div>
         </div>
@@ -107,7 +106,7 @@ export default function ModelsPage() {
             const Icon = model.icon;
             return (
               <article id={model.id} key={model.title} className="scroll-mt-28 border-t border-brand-navy/15 pt-10 first:border-t-0 first:pt-0">
-                <div className="grid gap-10 lg:grid-cols-[minmax(0,.72fr)_minmax(0,1.28fr)] lg:gap-16">
+                <div className="model-grid grid gap-8 lg:gap-12">
                   <div className="lg:sticky lg:top-28 lg:self-start">
                     <div className={`h-1 w-16 ${model.rule}`} />
                     <div className={`mt-5 flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] ${model.accent}`}><Icon size={17} /> {model.moment}</div>

@@ -1,73 +1,54 @@
-"use client";
-
-import { motion } from "framer-motion";
-import { ArrowRight, Check, ScanFace, Sparkles } from "lucide-react";
-import PremiumBookMockup from "@/components/PremiumBookMockup";
-
-const childDetails = ["numele Eva", "păr șaten, ondulat", "salopetă cărămizie", "iubește stelele"];
-
+import Image from "next/image";
 export default function PersonalizationProof() {
   return (
-    <section className="overflow-hidden bg-white px-5 py-16 sm:px-6 md:py-24" aria-labelledby="personalization-title">
-      <div className="mx-auto max-w-7xl">
-        <div className="grid gap-8 border-b border-brand-navy/15 pb-10 lg:grid-cols-[.86fr_1.14fr] lg:items-end">
-          <div>
-            <p className="text-xs font-black uppercase tracking-[0.16em] text-brand-purple">De la detalii la personaj</p>
-            <h2 id="personalization-title" className="mt-4 font-nunito text-4xl font-black leading-tight text-brand-navy sm:text-5xl">
-              Nu schimbăm doar numele de pe copertă.
-            </h2>
-          </div>
-          <p className="max-w-2xl text-base font-semibold leading-relaxed text-brand-navy/68 sm:text-lg">
-            Aspectul, oamenii dragi și lucrurile preferate ale copilului devin repere vizuale și narative care continuă din prima pagină până la final.
+    <section
+      className="px-5 sm:px-6 bg-white"
+      aria-labelledby="personalization-title"
+    >
+      <div className="personal-proof mx-auto max-w-7xl">
+        <div>
+          <p className="text-brand-purple text-xs">De la detalii la personaj</p>
+          <h2 id="personalization-title">
+            Nu doar numele.
+            <br />
+            Chiar lumea lui.
+          </h2>
+          <p>
+            Tu ne spui cum arată și ce îl bucură. Noi construim personajul și
+            aventura în jurul acestor detalii.
           </p>
-        </div>
-
-        <div className="mt-10 grid border border-brand-navy/15 lg:grid-cols-[.78fr_auto_1.22fr]">
-          <motion.div
-            initial={{ opacity: 0, x: -18 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, amount: 0.35 }}
-            className="flex min-h-[420px] flex-col justify-between bg-brand-cream p-7 sm:p-10"
-          >
+          <dl>
             <div>
-              <div className="flex items-center justify-between border-b border-brand-navy/15 pb-5">
-                <span className="text-xs font-black uppercase tracking-[0.16em] text-brand-purple">Înainte · descrierea</span>
-                <ScanFace size={26} className="text-brand-purple" strokeWidth={1.7} />
-              </div>
-              <p className="mt-8 font-serif text-3xl leading-tight text-brand-navy sm:text-4xl">„Eva pornește în căutarea unei steluțe care și-a pierdut lumina.”</p>
-              <div className="mt-8 grid grid-cols-2 gap-x-5 gap-y-4 border-y border-brand-navy/12 py-6">
-                {childDetails.map((detail) => (
-                  <span key={detail} className="flex items-start gap-2 text-sm font-bold leading-snug text-brand-navy/72">
-                    <Check size={16} className="mt-0.5 shrink-0 text-brand-green" /> {detail}
-                  </span>
-                ))}
-              </div>
+              <dt>Eroina</dt>
+              <dd>Eva, 5 ani</dd>
             </div>
-            <p className="mt-8 text-sm font-semibold leading-relaxed text-brand-navy/58">Fotografia este opțională. O descriere atentă este suficientă pentru a construi personajul.</p>
-          </motion.div>
-
-          <div className="relative z-10 hidden w-0 items-center justify-center lg:flex">
-            <div className="grid h-14 w-14 -translate-x-1/2 place-items-center border border-brand-gold bg-brand-navy text-brand-gold shadow-xl" aria-hidden="true">
-              <ArrowRight size={23} />
+            <div>
+              <dt>Portretul</dt>
+              <dd>Păr șaten, ondulat</dd>
             </div>
-          </div>
-
-          <motion.div
-            initial={{ opacity: 0, x: 18 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, amount: 0.25 }}
-            className="relative flex min-h-[390px] flex-col overflow-hidden bg-brand-navy sm:min-h-[560px]"
-          >
-            <div className="flex flex-1 items-center px-4 py-7 sm:px-8 sm:py-10">
-              <PremiumBookMockup src="/examples/album/coperta.webp" alt="Cartea personalizată a Evei, cu personajul ilustrat pe copertă" sizes="(min-width: 1024px) 52vw, 94vw" className="max-w-[720px]" />
+            <div>
+              <dt>Un detaliu al ei</dt>
+              <dd>Rucsacul cu stele</dd>
             </div>
-            <div className="relative border-t border-white/12 bg-brand-navy px-6 py-5 text-brand-cream sm:px-8">
-              <p className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-brand-gold"><Sparkles size={15} /> După · personajul în carte</p>
-              <p className="mt-2 max-w-2xl text-sm font-semibold leading-relaxed text-brand-cream/78">Aceleași trăsături, haine și repere sunt urmărite în copertă și în fiecare scenă a poveștii.</p>
+            <div>
+              <dt>Aventura</dt>
+              <dd>O steluță de ajutat</dd>
             </div>
-          </motion.div>
+          </dl>
+          <p>Fotografia este opțională. Poți începe doar cu o descriere.</p>
         </div>
-        <p className="mt-4 text-right text-xs font-bold text-brand-navy/75">Poveste-model · Povestea Magică a Evei</p>
+        <figure>
+          <Image
+            src="/examples/album/collection/aventura.webp"
+            alt="Eva și steluța, într-o pagină interioară din povestea demonstrativă"
+            width={1260}
+            height={888}
+            sizes="(max-width:700px) 94vw, 48vw"
+          />
+          <figcaption>
+            Eva și lumina dintre stele · pagină din modelul ilustrat
+          </figcaption>
+        </figure>
       </div>
     </section>
   );

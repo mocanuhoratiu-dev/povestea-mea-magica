@@ -67,26 +67,26 @@ export const albumSamplePages: AlbumSamplePage[] = [
   {
     title: "Eva și lumina dintre stele",
     eyebrow: "Coperta",
-    image: "/examples/album/flipbook/page-01.webp",
+    image: "/examples/album/collection/flipbook/page-01.webp",
     alt: "Coperta albumului Eva și lumina dintre stele, cu Eva ținând o steluță luminoasă",
   },
   {
     title: "O poveste creată special",
     eyebrow: "Dedicația",
-    image: "/examples/album/flipbook/page-02.webp",
+    image: "/examples/album/collection/flipbook/page-02.webp",
     alt: "Pagina de dedicație personalizată pentru Eva",
   },
   ...sampleScenes.map((scene, index) => ({
     title: scene.title,
     eyebrow: `Scena ${index + 1}`,
-    image: `/examples/album/flipbook/page-${String(index + 3).padStart(2, "0")}.webp`,
+    image: `/examples/album/collection/flipbook/page-${String(index + 3).padStart(2, "0")}.webp`,
     alt: `Pagină ilustrată din albumul Evei: ${scene.title}`,
     narration: scene.narration,
   })),
   {
     title: "O poveste în care copilul tău contează",
     eyebrow: "Coperta finală",
-    image: "/examples/album/flipbook/page-16.webp",
+    image: "/examples/album/collection/flipbook/page-16.webp",
     alt: "Coperta finală Povestea Mea Magică",
   },
 ];

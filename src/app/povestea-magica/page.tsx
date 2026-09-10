@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 };
 const productSchema = {
   "@context": "https://schema.org", "@type": "Product", name: "Povestea Magică - Digital",
-  image: [`${siteUrl}/examples/album/coperta.webp`], description: "16 pagini, 13 scene ilustrate plus copertă, audio în română și caiet separat de activități.",
+  image: [`${siteUrl}/examples/album/collection/coperta.webp`], description: "16 pagini, 13 scene ilustrate plus copertă, audio în română și caiet separat de activități.",
   brand: { "@type": "Brand", name: "Povestea Mea Magică" }, sku: "PMM-ALBUM-DIGITAL",
   offers: { "@type": "Offer", url: `${siteUrl}/povestea-magica`, priceCurrency: "RON", price: "59.00", availability: "https://schema.org/InStock" },
 };
@@ -35,7 +35,7 @@ export default function MagicalStoryPage() {
     <div id="rasfoieste-povestea" className="album-sample"><AlbumFlipbook/></div>
     <section className="album-family-band"><div><p className="album-eyebrow">Nu doar numele pe copertă</p><h2>Detaliile mici fac<br/>povestea lor.</h2><p>O bicicletă albastră. Sora mai mare. Un rucsac care merge peste tot. Tu ne spui ce contează, iar aventura începe de acolo.</p><LumiOpenButton label="Construim împreună cu Lumi" className="album-inline-link"/></div><ol><li><b>01</b><div><h3>Îl cunoaștem pe erou</h3><p>Din descriere sau dintr-o fotografie opțională.</p></div></li><li><b>02</b><div><h3>Deschideți o lume</h3><p>Alegeți un univers sau povestiți-ne ideea voastră.</p></div></li><li><b>03</b><div><h3>Vedeți, apoi alegeți</h3><p>Coperta și două pagini personalizate, înainte de plată.</p></div></li></ol></section>
     <section id="configureaza-albumul" className="album-configure"><div className="album-section-heading"><p className="album-eyebrow">Acum începe povestea voastră</p><h2>Pe cine întâlnim în prima pagină?</h2></div><AlbumCreator/></section>
-    <section className="album-included"><div><p className="album-eyebrow">Dincolo de ultima pagină</p><h2>Povestea se termină.<br/>Joaca, nu.</h2><p>Cartea și caietul sosesc separat: răsfoiți aventura pe tabletă, apoi imprimați doar paginile pe care vreți să desenați.</p><p>Colorat, un labirint cu soluție și diferențe de descoperit inclusiv pe hârtie alb-negru.</p></div><Image src="/examples/album/colorat.webp" alt="O pagină reală din caietul de activități al Evei" width={960} height={676} sizes="(max-width: 700px) 90vw, 45vw"/></section>
+    <section className="album-included"><div><p className="album-eyebrow">Dincolo de ultima pagină</p><h2>Povestea se termină.<br/>Joaca, nu.</h2><p>Cartea și caietul sosesc separat: răsfoiți aventura pe tabletă, apoi imprimați doar paginile pe care vreți să desenați.</p><p>Colorat, un labirint cu soluție și diferențe de descoperit inclusiv pe hârtie alb-negru.</p></div><Image src="/examples/album/collection/colorat.webp" alt="O pagină reală din caietul de activități al Evei" width={960} height={676} sizes="(max-width: 700px) 90vw, 45vw"/></section>
     <section className="album-trust"><ShieldCheck size={26}/><div><h2>O lume inventată. Grijă reală.</h2><p>Fotografia este opțională. Materialele sunt livrate prin link privat. Ilustrațiile sunt verificate înainte de a intra în album.</p></div><a href="/politica-de-confidentialitate">Despre confidențialitate <ArrowRight size={17}/></a></section>
     <Reviews/>
     <section className="album-questions"><h2>Înainte de prima pagină</h2>{[

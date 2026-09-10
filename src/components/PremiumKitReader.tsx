@@ -6,7 +6,7 @@ import type { KitPage } from "@/lib/kits/template";
 import "./premium-kit-document.css";
 
 export default function PremiumKitReader({ pages, label = "Răsfoiește materialul" }: { pages: KitPage[]; label?: string }) {
-  const [index, setIndex] = useState(0), [width, setWidth] = useState(600), [expanded, setExpanded] = useState(false);
+  const [index, setIndex] = useState(0), [width, setWidth] = useState(0), [expanded, setExpanded] = useState(false);
   const root = useRef<HTMLDivElement>(null), dialog = useRef<HTMLDialogElement>(null);
   const safeIndex = Math.min(index, pages.length - 1);
   const page = pages[safeIndex];
@@ -22,7 +22,7 @@ export default function PremiumKitReader({ pages, label = "Răsfoiește material
     if (button.dataset.kitAction === "differences") paper.querySelector(".difference-grid")?.classList.toggle("solved");
   };
   if (!page) return null;
-  return <section aria-label={label} className="pk-reader">
+  return <section aria-label={label} className="pk-reader" style={{contain:"inline-size",maxWidth:"100%"}}>
     <div className="pk-reader-heading"><div><span>{label}</span><strong>{page.title}</strong></div><button type="button" aria-label="Mărește pagina" title="Mărește pagina" onClick={() => setExpanded(true)}><Expand size={18}/></button></div>
     <div className="pk-reader-stage"><div ref={root} style={{ width: "100%", maxWidth: 600, margin: "auto" }}><div style={{ width: 600 * scale, height: 848.5714 * scale, position: "relative" }}><div className="kit-document" onClick={interact} style={{ transform: `scale(${scale})`, transformOrigin: "top left", width: 600, height: 848.5714 }} dangerouslySetInnerHTML={{ __html: page.html }}/></div></div></div>
     <div className="pk-reader-controls"><button type="button" disabled={safeIndex === 0} aria-label="Pagina anterioară" title="Pagina anterioară" onClick={() => setIndex(safeIndex - 1)}><ArrowLeft size={18}/></button><span aria-live="polite">{safeIndex + 1} / {pages.length}</span><button type="button" disabled={safeIndex === pages.length - 1} aria-label="Pagina următoare" title="Pagina următoare" onClick={() => setIndex(safeIndex + 1)}><ArrowRight size={18}/></button></div>

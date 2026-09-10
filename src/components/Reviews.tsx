@@ -50,9 +50,9 @@ export default function Reviews() {
         <div className="grid gap-10 border-b border-brand-navy/15 pb-12 lg:grid-cols-[.9fr_1.1fr] lg:items-end">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.16em] text-brand-purple">Spus de părinți</p>
-            <h2 className="mt-4 font-nunito text-4xl font-black leading-tight text-brand-navy md:text-5xl">Primele povești, primele seri și primele reacții.</h2>
+            <h2 className="mt-4 font-nunito text-4xl font-black leading-tight text-brand-navy md:text-5xl">Povești spuse de părinți.</h2>
           </div>
-          <p className="max-w-2xl text-lg font-medium leading-relaxed text-brand-navy/70">Mesaje primite de la familiile care au folosit poveștile, ritualurile și activitățile Povestea Mea Magică. Recenziile provenite dintr-o livrare sunt marcate separat.</p>
+          <p className="max-w-2xl text-base font-medium leading-relaxed text-brand-navy/70">Experiențele familiilor care ne-au încercat materialele. Comenzile verificate sunt marcate separat.</p>
         </div>
         {verifiedReviews.length > 0 && <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           {verifiedReviews.map((review) => (

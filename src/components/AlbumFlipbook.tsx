@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { BookOpen, ChevronLeft, ChevronRight, Maximize2, Pause, Play, Sparkles, Volume2, X } from "lucide-react";
+import { BookOpen, ChevronLeft, ChevronRight, Download, Maximize2, Pause, Play, Sparkles, Volume2, X } from "lucide-react";
 import { albumSampleAudio, albumSamplePages } from "@/lib/album/sample";
 import { playStaticNarration, stopNarration, subscribeToNarration } from "@/lib/narrationPlayback";
 import { trackEvent } from "@/lib/clientTelemetry";
@@ -239,7 +239,7 @@ export default function AlbumFlipbook() {
               ))}
             </div>
             <div className="mt-8 flex flex-col items-start justify-between gap-5 border-t border-white/12 pt-7 sm:flex-row sm:items-center">
-              <p className="max-w-2xl text-sm font-semibold leading-relaxed text-brand-cream/65">Acesta este un exemplu complet. Povestea, personajul, lumea și ilustrațiile cărții voastre vor fi create separat pentru copilul vostru.</p>
+              <div className="max-w-2xl"><p className="text-sm leading-relaxed text-brand-cream/80">Un model complet. Cartea voastră va fi creată din alegerile copilului.</p><a href="/examples/album/collection/povestea-magica-model.pdf" download className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm text-brand-cream underline underline-offset-4"><Download size={16}/> Modelul în PDF</a></div>
               <Link href="/povestea-magica#configureaza-albumul" onClick={() => trackEvent("album_sample_cta_clicked", { product: "album", samplePage: activeIndex + 1 })} className="inline-flex min-h-12 shrink-0 items-center gap-2 bg-brand-cream px-6 text-sm font-black text-brand-navy transition hover:bg-brand-gold">Creează povestea <ChevronRight size={18} /></Link>
             </div>
           </div>

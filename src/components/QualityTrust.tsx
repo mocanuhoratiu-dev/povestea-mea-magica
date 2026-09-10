@@ -26,12 +26,12 @@ const promises = [
 
 export default function QualityTrust() {
   return (
-    <section className="bg-brand-navy px-5 py-16 text-brand-cream sm:px-6 md:py-24" aria-labelledby="quality-title">
+    <section className="quality-band bg-brand-navy px-5 py-16 text-brand-cream sm:px-6 md:py-24" aria-labelledby="quality-title">
       <div className="mx-auto max-w-7xl">
         <div className="grid gap-8 border-b border-brand-cream/15 pb-10 lg:grid-cols-[.8fr_1.2fr] lg:items-end">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.16em] text-brand-gold">Calitate și grijă, nu doar tehnologie</p>
-            <h2 id="quality-title" className="mt-4 font-nunito text-4xl font-black leading-tight sm:text-5xl">O poveste frumoasă trebuie să fie și una în care ai încredere.</h2>
+            <h2 id="quality-title" className="mt-4 font-nunito text-4xl font-black leading-tight sm:text-5xl">Imaginație, cu grijă.</h2>
           </div>
           <div className="max-w-2xl lg:justify-self-end">
             <p className="text-base font-semibold leading-relaxed text-brand-cream/70 sm:text-lg">Fiecare etapă este construită în jurul unui principiu simplu: părintele păstrează controlul, iar copilul rămâne în siguranță.</p>

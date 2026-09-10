@@ -41,8 +41,8 @@ export default function Footer() {
   return (
     <footer className="bg-brand-navy px-6 pb-10 pt-20 text-brand-cream">
       <div className="mx-auto max-w-7xl">
-        <div className="grid gap-12 border-b border-brand-cream/15 pb-14 md:grid-cols-[1.3fr_.8fr_.8fr]">
-          <div>
+        <div className="grid grid-cols-2 gap-x-6 gap-y-10 border-b border-brand-cream/15 pb-10 md:grid-cols-[1.3fr_.8fr_.8fr]">
+          <div className="col-span-2 md:col-span-1">
             <Link href="/" className="flex w-fit items-center gap-3">
               <BrandMark className="h-11 w-11" tone="paper" />
               <span className="font-serif text-2xl leading-none">Povestea Mea <span className="text-brand-gold italic">Magică</span></span>

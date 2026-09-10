@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { BookOpen, Eye, Sparkles } from "lucide-react";
 
 const steps = [
-  { icon: Sparkles, title: "Îi povestești lui Lumi", description: "Numele, vârsta, chipul, lumea și micile detalii ale copilului devin baza aventurii.", number: "01" },
+  { icon: Sparkles, title: "Ne povestești despre el", description: "Alegi chipul, lumea și micile lui bucurii. Singur sau împreună cu Lumi.", number: "01" },
   { icon: Eye, title: "Vezi eroul înainte de plată", description: "Răsfoiești coperta și două pagini interioare personalizate, apoi poți schimba alegerile înainte să comanzi.", number: "02" },
   { icon: BookOpen, title: "Primești povestea completă", description: "Cartea, audio-ul și activitățile ajung pe email, pregătite pentru citit pe ecran sau print.", number: "03" },
 ];
@@ -15,7 +15,7 @@ export default function HowItWorks() {
       <div className="mx-auto max-w-7xl">
         <div className="mx-auto max-w-2xl text-center md:mx-0 md:text-left">
           <p className="text-xs font-black uppercase tracking-[0.16em] text-brand-purple">Din câteva răspunsuri, o carte întreagă</p>
-          <h2 className="mt-4 font-nunito text-4xl font-black leading-tight text-brand-navy md:text-5xl">Lumi vă însoțește de la prima idee la prima pagină</h2>
+          <h2 className="mt-4 font-nunito text-4xl font-black leading-tight text-brand-navy md:text-5xl">De la o idee la cartea lui</h2>
         </div>
         <div className="mt-9 grid grid-cols-1 border-y border-brand-navy/15 md:mt-14 md:grid-cols-3">
           {steps.map((step, index) => {

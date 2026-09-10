@@ -35,7 +35,7 @@ const faqSchema = {
 
 export default function Home() {
   return (
-    <main className="min-h-screen">
+    <main className="editorial-home min-h-screen">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <Hero />
       <AlbumFlipbook />

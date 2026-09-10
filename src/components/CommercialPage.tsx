@@ -12,7 +12,7 @@ type CommercialPageProps = {
 
 export default function CommercialPage({ eyebrow, title, description, children }: CommercialPageProps) {
   return (
-    <main className="min-h-screen bg-brand-cream pt-24">
+    <main className="commercial-shell min-h-screen bg-brand-cream pt-24">
       <section className="border-b border-brand-navy/15 px-6 pb-14 pt-10 md:pb-20">
         <div className="mx-auto max-w-5xl">
           <Link href="/" className="inline-flex items-center gap-2 text-sm font-black text-brand-navy/60 transition-colors hover:text-brand-purple">
