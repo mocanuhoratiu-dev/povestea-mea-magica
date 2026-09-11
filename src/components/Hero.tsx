@@ -4,7 +4,7 @@ export default function Hero() {
   return (
     <section id="home-hero" className="home-editorial-hero">
       <Image
-        src="/examples/album/hero-v2.webp"
+        src="/examples/album/hero-cinematic.webp"
         alt="Eva și steluța ei, pe poteca luminoasă din poveste"
         fill
         priority

@@ -4,6 +4,7 @@ import { readBoundedDuration, withTimeout } from "@/lib/aiTimeout";
 import { isUsableLineArtStatistics } from "@/lib/album/qualityMetrics";
 import type { AlbumQualityResult } from "@/lib/album/types";
 import { ALBUM_QUALITY_MINIMUM, AlbumQualityUnavailableError, retryAlbumQuality } from "./qualityPolicy";
+import { albumStyleQualityInstruction } from "./artDirection.ts";
 
 const QUALITY_SCHEMA = {
   type: "object",
@@ -99,6 +100,7 @@ async function evaluateOnce(input: AlbumQualityInput): Promise<AlbumQualityResul
     });
     const reference = input.referenceDataUrl ? parseDataUrl(input.referenceDataUrl) : null;
     const parts = [
+      { text: albumStyleQualityInstruction(input.prompt, input.asset) || "Evaluate the requested illustration medium consistently with the reference." },
       ...(reference ? [{ inlineData: { mimeType: reference.mimeType, data: reference.data } }, { text: "IMAGE 1 is the authoritative character reference." }] : []),
       { inlineData: { mimeType: deterministic.candidate.mimeType, data: deterministic.candidate.data } },
       {

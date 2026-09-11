@@ -17,9 +17,9 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
   openGraph: {
     url: "/",
-    images: [{ url: "/examples/album/hero-v2.webp", width: 1677, height: 942, alt: "Povestea Mea Magică, povești ilustrate personalizate" }],
+    images: [{ url: "/examples/album/hero-cinematic.webp", width: 1920, height: 1072, alt: "Povestea Mea Magică, povești ilustrate personalizate" }],
   },
-  twitter: { card: "summary_large_image", images: ["/examples/album/hero-v2.webp"] },
+  twitter: { card: "summary_large_image", images: ["/examples/album/hero-cinematic.webp"] },
 };
 
 const faqSchema = {

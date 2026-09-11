@@ -28,7 +28,7 @@ export default function MagicalStoryPage() {
   return <main className="album-editorial">
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}/>
     <header className="album-hero">
-      <Image src="/examples/album/hero-v2.webp" alt="Eva și steluța ei, pe cărarea luminoasă din poveste" fill priority sizes="100vw" className="album-hero-art"/>
+      <Image src="/examples/album/hero-cinematic.webp" alt="Eva și steluța ei, pe cărarea luminoasă din poveste" fill priority sizes="100vw" className="album-hero-art"/>
       <div className="album-hero-copy"><p>O aventură pe care o va recunoaște ca fiind a lui.</p><h1>Povestea Magică</h1><p className="album-hero-description">Chipul, lumea și micile lui bucurii devin o carte de citit împreună.</p><a id="album-primary-cta" href="#configureaza-albumul" className="album-action">Creează Povestea Magică <ArrowRight size={18}/></a><a href="#rasfoieste-povestea" className="album-hero-link">Răsfoiește povestea</a></div>
     </header>
     <div className="album-facts"><strong>{commerce.prices.illustratedAlbum} <small>ediția digitală</small></strong><span><BookOpen size={18}/>16 pagini · 13 scene + copertă</span><span><Headphones size={18}/>Audio în română</span><span><Palette size={18}/>Caiet de activități</span><span><Mail size={18}/>Pe email</span></div>

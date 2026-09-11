@@ -1,6 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import { readBoundedDuration, withTimeout } from "@/lib/aiTimeout";
 import { albumWorldLabel } from "@/lib/album/schema";
+import { albumArtDirection } from "./artDirection.ts";
 import type { AlbumGenerationInput, AlbumPanelPosition, AlbumPanelTone, AlbumPlan, AlbumScene, AlbumSceneLayout, AlbumStoryBible } from "@/lib/album/types";
 
 const PANEL_POSITIONS = new Set<AlbumPanelPosition>(["top-left", "top-right", "bottom-left", "bottom-right", "bottom"]);
@@ -94,16 +95,6 @@ const CAMERA_DIRECTIONS = [
   "calm golden-hour homecoming, seen from a gentle three-quarter angle",
 ] as const;
 
-function artDirection(style: string) {
-  const directions: Record<string, string> = {
-    "Acuarelă cinematografică": "premium cinematic watercolor and gouache, luminous washes, refined ink accents, layered atmospheric depth, sophisticated European picture-book illustration",
-    "Guașă pictată manual": "premium hand-painted gouache, rich opaque color, visible brush texture, elegant shapes, editorial European children's-book illustration",
-    "Ilustrație 3D de poveste": "premium handcrafted 3D storybook illustration, tactile fabric and painted-paper textures, expressive sculpted characters, cinematic lighting, never glossy or plastic",
-    "Creioane colorate premium": "premium colored-pencil and soft pastel illustration on fine paper, intricate texture, luminous color layering, elegant contemporary picture-book finish",
-  };
-  return directions[style] || directions["Acuarelă cinematografică"];
-}
-
 function clean(value: unknown, maxLength: number) {
   return String(value ?? "")
     .replace(/<[^>]*>/g, "")
@@ -155,7 +146,7 @@ function parsePlan(text: string, input: AlbumGenerationInput, model: string): Al
     input.secondaryCharacterName ? `A secondary human character named ${input.secondaryCharacterName}, the child's ${input.secondaryCharacterRole}, appears when the story calls for them. Their immutable appearance is: ${input.secondaryCharacterAppearance || "age-appropriate features selected by the family"}. Never merge this person with the main child or add another child.` : "",
     "Keep the child's face, hairstyle, eye color, outfit, proportions and apparent age identical on every page.",
   ].filter(Boolean).join(" ");
-  const visualStyle = artDirection(input.artStyle);
+  const visualStyle = albumArtDirection(input.artStyle);
   const rawBible = record(parsed.storyBible);
   const rawArc = record(rawBible.arc);
   const rawVisualLanguage = record(rawBible.visualLanguage);
@@ -193,7 +184,7 @@ function parsePlan(text: string, input: AlbumGenerationInput, model: string): Al
     visualLanguage: {
       palette: clean(rawVisualLanguage.palette, 220) || `${input.favoriteColor} accent balanced with colors natural to ${albumWorldLabel(input.world, input.customWorld)}`,
       lighting: clean(rawVisualLanguage.lighting, 220) || input.mood,
-      texture: clean(rawVisualLanguage.texture, 220) || visualStyle,
+      texture: visualStyle,
       compositionRules: cleanList(rawVisualLanguage.compositionRules, 6, 180),
       forbidden: ["generated text or letters", "duplicate child", "different outfit", "generic stock fantasy", "photoreal adult proportions", "framing devices or collages", "extra unrequested children", "merged character identities"],
     },
@@ -222,7 +213,7 @@ function parsePlan(text: string, input: AlbumGenerationInput, model: string): Al
     return {
       heading,
       text: sceneText,
-      imagePrompt: `${characterBible} IMMUTABLE CHARACTER LOCK: preserve the exact face, apparent age, hairstyle and length, eye color, skin tone, body proportions, signature outfit, recurring accessories and companion design from the authoritative reference. Keep the requested hero singular${input.secondaryCharacterName ? ` and keep ${input.secondaryCharacterName} visibly distinct from the hero` : ""}; never merge, duplicate or replace them. Preserve recurring objects, their colors and any safety gear whenever the action continues across pages. STORY BIBLE CONTINUITY: ${storyBible.recurringMotif}; ${storyBible.visualLanguage.palette}; ${storyBible.visualLanguage.lighting}. SCENE CONTINUITY: ${continuityNotes}. ${basePrompt} ${CAMERA_DIRECTIONS[index]}. ${visualStyle}. ${layout === "image-left" ? "Compose the main child action clearly in the left two-thirds, with readable environmental depth." : layout === "image-right" ? "Compose the main child action clearly in the right two-thirds, with readable environmental depth." : "Use a full-width cinematic composition with the complete action in the central safe area."} Layered foreground, middle ground and background, expressive body language, nuanced lighting, print-quality detail. Every prop and background must serve this exact scene. Treat commercial products only as unbranded visual references: no brand name, trademark, logo, decal, label or printed marking. No generic fantasy stock imagery, no repeated pose, no text, no letters, no frame, no collage, no watermark.`,
+      imagePrompt: `${visualStyle}. ${characterBible} IMMUTABLE CHARACTER LOCK: preserve the exact face, apparent age, hairstyle and length, eye color, skin tone, body proportions, signature outfit, recurring accessories and companion design from the authoritative reference. Keep the requested hero singular${input.secondaryCharacterName ? ` and keep ${input.secondaryCharacterName} visibly distinct from the hero` : ""}; never merge, duplicate or replace them. Preserve recurring objects, their colors and any safety gear whenever the action continues across pages. STORY BIBLE CONTINUITY: ${storyBible.recurringMotif}; ${storyBible.visualLanguage.palette}; ${storyBible.visualLanguage.lighting}. SCENE CONTINUITY: ${continuityNotes}. ${basePrompt} ${CAMERA_DIRECTIONS[index]}. ${layout === "image-left" ? "Compose the main child action clearly in the left two-thirds, with readable environmental depth." : layout === "image-right" ? "Compose the main child action clearly in the right two-thirds, with readable environmental depth." : "Use a full-width cinematic composition with the complete action in the central safe area."} Layered foreground, middle ground and background, expressive body language, nuanced lighting, print-quality detail. Every prop and background must serve this exact scene. Treat commercial products only as unbranded visual references: no brand name, trademark, logo, decal, label or printed marking. No generic fantasy stock imagery, no repeated pose, no text, no letters, no frame, no collage, no watermark.`,
       panelPosition,
       panelTone,
       layout,
@@ -265,6 +256,7 @@ Date confirmate de părinte:
 - tema emoțională: ${input.lesson};
 - atmosferă: ${input.mood};
 - stil vizual ales: ${input.artStyle};
+- directie vizuala obligatorie pentru character reference, coperta, scene si differencesPrompt: ${albumArtDirection(input.artStyle)}. coloringPrompt ramane line art alb-negru, fara umbre sau randare 3D;
 - detaliu personal: ${input.personalDetail || "nu a fost adăugat"};
 - ideea părintelui pentru poveste: ${input.storyContext || "autorul poate construi liber aventura"}.
 

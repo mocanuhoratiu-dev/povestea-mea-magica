@@ -44,9 +44,9 @@ export const albumMoodOptions = [
 ] as const;
 
 export const albumArtStyleOptions = [
+  "Ilustrație 3D de poveste",
   "Acuarelă cinematografică",
   "Guașă pictată manual",
-  "Ilustrație 3D de poveste",
   "Creioane colorate premium",
 ] as const;
 

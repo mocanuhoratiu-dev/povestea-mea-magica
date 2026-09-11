@@ -33,9 +33,9 @@ export const metadata: Metadata = {
     description: "Creează o poveste ilustrată premium în care copilul tău este eroul fiecărei pagini.",
     images: [
       {
-        url: "/examples/album/hero-v2.webp",
-        width: 1677,
-        height: 942,
+        url: "/examples/album/hero-cinematic.webp",
+        width: 1920,
+        height: 1072,
         alt: "O poveste personalizată de la Povestea Mea Magică",
       },
     ],
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Povestea Mea Magică | Copilul tău devine eroul poveștii",
     description: "Creează o poveste ilustrată premium în care copilul tău este eroul fiecărei pagini.",
-    images: ["/examples/album/hero-v2.webp"],
+    images: ["/examples/album/hero-cinematic.webp"],
   },
 };
 
