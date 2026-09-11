@@ -8,6 +8,7 @@ import { generateVertexAlbumIllustration } from "@/lib/vertexImage";
 import { createAlbumBudget, reserveAlbumBudgetCall } from "@/lib/album/budget";
 import { evaluateAlbumImage, isAlbumAiQualityEnabled } from "@/lib/album/quality";
 import { AlbumQualityUnavailableError } from "./qualityPolicy";
+import { AlbumPreviewError, previewFailureCode, previewRetryDelay, type PreviewFailureCode } from "./previewFailure";
 
 function decodePreview(imageDataUrl: string) {
   const match = /^data:image\/(?:png|jpeg|webp);base64,([a-zA-Z0-9+/=]+)$/.exec(imageDataUrl);
@@ -25,6 +26,8 @@ function wait(milliseconds: number) {
 }
 
 export async function generateAlbumPreview(orderId: string, configuration: AlbumConfiguration, options: { referenceImageDataUrl?: string; sourceReference?: string } = {}) {
+  // Leave time for storage and the HTTP response before the browser's 180s limit.
+  const deadlineAt = Date.now() + 150_000;
   const prompt = buildAlbumPreviewPrompt(
     configuration.generation,
     albumWorldLabel(configuration.generation.world, configuration.generation.customWorld),
@@ -39,9 +42,12 @@ export async function generateAlbumPreview(orderId: string, configuration: Album
   let lastError: unknown;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    if (deadlineAt - Date.now() < 15_000) break;
     try {
       const generated = await generateVertexAlbumIllustration(attemptPrompt, options.referenceImageDataUrl, "3:2", {
         beforeAttempt: async () => { budget = reserveAlbumBudgetCall(budget, "image"); },
+        referencePurpose: configuration.generation.referenceMode === "photo" ? "photo" : "character",
+        deadlineAt: deadlineAt - 12_000,
       });
       if ("error" in generated) throw new Error(generated.error);
 
@@ -58,7 +64,8 @@ export async function generateAlbumPreview(orderId: string, configuration: Album
         prompt: attemptPrompt,
         expectedAspectRatio: "3:2",
         identityRequired: Boolean(options.referenceImageDataUrl),
-        thresholds: { technical: 60, story: 52, identity: 55 },
+        referencePurpose: configuration.generation.referenceMode === "photo" ? "photo" : "character",
+        deadlineAt,
       });
       qualityResults.push(quality);
       if (quality.accepted) {
@@ -74,10 +81,11 @@ export async function generateAlbumPreview(orderId: string, configuration: Album
         technicalScore: quality.technicalScore,
         notes: quality.notes,
       }));
-      lastError = new Error("Preview-ul nu a trecut controlul de calitate vizuală.");
+      lastError = new AlbumPreviewError("quality_rejected");
       attemptPrompt = buildAlbumPreviewRetryPrompt(prompt, quality);
     } catch (error) {
       if (error instanceof AlbumQualityUnavailableError) throw error;
+      if (previewFailureCode(error) === "provider_rejected") throw new AlbumPreviewError("provider_rejected");
       lastError = error;
       console.warn("Album preview generation attempt failed", JSON.stringify({
         attempt,
@@ -85,7 +93,11 @@ export async function generateAlbumPreview(orderId: string, configuration: Album
       }));
     }
 
-    if (attempt < maxAttempts && retryDelayMs > 0) await wait(retryDelayMs);
+    if (attempt < maxAttempts) {
+      const delay = previewRetryDelay(lastError, attempt, retryDelayMs);
+      if (Date.now() + delay + 15_000 >= deadlineAt) break;
+      await wait(delay);
+    }
   }
 
   if (!acceptedCandidate) {
@@ -110,7 +122,7 @@ export async function generateAlbumPreview(orderId: string, configuration: Album
   return { objectName, output, model: acceptedCandidate.model, title: previewTitle };
 }
 
-export function logAlbumPreviewFailure(startedAt: number, errorCode: "ai_error" | "configuration" | "rate_limited" | "unknown" = "unknown") {
+export function logAlbumPreviewFailure(startedAt: number, errorCode: PreviewFailureCode | "ai_error" | "configuration" | "rate_limited" | "unknown" = "unknown") {
   logTelemetry("pmm_album_preview_failed", {
     product: "album",
     result: "error",

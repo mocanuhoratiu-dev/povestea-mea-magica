@@ -27,6 +27,8 @@ type AlbumQualityInput = {
   prompt: string;
   expectedAspectRatio: "4:3" | "3:2" | "16:9";
   identityRequired: boolean;
+  referencePurpose?: "character" | "photo";
+  deadlineAt?: number;
   beforeAiCheck?: () => Promise<void>;
   thresholds?: {
     identity?: number;
@@ -88,6 +90,7 @@ async function evaluateOnce(input: AlbumQualityInput): Promise<AlbumQualityResul
   if (!isAlbumAiQualityEnabled()) throw new AlbumQualityUnavailableError();
 
   try {
+    if (input.deadlineAt && input.deadlineAt - Date.now() < 1_000) throw new AlbumQualityUnavailableError();
     await input.beforeAiCheck?.();
     const project = process.env.VERTEX_AI_PROJECT_ID?.trim();
     if (!project) throw new AlbumQualityUnavailableError();
@@ -101,10 +104,11 @@ async function evaluateOnce(input: AlbumQualityInput): Promise<AlbumQualityResul
     const reference = input.referenceDataUrl ? parseDataUrl(input.referenceDataUrl) : null;
     const parts = [
       { text: albumStyleQualityInstruction(input.prompt, input.asset) || "Evaluate the requested illustration medium consistently with the reference." },
+      ...(input.referencePurpose === "photo" ? [{ text: "The reference is a PHOTO used for identity only. Judge recognizable facial structure, apparent age, hair color and hairstyle and skin tone across photo-to-illustration stylization. Do not require photographic skin/hair texture, identical eye proportions, clothing, background or pose. The requested outfit overrides the photograph's clothing. Do not confuse an expected change of medium with an identity defect." }] : []),
       ...(reference ? [{ inlineData: { mimeType: reference.mimeType, data: reference.data } }, { text: "IMAGE 1 is the authoritative character reference." }] : []),
       { inlineData: { mimeType: deterministic.candidate.mimeType, data: deterministic.candidate.data } },
       {
-        text: `IMAGE ${reference ? "2" : "1"} is the candidate illustration for ${input.asset}. Evaluate it as a premium children's picture-book editor. Check character identity and apparent-age consistency${reference ? " against IMAGE 1" : " from the requested description"}, exact hairstyle and outfit continuity, separation of siblings or secondary characters, companion continuity, recurring prop colors, safety gear in movement scenes, scene relevance, composition, malformed anatomy, duplicate characters, commercial logos, accidental words or watermarks, and child safety. Any readable brand, logo, watermark or accidental text means hasText=true. Requested scene: ${input.prompt.slice(0, 2_400)}. Return strict JSON only.`,
+        text: `IMAGE ${reference ? "2" : "1"} is the candidate illustration for ${input.asset}. Evaluate it as a premium children's picture-book editor. Check character identity and apparent-age consistency${reference ? " against IMAGE 1" : " from the requested description"}, hairstyle and requested outfit${input.referencePurpose === "photo" ? " (not the photo outfit)" : " continuity"}, separation of siblings or secondary characters, companion continuity, recurring prop colors, safety gear in movement scenes, scene relevance, composition, malformed anatomy, duplicate characters, commercial logos, accidental words or watermarks, and child safety. Any readable brand, logo, watermark or accidental text means hasText=true. Requested scene: ${input.prompt.slice(0, 12_000)}. Return strict JSON only.`,
       },
     ];
     const response = await withTimeout(client.models.generateContent({
@@ -117,7 +121,7 @@ async function evaluateOnce(input: AlbumQualityInput): Promise<AlbumQualityResul
         temperature: 0.1,
         thinkingConfig: { thinkingBudget: 0 },
       },
-    }), readBoundedDuration(process.env.ALBUM_QC_TIMEOUT_MS, 22_000, 8_000, 45_000), "Controlul vizual a depășit timpul de răspuns.");
+    }), Math.min(readBoundedDuration(process.env.ALBUM_QC_TIMEOUT_MS, 22_000, 8_000, 45_000), input.deadlineAt ? Math.max(1, input.deadlineAt - Date.now()) : 45_000), "Controlul vizual a depășit timpul de răspuns.");
     const text = response.candidates?.flatMap((candidate) => candidate.content?.parts || []).map((part) => part.text || "").join("").trim();
     if (!text) throw new AlbumQualityUnavailableError();
     const parsed = JSON.parse(text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "")) as Record<string, unknown>;

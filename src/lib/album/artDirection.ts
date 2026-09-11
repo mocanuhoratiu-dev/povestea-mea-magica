@@ -16,5 +16,5 @@ export function albumArtDirection(style: string) {
 
 export function albumStyleQualityInstruction(prompt: string, asset: string) {
   if (asset === "album-coloring" || !prompt.includes(CINEMATIC_STYLE_MARKER)) return "";
-  return "The requested medium is premium cinematic 3D animation. Check dimensional character modeling, expressive facial acting, tangible materials and coherent lighting. A flat painted/watercolor rendering or obvious plastic-toy finish is a style mismatch: cap technicalScore at 60 and explain it in notes. Compare rendering continuity with the illustrated reference; a photographic identity reference is not a request for photorealistic art.";
+  return "The requested medium is stylized cinematic 3D animation. Evaluate visible depth, expressive facial acting, tangible materials and coherent lighting. Describe concrete visual defects, not guesses about which rendering software or technique was used. Soft painterly shading can coexist with dimensional 3D characters; do not penalize this alone or apply an automatic score cap. A photographic identity reference is not a style reference: preserve recognizable facial structure, hair color and hairstyle, skin tone and apparent age while allowing stylized eyes and proportions. For an illustrated reference, check design continuity.";
 }

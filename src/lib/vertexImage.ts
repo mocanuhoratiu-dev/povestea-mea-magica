@@ -36,12 +36,12 @@ function getImageModels() {
   return models.slice(0, readBoundedDuration(process.env.VERTEX_AI_IMAGE_MAX_MODELS, 2, 1, 3));
 }
 
-function cleanCoverPrompt(value: string) {
+function cleanCoverPrompt(value: string, maximum = 3_600) {
   return value
     .replace(/[\u0000-\u001F\u007F]/g, " ")
     .replace(/\s+/g, " ")
     .trim()
-    .slice(0, 3_600);
+    .slice(0, maximum);
 }
 
 function parseReferenceImage(value?: string) {
@@ -58,6 +58,7 @@ async function generateVertexImage({
   imageSize,
   beforeAttempt,
   referencePurpose = "character",
+  deadlineAt,
 }: {
   prompt: string;
   aspectRatio: ImageAspectRatio;
@@ -65,10 +66,11 @@ async function generateVertexImage({
   timeoutEnvironment: "cover" | "album";
   imageSize: "1K" | "2K";
   beforeAttempt?: () => Promise<void>;
-  referencePurpose?: "character" | "mascot";
+  referencePurpose?: "character" | "mascot" | "photo";
+  deadlineAt?: number;
 }): Promise<CoverGenerationResult> {
   const project = process.env.VERTEX_AI_PROJECT_ID?.trim();
-  const cleanPrompt = cleanCoverPrompt(prompt);
+  const cleanPrompt = cleanCoverPrompt(prompt, timeoutEnvironment === "album" ? 12_000 : 3_600);
 
   if (!project) return { error: "VERTEX_AI_PROJECT_ID lipsește din configurare." };
   if (!cleanPrompt) return { error: "Promptul pentru copertă este gol." };
@@ -116,8 +118,14 @@ async function generateVertexImage({
     contents[0].parts = [{ inlineData: reference }, { text: "The reference shows ONLY our mascot Lumi. Preserve her face, golden flame hair, plum cloak and handheld lantern. Invent the CHILD separately using the requested human child description; do not turn the child into Lumi. Create a fully volumetric animated-film scene. " + cleanPrompt }];
   }
 
+  if (reference && referencePurpose === "photo" && Array.isArray(contents)) {
+    contents[0].parts = [{ inlineData: reference }, { text: "This is a parent-provided PHOTO for identity, not an illustrated character sheet. Translate the child's recognizable face, apparent age, skin tone, hair color and hairstyle into the requested illustration style. Stylized eyes and proportions are expected. Use the outfit and companions requested in the prompt, not incidental clothing, people or objects in the photograph. Do not copy the background, pose or photographic rendering. Never merge or duplicate children. " + cleanPrompt }];
+  }
+
   for (const model of getImageModels()) {
     try {
+      const availableMs = deadlineAt ? deadlineAt - Date.now() : timeoutMs;
+      if (availableMs < 1_000) return { error: "Imaginea a depășit timpul de răspuns." };
       await beforeAttempt?.();
       const response = await withTimeout(
         client.models.generateContent({
@@ -128,7 +136,7 @@ async function generateVertexImage({
             imageConfig: { aspectRatio, imageSize },
           },
         }),
-        timeoutMs,
+        Math.min(timeoutMs, availableMs),
         `Imaginea generată cu ${model} a depășit timpul de răspuns.`
       );
       const imagePart = response.candidates
@@ -141,7 +149,9 @@ async function generateVertexImage({
         return { imageDataUrl: `data:${mimeType};base64,${imageData}`, model };
       }
 
-      errors.push(`${model}: nu a returnat o imagine.`);
+      const finishReason = response.candidates?.[0]?.finishReason || response.promptFeedback?.blockReason || "EMPTY";
+      if (/PROHIBITED_CONTENT|SAFETY|IMAGE_RECITATION|BLOCKLIST/i.test(finishReason)) return { error: `${model}: ${finishReason}` };
+      errors.push(`${model}: nu a returnat o imagine. (${finishReason})`);
     } catch (error) {
       errors.push(`${model}: ${error instanceof Error ? error.message : "eroare necunoscută"}`);
     }
@@ -169,7 +179,7 @@ export async function generateVertexAlbumIllustration(
   prompt: string,
   referenceImageDataUrl?: string,
   aspectRatio: Exclude<ImageAspectRatio, "1:1"> = "3:2",
-  options: { beforeAttempt?: () => Promise<void> } = {},
+  options: { beforeAttempt?: () => Promise<void>; referencePurpose?: "character" | "photo"; deadlineAt?: number } = {},
 ) {
   return generateVertexImage({
     prompt,
@@ -178,6 +188,8 @@ export async function generateVertexAlbumIllustration(
     timeoutEnvironment: "album",
     imageSize: "2K",
     beforeAttempt: options.beforeAttempt,
+    referencePurpose: options.referencePurpose,
+    deadlineAt: options.deadlineAt,
   });
 }
 

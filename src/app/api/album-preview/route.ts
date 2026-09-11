@@ -20,6 +20,7 @@ import { readBundleConfiguration, readBundleOutput } from "@/lib/bundle";
 import { siteUrl } from "@/lib/siteMode";
 import { isAlbumPreviewReady } from "@/lib/album/previewState";
 import { turnstileRejected, verifyTurnstileRequest } from "@/lib/turnstile";
+import { previewFailureResponse } from "@/lib/album/previewFailure";
 
 export const runtime = "nodejs";
 
@@ -129,8 +130,12 @@ export async function POST(request: Request) {
     }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     console.error("Album preview generation failed", error);
-    logAlbumPreviewFailure(startedAt, "ai_error");
-    return NextResponse.json({ error: "Mostra nu a putut fi creată acum. Încearcă din nou în câteva minute." }, { status: 502 });
+    const failure = previewFailureResponse(error);
+    logAlbumPreviewFailure(startedAt, failure.code);
+    return NextResponse.json({ error: failure.error, code: failure.code, maxAttempts: previewLimit(), remaining: limit.remaining }, {
+      status: failure.status,
+      headers: { "Cache-Control": "no-store", ...(failure.retryAfterSeconds ? { "Retry-After": String(failure.retryAfterSeconds) } : {}) },
+    });
   }
 }
 

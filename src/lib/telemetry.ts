@@ -16,7 +16,7 @@ export type TelemetryFields = {
   wordCount?: number;
   pageCount?: number;
   storyLength?: StoryLength;
-  errorCode?: "ai_error" | "configuration" | "invalid_request" | "rate_limited" | "render_error" | "image_duplicate" | "image_low_resolution" | "image_quality_rejected" | "budget_limit" | "payment_failed" | "checkout_expired" | "unknown";
+  errorCode?: "ai_error" | "provider_busy" | "provider_unavailable" | "provider_rejected" | "quality_rejected" | "quality_unavailable" | "generation_failed" | "configuration" | "invalid_request" | "rate_limited" | "render_error" | "image_duplicate" | "image_low_resolution" | "image_quality_rejected" | "budget_limit" | "payment_failed" | "checkout_expired" | "unknown";
   aiProvider?: "gemini" | "vertex";
   model?: string;
   albumStage?: "plan" | "cover" | "preview" | "scene" | "coloring" | "render" | "audio" | "delivery";

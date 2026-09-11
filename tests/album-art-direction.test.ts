@@ -36,7 +36,7 @@ test('preview keeps cinematic style early enough to survive provider prompt limi
 
 test('quality checks style for CGI illustrations but not coloring or explicitly painted art', () => {
   const prompt=albumArtDirection(ALBUM_CINEMATIC_STYLE);
-  assert.match(albumStyleQualityInstruction(prompt,'album-scene-1'), /cap technicalScore at 60/);
+  assert.match(albumStyleQualityInstruction(prompt,'album-scene-1'), /do not penalize this alone or apply an automatic score cap/);
   assert.equal(albumStyleQualityInstruction(prompt,'album-coloring'),'');
   assert.equal(albumStyleQualityInstruction(albumArtDirection('Guașă pictată manual'),'album-cover'),'');
 });
