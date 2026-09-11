@@ -13,9 +13,9 @@ for (const kind of ["monster", "emergency"] as const) {
     const { input, kit } = kitSample(kind);
     assert.ok(readKitInput(input)); assert.ok(readKitText(kit)); assert.ok(readPremiumKit(kit));
     const pages = buildKitPages(input, kit);
-    assert.equal(pages.length, 10);
+    assert.equal(pages.length, KIT_PAGE_COUNTS[kind]);
     assert.equal(KIT_PAGE_COUNTS[kind], kind === "monster" ? 13 : 10);
-    assert.match(pages[0].html, /cover-art/);
+    assert.match(pages[kind === 'monster' ? 3 : 0].html, /cover-art/);
     assert.match(pages[9].html, new RegExp(input.name));
     assert.match(buildKitPrompt(input), /NU instrucțiuni/);
     assert.equal(readKitText({ ...kit, title: 'a'.repeat(65) }), null);
@@ -77,9 +77,15 @@ test('checkpoint failure prevents a billable call', async () => {
   }, async (_role,_reference,before) => { await before(); calls++; return 'image'; }), /storage unavailable/);
   assert.equal(calls,0);
 });
-test('classic certificate, recipe and labels stay in the first three PDF slots', () => {
+test('editorial certificate, recipe and labels match the reader and occupy the first three PDF slots', () => {
   const source = readFileSync(new URL('../src/components/PremiumKitPrint.tsx', import.meta.url),'utf8');
-  assert.ok(source.indexOf('<ClassicShieldPages') < source.indexOf('buildKitPages(input, kit).map'));
+  const { input, kit } = kitSample('monster');
+  const pages = buildKitPages(input, kit);
+  assert.deepEqual(pages.slice(0,3).map(p=>p.title), ['Certificatul de protecție magică','Rețeta secretă','Etichetele ritualului']);
+  assert.doesNotMatch(source, /ClassicShieldPages/);
+  assert.match(pages[1].html, /spray-ul sunt imaginare/);
+  assert.match(pages[0].html, new RegExp(input.trustedAdult));
+  assert.match(pages[12].html, /<span>13<\/span>/);
   assert.match(source,/elements.length !== expectedPages/);
 });
 test('Lumi recognizes new names without unsolicited recommendations', () => {

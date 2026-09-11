@@ -1,15 +1,13 @@
 "use client";
 
 import { forwardRef } from "react";
-import { CLASSIC_SHIELD_STYLES, ClassicShieldPages } from "./NightShieldClassicPages";
-import { classicShieldKits } from "@/lib/kits/classic";
 import { buildKitPages } from "@/lib/kits/template";
-import { KIT_FEAR_OPTIONS, type KitInput, type PremiumKit } from "@/lib/kits/content";
+import { type KitInput, type PremiumKit } from "@/lib/kits/content";
 import "./premium-kit-document.css";
+import { prepareKitPrintImages } from "@/lib/kits/printImages";
 
 const PremiumKitPrint = forwardRef<HTMLDivElement, { input: KitInput; kit: PremiumKit }>(function PremiumKitPrint({ input, kit }, ref) {
   return <div ref={ref} className="kit-document" data-print="true" aria-hidden="true" style={{ position: "fixed", top: 0, left: -10000, pointerEvents: "none", width: 794, background: "#fff", color: "#26343b" }}>
-    {input.type === "monster" && <><style>{CLASSIC_SHIELD_STYLES}</style><ClassicShieldPages name={input.name} fearLabel={KIT_FEAR_OPTIONS.find(([id]) => id === input.monster)?.[1] || "întuneric"} location={input.context} helper={input.interest || input.trustedAdult} ritual={input.tone || "o îmbrățișare"} kit={classicShieldKits[input.monster] || classicShieldKits["frica de intuneric"]}/></>}
     {buildKitPages(input, kit).map((page, i) => <div className="kit-page" data-kit-print-page key={i} dangerouslySetInnerHTML={{ __html: page.html }}/>) }
   </div>;
 });
@@ -25,17 +23,19 @@ export async function renderPremiumKitPdf(root: HTMLElement, expectedPages: numb
   const pdf = new jsPDF("p", "mm", "a4");
   for (const [index, element] of elements.entries()) {
     const previous = element.style.display; element.style.display = "block";
+    let restoreImages: (() => void) | undefined;
     try {
       const paper = element.querySelector<HTMLElement>(".paper");
       if (paper) {
         const foot = paper.querySelector(".folio")?.getBoundingClientRect();
         if (foot && [...paper.querySelectorAll("p,h2,h3,.note,.quote")].some(node => node.getBoundingClientRect().bottom > foot.top - 3)) throw new Error("Textul depășește spațiul de print. Materialul trebuie verificat.");
       }
+      restoreImages = await prepareKitPrintImages(element, email ? 1.7 : 2.25);
       const canvas = await html2canvas(element, { scale: email ? 1.7 : 2.25, useCORS: true, backgroundColor: "#fff", logging: false, windowWidth: 1000, windowHeight: 1200 });
       if (!canvas.width || !canvas.height) throw new Error("O pagină nu a putut fi pregătită.");
       if (index) pdf.addPage();
       pdf.addImage(canvas.toDataURL("image/jpeg", email ? .85 : .95), "JPEG", 0, 0, 210, 297);
-    } finally { element.style.display = previous; }
+    } finally { restoreImages?.(); element.style.display = previous; }
   }
   return pdf;
 }

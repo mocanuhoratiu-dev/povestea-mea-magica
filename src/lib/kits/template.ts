@@ -1,5 +1,6 @@
 import { KIT_COLORS, KIT_NAMES, type KitInput, type PremiumKit } from "./content.ts";
 import { DIFFERENCE_ANSWERS, differencesSVG, envelopeSVG, escapeHtml as e, mazeSVG, shieldSVG } from "./graphics.ts";
+import { shieldIntroPages } from "./shieldIntro.ts";
 
 export type KitPage = { title: string; html: string };
 const heading = (kicker: string, title: string, sub = '') => `<header class="section-head"><div class="kicker">${e(kicker)}</div><h2>${e(title)}</h2>${sub ? `<p class="sub">${e(sub)}</p>` : ''}</header>`;
@@ -21,8 +22,11 @@ export function buildKitPages(input: KitInput, kit: PremiumKit, watermark = fals
   const pages: KitPage[] = [];
   const add = (title: string, html: string, extra = '') => {
     const index = pages.length;
-    pages.push({ title, html: `<article class="paper ${input.type === 'monster' ? 'atelier' : 'explorer'} ${extra}" data-page-index="${index}" data-long-name="${input.name.length > 20}" data-cover-long="${coverSubtitle.length > 80}" data-long-story="${kit.story.join('').length > 600}">${html}${extra === 'cover' ? '' : `<footer class="folio"><strong>Povestea Mea Magică · ${n}</strong><span>${String(index + 1 + (input.type === 'monster' ? 3 : 0)).padStart(2,'0')}</span></footer>`}${watermark ? '<div class="sample-watermark">PREVIZUALIZARE</div>' : ''}</article>` });
+    pages.push({ title, html: `<article class="paper ${input.type === 'monster' ? 'atelier' : 'explorer'} ${extra}" data-page-index="${input.type === 'monster' ? index - 3 : index}" data-long-name="${input.name.length > 20}" data-cover-long="${coverSubtitle.length > 80}" data-long-story="${kit.story.join('').length > 600}">${html}${extra === 'cover' ? '' : `<footer class="folio"><strong>Povestea Mea Magică · ${n}</strong><span>${String(index + 1).padStart(2,'0')}</span></footer>`}${watermark ? '<div class="sample-watermark">PREVIZUALIZARE</div>' : ''}</article>` });
   };
+  if (input.type === 'monster') {
+    for (const page of shieldIntroPages(input, kit, image(kit.assets.cover, 'certificate-art', 'Ilustrația atelierului'))) add(page.title, page.html, page.extra);
+  }
   const fixedTitle = input.type === 'monster' ? 'Atelierul<br>Scutului Magic' : 'Dosarul<br>Micului Explorator';
   add(KIT_NAMES[input.type], `<div class="cover-heading"><p class="brandline">POVESTEA MEA MAGICĂ</p><h2>${fixedTitle}</h2><span class="personal">${e(coverSubtitle)}</span></div>${image(kit.assets.cover,'cover-art',`Coperta personalizată pentru ${input.name}`)}<div class="cover-foot">O AVENTURĂ DE DESCOPERIT ÎMPREUNĂ</div>`, 'cover');
   add(kit.title, `${image(kit.assets.scene,'full-art',`O scenă din aventura lui ${input.name}`)}<div class="art-caption"><div class="kicker">ÎNCEPUTUL AVENTURII</div><h2>${e(kit.title)}</h2><div class="story-copy">${paragraphs(kit.story)}</div></div>`);

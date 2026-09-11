@@ -93,16 +93,15 @@ export default function LumiGuide() {
   const [isOpen, setIsOpen] = useState(false);
   const [launcherCompact, setLauncherCompact] = useState(false);
   useEffect(() => {
-    if (window.matchMedia("(max-width: 700px)").matches) setLauncherCompact(true);
     const compact = () => { if (window.scrollY > 160) setLauncherCompact(true); };
-    const timer = window.setTimeout(() => setLauncherCompact(true), 8000);
+    const timer = window.setTimeout(() => setLauncherCompact(true), window.matchMedia("(max-width: 700px)").matches ? 0 : 8000);
     window.addEventListener("scroll", compact, {passive:true});
     return () => {window.clearTimeout(timer); window.removeEventListener("scroll", compact);};
   }, []);
   const [isAlbumEditing, setAlbumEditing] = useState(false);
   useEffect(() => {
     const node = document.getElementById("configureaza-albumul");
-    if (!node) { setAlbumEditing(false); return; }
+    if (!node) { const timer = window.setTimeout(() => setAlbumEditing(false), 0); return () => window.clearTimeout(timer); }
     const observer = new IntersectionObserver(([entry]) => setAlbumEditing(entry.isIntersecting), {threshold:0});
     observer.observe(node); return () => observer.disconnect();
   }, [pathname]);
@@ -116,6 +115,7 @@ export default function LumiGuide() {
   const [showNudge, setShowNudge] = useState(false);
   const [generation, setGeneration] = useState<LumiGenerationDetail>({ phase: "idle", progress: 0 });
   const generationResetTimer = useRef<number | null>(null);
+  const editingDraft = useRef(false);
 
   const guideVisualState = lumiStateForGuideStep(step, totalSteps);
   const visualState = generation.phase !== "idle" ? lumiGenerationCopy[generation.phase].visualState : guideVisualState;
@@ -149,11 +149,13 @@ export default function LumiGuide() {
       const incoming = detail.draft;
       if (!incoming || typeof incoming !== "object") return;
       const next = incoming as Partial<LumiDraft>;
+      // While Lumi owns the input, ignore the configurator's echoed draft.
+      if (editingDraft.current) return;
       setDraft((current) => {
         const merged = { ...current };
         for (const key of Object.keys(current) as (keyof LumiDraft)[]) {
           const value = next[key];
-          if (typeof value === "string") Object.assign(merged, { [key]: value });
+          if (typeof value === "string" && value.trim() !== current[key].trim()) Object.assign(merged, { [key]: value });
         }
         return merged;
       });
@@ -192,6 +194,7 @@ export default function LumiGuide() {
 
   useEffect(() => {
     window.dispatchEvent(new CustomEvent("pmm:lumi-open-change", { detail: { isOpen } }));
+    if (!isOpen) editingDraft.current = false;
     if (!isOpen) stopSharedNarration(LUMI_NARRATION_OWNER);
     if (!isOpen) return;
     const closeOnEscape = (event: KeyboardEvent) => {
@@ -207,14 +210,11 @@ export default function LumiGuide() {
   }, []);
 
   useEffect(() => {
-    if (!isOpen || !draft.name.trim() || pathname !== "/povestea-magica") return;
-    const timer = window.setTimeout(() => {
-      window.dispatchEvent(new CustomEvent("pmm:lumi-album-draft", { detail: { ...draft, partial: true } }));
-    }, 120);
-    return () => window.clearTimeout(timer);
+    if (!isOpen || !editingDraft.current || !draft.name.trim() || pathname !== "/povestea-magica") return;
+    window.dispatchEvent(new CustomEvent("pmm:lumi-album-draft", { detail: { ...draft, partial: true } }));
   }, [draft, isOpen, pathname]);
 
-  const update = <K extends keyof LumiDraft>(key: K, value: LumiDraft[K]) => setDraft((current) => ({ ...current, [key]: value }));
+  const update = <K extends keyof LumiDraft>(key: K, value: LumiDraft[K]) => { editingDraft.current = true; setDraft((current) => ({ ...current, [key]: value })); };
 
   const validate = () => {
     if (step === 0 && draft.name.trim().length < 2) return "Scrie prenumele copilului pentru a continua.";

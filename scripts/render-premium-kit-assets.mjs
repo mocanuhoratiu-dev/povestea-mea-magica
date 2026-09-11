@@ -14,7 +14,7 @@ try {
     const context = await browser.newContext({viewport:{width:600,height:849},deviceScaleFactor:2});
     const page = await context.newPage();
     await page.goto(base);
-    await page.setContent(`<html lang="ro"><head><base href="${base}/"><style>${css}</style><style>html,body{margin:0;background:white}</style></head><body><div class="kit-document">${buildKitPages(sample.input,sample.kit)[0].html}</div></body></html>`);
+    await page.setContent(`<html lang="ro"><head><base href="${base}/"><style>${css}</style><style>html,body{margin:0;background:white}</style></head><body><div class="kit-document">${buildKitPages(sample.input,sample.kit).find(p => p.html.includes('cover-art')).html}</div></body></html>`);
     await page.evaluate(async()=>{await document.fonts.ready; await Promise.all([...document.images].map(image=>image.decode()));});
     const cover = await page.locator('.paper').screenshot();
     await writeFile(`public/examples/kits-v2/${prefix}-preview.webp`,await sharp(cover).resize({width:900}).webp({quality:88}).toBuffer());

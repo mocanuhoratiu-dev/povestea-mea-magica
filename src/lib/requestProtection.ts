@@ -6,11 +6,13 @@ type RateLimitBucket = {
 type RateLimitResult = {
   allowed: boolean;
   retryAfterSeconds: number;
+  remaining: number;
 };
 
 type RateLimitOptions = {
   windowMs?: number;
   maxRequests?: number;
+  readOnly?: boolean;
 };
 
 const buckets = new Map<string, RateLimitBucket>();
@@ -59,17 +61,17 @@ export function checkRateLimit(request: Request, scope: string, options: RateLim
 
   if (!existing || existing.resetAt <= now) {
     pruneExpiredBuckets(now);
-    buckets.set(key, { count: 1, resetAt: now + windowMs });
-    return { allowed: true, retryAfterSeconds: Math.ceil(windowMs / 1000) };
+    if (!options.readOnly) buckets.set(key, { count: 1, resetAt: now + windowMs });
+    return { allowed: true, retryAfterSeconds: Math.ceil(windowMs / 1000), remaining: maxRequests - (options.readOnly ? 0 : 1) };
   }
 
   const retryAfterSeconds = Math.max(1, Math.ceil((existing.resetAt - now) / 1000));
   if (existing.count >= maxRequests) {
-    return { allowed: false, retryAfterSeconds };
+    return { allowed: false, retryAfterSeconds, remaining: 0 };
   }
 
-  existing.count += 1;
-  return { allowed: true, retryAfterSeconds };
+  if (!options.readOnly) existing.count += 1;
+  return { allowed: true, retryAfterSeconds, remaining: maxRequests - existing.count };
 }
 
 export function checkTelemetryRateLimit(request: Request) {

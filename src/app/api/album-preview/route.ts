@@ -60,7 +60,7 @@ export async function POST(request: Request) {
   if (!limit.allowed) {
     logAlbumPreviewFailure(startedAt, "rate_limited");
     return NextResponse.json(
-      { error: "Ai creat deja mostrele disponibile astăzi. Poți continua cu una dintre ele sau poți reveni mâine." },
+      { error: "Ai folosit încercările disponibile în acest interval de 24 de ore. Alege o mostră păstrată sau revino după resetarea limitei.", maxAttempts: previewLimit(), remaining: 0 },
       { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } },
     );
   }
@@ -124,6 +124,8 @@ export async function POST(request: Request) {
       statusUrl: `/api/album-preview?${statusQuery.toString()}`,
       title: preview.title,
       qualityChecked: preview.output.quality.some((result) => result.accepted),
+      maxAttempts: previewLimit(),
+      remaining: limit.remaining,
     }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     console.error("Album preview generation failed", error);
@@ -134,6 +136,10 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
+  if (url.searchParams.get("view") === "limits") {
+    const limit = checkRateLimit(request, "album-preview", { windowMs: 86_400_000, maxRequests: previewLimit(), readOnly: true });
+    return NextResponse.json({ maxAttempts: previewLimit(), remaining: limit.remaining, retryAfterSeconds: limit.retryAfterSeconds }, { headers: { "Cache-Control": "private, no-store" } });
+  }
   const orderId = url.searchParams.get("order") || "";
   const token = url.searchParams.get("token") || "";
   if (!orderId || !token || !isValidDeliveryToken(orderId, token)) {

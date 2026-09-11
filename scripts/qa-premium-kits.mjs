@@ -9,7 +9,7 @@ await mkdir(out, { recursive: true });
 const browser = await chromium.launch({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true });
 const report = [];
 try {
-  for (const kind of ['monster', 'emergency']) {
+  for (const kind of ['monster', 'emergency'].filter(kind => !process.env.QA_KIND || process.env.QA_KIND === kind)) {
     const sample = process.env.QA_LIVE ? JSON.parse(await readFile(`/private/tmp/pmm-premium-kit-live/${kind}.json`, 'utf8')) : kitSample(kind), path = kind === 'monster' ? '/scutul-de-noapte' : '/trusa-de-rabdare';
     if (process.env.QA_STRESS) {
       const longest = n => 'Împreună descoperim o aventură minunată. '.repeat(20).slice(0,n);
@@ -41,9 +41,10 @@ try {
     }));
     const reader = page.locator('#kit-result .pk-reader').first();
     console.log(JSON.stringify({kind, bounds}));
-    for (let i = 0; i < 10; i++) {
+    const pageCount = kind === 'monster' ? 13 : 10;
+    for (let i = 0; i < pageCount; i++) {
       await reader.locator('.paper').first().screenshot({ path: `${out}/${kind}-page-${i+1}.png` });
-      if (i < 9) await reader.getByRole('button', { name: 'Pagina următoare', exact: true }).click();
+      if (i < pageCount - 1) await reader.getByRole('button', { name: 'Pagina următoare', exact: true }).click();
     }
     const pendingDownload = page.waitForEvent('download', { timeout: 45000 });
     pendingDownload.catch(() => {});
@@ -60,6 +61,7 @@ try {
       report.push({ kind, width, horizontalOverflow: overflow });
     }
     report.push({ kind, bounds, errors });
+    if (bounds.some(p => p.overflow.length) || errors.length) process.exitCode = 1;
     await context.close();
   }
 } finally {
