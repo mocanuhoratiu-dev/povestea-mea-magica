@@ -15,9 +15,10 @@
 - 90 automated tests passed.
 - Desktop/mobile simulated error tests: 390px and 1440px; capacity, quality rejection and provider filtering messages displayed, retry button usable and child name retained after returning through the form.
 - Actual Vertex baseline preview (description only): 33.8 seconds, one image call, one QC call, technical 95, story 100. Storage upload/read verified; temporary test object deleted. No payment, email or customer order mutation.
+- After deployment, actual public-domain POST returned an accepted cover in 24.5 seconds. Background processing completed both interior pages and returned three accessible, watermarked preview images with qualityChecked=true in 114 seconds total. Images were visually inspected. This created one unpaid fictional UAT draft, with no checkout, invoice or email.
 
 ## Open acceptance item
 
 The reported photo-based case did NOT pass: provider filtering occurred and a returned candidate failed identity QC. Provider responses do not identify the triggering input. Do not claim this exact case is fixed or infer the photo/character name caused the filter. Do not weaken identity thresholds or bypass provider filters to obtain a passing result.
 
-Full photo-preview acceptance and two interior pages still require a successful eligible test case. This is not a paid-order end-to-end sign-off.
+Full photo-preview acceptance remains open. The description-only cover and two interior pages have passed live. This is not a paid-order end-to-end sign-off.
