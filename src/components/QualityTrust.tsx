@@ -10,7 +10,7 @@ const promises = [
   {
     icon: Eye,
     title: "Vezi înainte să plătești",
-    text: "Pentru Povestea Magică primești o previzualizare personalizată cu coperta și două pagini interioare. Poți reveni asupra alegerilor tale.",
+    text: "Confirmi mostra Povestea Magică înainte de comandă. Pentru Atelier și Dosar vezi o copertă orientativă, cu numele copilului.",
   },
   {
     icon: LockKeyhole,
@@ -34,10 +34,10 @@ export default function QualityTrust() {
             <h2 id="quality-title" className="mt-4 font-nunito text-4xl font-black leading-tight sm:text-5xl">Imaginație, cu grijă.</h2>
           </div>
           <div className="max-w-2xl lg:justify-self-end">
-            <p className="text-base font-semibold leading-relaxed text-brand-cream/70 sm:text-lg">Fiecare etapă este construită în jurul unui principiu simplu: părintele păstrează controlul, iar copilul rămâne în siguranță.</p>
+            <p className="text-base font-semibold leading-relaxed text-brand-cream/70 sm:text-lg">Tu confirmi alegerile. Noi verificăm materialele automat și păstrăm detaliile copilului private. Iar dacă ceva nu este în regulă, ne poți scrie.</p>
             <div className="mt-5 flex flex-wrap gap-x-6 gap-y-3 text-sm font-black">
               <Link href="/politica-de-confidentialitate" className="border-b border-brand-gold/60 pb-1 text-brand-gold transition-colors hover:text-brand-cream">Confidențialitate</Link>
-              <Link href="/siguranta-ai" className="border-b border-brand-gold/60 pb-1 text-brand-gold transition-colors hover:text-brand-cream">Siguranța datelor</Link>
+              <Link href="/siguranta-ai" className="border-b border-brand-gold/60 pb-1 text-brand-gold transition-colors hover:text-brand-cream">Cum avem grijă</Link>
               <Link href="/termeni-si-conditii" className="border-b border-brand-gold/60 pb-1 text-brand-gold transition-colors hover:text-brand-cream">Termeni</Link>
             </div>
           </div>

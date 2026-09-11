@@ -1,59 +1,24 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ChevronLeft, ShieldCheck } from "lucide-react";
-import Footer from "@/components/Footer";
+import { LockKeyhole, Eye, HeartHandshake, ArrowRight } from "lucide-react";
+import CommercialPage from "@/components/CommercialPage";
 
-export const metadata: Metadata = {
-  title: "Siguranța AI | Povestea Mea Magică",
-  description: "Cum folosim conținutul generat responsabil, cu copilul și adultul în centru.",
-  alternates: { canonical: "/siguranta-ai" },
-};
+export const metadata: Metadata = { title: "Siguranță și confidențialitate | Povestea Mea Magică", description: "Fotografie opțională, linkuri private și alegeri pe care le confirmi tu. Află cum sunt pregătite materialele.", alternates: { canonical: "/siguranta-ai" } };
+
+const sections = [
+  { id: "alegerile-tale", title: "Tu alegi ce ne povestești.", text: "Pornim de la prenume, vârstă, preferințe și detaliile pe care vrei să le regăsești în material. Nu avem nevoie de adresa copilului, informații medicale sau alte date sensibile.", extra: "Fotografia este opțională pentru Povestea Magică. Poți începe numai cu o descriere. Dacă alegi o fotografie, trebuie să ai dreptul și acordul necesar pentru folosirea ei." },
+  { id: "verificari", title: "Imaginație, cu verificări.", text: "Folosim modele AI și tehnologie proprie pentru a construi textul, ilustrațiile și așezarea în pagină. Aplicăm verificări automate pentru conținut, coerența personajului și lizibilitate.", extra: "Aceste verificări reduc riscurile, dar nu garantează un rezultat perfect. Citește materialul înainte de a-l folosi cu copilul. Dacă observi o problemă, scrie-ne: o analizăm împreună." },
+  { id: "lumi", title: "Lumi te însoțește. Tu confirmi.", text: "Lumi, păzitoarea lanternei, te ajută să aduni detaliile poveștii. Poți reveni asupra răspunsurilor sau poți completa singur configuratorul.", extra: "Înainte de plată, Povestea Magică are o mostră cu coperta și două pagini personalizate. Pentru Atelier și Dosar, coperta orientativă arată stilul și numele; ilustrațiile personalizate sunt create după plată." },
+  { id: "date-private", title: "Detalii personale, acces privat.", text: "Fotografiile de referință și materialele comenzii sunt stocate privat. Fotografia originală nu este inclusă în carte și nu este transmisă procesatorului de plăți. Nu folosim detaliile copilului pentru publicitate.", extra: "Linkul mostrei este valabil 24 de ore, iar linkul de livrare 30 de zile. Termenele de păstrare și ștergere sunt explicate în politica de confidențialitate. Salvează PDF-urile pe dispozitivul tău înainte de expirarea linkului." },
+  { id: "impreuna", title: "Joacă, nu tratament.", text: "Atelierul și celelalte materiale sunt experiențe creative pentru familie. Nu confirmă existența unui pericol imaginar și nu promit să trateze o teamă.", extra: "Adultul rămâne alături de copil și alege ce i se potrivește. Materialele nu înlocuiesc sprijinul unui specialist." },
+];
 
 export default function AiSafetyPage() {
-  return (
-    <main className="min-h-screen bg-brand-cream py-20 px-6">
-      <div className="max-w-4xl mx-auto">
-        <Link href="/" className="inline-flex items-center gap-2 text-brand-navy/60 hover:text-brand-purple mb-10 transition-colors font-bold">
-          <ChevronLeft size={20} /> Înapoi la Magie
-        </Link>
-
-        <div className="bg-white rounded-[3rem] shadow-xl p-10 md:p-16 border-8 border-brand-purple/10">
-          <div className="flex items-center gap-3 mb-8">
-            <ShieldCheck className="text-brand-purple w-8 h-8" />
-            <h1 className="font-nunito font-black text-4xl text-brand-navy">Siguranță și Conținut AI</h1>
-          </div>
-
-          <div className="prose prose-brand max-w-none text-brand-navy/80 space-y-8 font-medium">
-            <section>
-              <h2 className="text-2xl font-black text-brand-navy mb-4">Cum folosim AI-ul</h2>
-              <p>Povestea Mea Magică folosește servicii AI pentru a genera texte personalizate pornind de la nume, vârstă, temă, lecție și detalii introduse de adult.</p>
-              <p>Lumi, păzitoarea Lanternei, este un ghid conversațional pentru părinți: recomandă un material și poate propune alegeri pentru formular, dar nu completează sau generează nimic fără acțiunea părintelui.</p>
-              <p>AI-ul poate produce ocazional formulări imperfecte, de aceea materialele trebuie verificate de un adult înainte să fie citite sau folosite cu un copil.</p>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-black text-brand-navy mb-4">Ce evităm</h2>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>conținut violent, rușinos sau nepotrivit pentru copii;</li>
-                <li>sfaturi medicale, psihologice sau terapeutice prezentate ca tratament;</li>
-                <li>detalii personale sensibile care nu sunt necesare pentru poveste;</li>
-                <li>conversații care se prezintă drept consiliere medicală, psihologică sau terapeutică;</li>
-                <li>promisiuni că un kit simbolic rezolvă singur frici sau anxietăți puternice.</li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-black text-brand-navy mb-4">Rolul adultului</h2>
-              <p>Produsele sunt materiale creative și ritualuri de joacă. Dacă fricile copilului sunt intense, persistente sau afectează somnul pe termen lung, recomandăm discuția cu un specialist.</p>
-            </section>
-          </div>
-
-          <div className="mt-16 pt-10 border-t border-brand-navy/5 text-center">
-            <p className="text-brand-navy/40 text-sm italic">Ultima actualizare: 19 Iulie 2026</p>
-          </div>
-        </div>
-      </div>
-      <Footer />
-    </main>
-  );
+  return <CommercialPage eyebrow="Grijă pentru detaliile voastre" title="O lume inventată. Grijă reală." description="Ce ne spui, ce verificăm și ce rămâne în controlul tău. Fără promisiuni de perfecțiune.">
+    <div className="support-layout"><nav className="support-links" aria-label="Pe această pagină">{sections.map(s => <a key={s.id} href={"#" + s.id}>{s.title}</a>)}<Link href="/politica-de-confidentialitate">Politica de confidențialitate</Link></nav><div>
+      <div className="trust-summary"><span><Eye size={18} /> Fotografie opțională</span><span><LockKeyhole size={18} /> Linkuri private</span><span><HeartHandshake size={18} /> Alegeri confirmate de tine</span></div>
+      {sections.map(s => <section className="trust-article" id={s.id} key={s.id}><h2>{s.title}</h2><p>{s.text}</p><p>{s.extra}</p></section>)}
+      <div className="support-contact"><p>Ai o întrebare despre date sau despre un material?</p><Link href="/contact" className="editorial-button">Vorbește cu echipa <ArrowRight size={16} /></Link><p className="mt-6 text-sm">Actualizat la 11 septembrie 2026</p></div>
+    </div></div>
+  </CommercialPage>;
 }

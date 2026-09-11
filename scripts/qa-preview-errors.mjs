@@ -13,10 +13,10 @@ try {
     const page=await browser.newPage({viewport:{width,height:900}});
     let calls=0;
     const failures=['provider_busy','quality_rejected','provider_rejected'];
-    await page.route('**/api/album-preview?view=limits',route=>route.fulfill({json:{maxAttempts:4,remaining:4-calls}}));
+    await page.route('**/api/album-preview?view=limits',route=>route.fulfill({json:{maxAttempts:4,remaining:4}}));
     await page.route('**/api/album-preview',route=>{
       const failure=previewFailureResponse(new AlbumPreviewError(failures[calls++]));
-      return route.fulfill({status:failure.status,json:{error:failure.error,code:failure.code,maxAttempts:4,remaining:4-calls}});
+      return route.fulfill({status:failure.status,json:{error:failure.error,code:failure.code,maxAttempts:4,remaining:4}});
     });
     await page.goto(`${base}/povestea-magica`,{waitUntil:'networkidle'});
     await page.getByLabel('Prenume',{exact:true}).fill('Mara');
@@ -25,6 +25,7 @@ try {
       await page.getByRole('button',{name:'Vezi mostra personalizată',exact:true}).click();
       await page.getByText(previewFailureResponse(new AlbumPreviewError(code)).error,{exact:true}).waitFor();
       assert.equal(await page.getByRole('button',{name:'Vezi mostra personalizată',exact:true}).isEnabled(),true);
+      await page.getByText(/Variante rămase: 4/).waitFor();
     }
     await page.screenshot({path:`${out}/${width}.png`});
     await page.getByRole('button',{name:'Înapoi',exact:true}).click();

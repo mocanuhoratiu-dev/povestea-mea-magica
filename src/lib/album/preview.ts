@@ -49,7 +49,10 @@ export async function generateAlbumPreview(orderId: string, configuration: Album
         referencePurpose: configuration.generation.referenceMode === "photo" ? "photo" : "character",
         deadlineAt: deadlineAt - 12_000,
       });
-      if ("error" in generated) throw new Error(generated.error);
+      if ("error" in generated) {
+        if (generated.rejection) throw new AlbumPreviewError("provider_rejected", generated.rejection);
+        throw new Error(generated.error);
+      }
 
       const metadata = await sharp(decodePreview(generated.imageDataUrl)).metadata();
       if (!metadata.width || !metadata.height || metadata.width < 768 || metadata.height < 512) {
@@ -61,7 +64,7 @@ export async function generateAlbumPreview(orderId: string, configuration: Album
         asset: `cover-preview-attempt-${attempt}`,
         candidateDataUrl: generated.imageDataUrl,
         referenceDataUrl: options.referenceImageDataUrl,
-        prompt: attemptPrompt,
+        prompt,
         expectedAspectRatio: "3:2",
         identityRequired: Boolean(options.referenceImageDataUrl),
         referencePurpose: configuration.generation.referenceMode === "photo" ? "photo" : "character",
@@ -85,7 +88,13 @@ export async function generateAlbumPreview(orderId: string, configuration: Album
       attemptPrompt = buildAlbumPreviewRetryPrompt(prompt, quality);
     } catch (error) {
       if (error instanceof AlbumQualityUnavailableError) throw error;
-      if (previewFailureCode(error) === "provider_rejected") throw new AlbumPreviewError("provider_rejected");
+      if (previewFailureCode(error) === "provider_rejected") {
+        console.warn("Album preview provider rejected", JSON.stringify({
+          attempt,
+          ...(error instanceof AlbumPreviewError ? error.rejection : {}),
+        }));
+        throw error instanceof AlbumPreviewError ? error : new AlbumPreviewError("provider_rejected");
+      }
       lastError = error;
       console.warn("Album preview generation attempt failed", JSON.stringify({
         attempt,

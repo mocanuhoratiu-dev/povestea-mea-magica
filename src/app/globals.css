@@ -8,10 +8,11 @@
 }
 
 :root {
-  --brand-navy: #263b35;
-  --brand-gold: #e5bf70;
-  --brand-cream: #fafbf7;
-  --brand-purple: #735064;
+  --brand-navy: #0b2035;
+  --brand-gold: #f2cd7a;
+  --brand-cream: #fbfcfd;
+  --brand-purple: #72506c;
+  --font-quicksand: var(--font-nunito);
   --brand-purple-light: #b99ace;
   --brand-pink: #d97786;
   --brand-blue: #5b93af;
@@ -73,8 +74,8 @@ body {
 
 /* Shared editorial language, excluding the independently authored PDF pages. */
 main :is(h1, h2, h3):not(.kit-document *, .paper *) {
-  font-family: "Story Editorial", Georgia, serif !important;
-  font-weight: 400 !important;
+  font-family: var(--font-fraunces), Georgia, serif !important;
+  font-weight: 500 !important;
   letter-spacing: 0 !important;
   text-wrap: balance;
 }
@@ -85,7 +86,7 @@ main :is(h1, h2, h3):not(.kit-document *, .paper *) {
   overflow-wrap: break-word;
 }
 .font-serif {
-  font-family: "Story Editorial", Georgia, serif;
+  font-family: var(--font-fraunces), Georgia, serif;
 }
 main :is(a, button):focus-visible {
   outline: 3px solid #9e6954;
@@ -292,7 +293,7 @@ html {
 }
 
 .lumi-launcher[data-launcher-compact="true"] > button {
-  width: 160px;
+  width: 196px;
   height: 72px;
   filter: drop-shadow(0 6px 9px #263b3520);
 }
@@ -319,9 +320,9 @@ html {
   display: none;
 }
 .lumi-launcher[data-launcher-compact="true"] .lumi-page-copy::after {
-  content: "Cu Lumi";
-  font-family: "Story Editorial", Georgia, serif;
-  font-size: 20px;
+  content: "Creează cu Lumi";
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: 16px;
 }
 .lumi-launcher[data-launcher-compact="true"] .lumi-page-arrow {
   display: none;

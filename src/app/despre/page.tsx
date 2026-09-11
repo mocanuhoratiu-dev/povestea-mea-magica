@@ -10,27 +10,27 @@ import Footer from "@/components/Footer";
 import { publicContact } from "@/lib/publicContact";
 
 export const metadata: Metadata = {
-  title: "Despre | Povestea Mea Magică",
+  title: "Povestea noastră | Povestea Mea Magică",
   description:
-    "De ce există Povestea Mea Magică și cum sunt construite materialele pentru familii.",
+    "Din serile lui Horațiu cu fetele sale, o idee pentru timpul petrecut împreună.",
   alternates: { canonical: "/despre" },
   openGraph: {
     url: "/despre",
-    title: "Despre | Povestea Mea Magică",
+    title: "Povestea noastră | Povestea Mea Magică",
     description:
-      "De ce există Povestea Mea Magică și cum sunt construite materialele pentru familii.",
+      "Din serile lui Horațiu cu fetele sale, o idee pentru timpul petrecut împreună.",
   },
 };
 
 const principles = [
   {
     title: "Pornim de la un moment real",
-    text: "Seara, frica de noapte sau timpul de așteptare sunt contexte pe care le recunoaște orice familie. Fiecare material începe de aici, nu de la o idee generică.",
+    text: "Seara, frica de noapte sau timpul de așteptare sunt contexte pe care le recunoaște orice familie. Povestea și jocurile pornesc din viața de zi cu zi a familiei.",
     icon: HeartHandshake,
   },
   {
     title: "Personalizarea are un rol",
-    text: "Numele, vârsta, lumea, interesul copilului și ritualurile familiei nu sunt doar decor. Ele schimbă structura, vocabularul și activitățile din material.",
+    text: "Un rucsac drag, sora mai mare sau un loc preferat pot intra în poveste. Sunt detaliile în care copilul se recunoaște.",
     icon: BookOpen,
   },
   {

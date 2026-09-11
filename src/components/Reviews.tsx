@@ -21,16 +21,19 @@ const testimonials = [
     quote: "Ador cât de simplu este să creezi o poveste pentru copii.",
     name: "Florentina",
     detail: "mamă a unui băiat și a unei fete",
+    experience: "Povești personalizate",
   },
   {
     quote: "Am găsit ceva distractiv care o ajută pe fetița mea să se liniștească atunci când îi este teamă de întuneric. Mi se pare o idee genială.",
     name: "Antonia",
     detail: "mamă a unei fetițe",
+    experience: "Joacă pentru serile cu teamă de întuneric",
   },
   {
     quote: "Am testat zona de activități în timp ce eram la restaurant cu fata cea mare. Am fost uimită de cât de captivată a fost.",
     name: "Larisa",
     detail: "mamă a două fete",
+    experience: "Activități pentru timpul de așteptare",
   },
 ];
 
@@ -100,6 +103,7 @@ export default function Reviews() {
               <blockquote className="mt-7 font-serif text-xl leading-relaxed text-brand-navy">„{testimonial.quote}”</blockquote>
               <figcaption className="mt-7 border-t border-brand-navy/10 pt-4 text-sm font-black text-brand-purple">
                 {testimonial.name} <span className="font-semibold text-brand-navy/60">· {testimonial.detail}</span>
+                <span className="mt-2 block text-xs font-medium text-brand-navy/70">{testimonial.experience}</span>
               </figcaption>
             </motion.figure>
           ))}

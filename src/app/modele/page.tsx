@@ -54,7 +54,7 @@ const models = [
     price: commerce.prices.nightShield,
     pageCount: "13 pagini A4 + audio",
     description: "Un atelier ilustrat de apropiere: poveste, scut de construit, carduri de seară, camera de desenat și o scrisoare de la Lumi.",
-    readerNote: "Răsfoiești cele zece pagini noi. PDF-ul începe cu certificatul, rețeta imaginară și etichetele clasice, păstrate integral. Fără promisiuni medicale sau confirmarea unui pericol imaginar.",
+    readerNote: "Răsfoiește cele 13 pagini: povestea și ritualul, apoi diploma, rețeta imaginară și etichetele, împreună la final. Diploma se imprimă A4 orizontal; celelalte pagini sunt A4 portret.",
     href: "/scutul-de-noapte",
     cta: "Creează scutul",
     accent: "text-brand-gold",

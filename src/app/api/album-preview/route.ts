@@ -13,7 +13,7 @@ import {
   saveOrderCover,
   setOrderStatus,
 } from "@/lib/orders";
-import { checkRateLimit, requestExceedsBodyLimit } from "@/lib/requestProtection";
+import { checkRateLimit, reserveRateLimit, requestExceedsBodyLimit } from "@/lib/requestProtection";
 import { logTelemetry } from "@/lib/telemetry";
 import { sanitizeAlbumReferencePhoto } from "@/lib/album/referencePhoto";
 import { readBundleConfiguration, readBundleOutput } from "@/lib/bundle";
@@ -54,15 +54,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Datele pentru mostră sunt prea mari." }, { status: 413 });
   }
 
-  const limit = checkRateLimit(request, "album-preview", {
-    windowMs: 24 * 60 * 60 * 1000,
-    maxRequests: previewLimit(),
-  });
-  if (!limit.allowed) {
+  const allowance = () => checkRateLimit(request, "album-preview", { windowMs: 86_400_000, maxRequests: previewLimit(), readOnly: true });
+  const attempts = checkRateLimit(request, "album-preview-requests", { windowMs: 3_600_000, maxRequests: 12 });
+  if (!attempts.allowed) {
     logAlbumPreviewFailure(startedAt, "rate_limited");
     return NextResponse.json(
-      { error: "Ai folosit încercările disponibile în acest interval de 24 de ore. Alege o mostră păstrată sau revino după resetarea limitei.", maxAttempts: previewLimit(), remaining: 0 },
-      { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } },
+      { error: "Au fost prea multe cereri într-un interval scurt. Ia o pauză înainte de o nouă încercare. Mostrele păstrate rămân disponibile.", maxAttempts: previewLimit(), remaining: allowance().remaining },
+      { status: 429, headers: { "Retry-After": String(attempts.retryAfterSeconds) } },
     );
   }
   if (!(await verifyTurnstileRequest(request, "album_preview"))) return turnstileRejected();
@@ -72,6 +70,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Mostra personalizată nu este disponibilă momentan." }, { status: 503 });
   }
 
+  let reservation: ReturnType<typeof reserveRateLimit> | undefined;
   try {
     const body = await request.json() as { productId?: unknown; configuration?: unknown; bundleConfiguration?: unknown; referenceImageDataUrl?: unknown; photoConsent?: unknown };
     const isCompleteBundle = body.productId === "complete-bundle";
@@ -91,6 +90,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Este necesară confirmarea permisiunii pentru folosirea fotografiei." }, { status: 400 });
     }
     const sanitizedReference = wantsPhoto ? await sanitizeAlbumReferencePhoto(body.referenceImageDataUrl) : null;
+    reservation = reserveRateLimit(request, "album-preview", { windowMs: 86_400_000, maxRequests: previewLimit() });
+    if (!reservation.allowed) {
+      logAlbumPreviewFailure(startedAt, "rate_limited");
+      return NextResponse.json({ error: "Ai folosit variantele disponibile în acest interval de 24 de ore. Alege o mostră păstrată sau revino după resetarea limitei.", maxAttempts: previewLimit(), remaining: 0 }, {
+        status: 429, headers: { "Retry-After": String(reservation.retryAfterSeconds) },
+      });
+    }
     const consent = { confirmedAt: new Date().toISOString(), policyVersion: "2026-09-04" };
     const storedAlbumConfiguration = wantsPhoto ? { ...configuration, referencePhotoConsent: consent } : configuration;
     const storedConfiguration = isCompleteBundle && bundle
@@ -126,13 +132,14 @@ export async function POST(request: Request) {
       title: preview.title,
       qualityChecked: preview.output.quality.some((result) => result.accepted),
       maxAttempts: previewLimit(),
-      remaining: limit.remaining,
+      remaining: allowance().remaining,
     }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
+    reservation?.release();
     console.error("Album preview generation failed", error);
     const failure = previewFailureResponse(error);
     logAlbumPreviewFailure(startedAt, failure.code);
-    return NextResponse.json({ error: failure.error, code: failure.code, maxAttempts: previewLimit(), remaining: limit.remaining }, {
+    return NextResponse.json({ error: failure.error, code: failure.code, maxAttempts: previewLimit(), remaining: allowance().remaining }, {
       status: failure.status,
       headers: { "Cache-Control": "no-store", ...(failure.retryAfterSeconds ? { "Retry-After": String(failure.retryAfterSeconds) } : {}) },
     });

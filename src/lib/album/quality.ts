@@ -5,16 +5,18 @@ import { isUsableLineArtStatistics } from "@/lib/album/qualityMetrics";
 import type { AlbumQualityResult } from "@/lib/album/types";
 import { ALBUM_QUALITY_MINIMUM, AlbumQualityUnavailableError, retryAlbumQuality } from "./qualityPolicy";
 import { albumStyleQualityInstruction } from "./artDirection.ts";
+import { ALBUM_TEXT_CHECK, hasGroundedTextAssessment } from "./qualityText.ts";
 
 const QUALITY_SCHEMA = {
   type: "object",
   additionalProperties: false,
-  required: ["identityScore", "storyScore", "technicalScore", "hasText", "unsafe", "notes"],
+  required: ["identityScore", "storyScore", "technicalScore", "hasText", "textEvidence", "unsafe", "notes"],
   properties: {
     identityScore: { type: "integer", minimum: 0, maximum: 100 },
     storyScore: { type: "integer", minimum: 0, maximum: 100 },
     technicalScore: { type: "integer", minimum: 0, maximum: 100 },
     hasText: { type: "boolean" },
+    textEvidence: { type: "string", maxLength: 300 },
     unsafe: { type: "boolean" },
     notes: { type: "array", maxItems: 4, items: { type: "string" } },
   },
@@ -104,6 +106,7 @@ async function evaluateOnce(input: AlbumQualityInput): Promise<AlbumQualityResul
     const reference = input.referenceDataUrl ? parseDataUrl(input.referenceDataUrl) : null;
     const parts = [
       { text: albumStyleQualityInstruction(input.prompt, input.asset) || "Evaluate the requested illustration medium consistently with the reference." },
+      { text: ALBUM_TEXT_CHECK },
       ...(input.referencePurpose === "photo" ? [{ text: "The reference is a PHOTO used for identity only. Judge recognizable facial structure, apparent age, hair color and hairstyle and skin tone across photo-to-illustration stylization. Do not require photographic skin/hair texture, identical eye proportions, clothing, background or pose. The requested outfit overrides the photograph's clothing. Do not confuse an expected change of medium with an identity defect." }] : []),
       ...(reference ? [{ inlineData: { mimeType: reference.mimeType, data: reference.data } }, { text: "IMAGE 1 is the authoritative character reference." }] : []),
       { inlineData: { mimeType: deterministic.candidate.mimeType, data: deterministic.candidate.data } },
@@ -125,7 +128,7 @@ async function evaluateOnce(input: AlbumQualityInput): Promise<AlbumQualityResul
     const text = response.candidates?.flatMap((candidate) => candidate.content?.parts || []).map((part) => part.text || "").join("").trim();
     if (!text) throw new AlbumQualityUnavailableError();
     const parsed = JSON.parse(text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "")) as Record<string, unknown>;
-    if (typeof parsed.unsafe !== "boolean" || typeof parsed.hasText !== "boolean" || [parsed.identityScore, parsed.storyScore, parsed.technicalScore].some(value => !Number.isInteger(value) || Number(value) < 0 || Number(value) > 100)) throw new AlbumQualityUnavailableError();
+    if (typeof parsed.unsafe !== "boolean" || !hasGroundedTextAssessment(parsed) || [parsed.identityScore, parsed.storyScore, parsed.technicalScore].some(value => !Number.isInteger(value) || Number(value) < 0 || Number(value) > 100)) throw new AlbumQualityUnavailableError();
     const identityScore = score(parsed.identityScore);
     const storyScore = score(parsed.storyScore);
     const technicalScore = Math.min(deterministic.technicalScore, score(parsed.technicalScore));

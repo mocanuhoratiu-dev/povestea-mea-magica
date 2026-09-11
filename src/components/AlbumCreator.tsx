@@ -1769,10 +1769,11 @@ export default function AlbumCreator() {
                   <h3 className="text-2xl">Mostrele tale</h3>
                   <p className="mt-2 text-sm">
                     {previewLimit
-                      ? `${previewLimit.maxAttempts} încercări în 24 de ore: prima mostră și ${previewLimit.maxAttempts - 1} variante suplimentare. Încercări rămase: ${previewLimit.remaining}.`
+                      ? `${previewLimit.maxAttempts} mostre în 24 de ore: prima mostră și ${previewLimit.maxAttempts - 1} variante suplimentare. Variante rămase: ${previewLimit.remaining}. Dacă nu putem crea coperta, nu consumăm o variantă. Cererile repetate sunt limitate separat.`
                       : "Limita de încercări se verifică înainte de generare."}{" "}
-                    Și o generare eșuată poate consuma o încercare. Reluarea
-                    verificării nu consumă una nouă.
+                    Dacă o copertă a fost creată, dar paginile interioare nu se
+                    finalizează, varianta rămâne contabilizată. Reluarea
+                    verificării nu consumă o variantă nouă.
                   </p>
                   <p className="mt-2 text-xs text-brand-navy/70">
                     Mostrele sunt private, disponibile 24 de ore în această

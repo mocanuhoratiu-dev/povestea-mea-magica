@@ -92,6 +92,14 @@ export default function LumiGuide() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [launcherCompact, setLauncherCompact] = useState(false);
+  const [footerVisible, setFooterVisible] = useState(false);
+  useEffect(() => {
+    const footer = document.querySelector("[data-site-footer]");
+    if (!footer) return;
+    const observer = new IntersectionObserver(([entry]) => setFooterVisible(entry.isIntersecting));
+    observer.observe(footer);
+    return () => observer.disconnect();
+  }, [pathname]);
   useEffect(() => {
     const compact = () => { if (window.scrollY > 160) setLauncherCompact(true); };
     const timer = window.setTimeout(() => setLauncherCompact(true), window.matchMedia("(max-width: 700px)").matches ? 0 : 8000);
@@ -334,7 +342,7 @@ export default function LumiGuide() {
             </div>
           </motion.section>
         ) : (
-          <motion.div key="launcher" data-launcher-compact={launcherCompact && generation.phase === "idle"} initial={{ opacity: 0, y: 12, scale: .97 }} animate={{ opacity: 1, y: 0, scale: 1 }} className="lumi-launcher ml-auto w-fit max-w-full">
+          <motion.div key="launcher" data-footer-visible={footerVisible && generation.phase === "idle"} data-launcher-compact={launcherCompact && generation.phase === "idle"} initial={{ opacity: 0, y: 12, scale: .97 }} animate={{ opacity: 1, y: 0, scale: 1 }} className="lumi-launcher ml-auto w-fit max-w-full">
             {isAlbumEditing ? <button type="button" title="Ajutor de la Lumi" aria-label="Deschide ghidul Lumi și creează povestea" onClick={()=>{setIsOpen(true);dismissNudge();trackEvent("lumi_opened");}} className="flex h-11 items-center gap-2 rounded-full border border-brand-purple/25 bg-white px-3 text-xs font-bold text-brand-purple shadow-md"><img src="/lumi-guardian.webp" alt="" className="h-9 w-6 object-contain"/>Lumi</button> : <>
             <motion.button type="button" aria-label={generation.phase === "idle" ? "Deschide ghidul Lumi și creează povestea" : `Deschide Lumi. ${visualTitle}`} title={showNudge && generation.phase === "idle" ? launcherCopy : undefined} onClick={() => { trackEvent("lumi_opened"); setIsOpen(true); dismissNudge(); window.setTimeout(() => window.dispatchEvent(new CustomEvent("pmm:lumi-request-context")), 0); }} whileHover={{ y: -4 }} whileTap={{ scale: .98 }} className="group relative ml-auto h-[92px] w-[min(292px,calc(100vw-1.5rem))] border-0 bg-transparent text-left text-brand-navy drop-shadow-[0_17px_20px_rgba(15,25,48,.24)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-purple focus-visible:ring-offset-4 sm:h-[108px] sm:w-[330px]">
               <span aria-hidden="true" className="lumi-page-left absolute bottom-0 left-0 h-[68px] w-[58%] border border-brand-navy/14 bg-brand-cream [clip-path:polygon(0_0,90%_7%,100%_100%,0_91%)] transition-colors group-hover:border-brand-gold sm:h-20" />

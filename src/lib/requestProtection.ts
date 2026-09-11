@@ -81,6 +81,22 @@ export function checkTelemetryRateLimit(request: Request) {
   });
 }
 
+/** Reserve synchronously; refund only this reservation, never a newer window. */
+export function reserveRateLimit(request: Request, scope: string, options: Omit<RateLimitOptions, "readOnly"> = {}) {
+  const result = checkRateLimit(request, scope, options);
+  const key = `${scope}:${clientKey(request)}`;
+  const bucket = buckets.get(key);
+  let released = !result.allowed;
+  return {
+    ...result,
+    release() {
+      if (released) return;
+      released = true;
+      if (bucket && buckets.get(key) === bucket) bucket.count = Math.max(0, bucket.count - 1);
+    },
+  };
+}
+
 export function requestExceedsBodyLimit(request: Request, maxBytes = 12_000) {
   const contentLength = Number.parseInt(request.headers.get("content-length") || "", 10);
   return Number.isFinite(contentLength) && contentLength > maxBytes;

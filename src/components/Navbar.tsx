@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowRight, Menu, X } from "lucide-react";
+import { ArrowRight, ChevronDown, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import BrandMark from "@/components/BrandMark";
@@ -17,6 +17,19 @@ export default function Navbar() {
     { label: "Răsfoiește", href: "/modele" },
     { label: "Prețuri", href: "/preturi" },
   ];
+  const secondaryItems = [
+    { label: "Povestea noastră", href: "/despre" },
+    { label: "Cum funcționează", href: "/cum-functioneaza" },
+    { label: "Întrebări frecvente", href: "/intrebari-frecvente" },
+    { label: "Ajutor cu o comandă", href: "/contact" },
+  ];
+
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+    const close = (event: KeyboardEvent) => { if (event.key === "Escape") setIsMobileMenuOpen(false); };
+    window.addEventListener("keydown", close);
+    return () => window.removeEventListener("keydown", close);
+  }, [isMobileMenuOpen]);
 
   useEffect(() => {
     const handleLumiState = (event: Event) => {
@@ -29,7 +42,7 @@ export default function Navbar() {
   return (
     <>
       <nav
-        className="fixed inset-x-0 top-0 z-[80] lg:hidden"
+        className="fixed inset-x-0 top-0 z-[80] xl:hidden"
         aria-label="Navigare principală"
       >
         <div className={`flex h-16 items-center justify-between border-b border-brand-navy/10 px-4 backdrop-blur-xl transition-[background-color,box-shadow] duration-300 ${
@@ -37,14 +50,14 @@ export default function Navbar() {
         }`}>
           <Link href="/" className="flex items-center gap-2.5" onClick={() => setIsMobileMenuOpen(false)}>
             <BrandMark className="h-8 w-8" />
-            <span className="font-serif text-[15px] leading-none text-brand-navy">
-              Povestea Mea <span className="text-brand-purple italic">Magică</span>
+            <span className="brand-wordmark brand-wordmark-small">
+              Povestea Mea <span>Magică</span>
             </span>
           </Link>
           <button
             type="button"
             onClick={() => setIsMobileMenuOpen((open) => !open)}
-            className="grid h-10 w-10 place-items-center text-brand-navy transition-colors hover:bg-brand-navy hover:text-brand-cream"
+            className="grid h-11 w-11 place-items-center text-brand-navy transition-colors hover:bg-brand-navy hover:text-brand-cream"
             aria-label={isMobileMenuOpen ? "Închide meniul" : "Deschide meniul"}
             aria-expanded={isMobileMenuOpen}
           >
@@ -56,13 +69,14 @@ export default function Navbar() {
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            className="border-b border-brand-navy/10 bg-brand-cream px-4 pb-4 pt-2 shadow-[0_16px_30px_rgba(36,50,79,0.12)]"
+            className="max-h-[calc(100dvh-4rem)] overflow-y-auto border-b border-brand-navy/10 bg-brand-cream px-4 pb-4 pt-2 shadow-[0_16px_30px_rgba(36,50,79,0.12)]"
           >
             {navigationItems.map((item) => (
               <Link key={item.label} href={item.href} onClick={() => setIsMobileMenuOpen(false)} className="flex min-h-12 items-center border-b border-brand-navy/8 py-3 text-sm font-black text-brand-navy last:border-b-0">
                 {item.label}
               </Link>
             ))}
+            <div className="nav-secondary-mobile">{secondaryItems.map(item => <Link key={item.href} href={item.href} onClick={() => setIsMobileMenuOpen(false)}>{item.label}</Link>)}</div>
             <Link href="/povestea-magica#configureaza-albumul" onClick={() => setIsMobileMenuOpen(false)} className="mt-3 flex min-h-12 items-center justify-center gap-2 bg-brand-navy px-5 text-sm font-black text-brand-cream">
               Creează povestea <ArrowRight size={16} />
             </Link>
@@ -71,7 +85,7 @@ export default function Navbar() {
       </nav>
 
       <nav
-        className="fixed left-1/2 top-4 z-[80] hidden w-[calc(100%-2rem)] max-w-7xl -translate-x-1/2 lg:block"
+        className="fixed left-1/2 top-4 z-[80] hidden w-[calc(100%-2rem)] max-w-7xl -translate-x-1/2 xl:block"
         aria-label="Navigare principală"
       >
         <div className={`flex items-center justify-between border border-brand-navy/10 px-6 py-3 backdrop-blur-xl transition-[background-color,box-shadow] duration-300 ${
@@ -79,8 +93,8 @@ export default function Navbar() {
         }`}>
           <Link href="/" className="group flex items-center gap-3">
             <BrandMark className="h-9 w-9 transition-transform duration-300 group-hover:-rotate-6" />
-            <span className="font-serif text-lg leading-none text-brand-navy">
-              Povestea Mea <span className="text-brand-purple italic">Magică</span>
+            <span className="brand-wordmark brand-wordmark-nav">
+              Povestea Mea <span>Magică</span>
             </span>
           </Link>
 
@@ -95,6 +109,10 @@ export default function Navbar() {
               <span className="absolute -bottom-2 left-0 h-px w-0 bg-brand-gold transition-all group-hover:w-full" />
             </Link>
           ))}
+          <details className="nav-discover">
+            <summary>Despre noi <ChevronDown size={14} aria-hidden="true" /></summary>
+            <div>{secondaryItems.map(item => <Link key={item.href} href={item.href} onClick={event => event.currentTarget.closest("details")?.removeAttribute("open")}>{item.label}</Link>)}</div>
+          </details>
         </div>
 
           <Link

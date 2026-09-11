@@ -14,7 +14,7 @@ export default function BrandMark({ className = "", title }: BrandMarkProps) {
       className={`block object-contain ${className}`}
       height={128}
       sizes="80px"
-      src="/brand-mark.webp"
+      src="/brand/emblem.svg"
       width={128}
     />
   );

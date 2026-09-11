@@ -10,6 +10,7 @@ import LumiGuideLoader from "@/components/LumiGuideLoader";
 import PersonalizationProof from "@/components/PersonalizationProof";
 import QualityTrust from "@/components/QualityTrust";
 import FinalStoryCTA from "@/components/FinalStoryCTA";
+import FounderNote from "@/components/FounderNote";
 import { faqs } from "@/lib/faq";
 import { siteUrl } from "@/lib/siteMode";
 
@@ -44,6 +45,7 @@ export default function Home() {
       <HowItWorks />
       <QualityTrust />
       <Reviews />
+      <FounderNote />
       <FAQ />
       <FinalStoryCTA />
       <Footer />

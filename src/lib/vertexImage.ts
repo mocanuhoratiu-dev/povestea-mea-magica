@@ -1,9 +1,10 @@
 import { GoogleGenAI, Modality } from "@google/genai";
 import { readBoundedDuration, withTimeout } from "@/lib/aiTimeout";
+import { imageRejection, type ImageRejection } from "./vertexImageFailure";
 
 export type CoverGenerationResult =
-  | { imageDataUrl: string; model: string; error?: never }
-  | { imageDataUrl?: never; model?: never; error: string };
+  | { imageDataUrl: string; model: string; error?: never; rejection?: never }
+  | { imageDataUrl?: never; model?: never; error: string; rejection?: ImageRejection };
 
 type ImageAspectRatio = "1:1" | "4:3" | "3:2" | "3:4" | "16:9";
 
@@ -139,6 +140,8 @@ async function generateVertexImage({
         Math.min(timeoutMs, availableMs),
         `Imaginea generată cu ${model} a depășit timpul de răspuns.`
       );
+      const rejection = imageRejection(response, model);
+      if (rejection) return { error: `${model}: ${rejection.reason}`, rejection };
       const imagePart = response.candidates
         ?.flatMap((candidate) => candidate.content?.parts || [])
         .find((part) => part.inlineData?.data && part.inlineData.mimeType?.startsWith("image/"));

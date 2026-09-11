@@ -14,13 +14,13 @@ export default function Hero() {
         className="home-editorial-art"
       />
       <div className="home-editorial-copy">
-        <p>Din lumea lui. Pentru timpul vostru împreună.</p>
+        <p>Povești. Curaj. Descoperiri.</p>
         <h1>Povestea Mea Magică</h1>
         <p>
-          O carte ilustrată în care copilul tău se recunoaște.
-          <br className="hidden sm:block" /> În chip, în aventură, în micile lui
-          bucurii.
+          O lume întreagă, cu copilul tău în centru.
+          <br className="hidden sm:block" /> O poveste de citit și de păstrat împreună.
         </p>
+        <p className="hero-format">Carte digitală personalizată · PDF + audio</p>
         <a
           href="/povestea-magica#configureaza-albumul"
           className="editorial-button"

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { Quicksand, Nunito } from "next/font/google";
+import { Fraunces, Nunito } from "next/font/google";
 import "./globals.css";
 import "@/components/collection.css";
+import "@/components/brand-identity.css";
 import SmoothScroll from "@/components/SmoothScroll";
 import Navbar from "@/components/Navbar";
 import UsageTelemetry from "@/components/UsageTelemetry";
@@ -10,9 +11,11 @@ import CampaignTracker from "@/components/CampaignTracker";
 import { siteUrl } from "@/lib/siteMode";
 import { legalOperator, publicContact } from "@/lib/publicContact";
 
-const quicksand = Quicksand({
-  variable: "--font-quicksand",
-  subsets: ["latin"],
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
+  subsets: ["latin", "latin-ext"],
+  weight: ["500", "600"],
+  display: "swap",
 });
 
 const nunito = Nunito({
@@ -70,7 +73,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ro" data-scroll-behavior="smooth" className={`scroll-smooth ${quicksand.variable} ${nunito.variable}`}>
+    <html lang="ro" data-scroll-behavior="smooth" className={`scroll-smooth ${fraunces.variable} ${nunito.variable}`}>
       <body className="antialiased font-nunito bg-brand-cream">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }} />
         <CampaignTracker />

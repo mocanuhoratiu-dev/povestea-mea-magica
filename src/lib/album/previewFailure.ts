@@ -1,8 +1,11 @@
+import type { ImageRejection } from '../vertexImageFailure';
+
 export type PreviewFailureCode = 'provider_busy' | 'provider_unavailable' | 'provider_rejected' | 'quality_rejected' | 'quality_unavailable' | 'generation_failed';
 
 export class AlbumPreviewError extends Error {
   readonly code: PreviewFailureCode;
-  constructor(code: PreviewFailureCode) { super(code); this.code = code; }
+  readonly rejection?: ImageRejection;
+  constructor(code: PreviewFailureCode, rejection?: ImageRejection) { super(code); this.code = code; this.rejection = rejection; }
 }
 
 export function previewFailureCode(error: unknown): PreviewFailureCode {
@@ -26,10 +29,10 @@ export function previewRetryDelay(error: unknown, attempt: number, baseDelay: nu
 export function previewFailureResponse(error: unknown) {
   const code = previewFailureCode(error);
   const messages: Record<PreviewFailureCode, string> = {
-    provider_rejected: 'Serviciul de ilustrații nu a acceptat această cerere. Nu am generat o mostră. Poți revizui fotografia și detaliile introduse sau continua doar cu descrierea copilului.',
+    provider_rejected: 'Serviciul de ilustrații a oprit această generare prin filtrul său de siguranță. Nu putem stabili din acest răspuns că fotografia este cauza. Nu am livrat o mostră și nu am consumat o variantă disponibilă.',
     provider_busy: 'Serviciul de ilustrații este foarte solicitat acum. Așteaptă un minut înainte de o nouă încercare. Detaliile completate sunt păstrate.',
     provider_unavailable: 'Serviciul de ilustrații nu a trimis imaginea la timp. Încearcă din nou peste un minut; detaliile completate sunt păstrate.',
-    quality_rejected: 'Imaginea creată nu a trecut verificarea de asemănare sau calitate și nu ți-o oferim ca mostră. Verifică descrierea copilului sau alege o fotografie clară, apoi încearcă din nou.',
+    quality_rejected: 'Imaginea creată nu a trecut verificarea de asemănare sau calitate. Nu ți-o oferim ca mostră și nu am consumat o variantă disponibilă. Detaliile tale sunt păstrate.',
     quality_unavailable: 'Nu am putut finaliza verificarea imaginii. Încearcă din nou peste un minut; detaliile completate sunt păstrate.',
     generation_failed: 'Mostra nu a putut fi creată acum. Detaliile completate sunt păstrate. Încearcă din nou în câteva minute.',
   };

@@ -1,16 +1,20 @@
 import type { Metadata } from "next";
-import { Mail, MessageSquareText } from "lucide-react";
+import Link from "next/link";
+import { ArrowUpRight, Mail, FileQuestion, MessageCircle } from "lucide-react";
 import CommercialPage from "@/components/CommercialPage";
 import { legalOperator, publicContact, supportMailto } from "@/lib/publicContact";
 
-export const metadata: Metadata = {
-  title: "Contact | Povestea Mea Magică",
-  description: "Contactează echipa Povestea Mea Magică pentru ajutor, feedback sau întrebări despre materiale.",
-  alternates: { canonical: "/contact" },
-};
+export const metadata: Metadata = { title: "Ajutor și contact | Povestea Mea Magică", description: "Ajutor cu o comandă, emailul de livrare sau prima poveste personalizată.", alternates: { canonical: "/contact" } };
+
+const topics = [
+  { title: "Nu am primit comanda", icon: Mail, text: "Verifică Spam și Promoții, apoi pagina de confirmare a comenzii. Dacă emailul nu apare, te ajutăm să găsești materialele. Nu este nevoie de o nouă comandă.", subject: "Ajutor: nu am primit comanda", label: "Cere ajutor pentru livrare" },
+  { title: "Nu pot deschide materialul", icon: FileQuestion, text: "Spune-ne ce se întâmplă când deschizi linkul sau PDF-ul. Linkul de livrare este valabil 30 de zile; fișierele descărcate rămân la tine.", subject: "Ajutor: nu pot deschide materialul", label: "Cere ajutor pentru acces" },
+  { title: "Am o întrebare", icon: MessageCircle, text: "Despre alegerea unui material, personalizare sau felul în care îl folosiți împreună. Primim cu drag și ideile sau impresiile voastre.", subject: "O întrebare pentru Povestea Mea Magică", label: "Scrie echipei" },
+];
 
 export default function ContactPage() {
-  return <CommercialPage eyebrow="Contact" title="Ai o întrebare? Suntem aici." description="Scrie-ne pentru ajutor la un PDF, feedback despre produse sau o întrebare legată de accesul la platformă.">
-    <section className="px-6 py-16 md:py-20"><div className="mx-auto grid max-w-5xl border-y border-brand-navy/15 md:grid-cols-2"><div className="border-b border-brand-navy/15 py-10 md:border-b-0 md:border-r md:pr-12"><Mail className="text-brand-purple" size={30}/><h2 className="mt-7 font-serif text-3xl text-brand-navy">Suport pentru materiale</h2><p className="mt-4 text-base font-medium leading-relaxed text-brand-navy/70">Pentru descărcare, email, conținut sau acces, scrie-ne direct. Include produsul și ce s-a întâmplat, fără detalii sensibile despre copil.</p><a href={supportMailto("Mesaj pentru Povestea Mea Magică")} className="mt-7 inline-flex bg-brand-navy px-5 py-3 text-sm font-black text-brand-cream transition-colors hover:bg-brand-purple">{publicContact.email}</a></div><div className="py-10 md:pl-12"><MessageSquareText className="text-brand-purple" size={30}/><h2 className="mt-7 font-serif text-3xl text-brand-navy">Feedback</h2><p className="mt-4 text-base font-medium leading-relaxed text-brand-navy/70">Învățăm din felul în care familiile folosesc produsele. Spune-ne ce a funcționat și ce ai schimba.</p><a href={`mailto:${publicContact.feedbackEmail}?subject=${encodeURIComponent("Feedback - Povestea Mea Magică")}`} className="mt-7 inline-flex border-b border-brand-purple pb-1 text-sm font-black text-brand-purple">Trimite feedback</a></div></div><p className="mx-auto mt-8 max-w-5xl text-sm font-semibold leading-relaxed text-brand-navy/55">Operator: {legalOperator.name}, CUI {legalOperator.cui}, nr. Registrul Comerțului {legalOperator.tradeRegisterNumber}, sediul social: {legalOperator.registeredOffice}.</p></section>
+  return <CommercialPage eyebrow="Suntem aici" title="Povestea continuă. Și când ai nevoie de ajutor." description="O comandă de găsit, o întrebare mică sau o idee de împărtășit. Alege de unde începem.">
+    <section className="help-options" aria-label="Alege subiectul mesajului">{topics.map(topic => <article key={topic.title}><topic.icon size={28} strokeWidth={1.5} /><h2>{topic.title}</h2><p>{topic.text}</p><a href={supportMailto(topic.subject)}>{topic.label}<ArrowUpRight size={17} /></a></article>)}</section>
+    <section className="help-direct"><p className="support-eyebrow">Direct, de la om la om</p><h2 className="text-2xl mb-4">Scrie-ne la <a href={supportMailto("Mesaj pentru Povestea Mea Magică")}>{publicContact.email}</a></h2><p>Pentru o comandă, scrie de la adresa folosită la cumpărare și include numărul comenzii sau data aproximativă. Nu trimite fotografii ale copilului, informații medicale sau date de card.</p><p className="mt-4"><Link href="/intrebari-frecvente">Vezi întrebările frecvente</Link></p><p className="mt-6 text-sm">Operator: {legalOperator.name}, CUI {legalOperator.cui}, nr. Registrul Comerțului {legalOperator.tradeRegisterNumber}, sediul social: {legalOperator.registeredOffice}.</p></section>
   </CommercialPage>;
 }

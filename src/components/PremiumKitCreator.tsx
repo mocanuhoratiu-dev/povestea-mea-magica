@@ -420,8 +420,8 @@ export default function PremiumKitCreator({ kind }: { kind: KitKind }) {
         <div className="pk-editorial">
           <p className="pk-eyebrow">
             {night
-              ? "Scutul de Noapte, un nou capitol"
-              : "Trusa de Răbdare, un nou capitol"}
+              ? "Ritualul vostru de seară"
+              : "O aventură pentru timpul de așteptare"}
           </p>
           <h2>
             {night
