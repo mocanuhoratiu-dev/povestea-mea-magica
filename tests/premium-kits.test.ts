@@ -7,6 +7,7 @@ import { buildKitPages } from "../src/lib/kits/template.ts";
 import { kitDeliveryOutput } from "../src/lib/kits/delivery.ts";
 import { resumeKitArtwork } from "../src/lib/kits/resume.ts";
 import { wantsLumiMaterialRecommendation } from "../src/lib/lumiIntent.ts";
+import { kitPageGeometry } from "../src/lib/kits/pageGeometry.ts";
 
 for (const kind of ["monster", "emergency"] as const) {
   test(`${kind}: approved sample passes production schema, all ten new pages render`, () => {
@@ -15,7 +16,7 @@ for (const kind of ["monster", "emergency"] as const) {
     const pages = buildKitPages(input, kit);
     assert.equal(pages.length, KIT_PAGE_COUNTS[kind]);
     assert.equal(KIT_PAGE_COUNTS[kind], kind === "monster" ? 13 : 10);
-    assert.match(pages[kind === 'monster' ? 3 : 0].html, /cover-art/);
+    assert.match(pages[0].html, /cover-art/);
     assert.match(pages[9].html, new RegExp(input.name));
     assert.match(buildKitPrompt(input), /NU instrucțiuni/);
     assert.equal(readKitText({ ...kit, title: 'a'.repeat(65) }), null);
@@ -77,14 +78,25 @@ test('checkpoint failure prevents a billable call', async () => {
   }, async (_role,_reference,before) => { await before(); calls++; return 'image'; }), /storage unavailable/);
   assert.equal(calls,0);
 });
-test('editorial certificate, recipe and labels match the reader and occupy the first three PDF slots', () => {
+test('personalized keepsakes occupy the final three slots, with a landscape diploma only', () => {
   const source = readFileSync(new URL('../src/components/PremiumKitPrint.tsx', import.meta.url),'utf8');
   const { input, kit } = kitSample('monster');
   const pages = buildKitPages(input, kit);
-  assert.deepEqual(pages.slice(0,3).map(p=>p.title), ['Certificatul de protecție magică','Rețeta secretă','Etichetele ritualului']);
+  assert.deepEqual(pages.slice(-3).map(p=>p.title), ['Certificatul Scutului Magic','Rețeta de lumină','Etichetele Scutului Magic']);
   assert.doesNotMatch(source, /ClassicShieldPages/);
-  assert.match(pages[1].html, /spray-ul sunt imaginare/);
-  assert.match(pages[0].html, new RegExp(input.trustedAdult));
+  assert.match(pages[11].html, /Nu amestecăm și nu pulverizăm/);
+  assert.match(pages[10].html, new RegExp(input.trustedAdult));
+  assert.equal(pages[10].orientation, 'landscape');
+  assert.equal(pages.filter(p=>p.orientation === 'landscape').length, 1);
+  assert.equal(kitPageGeometry(pages[10]).widthMm, 297);
+  assert.equal(kitPageGeometry(pages[11]).widthMm, 210);
+  assert.equal(kitPageGeometry(pages[12]).heightMm, 297);
+  for (const name of ['Raul', 'Ștefan-Andrei', 'Alexandra Ștefania Maria Constantinescu']) {
+    const keepsakes = buildKitPages({...input, name}, kit).slice(-3);
+    keepsakes.forEach(p=>assert.ok(p.html.includes(name)));
+    assert.ok(keepsakes[0].html.includes(`>${Array.from(name)[0]}</div>`));
+    assert.doesNotMatch(keepsakes.map(p=>p.html).join(''), /\bEva\b/);
+  }
   assert.match(pages[12].html, /<span>13<\/span>/);
   assert.match(source,/elements.length !== expectedPages/);
 });

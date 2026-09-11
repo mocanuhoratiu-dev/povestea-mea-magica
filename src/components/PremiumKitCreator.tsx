@@ -460,8 +460,9 @@ export default function PremiumKitCreator({ kind }: { kind: KitKind }) {
           </p>
           {night && (
             <p className="pk-small">
-              Răsfoiește toate cele 13 pagini, în ordinea din PDF: certificat,
-              rețetă, etichete și aventura voastră.
+              Răsfoiește toate cele 13 pagini: aventura și ritualul vostru,
+              apoi diploma, rețeta și etichetele, împreună la final. Diploma
+              este A4 landscape, iar celelalte pagini sunt A4 portret.
             </p>
           )}
         </div>

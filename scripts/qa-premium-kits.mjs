@@ -35,8 +35,9 @@ try {
     const print = page.locator('[data-print="true"]');
     const bounds = await print.locator('.paper').evaluateAll(papers => papers.map(paper => {
       const rect = paper.getBoundingClientRect(), footer = paper.querySelector('.folio')?.getBoundingClientRect();
-      return { index: paper.dataset.pageIndex, title: paper.querySelector('h2')?.textContent, overflow: [...paper.querySelectorAll('p,h2,h3,.note,.quote')].filter(node => {
-        const r = node.getBoundingClientRect(); return r.width && r.height && ((footer && r.bottom > footer.top - 3) || r.right > rect.right || r.left < rect.left);
+      return { index: paper.dataset.pageIndex, title: paper.querySelector('h2')?.textContent, overflow: [...paper.querySelectorAll('p,h2,h3,.note,.quote,.gold-dedication,.gold-certificate-copy,.gold-adult,.gold-ingredients,.gold-ritual-title,.gold-step-copy,.gold-formula,.gold-main-label,.gold-round-copy,.gold-door-copy,.gold-ritual-strip,.gold-safety')].filter(node => {
+        const r = node.getBoundingClientRect(), glyphAllowance = Math.max(8, parseFloat(getComputedStyle(node).fontSize) * .35);
+        return r.width && r.height && ((footer && r.bottom > footer.top - 3) || r.right > rect.right + 1 || r.left < rect.left - 1 || (node.matches('.gold-child,.gold-main-label h3,.gold-round-copy h3,.gold-door-copy h3,.gold-step-copy,.gold-formula') && (node.scrollHeight > node.clientHeight + glyphAllowance || node.scrollWidth > node.clientWidth + 2)));
       }).map(node => ({ text: node.textContent, top: node.getBoundingClientRect().top - rect.top, bottom: node.getBoundingClientRect().bottom - rect.top })) };
     }));
     const reader = page.locator('#kit-result .pk-reader').first();
@@ -53,12 +54,39 @@ try {
       const download = await pendingDownload;
       await download.saveAs(`${out}/${kind}.pdf`);
     } catch { errors.push('PDF: ' + await page.locator('.pk-error').allTextContents()); }
+    if (process.env.QA_EMAIL) {
+      let emailBytes = 0;
+      await page.route('**/api/deliver-email', async route => {
+        const body = route.request().postDataJSON();
+        const bytes = Buffer.from(body.pdfBase64, 'base64');
+        emailBytes = bytes.length;
+        await writeFile(`${out}/${kind}-email.pdf`, bytes);
+        await route.fulfill({json:{success:true}});
+      });
+      await page.locator(`#delivery-${kind}`).fill('qa@example.com');
+      await page.getByRole('button',{name:'Trimite PDF-ul pe email',exact:true}).click();
+      await page.getByText('A plecat. Verifică inboxul și folderul Spam.',{exact:true}).waitFor({timeout:45000});
+      report.push({kind,emailExportBytes:emailBytes,emailTransport:'intercepted; no email sent'});
+    }
     for (const width of process.env.QA_STRESS || process.env.QA_LIVE ? [] : [360, 390, 768]) {
       await page.setViewportSize({ width, height: 844 });
       await page.goto(`${base}${path}`, { waitUntil: 'networkidle' });
       await page.screenshot({ path: `${out}/${kind}-${width}.png`, fullPage: true });
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth);
       report.push({ kind, width, horizontalOverflow: overflow });
+      if (kind === 'monster') {
+        const modelReader = page.locator('.pk-showcase .pk-reader');
+        for (let i=0; i<10; i++) await modelReader.getByRole('button',{name:'Pagina următoare',exact:true}).click();
+        for (let i=11; i<=13; i++) {
+          await modelReader.locator('.paper').first().screenshot({path:`${out}/monster-${width}-keepsake-${i}.png`});
+          const rect = await modelReader.locator('.paper').first().boundingBox();
+          if (!rect || rect.x < -1 || rect.x + rect.width > width + 1) errors.push(`Keepsake ${i} outside viewport ${width}`);
+          if (i<13) await modelReader.getByRole('button',{name:'Pagina următoare',exact:true}).click();
+        }
+        await modelReader.getByRole('button',{name:'Mărește pagina',exact:true}).click();
+        await modelReader.locator('dialog').waitFor({state:'visible'});
+        await modelReader.getByRole('button',{name:'Închide pagina mărită',exact:true}).click();
+      }
     }
     report.push({ kind, bounds, errors });
     if (bounds.some(p => p.overflow.length) || errors.length) process.exitCode = 1;

@@ -22,7 +22,7 @@ const productSchema = {
   "@context": "https://schema.org",
   "@type": "Product",
   name: "Atelierul Scutului Magic",
-  image: [`${siteUrl}/social/og-scutul-de-noapte.webp`, `${siteUrl}/examples/scut/certificat-display.webp`],
+  image: [`${siteUrl}/social/og-scutul-de-noapte.webp`, `${siteUrl}/examples/kits-v2/atelier-preview.webp`],
   description: "Ritual personalizat de seară de 13 pagini A4, cu certificat, poveste, repere pentru cameră, card pentru noptieră și ghid audio.",
   brand: { "@type": "Brand", name: "Povestea Mea Magică" },
   sku: "PMM-SCUT-NOAPTE",

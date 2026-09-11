@@ -1,0 +1,63 @@
+@font-face{font-family:ShieldSerif;src:url('/fonts/CrimsonText-Regular.ttf') format('truetype');font-display:swap}
+.kit-document .paper.gold-keepsake{color:#57203e;background:#fffdf7;--serif:ShieldSerif,Georgia,serif;font-family:ShieldSerif,Georgia,serif}
+.kit-document .paper.gold-keepsake[data-orientation=landscape]{width:848.5714px;height:600px}
+.kit-document .gold-keepsake .keepsake-art{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;pointer-events:none}
+.kit-document .gold-keepsake .gold-brand,.kit-document .gold-keepsake .gold-title,.kit-document .gold-keepsake .gold-child,.kit-document .gold-keepsake .gold-dedication,.kit-document .gold-keepsake .gold-safety{position:absolute;text-align:center;margin:0;z-index:1}
+.kit-document .gold-keepsake .gold-brand{font:10px/1.5 ShieldSerif,Georgia,serif;top:25px;left:140px;right:140px}.kit-document .gold-keepsake .gold-brand span{font-size:9px}
+.kit-document .gold-keepsake .gold-title{font:40px/1.05 ShieldSerif,Georgia,serif;left:65px;right:65px;top:58px}
+.kit-document .gold-keepsake .gold-dedication{font:17px/1.2 ShieldSerif,Georgia,serif;left:135px;right:135px}
+.kit-document .gold-keepsake .gold-safety{font:9px/1.35 ShieldSerif,Georgia,serif;left:100px;right:100px}
+.kit-document .gold-keepsake .folio{font-size:7px;bottom:8px;left:105px;right:105px;border:0;padding:0;color:#755c6b}
+.kit-document .gold-diploma .gold-title{top:53px;left:125px;right:125px;font-size:40px}
+.kit-document .gold-diploma .gold-initial{position:absolute;left:371px;top:177px;width:110px;height:125px;text-align:center;font:104px/1.15 ShieldSerif,Georgia,serif;color:#a47529}
+.kit-document .gold-diploma .gold-dedication{top:355px;left:260px;right:230px;font-size:17px}
+.kit-document .gold-diploma .gold-child{top:371px;left:275px;width:310px;height:59px;display:flex;align-items:center;justify-content:center;font:67px/.95 ShieldSerif,Georgia,serif;overflow-wrap:anywhere}
+.kit-document .gold-diploma[data-long-name=true] .gold-child{font-size:29px;line-height:1.03}
+.kit-document .gold-diploma .gold-certificate-copy{position:absolute;top:444px;left:270px;right:200px;text-align:center;font-size:15px;line-height:1.2}
+.kit-document .gold-diploma .gold-signature{position:absolute;left:148px;top:486px;width:143px;text-align:center;display:grid;gap:0}
+.kit-document .gold-diploma .gold-signature strong{font:italic 35px/1 ShieldSerif,Georgia,serif}.kit-document .gold-diploma .gold-signature span{font-size:12px}
+.kit-document .gold-diploma .gold-adult{position:absolute;left:558px;top:493px;width:155px;text-align:center;font-size:12px}
+.kit-document .gold-diploma .gold-adult strong{font-weight:400;display:block;border-bottom:1px dotted #795c6d;padding-bottom:3px;min-height:19px;overflow-wrap:anywhere;line-height:1.1}.kit-document .gold-diploma .gold-adult span{display:block;margin-top:3px}
+.kit-document .gold-diploma .gold-safety{top:560px;font-size:10px}
+.kit-document .gold-recipe .gold-brand{top:27px;left:110px;right:110px;font-size:11px}.kit-document .gold-recipe .gold-brand span{font-size:10px}
+.kit-document .gold-recipe .gold-title{top:68px;font-size:46px;left:70px;right:70px}
+.kit-document .gold-recipe .gold-dedication{top:154px;left:95px;right:95px;min-height:44px;font-size:18px}.kit-document .gold-recipe[data-long-name=true] .gold-dedication{font-size:15px}
+.kit-document .gold-recipe .gold-ingredients{position:absolute;top:348px;left:28px;right:25px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;text-align:center;font:18px/1.1 ShieldSerif,Georgia,serif}
+.kit-document .gold-recipe .gold-ritual-title{position:absolute;left:100px;right:90px;top:402px;text-align:center;font:27px/1.1 ShieldSerif,Georgia,serif}
+.kit-document .gold-recipe .gold-step{position:absolute;left:43px;top:calc(459px + var(--step)*78px);width:346px;height:77px}
+.kit-document .gold-recipe .gold-step-number{position:absolute;left:0;top:0;width:60px;height:55px;display:grid;place-items:center;font:29px/1 ShieldSerif,Georgia,serif;color:#8b5929}
+.kit-document .gold-recipe .gold-step-copy{position:absolute;left:82px;top:0;width:263px}
+.kit-document .gold-recipe .gold-step-copy h3{font:17px/1.12 ShieldSerif,Georgia,serif;margin-bottom:4px}
+.kit-document .gold-recipe .gold-step-copy p{font:12px/1.15 ShieldSerif,Georgia,serif}
+.kit-document .gold-recipe .gold-formula{position:absolute;left:238px;top:690px;width:194px;height:59px;display:flex;align-items:center;justify-content:center;text-align:center;font:italic 15px/1.13 ShieldSerif,Georgia,serif;overflow-wrap:anywhere}
+.kit-document .gold-recipe .gold-safety{top:788px;left:105px;right:105px;font-size:9px}
+.kit-document .gold-labels .gold-brand{top:9px;font-size:10px}.kit-document .gold-labels .gold-title{top:36px;left:75px;right:75px;font-size:30px}
+.kit-document .gold-labels .gold-dedication{top:91px;left:50px;right:50px;font-size:13px}
+.kit-document .gold-labels .gold-label-initial{position:absolute;left:120px;top:181px;width:62px;height:71px;font:65px/1 ShieldSerif,Georgia,serif;text-align:center;color:#a47529}
+.kit-document .gold-labels .gold-main-label{position:absolute;left:291px;top:147px;width:239px;text-align:center}
+.kit-document .gold-labels .gold-main-label>span{font-size:14px}.kit-document .gold-labels .gold-main-label h3{font:59px/1.1 ShieldSerif,Georgia,serif;height:76px;display:flex;align-items:center;justify-content:center}
+.kit-document .gold-labels .gold-main-label p{font:13px/1.1 ShieldSerif,Georgia,serif;margin-top:3px}.kit-document .gold-labels .gold-main-label small{font-size:11px}
+.kit-document .gold-labels .gold-round-initial{position:absolute;left:141px;top:439px;width:85px;height:81px;font:77px/1 ShieldSerif,Georgia,serif;text-align:center;color:#a47529}
+.kit-document .gold-labels .gold-round-copy{position:absolute;left:69px;top:558px;width:226px;text-align:center}.kit-document .gold-labels .gold-round-copy span{font-size:12px}.kit-document .gold-labels .gold-round-copy h3{font:44px/1.1 ShieldSerif,Georgia,serif;height:62px;display:flex;align-items:center;justify-content:center}
+.kit-document .gold-labels .gold-door-copy{position:absolute;left:386px;top:468px;width:151px;text-align:center}.kit-document .gold-labels .gold-door-copy span{font-size:13px}.kit-document .gold-labels .gold-door-copy h3{font:49px/1.1 ShieldSerif,Georgia,serif;height:76px;display:flex;align-items:center;justify-content:center}.kit-document .gold-labels .gold-door-copy p{font:15px/1.1 ShieldSerif,Georgia,serif}
+.kit-document .gold-labels[data-long-name=true] .gold-main-label h3{font-size:24px}.kit-document .gold-labels[data-long-name=true] .gold-round-copy h3{font-size:21px}.kit-document .gold-labels[data-long-name=true] .gold-door-copy h3{font-size:19px}
+.kit-document .gold-labels .gold-ritual-strip{position:absolute;top:751px;left:100px;right:85px;display:flex;align-items:center;justify-content:space-between;gap:12px;font:13px/1.1 ShieldSerif,Georgia,serif}
+.kit-document .gold-labels .gold-safety{top:812px;left:60px;right:60px;font-size:8px}
+.kit-document .gold-recipe .gold-step-number{fill:#8b5929}
+.kit-document .gold-labels .gold-label-initial,.kit-document .gold-labels .gold-round-initial{color:#57203e}
+.kit-document .gold-labels .gold-round-copy{top:548px}
+.kit-document .gold-labels .gold-round-copy h3{font-size:36px;height:48px}
+.kit-document .gold-diploma[data-keepsake-name=medium] .gold-child{font-size:45px}
+.kit-document .gold-labels[data-keepsake-name=medium] .gold-main-label h3{font-size:40px}
+.kit-document .gold-labels[data-keepsake-name=medium] .gold-round-copy h3{font-size:28px}
+.kit-document .gold-labels[data-keepsake-name=medium] .gold-door-copy h3{font-size:30px}
+.kit-document .gold-diploma[data-keepsake-name=long] .gold-child{font-size:25px;line-height:1.03}
+.kit-document .gold-labels[data-keepsake-name=long] .gold-main-label h3{font-size:21px}
+.kit-document .gold-labels[data-keepsake-name=long] .gold-round-copy h3{font-size:18px;line-height:1}
+.kit-document .gold-labels[data-keepsake-name=long] .gold-door-copy h3{font-size:16px;line-height:1.05}
+.kit-document .gold-recipe .gold-step-copy{height:72px}
+.kit-document .gold-recipe .gold-step-copy h3{font-size:14px;line-height:1.05;margin-bottom:2px}
+.kit-document .gold-recipe .gold-step-copy p{font-size:11px;line-height:1.1}
+.kit-document .gold-recipe .gold-formula{top:686px;height:72px;font-size:12px;line-height:1.1}
+.kit-document .gold-labels .gold-safety{top:798px}
+.kit-document .gold-keepsake .folio{line-height:1.2}
