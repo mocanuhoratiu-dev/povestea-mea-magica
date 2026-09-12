@@ -2,7 +2,7 @@ import type { AlbumQualityResult } from './types.ts';
 
 export const ALBUM_QUALITY_MINIMUM = { identity: 85, story: 75, technical: 75 } as const;
 export class AlbumQualityUnavailableError extends Error {
-  constructor() { super('album_quality_unavailable'); }
+  constructor(cause?: unknown) { super('album_quality_unavailable', { cause }); }
 }
 export function meetsAlbumQuality(quality: AlbumQualityResult, identityRequired: boolean) {
   return quality.mode === 'ai' && !quality.hardFailure

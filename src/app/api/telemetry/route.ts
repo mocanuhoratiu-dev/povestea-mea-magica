@@ -2,8 +2,10 @@ import { NextResponse } from "next/server";
 import { checkTelemetryRateLimit, requestExceedsBodyLimit } from "@/lib/requestProtection";
 import { isTelemetryProduct, logTelemetry, type GenerationMode, type StoryLength, type TelemetryEvent } from "@/lib/telemetry";
 import { sanitizeCampaignAttribution } from "@/lib/campaignAttribution";
+import { publicReportPaths } from "@/lib/dailyReportData";
 
 const CLIENT_EVENTS = new Set([
+  "page_viewed",
   "site_visited", "story_preview_started", "album_sample_page_viewed", "album_sample_audio_played", "album_sample_expanded", "album_sample_cta_clicked", "album_product_cta_clicked", "product_sample_page_viewed", "product_page_cta_clicked", "product_started", "product_preview_opened", "product_preview_checkout_clicked", "product_video_played", "purchase_completed", "generation_completed", "pdf_downloaded", "feedback_requested",
   "pdf_render_started", "pdf_render_completed", "pdf_render_failed", "pdf_feedback_helpful", "pdf_feedback_not_helpful", "lumi_opened", "lumi_message_sent", "lumi_recommendation_applied", "lumi_moment_helpful", "lumi_moment_not_helpful", "lumi_voice_played", "lumi_response_failed", "web_vital_recorded",
 ]);
@@ -36,6 +38,8 @@ export async function POST(request: Request) {
     }
 
     const product = payload.product;
+    const pagePath = typeof payload.pagePath === "string" && publicReportPaths.includes(payload.pagePath) ? payload.pagePath : undefined;
+    if (event === "page_viewed" && !pagePath) return NextResponse.json({ error: "Pagină necunoscută." }, { status: 400 });
     const productEvents = new Set(["story_preview_started", "album_sample_page_viewed", "album_sample_audio_played", "album_sample_expanded", "album_sample_cta_clicked", "album_product_cta_clicked", "product_sample_page_viewed", "product_page_cta_clicked", "product_started", "product_preview_opened", "product_preview_checkout_clicked", "product_video_played", "purchase_completed", "generation_completed", "pdf_render_started", "pdf_render_completed", "pdf_render_failed", "pdf_downloaded", "feedback_requested", "pdf_feedback_helpful", "pdf_feedback_not_helpful", "lumi_recommendation_applied", "lumi_moment_helpful", "lumi_moment_not_helpful"]);
     if (productEvents.has(event) && !isTelemetryProduct(product)) {
       return NextResponse.json({ error: "Produs necunoscut." }, { status: 400 });
@@ -63,6 +67,7 @@ export async function POST(request: Request) {
     logTelemetry(`pmm_${event}` as TelemetryEvent, {
       ...(isTelemetryProduct(product) ? { product } : {}),
       result: "success",
+      pagePath,
       ...(generationMode ? { generationMode: generationMode as GenerationMode } : {}),
       pageCount: readBoundedInteger(payload.pageCount, 50),
       wordCount: readBoundedInteger(payload.wordCount, 20_000),

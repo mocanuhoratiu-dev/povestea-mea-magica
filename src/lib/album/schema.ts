@@ -13,6 +13,7 @@ import {
   type AlbumSceneLayout,
   type AlbumStoryBible,
 } from "@/lib/album/types";
+import { simpleStoryColor } from "../storyColors";
 
 const albumStages = ["planning", "cover", "scenes", "activity", "rendering", "delivery"] as const;
 const panelPositions = ["top-left", "top-right", "bottom-left", "bottom-right", "bottom"] as const;
@@ -49,7 +50,7 @@ export function readAlbumConfiguration(value: unknown): AlbumConfiguration | nul
     skinTone: clean(raw.skinTone, 36),
     outfit: clean(raw.outfit, 100) || `o ținută în culoarea ${clean(raw.favoriteColor, 36) || "preferată"}`,
     appearanceDetail: clean(raw.appearanceDetail, 240),
-    favoriteColor: clean(raw.favoriteColor, 36),
+    favoriteColor: simpleStoryColor(clean(raw.favoriteColor, 36)),
     world: clean(raw.world, 32),
     customWorld: clean(raw.customWorld, 280),
     companion: clean(raw.companion, 80),
@@ -65,7 +66,8 @@ export function readAlbumConfiguration(value: unknown): AlbumConfiguration | nul
   };
 
   if (!generation.name || !/^(?:[2-9]|10)$/.test(generation.age)) return null;
-  if (!generation.hairStyle || !generation.hairColor || !generation.skinTone || !generation.favoriteColor) return null;
+  if (!generation.favoriteColor) return null;
+  if (generation.referenceMode !== "photo" && (!generation.hairStyle || !generation.hairColor || !generation.skinTone)) return null;
   if (!optionExists(albumWorldOptions, generation.world)) return null;
   if (generation.world === "custom" && !generation.customWorld) return null;
   if (generation.secondaryCharacterName && !generation.secondaryCharacterRole) return null;
@@ -112,7 +114,7 @@ function readStoryBible(value: unknown, characterBible: string, referenceMode: A
       immutableTraits,
       outfitPalette: clean(rawLock.outfitPalette, 220),
       companionDescription: clean(rawLock.companionDescription, 320),
-      anchorAsset: "cover",
+      anchorAsset: rawLock.anchorAsset === "characterReference" ? "characterReference" : "cover",
     },
     visualLanguage: {
       palette: clean(rawVisual.palette, 220),
@@ -247,6 +249,8 @@ export function readAlbumOutput(value: unknown): AlbumOrderOutput | null {
     imageModels: Array.isArray(value.imageModels)
       ? value.imageModels.filter((item): item is string => typeof item === "string").slice(0, 8)
       : [],
+    ...(typeof value.preferredImageModel === "string" ? { preferredImageModel: clean(value.preferredImageModel, 100) } : {}),
+    assetResolutions: isRecord(value.assetResolutions) ? Object.fromEntries(Object.entries(value.assetResolutions).filter(([key, resolution]) => /^[a-z0-9-]+$/.test(key) && ["1K", "2K"].includes(String(resolution)))) as AlbumOrderOutput["assetResolutions"] : {},
   };
 }
 

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import EmergencyKit from "@/components/EmergencyKit";
 import Footer from "@/components/Footer";
+import PrintedEditionNotice from "@/components/PrintedEditionNotice";
 import LumiGuideLoader from "@/components/LumiGuideLoader";
 import MobileProductCTA from "@/components/MobileProductCTA";
 import { commerce, siteUrl } from "@/lib/siteMode";
@@ -31,5 +32,5 @@ const productSchema = {
 };
 
 export default function PatienceKitPage() {
-  return <main className="min-h-screen bg-brand-cream pt-16 md:pt-20"><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }} /><EmergencyKit /><Footer /><LumiGuideLoader /><MobileProductCTA product="emergency" targetId="configureaza-trusa" title="Dosarul Micului Explorator" action="Pregătește acum" price={commerce.prices.patienceKit} tone="day" /></main>;
+  return <main className="min-h-screen bg-brand-cream pt-16 md:pt-20"><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }} /><EmergencyKit /><PrintedEditionNotice product="emergency" /><Footer /><LumiGuideLoader /><MobileProductCTA product="emergency" targetId="configureaza-trusa" title="Dosarul Micului Explorator" action="Pregătește acum" price={commerce.prices.patienceKit} tone="day" /></main>;
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
+import { assertModelResponse, isTerminalModelError, modelAttemptTimeout } from '@/lib/modelFallback';
 import https from "node:https";
 import { checkRateLimit, requestExceedsBodyLimit } from "@/lib/requestProtection";
 import { logTelemetry, type TelemetryProduct } from "@/lib/telemetry";
@@ -11,12 +12,16 @@ import { turnstileRejected, verifyTurnstileRequest } from "@/lib/turnstile";
 import { buildKitPrompt, KIT_TEXT_SCHEMA, readKitInput, readKitText, type PremiumKit } from "@/lib/kits/content";
 import { completeKitArtwork } from "@/lib/kits/artwork";
 import { commerce } from "@/lib/siteMode";
+import { readLimitedJson } from "@/lib/limitedJson";
+import { verifyCharacterProof } from "@/lib/characterToken";
+import { describePhotoTraits } from "@/lib/characterPhotoPolicy";
 
 type GenerateRequest = {
   kitVersion?: number;
   appearance?: string;
   trustedAdult?: string;
   favoriteColor?: string;
+  referenceMode?: "description" | "photo";
   type?: "monster" | "story" | "emergency";
   storyLength?: StoryLength;
   name?: string;
@@ -144,6 +149,7 @@ function normalizeGenerateRequest(value: unknown): GenerateRequest | null {
 
   const normalized: GenerateRequest = {
     kitVersion: data.kitVersion === 2 ? 2 : undefined,
+    referenceMode: data.referenceMode === "photo" ? "photo" : "description",
     appearance: cleanRequestText(data.appearance, 240),
     trustedAdult: cleanRequestText(data.trustedAdult, 40),
     favoriteColor: cleanRequestText(data.favoriteColor, 12),
@@ -760,6 +766,7 @@ async function generateVertexText({
         model,
         contents: prompt,
         config: {
+          abortSignal: AbortSignal.timeout(timeoutMs),
           ...(responseMimeType ? { responseMimeType } : {}),
           ...(responseJsonSchema ? { responseJsonSchema } : {}),
           ...(maxOutputTokens ? { maxOutputTokens } : {}),
@@ -770,6 +777,7 @@ async function generateVertexText({
       timeoutMs,
       `Modelul ${model} a depășit timpul de răspuns.`
     );
+    assertModelResponse(response);
     const text = response.text?.trim();
     if (!text) {
       return { error: `Vertex AI nu a returnat conținut pentru această cerere (${model}).` };
@@ -807,9 +815,10 @@ function getGeminiModelCandidates() {
   const isVertex = getAiProvider() === "vertex";
   const configuredModels = [
     isVertex ? process.env.VERTEX_AI_MODEL : process.env.GEMINI_MODEL,
-    ...((isVertex ? process.env.VERTEX_AI_FALLBACK_MODELS : process.env.GEMINI_FALLBACK_MODELS) || "").split(","),
+    ...((isVertex ? process.env.VERTEX_AI_FALLBACK_MODELS : process.env.GEMINI_FALLBACK_MODELS) || "").split(/[|,]/),
     "gemini-3.5-flash",
     "gemini-3.1-flash-lite",
+    "gemini-3.1-pro-preview",
   ];
 
   const candidates = Array.from(
@@ -820,7 +829,7 @@ function getGeminiModelCandidates() {
     )
   );
 
-  const maximumModels = readBoundedDuration(process.env.AI_FALLBACK_MAX_MODELS, 2, 1, 3);
+  const maximumModels = readBoundedDuration(process.env.AI_FALLBACK_MAX_MODELS, 3, 1, 3);
   return candidates.slice(0, maximumModels);
 }
 
@@ -842,7 +851,8 @@ async function generateWithModelFallback({
   const totalTimeoutMs = readBoundedDuration(process.env.AI_GENERATION_BUDGET_MS, 55_000, 10_000, 90_000);
   const perModelTimeoutMs = readBoundedDuration(process.env.AI_MODEL_TIMEOUT_MS, 35_000, 5_000, 60_000);
 
-  for (const model of getGeminiModelCandidates()) {
+  const models = getGeminiModelCandidates();
+  for (const [index, model] of models.entries()) {
     const remainingMs = totalTimeoutMs - (Date.now() - startedAt);
     if (remainingMs < 4_000) break;
 
@@ -854,7 +864,7 @@ async function generateWithModelFallback({
       maxOutputTokens,
       thinkingBudget: 0,
       temperature,
-      timeoutMs: Math.min(perModelTimeoutMs, remainingMs),
+      timeoutMs: modelAttemptTimeout(startedAt + totalTimeoutMs, models.length - index, perModelTimeoutMs),
     });
 
     if (!("error" in generated)) {
@@ -864,6 +874,7 @@ async function generateWithModelFallback({
     }
 
     errors.push(`${model}: ${generated.error}`);
+    if (isTerminalModelError(generated.error)) break;
   }
 
   return { error: errors.join(" | ") || "Gemini nu a răspuns cu niciun model disponibil." };
@@ -882,7 +893,7 @@ export async function POST(req: Request) {
   let product: TelemetryProduct | undefined;
 
   try {
-    if (requestExceedsBodyLimit(req)) {
+    if (requestExceedsBodyLimit(req, 15_000_000)) {
       return NextResponse.json(
         { success: false, error: "Cererea este prea mare. Păstrează detaliile scurte și încearcă din nou." },
         { status: 413 }
@@ -898,7 +909,8 @@ export async function POST(req: Request) {
     }
     if (!(await verifyTurnstileRequest(req, "generate"))) return turnstileRejected();
 
-    const data = normalizeGenerateRequest(await req.json());
+    const raw = await readLimitedJson(req, 15_000_000);
+    const data = normalizeGenerateRequest(raw);
     if (!data) {
       return NextResponse.json(
         { success: false, error: "Verifică numele copilului și opțiunile alese, apoi încearcă din nou." },
@@ -913,6 +925,14 @@ export async function POST(req: Request) {
       if (!input) return NextResponse.json({ success: false, error: "Verifică detaliile copilului." }, { status: 400 });
       const worker = isTrustedOrderWorker(req);
       if (commerce.acceptsPayments && !worker) return NextResponse.json({ success: false, error: "Materialul complet se generează după confirmarea plății." }, { status: 402 });
+      const reference = raw.referenceCharacter as { photoConsent?: boolean; characterToken?: string; referenceImageDataUrl?: string; characterImageDataUrl?: string } | undefined;
+      let proof;
+      if (input.referenceMode === "photo" && !worker) {
+        if (reference?.photoConsent !== true || !reference.characterImageDataUrl) return NextResponse.json({ error: "Confirmă personajul din fotografie." }, { status: 400 });
+        try { proof = verifyCharacterProof(reference.characterToken, reference.referenceImageDataUrl, reference.characterImageDataUrl); if (proof.kind !== "character") throw new Error("character_confirmation_required"); }
+        catch { return NextResponse.json({ error: "Confirmă din nou personajul." }, { status: 400 }); }
+        input.appearance = describePhotoTraits(proof.traits).slice(0, 240);
+      }
       if (!isAiConfigured()) return NextResponse.json({ success: false, error: "Generarea ilustrată nu este disponibilă momentan. Încearcă din nou mai târziu." }, { status: 503 });
       const generated = await generateWithModelFallback({ prompt: buildKitPrompt(input), responseJsonSchema: KIT_TEXT_SCHEMA, maxOutputTokens: 3200, temperature: .78, validate: text => {
         try { return Boolean(readKitText(parseJsonObject(text))); } catch { return false; }
@@ -923,7 +943,7 @@ export async function POST(req: Request) {
       if (!text) return NextResponse.json({ success: false, error: "Materialul nu a trecut verificarea de conținut. Încearcă din nou." }, { status: 502 });
       let premium: PremiumKit = { ...text, version: 2, kind: input.type, assets: {}, imageAttempts: 0 };
       // Paid orders persist text before images so retries resume instead of regenerating it.
-      if (!worker) premium = await completeKitArtwork(premium, { checkpoint: async () => {}, save: async image => image, read: async asset => asset });
+      if (!worker) premium = await completeKitArtwork(premium, { characterReference: proof ? reference!.characterImageDataUrl : undefined, preferredImageModel: proof?.model, checkpoint: async () => {}, save: async image => image, read: async asset => asset });
       logTelemetry("pmm_generation_completed", { product, result: "success", generationMode: "ai", model: generated.model, durationMs: Date.now() - startedAt });
       return NextResponse.json({ success: true, data: { premium }, generationMode: "ai" });
     }

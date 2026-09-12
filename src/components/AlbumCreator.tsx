@@ -13,14 +13,12 @@ import {
   ArrowLeft,
   ArrowRight,
   BookHeart,
-  Camera,
   Check,
   Clock3,
   Eye,
   Palette,
   Printer,
   RefreshCw,
-  ShieldCheck,
   Sparkles,
   Trash2,
 } from "lucide-react";
@@ -37,7 +35,10 @@ import {
 import { beginPreparedOrderCheckout } from "@/lib/clientOrderCheckout";
 import { trackEvent } from "@/lib/clientTelemetry";
 import { commerce } from "@/lib/siteMode";
-import { prepareReferencePhoto } from "@/lib/album/clientReferencePhoto";
+import CharacterPhotoInput from "./CharacterPhotoInput";
+import CharacterRightsNotice from "./CharacterRightsNotice";
+import type { ApprovedCharacter } from "@/lib/characterPhotoPolicy";
+import { storyColors as colors, simpleStoryColor } from "@/lib/storyColors";
 import AlbumPreviewFlipbook, {
   type AlbumPreviewPage,
 } from "@/components/AlbumPreviewFlipbook";
@@ -51,13 +52,6 @@ import "./album-editorial.css";
 import LumiOpenButton from "./LumiOpenButton";
 
 const steps = ["Copilul", "Aventura", "Mesajul vostru", "Mostra"];
-const colors = [
-  { label: "Mov ametist", value: "mov ametist", swatch: "#8052a0" },
-  { label: "Albastru ceresc", value: "albastru ceresc", swatch: "#5b93af" },
-  { label: "Verde smarald", value: "verde smarald", swatch: "#5e967a" },
-  { label: "Roz zmeură", value: "roz zmeură", swatch: "#d97786" },
-  { label: "Galben solar", value: "galben solar", swatch: "#e5b84f" },
-];
 
 const inputClass =
   "mt-2 min-h-12 w-full border border-brand-navy/20 bg-white px-4 py-3 text-sm font-bold text-brand-navy outline-none transition focus:border-brand-purple focus:ring-2 focus:ring-brand-purple/15";
@@ -78,6 +72,7 @@ type AlbumPreviewState = {
   total: number;
   startedAt: number;
   issue?: "failed" | "paused" | "expired";
+  canResume?: boolean;
 };
 
 function readPreviewPages(value: unknown): AlbumPreviewPage[] {
@@ -136,11 +131,12 @@ function readStoredPreview(value: unknown): AlbumPreviewState | null {
     ready: preview.ready === true,
     progress:
       typeof preview.progress === "number"
-        ? Math.max(1, Math.min(3, preview.progress))
+        ? Math.max(0, Math.min(3, preview.progress))
         : preview.ready === true
           ? 3
           : 1,
     total: 3,
+    canResume: preview.canResume === true,
     startedAt:
       typeof preview.startedAt === "number" ? preview.startedAt : Date.now(),
     ...(["failed", "paused", "expired"].includes(String(preview.issue))
@@ -182,6 +178,17 @@ export default function AlbumCreator() {
   const [hasConsent, setHasConsent] = useState(false);
   const [notice, setNotice] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [consentError, setConsentError] = useState("");
+  const purchaseConsentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Back/Forward can restore this page without remounting the checkout form.
+    const restoreCheckout = () => setIsCheckingOut(false);
+    window.addEventListener("pageshow", restoreCheckout);
+    return () => window.removeEventListener("pageshow", restoreCheckout);
+  }, []);
+  const selectionVersion = useRef(0);
   const [{ preview, history: previewHistory }, setPreviewState] = useState<{
     preview: AlbumPreviewState | null;
     history: AlbumPreviewState[];
@@ -224,6 +231,16 @@ export default function AlbumCreator() {
   const previewRef = useRef<AlbumPreviewState | null>(null);
   const [referencePhoto, setReferencePhoto] = useState("");
   const [photoConsent, setPhotoConsent] = useState(false);
+  const [photoPending, setPhotoPending] = useState(false);
+  const [approvedCharacter, setApprovedCharacter] = useState<ApprovedCharacter | null>(null);
+  const acceptCharacter = useCallback((value: ApprovedCharacter | null) => {
+    setApprovedCharacter(value); setReferencePhoto(value?.referenceImageDataUrl || "");
+    setPhotoConsent(Boolean(value)); setRestoredPhoto(false); setPreview(null); setHasConsent(false);
+    if (value) {
+      setHairStyle(value.traits.hairStyle); setHairColor(value.traits.hairColor); setEyeColor(value.traits.eyeColor);
+      setSkinTone(value.traits.skinTone); setOutfit(value.traits.outfit); setAppearanceDetail(value.traits.appearanceDetail);
+    }
+  }, [setPreview]);
 
   const worldLabel = useMemo(
     () =>
@@ -245,7 +262,7 @@ export default function AlbumCreator() {
         skinTone,
         outfit: outfit.trim(),
         appearanceDetail: appearanceDetail.trim(),
-        favoriteColor,
+        favoriteColor: simpleStoryColor(favoriteColor),
         world,
         customWorld: customWorld.trim(),
         companion,
@@ -335,7 +352,7 @@ export default function AlbumCreator() {
             eyeColor &&
             skinTone &&
             outfit.trim() &&
-            (!referencePhoto || photoConsent),
+            !photoPending && (!referencePhoto || photoConsent),
         )
       : step === 1
         ? Boolean(
@@ -420,7 +437,7 @@ export default function AlbumCreator() {
           if (typeof draft.dedicationFrom === "string")
             setDedicationFrom(draft.dedicationFrom.slice(0, 80));
           const storedPreview = readStoredPreview(draft.preview);
-          if (storedPreview) setPreview(storedPreview);
+          if (storedPreview) setPreview({ ...storedPreview, issue: storedPreview.issue === "expired" ? "expired" : undefined });
           const history = Array.isArray(draft.previews)
             ? draft.previews
                 .map(readStoredPreview)
@@ -579,7 +596,8 @@ export default function AlbumCreator() {
   };
 
   const createPreview = async () => {
-    if (requestRef.current || isLoading) return;
+    if (requestRef.current || isLoading || isCheckingOut) return;
+    if (photoPending) { setStep(0); setNotice("Confirmă personajul din fotografie înainte să creezi mostra."); return; }
     if (restoredPhoto && !referencePhoto) {
       setNotice(
         "Pentru o variantă nouă, selectează din nou fotografia. Mostra deja creată poate fi aleasă fără reîncărcarea fotografiei.",
@@ -599,6 +617,7 @@ export default function AlbumCreator() {
     }
     const controller = new AbortController();
     requestRef.current = controller;
+    const startedWithSelection = selectionVersion.current;
     const timeout = window.setTimeout(() => controller.abort(), 180_000);
     setIsLoading(true);
     setNotice("");
@@ -617,6 +636,8 @@ export default function AlbumCreator() {
               ? {
                   referenceImageDataUrl: referencePhoto,
                   photoConsent: photoConsent === true,
+                  characterImageDataUrl: approvedCharacter?.characterImageDataUrl,
+                  characterToken: approvedCharacter?.characterToken,
                 }
               : {}),
           }),
@@ -629,6 +650,7 @@ export default function AlbumCreator() {
         statusUrl?: string;
         title?: string;
         qualityChecked?: boolean;
+        coverReady?: boolean;
         error?: string;
         maxAttempts?: number;
         remaining?: number;
@@ -657,7 +679,7 @@ export default function AlbumCreator() {
         configurationFingerprint,
         qualityChecked: result.qualityChecked === true,
         statusUrl: result.statusUrl,
-        pages: [
+        pages: result.coverReady === false ? [] : [
           {
             kind: "cover",
             imageUrl: result.previewUrl,
@@ -667,15 +689,20 @@ export default function AlbumCreator() {
           },
         ],
         ready: false,
-        progress: 1,
+        progress: result.coverReady === false ? 0 : 1,
         total: 3,
         startedAt: Date.now(),
       };
+      if (selectionVersion.current !== startedWithSelection) {
+        setPreviewState(current => ({ ...current, history: [...current.history.filter(item => item.orderId !== nextPreview.orderId), nextPreview].slice(-8) }));
+        return;
+      }
       setPreview(nextPreview);
       setNotice(
-        "Coperta este gata. Pregătim acum două pagini reale din poveste, pe care le vei putea răsfoi înainte de plată.",
+        "Mostra este în lucru. Poți reveni la ea din istoricul de mai jos; pregătirea continuă și dacă părăsești pagina.",
       );
     } catch (error) {
+      if (selectionVersion.current !== startedWithSelection) return;
       setNotice(
         controller.signal.aborted
           ? "Cererea a fost întreruptă. Poți încerca din nou; mostrele anterioare sunt păstrate."
@@ -720,6 +747,8 @@ export default function AlbumCreator() {
           progress?: number;
           total?: number;
           error?: string;
+          coverReady?: boolean;
+          canResume?: boolean;
         };
         if (cancelled) return;
         if (response.status === 404 || response.status === 410) {
@@ -732,7 +761,13 @@ export default function AlbumCreator() {
         if (!response.ok)
           throw new Error(result.error || "Nu am putut verifica progresul.");
         if (result.status === "failed") {
-          updatePreview({ issue: "failed", ready: false });
+          if (result.canResume && Date.now() < deadline) {
+            updatePreview({ canResume: true });
+            setNotice(result.error || "Pregătirea se reia de la etapa rămasă.");
+            timer = setTimeout(poll, 4_000);
+            return;
+          }
+          updatePreview({ issue: "failed", ready: false, canResume: result.canResume === true });
           setNotice(
             result.error ||
               "Generarea s-a oprit. Poți alege o mostră păstrată sau încerca o variantă nouă.",
@@ -755,15 +790,16 @@ export default function AlbumCreator() {
             issue: undefined,
           });
           setNotice(
-            "Mostra este gata. Răsfoiește coperta și cele două pagini; exact aceste imagini vor intra în carte după plată.",
+            "Mostra este gata. Răsfoiește coperta și cele două pagini înainte de plată. Dacă rezerva a generat la rezoluție redusă, ilustrațiile sunt refăcute la 2K pentru cartea finală, cu același personaj de referință.",
           );
           return;
         }
         const interiorProgress = Math.max(0, Math.min(2, result.progress || 0));
-        if (previewRef.current?.progress !== interiorProgress + 1)
-          updatePreview({ progress: interiorProgress + 1, total: 3 });
+        const progress = result.coverReady === false ? 0 : interiorProgress + 1;
+        if (previewRef.current?.progress !== progress || previewRef.current?.canResume !== (result.canResume === true) || (result.title && result.title !== previewRef.current?.title))
+          updatePreview({ progress, total: 3, canResume: result.canResume === true, ...(result.title ? { title: result.title } : {}) });
         setNotice(
-          interiorProgress === 0
+          progress === 0 ? "Creăm și verificăm coperta. Pregătirea continuă pe server." : interiorProgress === 0
             ? "Coperta este gata. Construim acum firul poveștii și prima scenă."
             : "Prima scenă este gata. Pregătim a doua pagină pentru răsfoire.",
         );
@@ -934,26 +970,9 @@ export default function AlbumCreator() {
     setStep((current) => Math.min(3, current + 1));
   };
 
-  const chooseReferencePhoto = async (file?: File) => {
-    if (!file) return;
-    setNotice("");
-    try {
-      const prepared = await prepareReferencePhoto(file);
-      setReferencePhoto(prepared);
-      setRestoredPhoto(false);
-      setPhotoConsent(false);
-      setPreview(null);
-      setHasConsent(false);
-    } catch (error) {
-      setNotice(
-        error instanceof Error
-          ? error.message
-          : "Fotografia nu a putut fi pregătită.",
-      );
-    }
-  };
 
   const selectPreview = (candidate: AlbumPreviewState) => {
+    selectionVersion.current += 1;
     try {
       const configuration = JSON.parse(
         candidate.configurationFingerprint,
@@ -969,10 +988,11 @@ export default function AlbumCreator() {
         }),
       );
       setReferencePhoto("");
+      setApprovedCharacter(null); setPhotoPending(false);
       setRestoredPhoto(configuration.generation.referenceMode === "photo");
       setHasConsent(false);
       setPreview(
-        candidate.issue === "paused"
+        candidate.issue === "paused" || candidate.issue === "failed"
           ? { ...candidate, issue: undefined }
           : candidate,
       );
@@ -987,6 +1007,7 @@ export default function AlbumCreator() {
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
+    if (isCheckingOut) return;
     if (step < 3) {
       goNext();
       return;
@@ -1007,13 +1028,14 @@ export default function AlbumCreator() {
       return;
     }
     if (!hasConsent) {
-      setNotice(
-        "Confirmă livrarea imediată a produsului digital înainte de plată.",
-      );
+      setConsentError("Confirmă livrarea imediată a produsului digital înainte de plată.");
+      purchaseConsentRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      purchaseConsentRef.current?.querySelector<HTMLInputElement>('input[type="checkbox"]')?.focus({ preventScroll: true });
       return;
     }
 
-    setIsLoading(true);
+    selectionVersion.current += 1;
+    setIsCheckingOut(true);
     setNotice("");
     try {
       persistDraft(activePreview);
@@ -1027,8 +1049,19 @@ export default function AlbumCreator() {
           ? error.message
           : "Plata nu a putut fi deschisă acum.",
       );
-      setIsLoading(false);
+      setIsCheckingOut(false);
     }
+  };
+
+  const resumePreview = async () => {
+    if (!activePreview?.statusUrl) return;
+    try {
+      const response = await fetch(activePreview.statusUrl, { method: "PATCH" });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Nu am putut relua mostra.");
+      setPreview(current => current ? { ...current, issue: undefined, canResume: false } : null);
+      setNotice("Reluăm aceeași mostră. Paginile deja finalizate și personajul sunt păstrate.");
+    } catch (error) { setNotice(error instanceof Error ? error.message : "Nu am putut relua mostra."); }
   };
 
   return (
@@ -1107,7 +1140,8 @@ export default function AlbumCreator() {
                     </select>
                   </label>
                 </div>
-                <details
+                <CharacterPhotoInput onChange={acceptCharacter} onPending={setPhotoPending} initial={approvedCharacter} initialPhoto={referencePhoto} style={artStyle} />
+                {!referencePhoto && !photoPending && !restoredPhoto && <details
                   className="optional-details"
                   open={appearanceExpanded}
                   onToggle={(event) =>
@@ -1197,96 +1231,8 @@ export default function AlbumCreator() {
                       </span>
                     </label>
                   </div>
-                </details>
-                <details
-                  className="optional-details"
-                  open={Boolean(referencePhoto || restoredPhoto)}
-                >
-                  <summary>Pornește de la o fotografie (opțional)</summary>
-                  {restoredPhoto && !referencePhoto && <p className="mt-3 text-sm">Fotografia nu este păstrată în browser. O poți reîncărca pentru o mostră nouă sau <button type="button" className="min-h-11 underline" onClick={() => { setRestoredPhoto(false); setPreview(null); setHasConsent(false); }}>continua numai cu descrierea</button>.</p>}
-                  <div className="grid gap-5">
-                    <div className="border border-brand-gold/55 bg-brand-gold/[0.08] p-5 sm:col-span-2">
-                      <div className="flex items-start gap-4">
-                        <span className="grid h-11 w-11 shrink-0 place-items-center bg-brand-navy text-brand-gold">
-                          <Camera size={21} />
-                        </span>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-black text-brand-navy">
-                            Fotografie de referință, opțional
-                          </p>
-                          <p className="mt-1 text-xs font-semibold leading-relaxed text-brand-navy/72">
-                            Ajută la păstrarea trăsăturilor copilului. Nu este
-                            afișată ca fotografie în poveste, nu ajunge la
-                            procesatorul de plăți și este folosită numai pentru
-                            comanda aceasta.
-                          </p>
-                        </div>
-                      </div>
-                      {referencePhoto ? (
-                        <div className="mt-5 grid gap-4 sm:grid-cols-[96px_1fr] sm:items-center">
-                          {/* A native image avoids Next.js optimizing a private in-memory data URL. */}
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={referencePhoto}
-                            alt="Fotografia de referință selectată"
-                            className="h-24 w-24 border border-brand-gold/60 object-cover"
-                          />
-                          <div>
-                            <label className="flex cursor-pointer items-start gap-3 text-xs font-bold leading-relaxed text-brand-navy/75">
-                              <input
-                                type="checkbox"
-                                checked={photoConsent}
-                                onChange={(event) =>
-                                  setPhotoConsent(event.target.checked)
-                                }
-                                className="mt-0.5 h-4 w-4 accent-brand-purple"
-                              />
-                              Confirm că sunt părintele/reprezentantul legal sau
-                              am permisiunea de a folosi această fotografie
-                              pentru generarea poveștii.
-                            </label>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setReferencePhoto("");
-                                setRestoredPhoto(false);
-                                setPhotoConsent(false);
-                                setPreview(null);
-                              }}
-                              className="mt-3 inline-flex min-h-10 items-center gap-2 text-xs font-black text-brand-purple"
-                            >
-                              <Trash2 size={15} /> Elimină fotografia
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <label className="mt-5 inline-flex min-h-11 cursor-pointer items-center gap-2 border border-brand-navy/20 bg-white px-4 text-xs font-black text-brand-navy transition hover:border-brand-purple">
-                          <Camera size={16} /> Alege fotografia
-                          <input
-                            type="file"
-                            accept="image/jpeg,image/png,image/webp"
-                            className="sr-only"
-                            onChange={(event) => {
-                              void chooseReferencePhoto(
-                                event.target.files?.[0],
-                              );
-                              event.currentTarget.value = "";
-                            }}
-                          />
-                        </label>
-                      )}
-                      <div className="mt-4 flex gap-2 border-t border-brand-navy/10 pt-4 text-[11px] font-semibold leading-relaxed text-brand-navy/72">
-                        <ShieldCheck
-                          size={17}
-                          className="shrink-0 text-brand-purple"
-                        />
-                        Fișierul este redimensionat înainte de încărcare și
-                        curățat din nou pe server. Poți crea povestea și numai
-                        din descriere.
-                      </div>
-                    </div>
-                  </div>
-                </details>
+                </details>}
+                {restoredPhoto && !referencePhoto && <p className="mt-3 text-sm">La alegerea unei mostre păstrate nu trebuie să reîncarci fotografia. Pentru un personaj nou, alege din nou fotografia.</p>}
               </fieldset>
             )}
 
@@ -1295,6 +1241,7 @@ export default function AlbumCreator() {
                 <legend className="font-serif text-3xl text-brand-navy sm:text-4xl">
                   Alege lumea și firul aventurii
                 </legend>
+                <CharacterRightsNotice />
                 <p className="mt-3 max-w-xl text-sm font-semibold leading-relaxed text-brand-navy/72">
                   Alegerile devin întâmplări, decoruri și momente reale din
                   poveste.
@@ -1375,7 +1322,13 @@ export default function AlbumCreator() {
                     <select
                       className={inputClass}
                       value={artStyle}
-                      onChange={(event) => setArtStyle(event.target.value)}
+                      onChange={(event) => {
+                        setArtStyle(event.target.value);
+                        if (referencePhoto) {
+                          setApprovedCharacter(null); setPhotoPending(true); setStep(0);
+                          setNotice("Stilul s-a schimbat. Confirmă personajul în noul stil.");
+                        }
+                      }}
                     >
                       {albumArtStyleOptions.map((option) => (
                         <option key={option}>{option}</option>
@@ -1605,6 +1558,8 @@ export default function AlbumCreator() {
                           pages={activePreview.pages}
                           childName={name}
                         />
+                      ) : activePreview.progress === 0 ? (
+                        <div className="flex min-h-40 items-center justify-center gap-3 border border-brand-navy/15 p-6 text-center text-sm" role="status"><Clock3 size={22} />Pregătim coperta. Personajul și alegerile tale sunt păstrate.</div>
                       ) : (
                         <div className="relative isolate overflow-hidden border border-brand-gold/70 bg-brand-navy shadow-[0_18px_45px_rgba(9,20,45,.18)]">
                           <Image
@@ -1648,7 +1603,7 @@ export default function AlbumCreator() {
                                   : "Verificare întreruptă"
                               : activePreview.ready
                                 ? "Mostra este completă"
-                                : activePreview.progress === 1
+                                : activePreview.progress === 0 ? "Pregătim coperta" : activePreview.progress === 1
                                   ? "Coperta este gata"
                                   : "Prima pagină este gata"}
                           </span>
@@ -1687,25 +1642,19 @@ export default function AlbumCreator() {
                         {!activePreview.ready && !activePreview.issue && (
                           <p className="mt-3 text-xs font-bold text-brand-navy/72">
                             Timp estimat rămas:{" "}
-                            {activePreview.progress === 1
+                            {activePreview.progress <= 1
                               ? "aproximativ 3-5 minute"
                               : "aproximativ 1-3 minute"}
                             . Poți păstra pagina deschisă.
                           </p>
                         )}
-                        {activePreview.issue === "paused" && (
+                        {(activePreview.issue === "paused" || activePreview.canResume) && (
                           <button
                             type="button"
                             className="mt-3 min-h-11 underline"
-                            onClick={() =>
-                              setPreview((current) =>
-                                current
-                                  ? { ...current, issue: undefined }
-                                  : null,
-                              )
-                            }
+                            onClick={() => void resumePreview()}
                           >
-                            Reia verificarea · fără încercare nouă
+                            Reia aceeași mostră · fără variantă nouă
                           </button>
                         )}
                       </div>
@@ -1727,7 +1676,7 @@ export default function AlbumCreator() {
                               ? "Mostrele deja create rămân în istoricul de mai jos. Nu trebuie să reiei completarea detaliilor."
                               : activePreview.ready
                                 ? `Marcajul dispare din produsul final. Coperta și cele două scene devin referința vizuală pentru restul cărții.${activePreview.qualityChecked ? " Toate cele trei imagini au trecut controlul automat." : ""}`
-                                : "Coperta fixează personajul. Motorul editorial scrie acum firul poveștii și creează două pagini distincte pentru verificare."}
+                                : "Personajul confirmat rămâne referința ilustrațiilor. Construim acum coperta și două pagini distincte pentru verificare."}
                           </p>
                           <button
                             type="button"
@@ -1769,7 +1718,7 @@ export default function AlbumCreator() {
                   <h3 className="text-2xl">Mostrele tale</h3>
                   <p className="mt-2 text-sm">
                     {previewLimit
-                      ? `${previewLimit.maxAttempts} mostre în 24 de ore: prima mostră și ${previewLimit.maxAttempts - 1} variante suplimentare. Variante rămase: ${previewLimit.remaining}. Dacă nu putem crea coperta, nu consumăm o variantă. Cererile repetate sunt limitate separat.`
+                      ? `${previewLimit.maxAttempts} mostre în 24 de ore: prima mostră și ${previewLimit.maxAttempts - 1} variante suplimentare. Variante rămase: ${previewLimit.remaining}. O variantă este rezervată când pornește pregătirea. Cererile repetate sunt limitate separat.`
                       : "Limita de încercări se verifică înainte de generare."}{" "}
                     Dacă o copertă a fost creată, dar paginile interioare nu se
                     finalizează, varianta rămâne contabilizată. Reluarea
@@ -1785,16 +1734,16 @@ export default function AlbumCreator() {
                       <button
                         key={item.orderId}
                         type="button"
-                        disabled={isLoading || item.issue === "expired"}
+                        disabled={isCheckingOut || item.issue === "expired"}
                         aria-pressed={activePreview?.orderId === item.orderId}
                         onClick={() => selectPreview(item)}
                         className={`min-w-0 border p-2 text-left disabled:opacity-40 ${activePreview?.orderId === item.orderId ? "border-brand-purple bg-brand-purple/10" : "border-brand-navy/15"}`}
                       >
-                        <img
+                        {item.progress > 0 ? <img
                           src={item.imageUrl}
                           alt={`Coperta mostrei ${index + 1}`}
                           className="aspect-[210/148] w-full object-contain"
-                        />
+                        /> : <div className="flex aspect-[210/148] items-center justify-center bg-brand-navy/5"><Clock3 size={24} /></div>}
                         <strong className="mt-2 block text-xs">
                           Mostra {index + 1}
                           {activePreview?.orderId === item.orderId
@@ -1833,19 +1782,20 @@ export default function AlbumCreator() {
                     caietul de activități.
                   </p>
                 </div>
-                {activePreview && commerce.acceptsPayments && (
-                  <div className="mt-6">
-                    <DigitalPurchaseConsent
-                      checked={hasConsent}
-                      onCheckedChange={setHasConsent}
-                      productLabel="Povestea Magică - Digital"
-                    />
-                  </div>
-                )}
               </div>
             )}
           </div>
 
+          {step === 3 && activePreview?.ready && commerce.acceptsPayments && (
+            <div ref={purchaseConsentRef} className="mb-5">
+              <DigitalPurchaseConsent
+                checked={hasConsent}
+                onCheckedChange={(checked) => { setHasConsent(checked); if (checked) setConsentError(""); }}
+                productLabel="Povestea Magică - Digital"
+                error={consentError}
+              />
+            </div>
+          )}
           {notice && (
             <p
               role="alert"
@@ -1877,7 +1827,7 @@ export default function AlbumCreator() {
               <button
                 type="submit"
                 disabled={
-                  isLoading ||
+                  isCheckingOut || (isLoading && !activePreview?.ready) ||
                   (activePreview?.ready
                     ? !commerce.acceptsPayments
                     : activePreview && !activePreview.issue
@@ -1887,10 +1837,12 @@ export default function AlbumCreator() {
                 }
                 className="inline-flex min-h-14 items-center gap-2 bg-brand-purple px-6 text-sm font-black text-white transition hover:bg-brand-navy disabled:cursor-not-allowed disabled:opacity-45"
               >
-                {isLoading
+                {isCheckingOut
+                  ? "Deschidem plata..."
+                  : isLoading && !activePreview?.ready
                   ? "Pregătim..."
                   : activePreview?.ready
-                    ? "Continuă către plată"
+                    ? commerce.acceptsPayments ? "Continuă către plată" : "Plățile nu sunt active momentan"
                     : activePreview?.issue
                       ? "Creează altă mostră"
                       : activePreview
@@ -1967,7 +1919,7 @@ export default function AlbumCreator() {
             și corecturilor.
           </p>
           <p className="mt-4 text-xs leading-relaxed">
-            {commerce.prices.illustratedAlbum} · Carte digitală, caiet și audio.
+            {commerce.prices.illustratedAlbum} · Carte digitală și caiet de activități.
             Plata urmează după mostra completă.
           </p>
         </aside>

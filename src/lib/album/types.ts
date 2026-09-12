@@ -118,7 +118,7 @@ export type AlbumStoryBible = {
     immutableTraits: string[];
     outfitPalette: string;
     companionDescription: string;
-    anchorAsset: "cover";
+    anchorAsset: "cover" | "characterReference";
   };
   visualLanguage: {
     palette: string;
@@ -192,4 +192,6 @@ export type AlbumOrderOutput = {
     total: number;
   };
   imageModels: string[];
+  preferredImageModel?: string;
+  assetResolutions?: Record<string, "1K" | "2K">;
 };

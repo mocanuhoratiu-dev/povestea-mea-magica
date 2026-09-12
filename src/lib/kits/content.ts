@@ -1,4 +1,5 @@
 import type { PatienceDifficulty } from "../patienceKit";
+import { storyColors, simpleStoryColor } from "../storyColors.ts";
 
 export type KitKind = "monster" | "emergency";
 export type KitInput = {
@@ -6,6 +7,7 @@ export type KitInput = {
   monster: string; context: string; interest: string; tone: string;
   appearance: string; trustedAdult: string; favoriteColor: string;
   duration: string; difficulty: PatienceDifficulty;
+  referenceMode?: "description" | "photo";
 };
 export type KitText = {
   title: string; subtitle: string; story: string[]; ending: string[];
@@ -17,7 +19,11 @@ export type KitText = {
   characterDescription: string; coverPrompt: string; scenePrompt: string;
 };
 export type PremiumKit = KitText & {
-  version: 2; kind: KitKind; assets: { cover?: string; scene?: string };
+  version: 2; kind: KitKind; assets: { cover?: string; scene?: string; characterReference?: string };
+  imageModels?: string[];
+  preferredImageModel?: string;
+  pendingArtwork?: Partial<Record<"cover" | "scene", { asset: string; model: string }>>;
+  qualityAttempts?: number;
   imageAttempts: number;
 };
 export const KIT_NAMES: Record<KitKind, string> = {
@@ -38,7 +44,7 @@ export const KIT_CONTEXT_OPTIONS = [
   ["in sala de asteptare la doctor", "În sala de așteptare"], ["in casa, ploua afara", "Acasă, pe ploaie"],
   ["in aeroport sau avion", "În aeroport sau avion"], ["la coada sau institutii", "La coadă"],
 ] as const;
-export const KIT_COLORS = { pruna: "#714965", verde: "#34786c", lila: "#6d6e99" };
+export const KIT_COLORS: Record<string, string> = { pruna: "#714965", ...Object.fromEntries(storyColors.map(c => [c.value, c.swatch])) };
 
 const record = (value: unknown): value is Record<string, unknown> => Boolean(value) && typeof value === "object" && !Array.isArray(value);
 function plain(value: unknown, max: number, fallback = "") {
@@ -50,6 +56,7 @@ export function readKitInput(value: unknown): KitInput | null {
   if (!name || !/^[\p{L}\p{M} '\-]+$/u.test(name) || !/^(?:[1-9]|10)$/.test(age)) return null;
   return {
     kitVersion: 2, type: value.type, name, age,
+    referenceMode: value.referenceMode === "photo" ? "photo" : "description",
     monster: KIT_FEAR_OPTIONS.some(([id]) => id === value.monster) ? String(value.monster) : KIT_FEAR_OPTIONS[0][0],
     context: plain(value.context, 180, value.type === "monster" ? "camera copilului" : KIT_CONTEXT_OPTIONS[0][0]),
     interest: plain(value.interest, 100), tone: plain(value.tone, 100), appearance: plain(value.appearance, 240),
@@ -94,14 +101,20 @@ export function readPremiumKit(value: unknown): PremiumKit | null {
   return { ...text, version: 2, kind: value.kind, assets: {
     ...(typeof assets.cover === "string" ? { cover: assets.cover } : {}),
     ...(typeof assets.scene === "string" ? { scene: assets.scene } : {}),
-  }, imageAttempts: Number.isInteger(value.imageAttempts) && Number(value.imageAttempts) >= 0 ? Number(value.imageAttempts) : 0 };
+    ...(typeof assets.characterReference === "string" ? { characterReference: assets.characterReference } : {}),
+  }, imageAttempts: Number.isInteger(value.imageAttempts) && Number(value.imageAttempts) >= 0 ? Number(value.imageAttempts) : 0,
+    imageModels: Array.isArray(value.imageModels) ? value.imageModels.filter((m): m is string => typeof m === "string" && /^gemini-[a-z0-9.-]+$/.test(m)).slice(0, 8) : [],
+    ...(typeof value.preferredImageModel === "string" && /^gemini-[a-z0-9.-]+$/.test(value.preferredImageModel) ? { preferredImageModel: value.preferredImageModel } : {}),
+    qualityAttempts: Number.isInteger(value.qualityAttempts) && Number(value.qualityAttempts) >= 0 ? Number(value.qualityAttempts) : 0,
+    pendingArtwork: record(value.pendingArtwork) ? Object.fromEntries(Object.entries(value.pendingArtwork).filter(([key, item]) => ["cover", "scene"].includes(key) && record(item) && typeof item.asset === "string" && typeof item.model === "string")) : {},
+  };
 }
 
 export function buildKitPrompt(input: KitInput) {
   const family = input.type === "monster" ? {
     name: input.name, age: input.age, appearance: input.appearance, fear: input.monster,
     place: input.context, familiarHelper: input.interest, eveningRitual: input.tone,
-    trustedAdult: input.trustedAdult, shieldColor: input.favoriteColor,
+    trustedAdult: input.trustedAdult, shieldColor: simpleStoryColor(input.favoriteColor === "pruna" ? "mov" : input.favoriteColor),
   } : {
     name: input.name, age: input.age, appearance: input.appearance, place: input.context,
     interests: input.interest, availableTime: input.duration, difficulty: input.difficulty,
@@ -134,7 +147,7 @@ export function kitIllustrationPrompt(kit: PremiumKit, role: "cover" | "scene") 
   return [
     "A premium fully volumetric 3D animated-feature film still for a children's illustrated book. Sculpted tactile characters, soft skin shading, physically plausible warm cinematic lighting, rich fabric and hair detail. NOT flat 2D drawing, watercolor, pen outlines or crosshatching. No text, letters, logos, frames or collage.",
     `Child design: ${kit.characterDescription}`,
-    "Lumi is the SAME tiny friendly HUMANOID female guardian as the supplied reference: round expressive face, bright eyes, golden flame-shaped hair, plum-colored cloak, a small lantern held IN HER HAND. Lumi is NOT an anthropomorphic lantern, a box, an object with legs or a different mascot. This instruction overrides any ambiguous description below.",
+    "If an approved child reference is supplied, it controls the child's identity; never replace that child with Lumi. Lumi is the SAME tiny friendly HUMANOID female guardian as the separate mascot reference, when supplied: round expressive face, bright eyes, golden flame-shaped hair, plum-colored cloak, a small lantern held IN HER HAND. Lumi is NOT an anthropomorphic lantern, a box, an object with legs or a different mascot. This instruction overrides any ambiguous description below.",
     "Keep faces, hands and important props fully inside the frame with generous safety margins. No candles, actual fire, sharp tools, dangerous experiments or real monsters. A shield is made from paper/cardboard, not blades or weapons.",
     role === "cover" ? kit.coverPrompt : kit.scenePrompt,
   ].join(" ");

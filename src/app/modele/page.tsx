@@ -71,7 +71,7 @@ const models = [
     price: commerce.prices.patienceKit,
     pageCount: "10 pagini A4",
     description: "Un mister ilustrat pentru copil, cu radar, labirint, diferențe, desen, misiuni detașabile și un plic de construit.",
-    readerNote: "Paginile alternează între observare, logică, desen, colorat și joc verbal. Labirintul și diferențele folosesc structuri validate, iar AI-ul personalizează restul selecției.",
+    readerNote: "Paginile alternează între observare, logică, desen, colorat și joc verbal. Labirintul și diferențele folosesc structuri validate, iar AI-ul personalizează restul selecției. La final: Diploma Micilor Descoperiri, cu numele copilului, în format A4 orizontal.",
     href: "/trusa-de-rabdare",
     cta: "Deschide dosarul",
     accent: "text-brand-orange",

@@ -14,7 +14,7 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
   KIT_COLORS,
   KIT_CONTEXT_OPTIONS,
@@ -46,6 +46,9 @@ import VerifiedReviewForm from "./VerifiedReviewForm";
 import PremiumKitReader from "./PremiumKitReader";
 import PremiumKitPrint, { renderPremiumKitPdf } from "./PremiumKitPrint";
 import "./premium-kit.css";
+import CharacterPhotoInput from "./CharacterPhotoInput";
+import CharacterRightsNotice from "./CharacterRightsNotice";
+import { describePhotoTraits, type ApprovedCharacter } from "@/lib/characterPhotoPolicy";
 
 const LegacyMonster = dynamic(() => import("./LegacyMonsterKit"));
 const LegacyEmergency = dynamic(() => import("./LegacyEmergencyKit"));
@@ -71,6 +74,12 @@ export default function PremiumKitCreator({ kind }: { kind: KitKind }) {
   const [step, setStep] = useState(0),
     [consent, setConsent] = useState(false),
     [preview, setPreview] = useState(false);
+  const [character, setCharacter] = useState<ApprovedCharacter | null>(null);
+  const [photoPending, setPhotoPending] = useState(false);
+  const acceptCharacter = useCallback((value: ApprovedCharacter | null) => {
+    setCharacter(value); setPreview(false);
+    setDraft(previous => ({ ...previous, appearance: value ? describePhotoTraits(value.traits).slice(0, 240) : "" }));
+  }, []);
   const [busy, setBusy] = useState(false),
     [downloading, setDownloading] = useState(false),
     [error, setError] = useState("");
@@ -87,7 +96,7 @@ export default function PremiumKitCreator({ kind }: { kind: KitKind }) {
     exportBusy = useRef(false);
   const owner = `premium-kit-${kind}`,
     price = night ? commerce.prices.nightShield : commerce.prices.patienceKit;
-  const input = readKitInput({ ...draft, type: kind, kitVersion: 2 });
+  const input = readKitInput({ ...draft, type: kind, kitVersion: 2, referenceMode: character ? "photo" : "description" });
   const samplePages = useMemo(
     () => buildKitPages(sample.input, sample.kit),
     [sample],
@@ -226,6 +235,7 @@ export default function PremiumKitCreator({ kind }: { kind: KitKind }) {
   const submit = (event: FormEvent) => {
     event.preventDefault();
     setError("");
+    if (photoPending) { setError("Confirmă personajul din fotografie înainte să continui."); return; }
     if (!input) {
       setError(
         "Completează numele copilului folosind litere și verifică vârsta.",
@@ -253,7 +263,7 @@ export default function PremiumKitCreator({ kind }: { kind: KitKind }) {
       if (commerce.acceptsPayments) {
         await beginOrderCheckout(night ? "night-shield" : "patience-kit", {
           generation: input,
-        });
+        }, character ? { ...character, photoConsent: true } : undefined);
         return;
       }
       setPreview(false);
@@ -262,7 +272,7 @@ export default function PremiumKitCreator({ kind }: { kind: KitKind }) {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(input),
+          body: JSON.stringify({ ...input, ...(character ? { referenceCharacter: { ...character, photoConsent: true } } : {}) }),
         },
         "generate",
       );
@@ -465,6 +475,12 @@ export default function PremiumKitCreator({ kind }: { kind: KitKind }) {
               este A4 landscape, iar celelalte pagini sunt A4 portret.
             </p>
           )}
+          {!night && (
+            <p className="pk-small">
+              Zece pagini de descoperit, cu Diploma Micilor Descoperiri la final.
+              Diploma se imprimă A4 orizontal; activitățile sunt A4 portret.
+            </p>
+          )}
         </div>
         <PremiumKitReader
           pages={samplePages}
@@ -485,8 +501,8 @@ export default function PremiumKitCreator({ kind }: { kind: KitKind }) {
               : "Alegeți locul și timpul disponibil. Pasul următor poate începe chiar cu o pasiune a copilului."}
           </p>
           <p className="pk-small">
-            Nu avem nevoie de fotografii sau de date sensibile. Descrierea
-            aspectului este opțională.
+            Poți porni din descriere sau dintr-o fotografie. Alegi și confirmi
+            personajul înainte de a continua.
           </p>
         </div>
         <form className="pk-form" onSubmit={submit}>
@@ -526,7 +542,8 @@ export default function PremiumKitCreator({ kind }: { kind: KitKind }) {
                   </select>
                 </label>
               </div>
-              {field("appearance", "Cum arată? (opțional)", {
+              <CharacterPhotoInput initial={character} onChange={acceptCharacter} onPending={setPhotoPending} />
+              {!character && !photoPending && field("appearance", "Cum arată? (opțional)", {
                 max: 240,
                 area: true,
                 placeholder: "Păr, ochi, o ținută preferată...",
@@ -538,6 +555,7 @@ export default function PremiumKitCreator({ kind }: { kind: KitKind }) {
             </>
           ) : (
             <>
+              <CharacterRightsNotice />
               {night ? (
                 <>
                   <fieldset className="pk-choice">
@@ -653,7 +671,7 @@ export default function PremiumKitCreator({ kind }: { kind: KitKind }) {
                 Înapoi
               </button>
             )}
-            <button className="pk-primary" disabled={busy} type="submit">
+            <button className="pk-primary" disabled={busy || photoPending} type="submit">
               {busy
                 ? "Pregătim aventura..."
                 : step === 0

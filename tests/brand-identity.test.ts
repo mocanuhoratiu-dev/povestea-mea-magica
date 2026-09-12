@@ -21,7 +21,7 @@ test("all transactional emails use the master identity and escape the child name
     assert(html.includes("#0b2035"));
     assert(html.includes("#f2cd7a"));
     assert(!html.includes("Ana <script>"));
-    assert(html.includes("Ana &lt;script&gt;"));
+    assert(html.includes(product === "bundle" || product === "complete_bundle" ? "Pentru familia voastră" : "Ana &lt;script&gt;"));
     assert(html.includes("30 de zile"));
   }
 });

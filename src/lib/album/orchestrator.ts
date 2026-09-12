@@ -11,6 +11,7 @@ import { evaluateAlbumImage, isAlbumAiQualityEnabled } from "@/lib/album/quality
 import { synthesizeRomanianSpeech } from "@/lib/googleTextToSpeech";
 import { AlbumQualityUnavailableError } from "./qualityPolicy";
 import { buildAlbumImageRetryPrompt, type AlbumImageCandidate } from "@/lib/album/imageQualityPolicy";
+import { ALBUM_AUDIO_ENABLED } from "./features";
 
 type Checkpoint = (output: AlbumOrderOutput) => Promise<void>;
 type VisualFingerprint = Uint8Array;
@@ -100,6 +101,10 @@ async function generateAndStoreImage({
   beforeCall,
   beforeQualityCall,
   pending,
+  preferredModel,
+  additionalReference,
+  require2K = true,
+  referencePurpose = "character",
 }: {
   orderId: string;
   basename: string;
@@ -109,8 +114,12 @@ async function generateAndStoreImage({
   attempt?: number;
   aspectRatio?: "4:3" | "3:2" | "16:9";
   avoidFingerprints?: VisualFingerprint[];
-  beforeCall: () => Promise<void>;
-  beforeQualityCall: () => Promise<void>;
+  beforeCall: (model?: string) => Promise<void>;
+  beforeQualityCall: (model?: string) => Promise<void>;
+  preferredModel?: string;
+  additionalReference?: string;
+  require2K?: boolean;
+  referencePurpose?: "character" | "photo";
   pending?: { read: (key: string) => { objectName: string; model: string } | undefined; write: (key: string, value?: { objectName: string; model: string }) => Promise<void> };
 }) {
   const startedAt = Date.now();
@@ -145,7 +154,9 @@ async function generateAndStoreImage({
       technicalScore: quality.technicalScore,
       qualityFallback: false,
     });
-    return { objectName, model: candidate.value.model, fingerprint: candidate.value.fingerprint, quality };
+    const metadata = await sharp(decodeImageDataUrl(candidate.value.imageDataUrl)).metadata();
+    const resolution: "1K" | "2K" = Math.max(metadata.width || 0, metadata.height || 0) >= 1536 && Math.min(metadata.width || 0, metadata.height || 0) >= 1024 ? "2K" : "1K";
+    return { objectName, model: candidate.value.model, fingerprint: candidate.value.fingerprint, quality, resolution };
   };
 
   for (let generationAttempt = 1; generationAttempt <= maxAttempts; generationAttempt += 1) {
@@ -153,8 +164,15 @@ async function generateAndStoreImage({
       const savedCandidate = pending?.read(basename);
       const generated = savedCandidate
         ? { imageDataUrl: await readOrderCover(savedCandidate.objectName), model: savedCandidate.model }
-        : await generateVertexAlbumIllustration(activePrompt, reference, aspectRatio, { beforeAttempt: beforeCall });
-      if ("error" in generated) throw new Error(generated.error);
+        : await generateVertexAlbumIllustration(activePrompt, reference, aspectRatio, { beforeAttempt: beforeCall, preferredModel, require2K, referencePurpose, additionalReferenceDataUrl: additionalReference });
+      if ("error" in generated) throw new Error(generated.rejection ? `provider_rejected ${generated.error}` : generated.error);
+      if (require2K) {
+        const metadata = await sharp(decodeImageDataUrl(generated.imageDataUrl)).metadata();
+        if (Math.max(metadata.width || 0, metadata.height || 0) < 1536 || Math.min(metadata.width || 0, metadata.height || 0) < 1024) {
+          await pending?.write(basename);
+          throw new AlbumImageQualityError("image_low_resolution", "Ilustrația finală trebuie să aibă rezoluție nativă 2K.");
+        }
+      }
       const fingerprint = await inspectGeneratedImage(generated.imageDataUrl, avoidFingerprints);
       if (!savedCandidate && pending) {
         const objectName = await saveOrderCover(orderId, generated.imageDataUrl, `${basename}-pending`);
@@ -168,6 +186,8 @@ async function generateAndStoreImage({
         expectedAspectRatio: aspectRatio,
         identityRequired: Boolean(reference),
         beforeAiCheck: beforeQualityCall,
+        referencePurpose,
+        thresholds: { identity: referencePurpose === "photo" ? 85 : 88 },
       });
       const candidate = { value: { imageDataUrl: generated.imageDataUrl, model: generated.model, fingerprint }, quality };
       if (quality.accepted) return saveCandidate(candidate, generationAttempt);
@@ -205,13 +225,11 @@ function readBoundedInteger(value: string | undefined, fallback: number, min: nu
 
 async function generatePlanWithTelemetry(
   configuration: AlbumConfiguration,
-  previewTitle: string | undefined,
-  beforeAttempt: () => Promise<void>,
+  beforeAttempt: (model?: string) => Promise<void>,
 ) {
   const startedAt = Date.now();
   try {
-    const generatedPlan = await generateAlbumPlan(configuration.generation, { beforeAttempt });
-    const plan = previewTitle ? { ...generatedPlan, title: previewTitle } : generatedPlan;
+    const plan = await generateAlbumPlan(configuration.generation, { beforeAttempt });
     logTelemetry("pmm_album_stage_completed", {
       product: "album",
       result: "success",
@@ -261,11 +279,11 @@ export async function createAlbumPreviewScenes({
   if (!output?.assets.cover) throw new Error("Coperta aprobată lipsește din preview.");
   output = { ...output, budget: createAlbumBudget(output.budget) };
 
-  const reserve = async (kind: AlbumBudgetCall) => {
-    output = { ...output as AlbumOrderOutput, budget: reserveAlbumBudgetCall((output as AlbumOrderOutput).budget, kind) };
+  const reserve = async (kind: AlbumBudgetCall, model?: string) => {
+    output = { ...output as AlbumOrderOutput, budget: reserveAlbumBudgetCall((output as AlbumOrderOutput).budget, kind, model) };
     await checkpoint(output);
   };
-  const beforeImageCall = () => reserve("image");
+  const beforeImageCall = (model?: string) => reserve("image", model);
   const pending = {
     read: (key: string) => output?.pendingImages?.[key],
     write: async (key: string, value?: { objectName: string; model: string }) => {
@@ -274,8 +292,8 @@ export async function createAlbumPreviewScenes({
       output = { ...output!, pendingImages }; await checkpoint(output);
     },
   };
-  const beforeQualityCall = async () => {
-    if (isAlbumAiQualityEnabled()) await reserve("quality");
+  const beforeQualityCall = async (model?: string) => {
+    if (isAlbumAiQualityEnabled()) await reserve("quality", model);
   };
   const addQuality = (result: AlbumQualityResult) => [
     ...(output as AlbumOrderOutput).quality.filter((item) => item.asset !== result.asset),
@@ -283,15 +301,23 @@ export async function createAlbumPreviewScenes({
   ];
 
   if (!output.plan) {
-    const plan = await generatePlanWithTelemetry(configuration, output.previewTitle, () => reserve("text"));
-    output = { ...output, plan, progress: { stage: "scenes", current: 0, total: ALBUM_SCENE_COUNT } };
+    const plan = await generatePlanWithTelemetry(configuration, (model) => reserve("text", model));
+    output = { ...output, plan, previewTitle: plan.title, progress: { stage: "scenes", current: 0, total: ALBUM_SCENE_COUNT } };
     await checkpoint(output);
   }
 
   const coverObjectName = output.assets.cover;
   const plan = output.plan;
   if (!coverObjectName || !plan) throw new Error("Preview-ul nu are coperta și planul necesare.");
-  const reference = await readOrderCover(coverObjectName);
+  if (!output.assets.characterReference) {
+    const character = await generateAndStoreImage({ orderId, basename: "album-character-reference", prompt: plan.characterPrompt,
+      reference: await readOrderCover(output.assets.sourceReference || coverObjectName), referencePurpose: output.assets.sourceReference ? "photo" : "character",
+      stage: "cover", require2K: false, preferredModel: output.preferredImageModel, beforeCall: beforeImageCall, beforeQualityCall, pending });
+    output = { ...output, assets: { ...output.assets, characterReference: character.objectName }, imageModels: withModel(output, character.model), quality: addQuality(character.quality) };
+    await checkpoint(output);
+  }
+  const reference = await readOrderCover(output.assets.characterReference!);
+  const compositionReference = await readOrderCover(coverObjectName);
   const fingerprints: VisualFingerprint[] = [];
   for (let index = 0; index < ALBUM_PREVIEW_SCENE_COUNT; index += 1) {
     if (output.assets.scenes[index]) {
@@ -303,6 +329,9 @@ export async function createAlbumPreviewScenes({
       basename: `album-scene-${String(index + 1).padStart(2, "0")}`,
       prompt: plan.scenes[index].imagePrompt,
       reference,
+      additionalReference: compositionReference,
+      preferredModel: output.preferredImageModel,
+      require2K: false,
       stage: "scene",
       attempt: index + 1,
       aspectRatio: "3:2",
@@ -318,6 +347,7 @@ export async function createAlbumPreviewScenes({
       assets: { ...output.assets, scenes },
       imageModels: withModel(output, generated.model),
       quality: addQuality(generated.quality),
+      assetResolutions: { ...output.assetResolutions, [`album-scene-${String(index + 1).padStart(2, "0")}`]: generated.resolution },
       progress: { stage: "scenes", current: scenes.filter(Boolean).length, total: ALBUM_SCENE_COUNT },
     };
     fingerprints.push(generated.fingerprint);
@@ -340,11 +370,11 @@ export async function createAlbumOrderOutput({
 }) {
   let output = readAlbumOutput(existing) || initialOutput();
   output = { ...output, budget: createAlbumBudget(output.budget) };
-  const reserve = async (kind: AlbumBudgetCall) => {
-    output = { ...output, budget: reserveAlbumBudgetCall(output.budget, kind) };
+  const reserve = async (kind: AlbumBudgetCall, model?: string) => {
+    output = { ...output, budget: reserveAlbumBudgetCall(output.budget, kind, model) };
     await checkpoint(output);
   };
-  const beforeImageCall = () => reserve("image");
+  const beforeImageCall = (model?: string) => reserve("image", model);
   const pending = {
     read: (key: string) => output.pendingImages?.[key],
     write: async (key: string, value?: { objectName: string; model: string }) => {
@@ -353,8 +383,8 @@ export async function createAlbumOrderOutput({
       output = { ...output, pendingImages }; await checkpoint(output);
     },
   };
-  const beforeQualityCall = async () => {
-    if (isAlbumAiQualityEnabled()) await reserve("quality");
+  const beforeQualityCall = async (model?: string) => {
+    if (isAlbumAiQualityEnabled()) await reserve("quality", model);
   };
   const addQuality = (result: AlbumQualityResult) => [
     ...output.quality.filter((item) => item.asset !== result.asset),
@@ -362,20 +392,24 @@ export async function createAlbumOrderOutput({
   ];
 
   if (!output.plan) {
-    const plan = await generatePlanWithTelemetry(configuration, output.previewTitle, () => reserve("text"));
-    output = { ...output, plan, progress: { stage: "cover", current: 0, total: ALBUM_SCENE_COUNT } };
+    const plan = await generatePlanWithTelemetry(configuration, (model) => reserve("text", model));
+    output = { ...output, plan, previewTitle: plan.title, progress: { stage: "cover", current: 0, total: ALBUM_SCENE_COUNT } };
     await checkpoint(output);
   }
 
   const plan = output.plan;
   if (!plan) throw new Error("Planul albumului lipsește după etapa de generare.");
 
-  if (!output.assets.characterReference && !output.assets.cover) {
+  if (!output.assets.characterReference) {
     const characterReference = await generateAndStoreImage({
       orderId,
       basename: "album-character-reference",
       pending,
       prompt: plan.characterPrompt,
+      reference: output.assets.sourceReference || output.assets.cover ? await readOrderCover((output.assets.sourceReference || output.assets.cover)!) : undefined,
+      referencePurpose: output.assets.sourceReference ? "photo" : "character",
+      preferredModel: output.preferredImageModel,
+      require2K: false,
       stage: "cover",
       beforeCall: beforeImageCall,
       beforeQualityCall,
@@ -389,17 +423,18 @@ export async function createAlbumOrderOutput({
     await checkpoint(output);
   }
 
-  const referenceObjectName = output.assets.cover || output.assets.characterReference;
+  const referenceObjectName = output.assets.characterReference;
   if (!referenceObjectName) throw new Error("Referința vizuală a personajului lipsește.");
   const reference = await readOrderCover(referenceObjectName);
 
-  if (!output.assets.cover) {
-    const cover = await generateAndStoreImage({ orderId, basename: "album-cover", prompt: plan.coverPrompt, reference, stage: "cover", beforeCall: beforeImageCall, beforeQualityCall, pending });
+  if (!output.assets.cover || output.assetResolutions?.["album-cover"] === "1K") {
+    const cover = await generateAndStoreImage({ orderId, basename: "album-cover", prompt: plan.coverPrompt, reference, preferredModel: output.preferredImageModel, stage: "cover", beforeCall: beforeImageCall, beforeQualityCall, pending });
     output = {
       ...output,
       assets: { ...output.assets, cover: cover.objectName },
       imageModels: withModel(output, cover.model),
       quality: addQuality(cover.quality),
+      assetResolutions: { ...output.assetResolutions, "album-cover": cover.resolution },
       progress: { stage: "scenes", current: output.assets.scenes.filter(Boolean).length, total: ALBUM_SCENE_COUNT },
     };
     await checkpoint(output);
@@ -409,15 +444,17 @@ export async function createAlbumOrderOutput({
   if (!coverObjectName) throw new Error("Coperta albumului lipsește după etapa de generare.");
   const pacingMs = readBoundedInteger(process.env.ALBUM_IMAGE_PACING_MS, 4_000, 0, 30_000);
   const sceneFingerprints: VisualFingerprint[] = await Promise.all(
-    output.assets.scenes.filter(Boolean).map(async (objectName) => createVisualFingerprint((await readOrderFile(objectName)).buffer)),
+    output.assets.scenes.filter((objectName, index) => Boolean(objectName) && output.assetResolutions?.[`album-scene-${String(index + 1).padStart(2, "0")}`] !== "1K").map(async (objectName) => createVisualFingerprint((await readOrderFile(objectName)).buffer)),
   );
   for (let index = 0; index < ALBUM_SCENE_COUNT; index += 1) {
-    if (output.assets.scenes[index]) continue;
+    if (output.assets.scenes[index] && output.assetResolutions?.[`album-scene-${String(index + 1).padStart(2, "0")}`] !== "1K") continue;
     const generated = await generateAndStoreImage({
       orderId,
       basename: `album-scene-${String(index + 1).padStart(2, "0")}`,
       prompt: plan.scenes[index].imagePrompt,
       reference,
+      preferredModel: output.preferredImageModel,
+      additionalReference: await readOrderCover(coverObjectName),
       stage: "scene",
       attempt: index + 1,
       aspectRatio: "3:2",
@@ -433,6 +470,7 @@ export async function createAlbumOrderOutput({
       assets: { ...output.assets, scenes },
       imageModels: withModel(output, generated.model),
       quality: addQuality(generated.quality),
+      assetResolutions: { ...output.assetResolutions, [`album-scene-${String(index + 1).padStart(2, "0")}`]: generated.resolution },
       progress: { stage: "scenes", current: scenes.filter(Boolean).length, total: ALBUM_SCENE_COUNT },
     };
     sceneFingerprints.push(generated.fingerprint);
@@ -453,6 +491,7 @@ export async function createAlbumOrderOutput({
       pending,
       prompt: plan.coloringPrompt,
       reference,
+      preferredModel: output.preferredImageModel,
       stage: "coloring",
       aspectRatio: "4:3",
       beforeCall: beforeImageCall,
@@ -517,7 +556,7 @@ export async function createAlbumOrderOutput({
     }
   }
 
-  if (output.documents && !output.documents.narration) {
+  if (ALBUM_AUDIO_ENABLED && output.documents && !output.documents.narration) {
     const startedAt = Date.now();
     try {
       const narrationText = [plan.title, ...plan.scenes.flatMap((scene) => [scene.heading, scene.text])].join(". ");

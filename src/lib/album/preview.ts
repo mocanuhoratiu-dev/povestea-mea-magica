@@ -2,13 +2,14 @@ import sharp from "sharp";
 import { albumPreviewTitle, buildAlbumPreviewPrompt, buildAlbumPreviewRetryPrompt } from "@/lib/album/previewPrompt";
 import { albumWorldLabel } from "@/lib/album/schema";
 import type { AlbumConfiguration, AlbumOrderOutput, AlbumQualityResult } from "@/lib/album/types";
-import { saveOrderCover } from "@/lib/orders";
+import { saveOrderCover, readOrderCover } from "@/lib/orders";
 import { logTelemetry } from "@/lib/telemetry";
 import { generateVertexAlbumIllustration } from "@/lib/vertexImage";
 import { createAlbumBudget, reserveAlbumBudgetCall } from "@/lib/album/budget";
 import { evaluateAlbumImage, isAlbumAiQualityEnabled } from "@/lib/album/quality";
 import { AlbumQualityUnavailableError } from "./qualityPolicy";
 import { AlbumPreviewError, previewFailureCode, previewRetryDelay, type PreviewFailureCode } from "./previewFailure";
+import { isTerminalModelError } from "../modelFallback";
 
 function decodePreview(imageDataUrl: string) {
   const match = /^data:image\/(?:png|jpeg|webp);base64,([a-zA-Z0-9+/=]+)$/.exec(imageDataUrl);
@@ -25,7 +26,7 @@ function wait(milliseconds: number) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
-export async function generateAlbumPreview(orderId: string, configuration: AlbumConfiguration, options: { referenceImageDataUrl?: string; sourceReference?: string } = {}) {
+export async function generateAlbumPreview(orderId: string, configuration: AlbumConfiguration, options: { referenceImageDataUrl?: string; sourceReference?: string; characterReference?: string; preferredModel?: string; existing?: AlbumOrderOutput; checkpoint?: (output: AlbumOrderOutput) => Promise<void> } = {}) {
   // Leave time for storage and the HTTP response before the browser's 180s limit.
   const deadlineAt = Date.now() + 150_000;
   const prompt = buildAlbumPreviewPrompt(
@@ -33,20 +34,24 @@ export async function generateAlbumPreview(orderId: string, configuration: Album
     albumWorldLabel(configuration.generation.world, configuration.generation.customWorld),
   );
   const previewTitle = albumPreviewTitle(configuration.generation);
-  let budget = createAlbumBudget();
+  let progress: AlbumOrderOutput = options.existing || { kind: "illustrated-album", assets: { scenes: Array.from({ length: 13 }, () => "") }, quality: [], imageModels: [], budget: createAlbumBudget(), progress: { stage: "cover", current: 0, total: 13 } };
+  let budget = createAlbumBudget(progress.budget);
+  const checkpoint = async () => { progress = { ...progress, budget }; await options.checkpoint?.(progress); };
   const maxAttempts = readBoundedInteger(process.env.ALBUM_PREVIEW_MAX_ATTEMPTS, 2, 1, 3);
   const retryDelayMs = readBoundedInteger(process.env.ALBUM_PREVIEW_RETRY_DELAY_MS, 1_200, 0, 5_000);
   const qualityResults: AlbumQualityResult[] = [];
-  let acceptedCandidate: { imageDataUrl: string; model: string; quality: AlbumQualityResult } | null = null;
+  let acceptedCandidate: { imageDataUrl: string; model: string; resolution: "1K" | "2K"; quality: AlbumQualityResult } | null = null;
   let attemptPrompt = prompt;
   let lastError: unknown;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     if (deadlineAt - Date.now() < 15_000) break;
     try {
-      const generated = await generateVertexAlbumIllustration(attemptPrompt, options.referenceImageDataUrl, "3:2", {
-        beforeAttempt: async () => { budget = reserveAlbumBudgetCall(budget, "image"); },
-        referencePurpose: configuration.generation.referenceMode === "photo" ? "photo" : "character",
+      const pending = progress.pendingImages?.["album-cover-preview"];
+      const generated = pending ? { imageDataUrl: await readOrderCover(pending.objectName), model: pending.model, resolution: progress.assetResolutions?.["album-cover"] || "1K" as const } : await generateVertexAlbumIllustration(attemptPrompt, options.referenceImageDataUrl, "3:2", {
+        beforeAttempt: async (model) => { budget = reserveAlbumBudgetCall(budget, "image", model); await checkpoint(); },
+        referencePurpose: "character",
+        preferredModel: options.preferredModel,
         deadlineAt: deadlineAt - 12_000,
       });
       if ("error" in generated) {
@@ -55,24 +60,30 @@ export async function generateAlbumPreview(orderId: string, configuration: Album
       }
 
       const metadata = await sharp(decodePreview(generated.imageDataUrl)).metadata();
+      if (!pending) {
+        const objectName = await saveOrderCover(orderId, generated.imageDataUrl, "album-cover-preview-pending");
+        progress = { ...progress, pendingImages: { ...progress.pendingImages, "album-cover-preview": { objectName, model: generated.model } }, assetResolutions: { ...progress.assetResolutions, "album-cover": generated.resolution } };
+        await checkpoint();
+      }
       if (!metadata.width || !metadata.height || metadata.width < 768 || metadata.height < 512) {
         throw new Error("Preview-ul primit nu are rezoluția necesară pentru album.");
       }
 
       const quality = await evaluateAlbumImage({
-        beforeAiCheck: async () => { if (isAlbumAiQualityEnabled()) budget = reserveAlbumBudgetCall(budget, "quality"); },
+        beforeAiCheck: async (model) => { if (isAlbumAiQualityEnabled()) { budget = reserveAlbumBudgetCall(budget, "quality", model); await checkpoint(); } },
         asset: `cover-preview-attempt-${attempt}`,
         candidateDataUrl: generated.imageDataUrl,
         referenceDataUrl: options.referenceImageDataUrl,
         prompt,
         expectedAspectRatio: "3:2",
         identityRequired: Boolean(options.referenceImageDataUrl),
-        referencePurpose: configuration.generation.referenceMode === "photo" ? "photo" : "character",
+        referencePurpose: "character",
+        thresholds: { identity: options.characterReference ? 88 : 82 },
         deadlineAt,
       });
       qualityResults.push(quality);
       if (quality.accepted) {
-        acceptedCandidate = { imageDataUrl: generated.imageDataUrl, model: generated.model, quality };
+        acceptedCandidate = { imageDataUrl: generated.imageDataUrl, model: generated.model, resolution: generated.resolution, quality };
         break;
       }
 
@@ -82,11 +93,13 @@ export async function generateAlbumPreview(orderId: string, configuration: Album
         identityScore: quality.identityScore,
         storyScore: quality.storyScore,
         technicalScore: quality.technicalScore,
-        notes: quality.notes,
       }));
+      const pendingImages = { ...progress.pendingImages }; delete pendingImages["album-cover-preview"];
+      progress = { ...progress, pendingImages }; await checkpoint();
       lastError = new AlbumPreviewError("quality_rejected");
       attemptPrompt = buildAlbumPreviewRetryPrompt(prompt, quality);
     } catch (error) {
+      if (isTerminalModelError(error)) throw error;
       if (error instanceof AlbumQualityUnavailableError) throw error;
       if (previewFailureCode(error) === "provider_rejected") {
         console.warn("Album preview provider rejected", JSON.stringify({
@@ -98,7 +111,7 @@ export async function generateAlbumPreview(orderId: string, configuration: Album
       lastError = error;
       console.warn("Album preview generation attempt failed", JSON.stringify({
         attempt,
-        reason: error instanceof Error ? error.message.slice(0, 180) : "unknown",
+        reason: previewFailureCode(error),
       }));
     }
 
@@ -115,17 +128,22 @@ export async function generateAlbumPreview(orderId: string, configuration: Album
 
   const objectName = await saveOrderCover(orderId, acceptedCandidate.imageDataUrl, "album-cover");
   const output: AlbumOrderOutput = {
+    ...progress,
     kind: "illustrated-album",
     previewTitle,
     assets: {
       ...(options.sourceReference ? { sourceReference: options.sourceReference } : {}),
+      ...(options.characterReference ? { characterReference: options.characterReference } : {}),
       cover: objectName,
       scenes: Array.from({ length: 13 }, () => ""),
     },
     progress: { stage: "planning", current: 0, total: 13 },
     imageModels: [acceptedCandidate.model],
+    preferredImageModel: acceptedCandidate.model,
+    assetResolutions: { "album-cover": acceptedCandidate.resolution },
     quality: qualityResults,
     budget,
+    pendingImages: {},
   };
 
   return { objectName, output, model: acceptedCandidate.model, title: previewTitle };

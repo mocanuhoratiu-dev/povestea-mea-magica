@@ -1,6 +1,7 @@
 import { KIT_COLORS, KIT_NAMES, type KitInput, type PremiumKit } from "./content.ts";
 import { DIFFERENCE_ANSWERS, differencesSVG, envelopeSVG, escapeHtml as e, mazeSVG, shieldSVG } from "./graphics.ts";
 import { shieldKeepsakePages } from "./shieldKeepsakes.ts";
+import { explorerKeepsakePage } from "./explorerKeepsake.ts";
 import type { KitPageOrientation } from "./pageGeometry.ts";
 
 export type KitPage = { title: string; html: string; orientation?: KitPageOrientation };
@@ -46,7 +47,8 @@ export function buildKitPages(input: KitInput, kit: PremiumKit, watermark = fals
     add('Misiuni de buzunar', heading('DE PĂSTRAT · DE DECUPAT','Patru misiuni în buzunar.','Un adult decupează biletele. Alegeți unul când mai aveți câteva minute de așteptat.') + body(`<div class="tickets">${kit.tickets.map((x,i)=>`<div class="ticket"><b>MISIUNEA 0${i+1}</b><h3>${e(x.title)}</h3><p>${e(x.text)}</p><footer>Împreună · fără grabă</footer></div>`).join('')}</div><p class="tiny" style="margin-top:20px">Nu sunt teste. Opriți-vă când momentul vostru de așteptare s-a încheiat.</p>`));
     add('Plicul se deschide', heading('CAZ REZOLVAT','Trei litere. O descoperire.') + body(`<div class="code-strip" style="justify-content:center">${kit.codeWord.split('').map(x=>`<span class="code-cell">${x}</span>`).join('')}</div>${paragraphs(kit.ending.slice(0,1))}${quote(kit.discovery)}${paragraphs(kit.ending.slice(1))}${envelopeSVG(input.name)}<p class="tiny">Numele lumii noastre: __________________________________</p>`));
     add('Răspunsurile adultului', heading('PENTRU ADULT','Tu citești. Copilul descoperă.','Literele sunt indicii citite împreună, nu un test de citire.') + body(`<div class="answers"><div class="answer-row"><b>${kit.codeWord[0]}</b><div><strong>Radarul</strong><p>Răspunsuri deschise. Acceptăm un obiect potrivit sau un desen inventat.</p></div></div><div class="answer-row"><b>${kit.codeWord[1]}</b><div><strong>Traseul curierului</strong><div class="answer-maze">${mazeSVG(input.difficulty,true)}</div><p>Soluția verificată pornește din stânga sus și se încheie în dreapta jos.</p></div></div><div class="answer-row"><b>${kit.codeWord[2]}</b><div><strong>Trei diferențe, exact</strong><p>${DIFFERENCE_ANSWERS.map(e).join(' ')}</p></div></div></div>${note(kit.parentMessage)}<p class="tiny" style="margin-top:16px">Rămânem în locul ales. Nu folosim obiecte fierbinți, ascuțite sau fragile. Putem opri jocul oricând.</p>`));
-    add('Explorator de lumi mici', heading('ÎNCHEIAT CU IMAGINAȚIE',`${input.name}, explorator de lumi mici.`) + body(`<div class="award-initial">${e(initial)}</div><p>Ai observat. Ai întrebat.<br>Ai inventat un drum nou.</p><p>Păstrează ideile tale pentru următoarea ieșire.</p><div class="explorer-keepsake"><span>DIN JURNALUL EXPEDIȚIEI</span><div>Locul pe care l-am descoperit:<i></i></div><div>O idee pe care vreau să o păstrez:<i></i></div></div><p class="tiny">Semnătura exploratorului: ______________________</p>`), 'closing');
+    const diploma = explorerKeepsakePage(input);
+    add(diploma.title, diploma.html, diploma.extra, diploma.orientation);
   }
   if (input.type === 'monster') {
     for (const page of shieldKeepsakePages(input, kit)) add(page.title, page.html, page.extra, page.orientation);

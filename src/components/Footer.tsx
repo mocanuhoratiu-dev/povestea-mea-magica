@@ -108,7 +108,8 @@ export default function Footer() {
         </div>
         <div className="flex flex-col gap-3 pt-8 text-sm font-medium text-brand-cream/65 md:flex-row md:items-center md:justify-between">
           <p>© 2026 {legalOperator.name} · CUI {legalOperator.cui}</p>
-          <p>Ediții digitale. De citit, de ascultat, de descoperit împreună.</p>
+          <p>Ediții digitale. De citit și de descoperit împreună.</p>
+          <p className="mt-2">În curând, și ediții tipărite: cărți de povești, seturi pentru ritualul de seară și caiete de activități. Comenzile de acum includ doar materialele digitale.</p>
         </div>
       </div>
     </footer>

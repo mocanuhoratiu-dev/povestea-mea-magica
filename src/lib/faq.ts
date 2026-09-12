@@ -5,7 +5,7 @@ export const faqs = [
   },
   {
     question: "Ce primesc?",
-    answer: "Povestea Magică include o carte ilustrată de 16 pagini, audio și un caiet separat de 5 pagini. Atelierul Scutului Magic are 13 pagini de poveste și ritual, cu diploma, rețeta imaginară și etichetele împreună la final, plus audio cu Lumi. Dosarul Micului Explorator are 10 pagini de misiuni și jocuri. Primești materiale digitale, pe care le poți salva și imprima.",
+    answer: "Povestea Magică include o carte ilustrată de 16 pagini și un caiet separat de 5 pagini. Atelierul Scutului Magic are 13 pagini de poveste și ritual, cu diploma, rețeta imaginară și etichetele împreună la final, plus audio cu Lumi. Dosarul Micului Explorator are 10 pagini de misiuni și jocuri. Primești materiale digitale, pe care le poți salva și imprima.",
   },
   {
     question: "Este personalizat cu adevărat?",
@@ -50,7 +50,7 @@ export const faqGroups = [
     { id: "probleme", question: "Ce fac dacă materialul are o problemă?", answer: "Scrie-ne ce nu funcționează și menționează comanda. Verificăm situația și încercăm refacerea sau relivrarea fără cost suplimentar. Detaliile privind rambursarea sunt explicate în politica de rambursare." },
   ] },
   { id: "fotografii-si-date", title: "Fotografii și date", questions: [
-    { id: "fotografie", question: "Este obligatorie fotografia copilului?", answer: "Nu. Pentru Povestea Magică poți descrie personajul sau poți adăuga o fotografie, cu acordul părintelui ori reprezentantului legal. O folosim ca reper pentru ilustrație; fotografia originală nu apare în carte. Atelierul și Dosarul pornesc din descriere, fără fotografie." },
+    { id: "fotografie", question: "Este obligatorie fotografia copilului?", answer: "Nu. Toate cele trei produse pot porni din descriere sau dintr-o fotografie, cu permisiunea necesară. Analizăm trăsăturile vizibile, apoi confirmi personajul ilustrat. Folosește JPG, PNG sau WebP de maximum 10 MB / 40 megapixeli și minimum 512 × 512 px, cu un singur copil și fața vizibilă. Fotografia originală nu apare în material. Asemănarea este interpretată artistic, nu garantată identic în fiecare pagină." },
     { id: "stergere", question: "Cum cer ștergerea datelor?", answer: "Ne poți scrie la office@povestea-mea-magica.ro de la adresa folosită la comandă. Fotografiile și materialele sunt păstrate privat și au termene automate de ștergere, explicate în politica de confidențialitate." },
     { id: "rolul-adultului", ...faqs[7] },
   ] },

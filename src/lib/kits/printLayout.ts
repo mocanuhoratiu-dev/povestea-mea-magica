@@ -11,12 +11,13 @@ export function prepareKitFontMetrics(): () => void {
 
 export function kitPrintOverflows(paper: HTMLElement): HTMLElement[] {
   const page = paper.getBoundingClientRect();
-  const footer = paper.querySelector('.folio')?.getBoundingClientRect();
+  const footerRect = paper.querySelector('.folio')?.getBoundingClientRect();
+  const footer = footerRect?.height ? footerRect : undefined;
   return [...paper.querySelectorAll<HTMLElement>(textRegions)].filter(node => {
     const rect = node.getBoundingClientRect();
     if (!rect.width || !rect.height) return false;
     const outsidePage = rect.left < page.left - 1 || rect.right > page.right + 1 || rect.top < page.top || rect.bottom > (footer ? footer.top - 3 : page.bottom);
-    const bounded = node.matches('.gold-child,.gold-main-label h3,.gold-round-copy h3,.gold-door-copy h3,.gold-step-copy,.gold-formula');
+    const bounded = node.matches('.gold-child,.gold-main-label h3,.gold-round-copy h3,.gold-door-copy h3,.gold-step-copy,.gold-formula,.explorer-diploma-name');
     // Crimson's glyph extents can exceed a tight line box by a few pixels.
     const glyphAllowance = Math.max(8, parseFloat(getComputedStyle(node).fontSize) * .35);
     const outsideRegion = bounded && (node.scrollHeight > node.clientHeight + glyphAllowance || node.scrollWidth > node.clientWidth + 2);

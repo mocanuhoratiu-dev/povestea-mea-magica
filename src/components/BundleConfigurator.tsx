@@ -1,11 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, BookHeart, Camera, Check, Eye, LoaderCircle, RefreshCw, ShieldCheck, Sparkles, TimerReset, Trash2 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft, ArrowRight, BookHeart, Check, Eye, LoaderCircle, RefreshCw, ShieldCheck, Sparkles, TimerReset } from "lucide-react";
 import AlbumPreviewFlipbook, { type AlbumPreviewPage } from "@/components/AlbumPreviewFlipbook";
 import DigitalPurchaseConsent from "@/components/DigitalPurchaseConsent";
-import { prepareReferencePhoto } from "@/lib/album/clientReferencePhoto";
+import CharacterPhotoInput from "./CharacterPhotoInput";
+import CharacterRightsNotice from "./CharacterRightsNotice";
+import { describePhotoTraits, type ApprovedCharacter } from "@/lib/characterPhotoPolicy";
+import { storyColors, simpleStoryColor } from "@/lib/storyColors";
 import { albumArtStyleOptions, albumCompanionOptions, albumLessonOptions, albumMoodOptions, albumWorldOptions } from "@/lib/album/types";
 import { beginPreparedOrderCheckout } from "@/lib/clientOrderCheckout";
 import { trackEvent } from "@/lib/clientTelemetry";
@@ -57,11 +60,16 @@ export default function BundleConfigurator() {
   const [isLoading, setIsLoading] = useState(false);
   const [hasConsent, setHasConsent] = useState(false);
   const [referencePhoto, setReferencePhoto] = useState("");
-  const [photoConsent, setPhotoConsent] = useState(false);
-  const [albumPreview, setAlbumPreview] = useState<{ orderId: string; imageUrl: string; statusUrl: string; title: string; fingerprint: string; qualityChecked: boolean; pages: AlbumPreviewPage[]; ready: boolean } | null>(null);
+  const [photoPending, setPhotoPending] = useState(false);
+  const [character, setCharacter] = useState<ApprovedCharacter | null>(null);
+  const [monsterCharacter, setMonsterCharacter] = useState<ApprovedCharacter | null>(null);
+  const [emergencyCharacter, setEmergencyCharacter] = useState<ApprovedCharacter | null>(null);
+  const [monsterPhotoPending, setMonsterPhotoPending] = useState(false);
+  const [emergencyPhotoPending, setEmergencyPhotoPending] = useState(false);
+  const [albumPreview, setAlbumPreview] = useState<{ orderId: string; imageUrl: string; statusUrl: string; title: string; fingerprint: string; qualityChecked: boolean; pages: AlbumPreviewPage[]; ready: boolean; coverReady?: boolean; issue?: boolean; canResume?: boolean } | null>(null);
   const [album, setAlbum] = useState({
     name: "", age: "5", hairStyle: "ondulat până la umeri", hairColor: "șaten", eyeColor: "căprui", skinTone: "deschisă",
-    outfit: "pulover moale și pantaloni comozi", appearanceDetail: "", favoriteColor: "mov ametist",
+    outfit: "pulover moale și pantaloni comozi", appearanceDetail: "", favoriteColor: "mov",
     world: albumWorldOptions[0].id as string, customWorld: "", companion: albumCompanionOptions[0] as string,
     secondaryCharacterName: "", secondaryCharacterRole: "", secondaryCharacterAppearance: "",
     lesson: albumLessonOptions[0] as string, mood: albumMoodOptions[0] as string, artStyle: albumArtStyleOptions[0] as string,
@@ -71,6 +79,9 @@ export default function BundleConfigurator() {
   const [monster, setMonster] = useState({ name: "", age: "5", type: "frica de intuneric", location: "", helper: "", ritual: "", appearance: "", trustedAdult: "" });
   const [emergencySameChild, setEmergencySameChild] = useState(true);
   const [emergency, setEmergency] = useState({ name: "", age: "5", context: contexts[0][0] as string, interest: "", duration: "10-20 minute", difficulty: "medium", appearance: "", trustedAdult: "" });
+  const acceptCharacter = useCallback((value: ApprovedCharacter | null) => { setCharacter(value); setReferencePhoto(value?.referenceImageDataUrl || ""); setAlbumPreview(null); if (value) setAlbum(previous => ({ ...previous, ...value.traits })); }, []);
+  const acceptMonsterCharacter = useCallback((value: ApprovedCharacter | null) => { setMonsterCharacter(value); setAlbumPreview(null); if (value) setMonster(previous => ({ ...previous, appearance: describePhotoTraits(value.traits).slice(0, 240) })); }, []);
+  const acceptEmergencyCharacter = useCallback((value: ApprovedCharacter | null) => { setEmergencyCharacter(value); setAlbumPreview(null); if (value) setEmergency(previous => ({ ...previous, appearance: describePhotoTraits(value.traits).slice(0, 240) })); }, []);
 
   const effectiveMonsterName = monsterSameChild ? album.name : monster.name;
   const effectiveMonsterAge = monsterSameChild ? album.age : monster.age;
@@ -83,7 +94,7 @@ export default function BundleConfigurator() {
   const activeAlbumPreview = albumPreview?.fingerprint === bundleFingerprint ? albumPreview : null;
 
   useEffect(() => {
-    if (!activeAlbumPreview?.statusUrl || activeAlbumPreview.ready) return;
+    if (!activeAlbumPreview?.statusUrl || activeAlbumPreview.ready || activeAlbumPreview.issue) return;
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
     let attempts = 0;
@@ -91,19 +102,27 @@ export default function BundleConfigurator() {
       attempts += 1;
       try {
         const response = await fetch(activeAlbumPreview.statusUrl, { cache: "no-store" });
-        const payload = await response.json() as { status?: string; title?: string; pages?: AlbumPreviewPage[]; qualityChecked?: boolean; progress?: number; error?: string };
+        const payload = await response.json() as { status?: string; title?: string; pages?: AlbumPreviewPage[]; qualityChecked?: boolean; progress?: number; error?: string; coverReady?: boolean; canResume?: boolean };
         if (cancelled) return;
         if (payload.status === "ready" && payload.pages?.length === 3) {
           setAlbumPreview({ ...activeAlbumPreview, title: payload.title || activeAlbumPreview.title, qualityChecked: payload.qualityChecked === true, pages: payload.pages, ready: true });
           setError("Mostra Poveștii Magice este gata. Răsfoiește cele trei pagini înainte de plată.");
           return;
         }
-        if (payload.status === "failed") throw new Error(payload.error || "Mostra nu a putut fi creată.");
+        if (payload.status === "failed") {
+          if (payload.canResume && attempts < 100) {
+            if (!activeAlbumPreview.canResume) setAlbumPreview({ ...activeAlbumPreview, canResume: true });
+            setError(payload.error || "Reluăm pregătirea de la etapa rămasă.");
+            timer = setTimeout(poll, 4_000); return;
+          }
+          setAlbumPreview({ ...activeAlbumPreview, issue: true, canResume: payload.canResume }); setError(payload.error || "Mostra s-a oprit."); return;
+        }
+        if (payload.coverReady && !activeAlbumPreview.coverReady) setAlbumPreview({ ...activeAlbumPreview, coverReady: true });
         setError(`Pregătim paginile interioare ${Math.max(0, payload.progress || 0)} din 2. Plata se deschide după ce le poți răsfoi.`);
       } catch (previewError) {
         if (cancelled) return;
         if (attempts >= 100) {
-          setAlbumPreview(null);
+          setAlbumPreview({ ...activeAlbumPreview, issue: true, canResume: true });
           setError(previewError instanceof Error ? previewError.message : "Mostra nu a putut fi verificată.");
           return;
         }
@@ -174,6 +193,7 @@ export default function BundleConfigurator() {
 
   function nextStep() {
     setError("");
+    if ((step === 0 && photoPending) || (step === 1 && !monsterSameChild && monsterPhotoPending) || (step === 2 && !emergencySameChild && emergencyPhotoPending)) return setError("Confirmă mai întâi personajul din fotografie.");
     if (step === 0 && !album.name.trim()) return setError("Scrie numele copilului pentru Povestea Magică.");
     if (step === 1 && !effectiveMonsterName.trim()) return setError("Scrie numele copilului pentru Scut.");
     if (step === 2 && !effectiveEmergencyName.trim()) return setError("Scrie numele copilului pentru Trusă.");
@@ -186,33 +206,33 @@ export default function BundleConfigurator() {
         generation: {
           type: "album", name: album.name.trim(), age: album.age, hairStyle: album.hairStyle, hairColor: album.hairColor,
           eyeColor: album.eyeColor, skinTone: album.skinTone, outfit: album.outfit.trim(), appearanceDetail: album.appearanceDetail.trim(),
-          favoriteColor: album.favoriteColor, world: album.world, customWorld: album.customWorld.trim(), companion: album.companion,
+          favoriteColor: simpleStoryColor(album.favoriteColor), world: album.world, customWorld: album.customWorld.trim(), companion: album.companion,
           secondaryCharacterName: album.secondaryCharacterName.trim(), secondaryCharacterRole: album.secondaryCharacterRole.trim(),
           secondaryCharacterAppearance: album.secondaryCharacterAppearance.trim(), lesson: album.lesson, mood: album.mood, artStyle: album.artStyle,
           personalDetail: album.personalDetail.trim(), storyContext: album.storyContext.trim(), referenceMode: referencePhoto ? "photo" : "description",
         },
         dedication: album.dedication.trim(), dedicationFrom: album.dedicationFrom.trim(),
       } },
-      { product: "monster" as const, configuration: { generation: { kitVersion: 2, type: "monster", name: effectiveMonsterName.trim(), age: effectiveMonsterAge, monster: monster.type, context: monster.location.trim(), interest: monster.helper.trim(), tone: monster.ritual.trim(), appearance: monsterSameChild ? `${album.hairStyle}, ${album.hairColor}, ochi ${album.eyeColor}, ${album.outfit}, ${album.appearanceDetail}`.slice(0,240) : monster.appearance, trustedAdult: monster.trustedAdult } } },
-      { product: "emergency" as const, configuration: { generation: { kitVersion: 2, type: "emergency", name: effectiveEmergencyName.trim(), age: effectiveEmergencyAge, context: emergency.context, interest: emergency.interest.trim(), duration: emergency.duration, difficulty: emergency.difficulty, appearance: emergencySameChild ? `${album.hairStyle}, ${album.hairColor}, ochi ${album.eyeColor}, ${album.outfit}, ${album.appearanceDetail}`.slice(0,240) : emergency.appearance, trustedAdult: emergency.trustedAdult } } },
+      { product: "monster" as const, configuration: { generation: { kitVersion: 2, type: "monster", referenceMode: (monsterSameChild ? character : monsterCharacter) ? "photo" : "description", name: effectiveMonsterName.trim(), age: effectiveMonsterAge, monster: monster.type, context: monster.location.trim(), interest: monster.helper.trim(), tone: monster.ritual.trim(), appearance: monsterSameChild ? `${album.hairStyle}, ${album.hairColor}, ochi ${album.eyeColor}, ${album.outfit}, ${album.appearanceDetail}`.slice(0,240) : monster.appearance, trustedAdult: monster.trustedAdult } } },
+      { product: "emergency" as const, configuration: { generation: { kitVersion: 2, type: "emergency", referenceMode: (emergencySameChild ? character : emergencyCharacter) ? "photo" : "description", name: effectiveEmergencyName.trim(), age: effectiveEmergencyAge, context: emergency.context, interest: emergency.interest.trim(), duration: emergency.duration, difficulty: emergency.difficulty, appearance: emergencySameChild ? `${album.hairStyle}, ${album.hairColor}, ochi ${album.eyeColor}, ${album.outfit}, ${album.appearanceDetail}`.slice(0,240) : emergency.appearance, trustedAdult: emergency.trustedAdult } } },
     ];
   }
 
   async function createCompleteBundlePreview() {
-    if (referencePhoto && !photoConsent) return setError("Confirmă permisiunea pentru fotografia copilului sau elimin-o.");
+    if (photoPending || (!monsterSameChild && monsterPhotoPending) || (!emergencySameChild && emergencyPhotoPending)) return setError("Confirmă personajele înainte să creezi mostra.");
     setError("");
     setIsLoading(true);
     try {
       const response = await protectedFetch("/api/album-preview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId: "complete-bundle", bundleConfiguration: { items: buildItems() }, ...(referencePhoto ? { referenceImageDataUrl: referencePhoto, photoConsent: true } : {}) }),
+        body: JSON.stringify({ productId: "complete-bundle", bundleConfiguration: { items: buildItems() }, ...(character ? { referenceImageDataUrl: referencePhoto, photoConsent: true, characterToken: character.characterToken, characterImageDataUrl: character.characterImageDataUrl } : {}), kitCharacters: { monster: monsterSameChild && character ? "album" : monsterCharacter ? { ...monsterCharacter, photoConsent: true } : null, emergency: emergencySameChild && character ? "album" : emergencyCharacter ? { ...emergencyCharacter, photoConsent: true } : null } }),
       }, "album_preview");
-      const payload = await response.json() as { orderId?: string; previewUrl?: string; statusUrl?: string; title?: string; qualityChecked?: boolean; error?: string };
+      const payload = await response.json() as { orderId?: string; previewUrl?: string; statusUrl?: string; title?: string; qualityChecked?: boolean; error?: string; coverReady?: boolean };
       if (!response.ok || !payload.orderId || !payload.previewUrl || !payload.statusUrl || !payload.title) throw new Error(payload.error || "Coperta nu a putut fi creată.");
-      setAlbumPreview({ orderId: payload.orderId, imageUrl: payload.previewUrl, statusUrl: payload.statusUrl, title: payload.title, fingerprint: bundleFingerprint, qualityChecked: payload.qualityChecked === true, pages: [{ kind: "cover", imageUrl: payload.previewUrl, eyebrow: "Povestea Magică", title: payload.title, text: `O aventură creată pentru ${album.name}` }], ready: false });
+      setAlbumPreview({ orderId: payload.orderId, imageUrl: payload.previewUrl, statusUrl: payload.statusUrl, title: payload.title, fingerprint: bundleFingerprint, qualityChecked: payload.qualityChecked === true, coverReady: payload.coverReady !== false, pages: payload.coverReady === false ? [] : [{ kind: "cover", imageUrl: payload.previewUrl, eyebrow: "Povestea Magică", title: payload.title, text: `O aventură creată pentru ${album.name}` }], ready: false });
       setHasConsent(false);
-      setError("Coperta este gata. Pregătim două pagini reale din poveste înainte să deschidem plata.");
+      setError("Pregătim coperta și două pagini reale. Generarea continuă și dacă părăsești această pagină.");
     } catch (previewError) {
       setError(previewError instanceof Error ? previewError.message : "Coperta nu a putut fi creată.");
     } finally {
@@ -260,22 +280,16 @@ export default function BundleConfigurator() {
             <div className="mt-8 grid gap-5 sm:grid-cols-2">
               <label className={labelClass}>Numele copilului<input className={inputClass} value={album.name} maxLength={40} onChange={(event) => setAlbum({ ...album, name: event.target.value })} placeholder="Exemplu: Eva" /></label>
               <label className={labelClass}>Vârsta<select className={inputClass} value={album.age} onChange={(event) => setAlbum({ ...album, age: event.target.value })}>{Array.from({ length: 9 }, (_, index) => index + 2).map((value) => <option key={value} value={value}>{value} ani</option>)}</select></label>
-              <label className={labelClass}>Coafura<select className={inputClass} value={album.hairStyle} onChange={(event) => setAlbum({ ...album, hairStyle: event.target.value })}><option>scurt și drept</option><option>ondulat până la umeri</option><option>lung și drept</option><option>creț</option><option>două împletituri</option></select></label>
+              {!character && !photoPending && <><label className={labelClass}>Coafura<select className={inputClass} value={album.hairStyle} onChange={(event) => setAlbum({ ...album, hairStyle: event.target.value })}><option>scurt și drept</option><option>ondulat până la umeri</option><option>lung și drept</option><option>creț</option><option>două împletituri</option></select></label>
               <label className={labelClass}>Culoarea părului<select className={inputClass} value={album.hairColor} onChange={(event) => setAlbum({ ...album, hairColor: event.target.value })}><option>șaten</option><option>blond</option><option>brunet</option><option>roșcat</option><option>negru</option></select></label>
               <label className={labelClass}>Culoarea ochilor<select className={inputClass} value={album.eyeColor} onChange={(event) => setAlbum({ ...album, eyeColor: event.target.value })}><option>căprui</option><option>albaștri</option><option>verzi</option><option>cenușii</option><option>negri</option></select></label>
               <label className={labelClass}>Nuanța pielii<select className={inputClass} value={album.skinTone} onChange={(event) => setAlbum({ ...album, skinTone: event.target.value })}><option>deschisă</option><option>medie</option><option>măslinie</option><option>închisă</option></select></label>
               <label className={`${labelClass} sm:col-span-2`}>Ținuta personajului<input className={inputClass} value={album.outfit} maxLength={100} onChange={(event) => setAlbum({ ...album, outfit: event.target.value })} placeholder="Exemplu: rochiță galbenă și cizme mov" /></label>
-              <label className={`${labelClass} sm:col-span-2`}>Alte detalii de aspect<textarea className={`${inputClass} min-h-20 resize-y`} value={album.appearanceDetail} maxLength={240} onChange={(event) => setAlbum({ ...album, appearanceDetail: event.target.value })} placeholder="Ochelari, pistrui sau un accesoriu preferat" /></label>
+              <label className={`${labelClass} sm:col-span-2`}>Alte detalii de aspect<textarea className={`${inputClass} min-h-20 resize-y`} value={album.appearanceDetail} maxLength={240} onChange={(event) => setAlbum({ ...album, appearanceDetail: event.target.value })} placeholder="Ochelari, pistrui sau un accesoriu preferat" /></label></>}
 
-              <div className="rounded-md border border-brand-gold/50 bg-brand-gold/10 p-5 sm:col-span-2">
-                <div className="flex gap-3"><Camera size={21} className="shrink-0 text-brand-purple" /><div><p className="text-sm font-black text-brand-navy">Fotografie de referință, opțional</p><p className="mt-1 text-xs font-semibold leading-relaxed text-brand-navy/60">O folosim privat pentru a păstra mai bine trăsăturile personajului ilustrat.</p></div></div>
-                {referencePhoto ? <div className="mt-4 grid gap-4 sm:grid-cols-[86px_1fr] sm:items-center">
-                  <Image src={referencePhoto} alt="Fotografia de referință selectată" width={86} height={86} unoptimized className="h-[86px] w-[86px] rounded-md border border-brand-gold/60 object-cover" />
-                  <div><label className="flex cursor-pointer items-start gap-3 text-xs font-bold leading-relaxed text-brand-navy/75"><input type="checkbox" checked={photoConsent} onChange={(event) => setPhotoConsent(event.target.checked)} className="mt-0.5 h-4 w-4 accent-brand-purple" />Confirm că am dreptul să folosesc fotografia copilului pentru această comandă.</label><button type="button" onClick={() => { setReferencePhoto(""); setPhotoConsent(false); setAlbumPreview(null); }} className="mt-3 inline-flex min-h-10 items-center gap-2 text-xs font-black text-brand-purple"><Trash2 size={15} /> Elimină fotografia</button></div>
-                </div> : <label className="mt-4 inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-md border border-brand-navy/20 bg-white px-4 text-xs font-black text-brand-navy"><Camera size={16} /> Alege fotografia<input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(event) => { const file = event.target.files?.[0]; event.currentTarget.value = ""; if (!file) return; void prepareReferencePhoto(file).then((prepared) => { setReferencePhoto(prepared); setPhotoConsent(false); setAlbumPreview(null); setError(""); }).catch((photoError) => setError(photoError instanceof Error ? photoError.message : "Fotografia nu a putut fi pregătită.")); }} /></label>}
-              </div>
+              <div className="sm:col-span-2"><CharacterPhotoInput initial={character} onChange={acceptCharacter} onPending={setPhotoPending} style={album.artStyle} /><CharacterRightsNotice /></div>
 
-              <label className={labelClass}>Culoarea preferată<select className={inputClass} value={album.favoriteColor} onChange={(event) => setAlbum({ ...album, favoriteColor: event.target.value })}><option>mov ametist</option><option>albastru ceresc</option><option>verde smarald</option><option>roz zmeură</option><option>galben solar</option></select></label>
+              <label className={labelClass}>Culoarea preferată<select className={inputClass} value={album.favoriteColor} onChange={(event) => setAlbum({ ...album, favoriteColor: event.target.value })}>{storyColors.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}</select></label>
               <label className={labelClass}>Lumea poveștii<select className={inputClass} value={album.world} onChange={(event) => setAlbum({ ...album, world: event.target.value })}>{albumWorldOptions.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}</select></label>
               {album.world === "custom" && <label className={`${labelClass} sm:col-span-2`}>Descrie lumea voastră<input className={inputClass} value={album.customWorld} maxLength={180} onChange={(event) => setAlbum({ ...album, customWorld: event.target.value })} placeholder="Un oraș din dulciuri, o insulă cu balene zburătoare..." /></label>}
               <label className={labelClass}>Companion<select className={inputClass} value={album.companion} onChange={(event) => setAlbum({ ...album, companion: event.target.value })}>{albumCompanionOptions.map((option) => <option key={option}>{option}</option>)}</select></label>
@@ -301,7 +315,8 @@ export default function BundleConfigurator() {
             <div className="mt-8 space-y-5">
               <ChildReuse checked={monsterSameChild} onChange={setMonsterSameChild} name={album.name} />
               {!monsterSameChild && <div className="grid gap-5 sm:grid-cols-2"><label className={labelClass}>Numele copilului<input className={inputClass} value={monster.name} maxLength={40} onChange={(event) => setMonster({ ...monster, name: event.target.value })} /></label><label className={labelClass}>Vârsta<select className={inputClass} value={monster.age} onChange={(event) => setMonster({ ...monster, age: event.target.value })}>{Array.from({ length: 8 }, (_, index) => index + 2).map((value) => <option key={value} value={value}>{value} ani</option>)}</select></label></div>}
-              {!monsterSameChild && <label className={labelClass}>Aspectul copilului (opțional)<input className={inputClass} value={monster.appearance} maxLength={240} onChange={event => setMonster({ ...monster, appearance: event.target.value })} /></label>}
+              {!monsterSameChild && <CharacterPhotoInput initial={monsterCharacter} onChange={acceptMonsterCharacter} onPending={setMonsterPhotoPending} />}
+              {!monsterSameChild && !monsterCharacter && !monsterPhotoPending && <label className={labelClass}>Aspectul copilului (opțional)<input className={inputClass} value={monster.appearance} maxLength={240} onChange={event => setMonster({ ...monster, appearance: event.target.value })} /></label>}
               <label className={labelClass}>Adultul de încredere<input className={inputClass} value={monster.trustedAdult} maxLength={40} placeholder="Mama, tata, bunica..." onChange={event => setMonster({ ...monster, trustedAdult: event.target.value })} /></label>
               <label className={labelClass}>Ce vrem să îmblânzim<select className={inputClass} value={monster.type} onChange={(event) => setMonster({ ...monster, type: event.target.value })}>{monsters.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
               <label className={labelClass}>Unde apare cel mai des<input className={inputClass} value={monster.location} maxLength={180} onChange={(event) => setMonster({ ...monster, location: event.target.value })} placeholder="Lângă pat, în colțul camerei..." /></label>
@@ -317,7 +332,8 @@ export default function BundleConfigurator() {
             <div className="mt-8 grid gap-5 sm:grid-cols-2">
               <div className="sm:col-span-2"><ChildReuse checked={emergencySameChild} onChange={setEmergencySameChild} name={album.name} /></div>
               {!emergencySameChild && <><label className={labelClass}>Numele copilului<input className={inputClass} value={emergency.name} maxLength={40} onChange={(event) => setEmergency({ ...emergency, name: event.target.value })} /></label><label className={labelClass}>Vârsta<select className={inputClass} value={emergency.age} onChange={(event) => setEmergency({ ...emergency, age: event.target.value })}>{Array.from({ length: 9 }, (_, index) => index + 2).map((value) => <option key={value} value={value}>{value} ani</option>)}</select></label></>}
-              {!emergencySameChild && <label className={`${labelClass} sm:col-span-2`}>Aspectul copilului (opțional)<input className={inputClass} value={emergency.appearance} maxLength={240} onChange={event => setEmergency({ ...emergency, appearance: event.target.value })} /></label>}
+              {!emergencySameChild && <div className="sm:col-span-2"><CharacterPhotoInput initial={emergencyCharacter} onChange={acceptEmergencyCharacter} onPending={setEmergencyPhotoPending} /></div>}
+              {!emergencySameChild && !emergencyCharacter && !emergencyPhotoPending && <label className={`${labelClass} sm:col-span-2`}>Aspectul copilului (opțional)<input className={inputClass} value={emergency.appearance} maxLength={240} onChange={event => setEmergency({ ...emergency, appearance: event.target.value })} /></label>}
               <label className={`${labelClass} sm:col-span-2`}>Adultul de încredere<input className={inputClass} value={emergency.trustedAdult} maxLength={40} placeholder="Mama, tata, bunicul..." onChange={event => setEmergency({ ...emergency, trustedAdult: event.target.value })} /></label>
               <label className={`${labelClass} sm:col-span-2`}>Unde va fi folosit<select className={inputClass} value={emergency.context} onChange={(event) => setEmergency({ ...emergency, context: event.target.value })}>{contexts.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
               <label className={`${labelClass} sm:col-span-2`}>Ce îl pasionează<input className={inputClass} value={emergency.interest} maxLength={180} onChange={(event) => setEmergency({ ...emergency, interest: event.target.value })} placeholder="Dinozauri, mașini, desen, animale..." /></label>
@@ -336,7 +352,8 @@ export default function BundleConfigurator() {
 
             <div className="mt-7">
               {activeAlbumPreview ? <div>
-                {activeAlbumPreview.ready && activeAlbumPreview.pages.length === 3 ? <AlbumPreviewFlipbook pages={activeAlbumPreview.pages} childName={album.name} /> : <div className="overflow-hidden rounded-md border border-brand-gold/60 bg-brand-navy"><div className="relative aspect-[210/148]"><Image src={activeAlbumPreview.imageUrl} alt={`Coperta albumului pentru ${album.name}`} fill unoptimized sizes="(max-width: 768px) 100vw, 768px" className="object-contain" onError={() => setAlbumPreview(null)} /><div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,24,44,.78),rgba(7,24,44,.12)_60%,transparent)]" /><div className="absolute inset-y-0 left-0 flex w-[56%] flex-col justify-center p-6 text-brand-cream"><p className="text-[10px] font-black uppercase tracking-[0.15em] text-brand-gold">Mostră personalizată</p><p className="mt-2 font-serif text-2xl leading-tight sm:text-3xl">{activeAlbumPreview.title}</p></div></div><div className="flex items-center gap-3 px-4 py-3 text-xs font-bold text-brand-cream/75"><LoaderCircle size={16} className="animate-spin text-brand-gold" />Scriem povestea și ilustrăm două pagini pentru mostră.</div></div>}
+                {activeAlbumPreview.ready && activeAlbumPreview.pages.length === 3 ? <AlbumPreviewFlipbook pages={activeAlbumPreview.pages} childName={album.name} /> : activeAlbumPreview.coverReady === false ? <p className="border-y py-10 text-center">Pregătim și verificăm coperta. Alegerile tale sunt păstrate.</p> : <div className="overflow-hidden rounded-md border border-brand-gold/60 bg-brand-navy"><div className="relative aspect-[210/148]"><Image src={activeAlbumPreview.imageUrl} alt={`Coperta albumului pentru ${album.name}`} fill unoptimized sizes="(max-width: 768px) 100vw, 768px" className="object-contain" onError={() => setError("Imaginea nu s-a încărcat. Progresul este păstrat.")} /><div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,24,44,.78),rgba(7,24,44,.12)_60%,transparent)]" /><div className="absolute inset-y-0 left-0 flex w-[56%] flex-col justify-center p-6 text-brand-cream"><p className="text-[10px] font-black uppercase tracking-[0.15em] text-brand-gold">Mostră personalizată</p><p className="mt-2 font-serif text-2xl leading-tight sm:text-3xl">{activeAlbumPreview.title}</p></div></div><div className="flex items-center gap-3 px-4 py-3 text-xs font-bold text-brand-cream/75"><LoaderCircle size={16} className="animate-spin text-brand-gold" />Scriem povestea și ilustrăm două pagini pentru mostră.</div></div>}
+                {activeAlbumPreview.canResume && <button type="button" className="min-h-11 underline" onClick={() => { void fetch(activeAlbumPreview.statusUrl, { method: "PATCH" }).then(async r => { if (!r.ok) throw new Error((await r.json()).error); setAlbumPreview({ ...activeAlbumPreview, issue: false, canResume: false }); }).catch(e => setError(e.message)); }}>Reia aceeași mostră</button>}
                 <div className="flex flex-wrap items-center justify-between gap-3 border-x border-b border-brand-gold/40 bg-brand-gold/10 px-4 py-3 text-xs font-bold text-brand-navy/70"><p className="flex items-center gap-2">{activeAlbumPreview.ready ? <Check size={16} className="text-brand-purple" /> : <LoaderCircle size={16} className="animate-spin text-brand-purple" />}{activeAlbumPreview.ready ? `Cele trei pagini vor fi refolosite în carte${activeAlbumPreview.qualityChecked ? " și au trecut controlul automat" : ""}.` : "Plata rămâne blocată până când mostra este completă."}</p><button type="button" onClick={() => { setAlbumPreview(null); setHasConsent(false); }} className="inline-flex min-h-9 items-center gap-2 border-b border-brand-purple text-[11px] font-black text-brand-purple"><RefreshCw size={14} /> Altă variantă</button></div>
               </div> : <div className="flex gap-4 rounded-md border border-brand-purple/25 bg-brand-purple/[0.06] p-5"><Eye size={23} className="shrink-0 text-brand-purple" /><div><p className="font-black text-brand-navy">Răsfoiește înainte de plată</p><p className="mt-1 text-xs font-semibold leading-relaxed text-brand-navy/60">Creăm coperta și două pagini reale. Plata se deschide numai după ce vezi rezultatul.</p></div></div>}
             </div>

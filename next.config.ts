@@ -19,6 +19,7 @@ const contentSecurityPolicy = [
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  experimental: { proxyClientMaxBodySize: "16mb" },
   ...(process.env.NODE_ENV === "production"
     ? {}
     : { allowedDevOrigins: ["127.0.0.1", "localhost"] }),

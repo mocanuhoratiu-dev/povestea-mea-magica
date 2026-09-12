@@ -42,6 +42,7 @@ export type StoredOrder = {
   watchdogAlertErrorCode?: string;
   errorCode?: string;
   updateTime?: string;
+  previewJob?: { attempts: number; leaseUntil: string; errorCode?: string };
 };
 
 const FIRESTORE_SCOPES = ["https://www.googleapis.com/auth/datastore"];
@@ -77,6 +78,7 @@ function firestoreFields(order: StoredOrder) {
   };
 
   if (order.output) values.output = { stringValue: JSON.stringify(order.output) };
+  if (order.previewJob) values.previewJob = { stringValue: JSON.stringify(order.previewJob) };
   if (order.coverObjectName) values.coverObjectName = { stringValue: order.coverObjectName };
   if (order.customerEmail) values.customerEmail = { stringValue: order.customerEmail };
   if (order.stripeSessionId) values.stripeSessionId = { stringValue: order.stripeSessionId };
@@ -145,6 +147,7 @@ function fromFirestore(document: { name?: string; updateTime?: string; fields?: 
     product,
     status,
     configuration,
+    ...(readJson(fields, "previewJob") ? { previewJob: readJson(fields, "previewJob") as StoredOrder["previewJob"] } : {}),
     ...(readJson(fields, "output") ? { output: readJson(fields, "output") } : {}),
     ...(readString(fields, "coverObjectName") ? { coverObjectName: readString(fields, "coverObjectName") } : {}),
     ...(readString(fields, "customerEmail") ? { customerEmail: readString(fields, "customerEmail") } : {}),
@@ -276,7 +279,7 @@ const orderStatusRank: Record<OrderStatus, number> = {
   failed: 5,
 };
 
-export async function setOrderStatus(order: StoredOrder, status: OrderStatus, fields: Partial<Pick<StoredOrder, "customerEmail" | "output" | "coverObjectName" | "deliveryExpiresAt" | "deliveryEmailStatus" | "deliveryEmailProviderId" | "deliveryEmailErrorCode" | "deliveryEmailUpdatedAt" | "expiresAt" | "errorCode" | "stripeSessionId" | "stripeLivemode" | "invoiceStatus" | "invoiceSeries" | "invoiceNumber" | "invoiceDocumentUrl" | "invoiceErrorCode" | "invoiceUpdatedAt">> = {}) {
+export async function setOrderStatus(order: StoredOrder, status: OrderStatus, fields: Partial<Pick<StoredOrder, "configuration" | "customerEmail" | "output" | "coverObjectName" | "deliveryExpiresAt" | "deliveryEmailStatus" | "deliveryEmailProviderId" | "deliveryEmailErrorCode" | "deliveryEmailUpdatedAt" | "expiresAt" | "errorCode" | "stripeSessionId" | "stripeLivemode" | "invoiceStatus" | "invoiceSeries" | "invoiceNumber" | "invoiceDocumentUrl" | "invoiceErrorCode" | "invoiceUpdatedAt">> = {}) {
   let current = order;
   for (let attempt = 0; attempt < 4; attempt += 1) {
     const nextStatus = orderStatusRank[current.status] > orderStatusRank[status] ? current.status : status;
@@ -417,8 +420,29 @@ export async function enqueueOrderRecovery(orderId: string, siteUrl: string, rec
   return enqueueOrderTask(orderId, siteUrl, "process", `recovery-${safeCount}`);
 }
 
-export async function enqueueOrderPreview(orderId: string, siteUrl: string) {
-  return enqueueOrderTask(orderId, siteUrl, "preview");
+export async function enqueueOrderPreview(orderId: string, siteUrl: string, retry = false) {
+  return enqueueOrderTask(orderId, siteUrl, "preview", retry ? `resume-${randomBytes(6).toString("hex")}` : "");
+}
+
+export async function claimOrderPreview(orderId: string) {
+  for (let i = 0; i < 4; i++) {
+    const order = await getOrder(orderId);
+    if (!order || !["draft", "pending_payment"].includes(order.status)) return null;
+    if (order.previewJob?.errorCode && !["provider_busy", "provider_timeout", "provider_unavailable", "quality_unavailable", "generation_failed"].includes(order.previewJob.errorCode)) return null;
+    if (Date.parse(order.previewJob?.leaseUntil || "") > Date.now()) throw new Error("preview_worker_busy");
+    if ((order.previewJob?.attempts || 0) >= 4) return null;
+    try {
+      return await saveOrder({ ...order, previewJob: { attempts: (order.previewJob?.attempts || 0) + 1, leaseUntil: new Date(Date.now() + 12 * 60_000).toISOString() }, updatedAt: new Date().toISOString() }, order.updateTime);
+    } catch (error) { if (!(error instanceof Error) || !error.message.includes("(412)") || i === 3) throw error; }
+  }
+  return null;
+}
+
+export async function checkpointOrderPreview(order: StoredOrder, fields: { output?: Record<string, unknown>; coverObjectName?: string; finished?: boolean; errorCode?: string }) {
+  const current = await getOrder(order.id);
+  if (!current || !["draft", "pending_payment"].includes(current.status) || current.previewJob?.attempts !== order.previewJob?.attempts) throw new Error("preview_lease_lost");
+  return saveOrder({ ...current, ...(fields.output ? { output: fields.output } : {}), ...(fields.coverObjectName ? { coverObjectName: fields.coverObjectName } : {}),
+    previewJob: { attempts: current.previewJob?.attempts || 1, leaseUntil: fields.finished ? "" : new Date(Date.now() + 12 * 60_000).toISOString(), ...(fields.errorCode ? { errorCode: fields.errorCode } : {}) }, updatedAt: new Date().toISOString() }, current.updateTime);
 }
 
 export async function enqueueOrderInvoicing(orderId: string, siteUrl: string) {

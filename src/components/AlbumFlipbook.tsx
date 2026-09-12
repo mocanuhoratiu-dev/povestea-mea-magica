@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { ALBUM_AUDIO_ENABLED } from "@/lib/album/features";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
@@ -196,7 +197,7 @@ export default function AlbumFlipbook() {
           <div className="max-w-xl">
             <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-brand-gold"><Sparkles size={16} /> Din ediția digitală</div>
             <h2 id="album-sample-title" className="mt-4 font-serif text-4xl leading-tight sm:text-5xl">Deschide o poveste.</h2>
-            <p className="mt-5 text-base font-semibold leading-relaxed text-brand-cream/72 sm:text-lg">Eva și lumina dintre stele. Un model complet, de răsfoit și de ascultat. Aventura copilului tău va fi creată din alegerile voastre.</p>
+            <p className="mt-5 text-base font-semibold leading-relaxed text-brand-cream/72 sm:text-lg">Eva și lumina dintre stele. Un model complet, de răsfoit împreună. Aventura copilului tău va fi creată din alegerile voastre.</p>
             <div className="mt-7 flex flex-wrap gap-x-6 gap-y-3 text-sm font-bold text-brand-cream/72">
               <span className="inline-flex items-center gap-2"><BookOpen size={17} className="text-brand-gold" /> 16 pagini A5, format orizontal</span>
               <span className="inline-flex items-center gap-2"><Volume2 size={17} className="text-brand-gold" /> Narațiune în română</span>
@@ -214,18 +215,18 @@ export default function AlbumFlipbook() {
                 <p className="mt-1 font-serif text-xl leading-tight text-brand-cream sm:text-2xl">{page.title}</p>
               </div>
               <div className="flex shrink-0 items-center gap-3">
-                <button
+                {ALBUM_AUDIO_ENABLED && <button
                   type="button"
                   onClick={toggleNarration}
                   className="inline-flex min-h-11 items-center gap-2 border border-brand-gold/55 bg-brand-gold px-4 text-sm font-black text-brand-navy transition hover:bg-brand-cream"
                 >
                   {narrationPhase === "loading" ? <span className="h-4 w-4 animate-spin border-2 border-brand-navy/25 border-t-brand-navy" /> : narrationPhase === "playing" ? <Pause size={17} /> : <Play size={17} fill="currentColor" />}
                   {narrationPhase === "loading" ? "Pregătim vocea" : narrationPhase === "playing" ? "Oprește" : "Ascultă povestea"}
-                </button>
+                </button>}
                 <p className="w-[76px] text-right text-sm font-black tabular-nums text-brand-cream">{activeIndex + 1} / {albumSamplePages.length}</p>
               </div>
             </div>
-            <div className="mt-3 h-1 overflow-hidden bg-white/12" aria-hidden="true"><div className="h-full bg-brand-gold transition-[width] duration-200" style={{ width: `${audioProgress * 100}%` }} /></div>
+            {ALBUM_AUDIO_ENABLED && <div className="mt-3 h-1 overflow-hidden bg-white/12" aria-hidden="true"><div className="h-full bg-brand-gold transition-[width] duration-200" style={{ width: `${audioProgress * 100}%` }} /></div>}
             <div className="mt-4 flex gap-1.5" aria-label="Alege pagina">
               {albumSamplePages.map((samplePage, index) => (
                 <button

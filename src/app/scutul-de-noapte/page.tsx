@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import MonsterKit from "@/components/MonsterKit";
 import Footer from "@/components/Footer";
+import PrintedEditionNotice from "@/components/PrintedEditionNotice";
 import LumiGuideLoader from "@/components/LumiGuideLoader";
 import MobileProductCTA from "@/components/MobileProductCTA";
 import { commerce, siteUrl } from "@/lib/siteMode";
@@ -31,5 +32,5 @@ const productSchema = {
 };
 
 export default function NightShieldPage() {
-  return <main className="min-h-screen bg-brand-navy pt-16 md:pt-20"><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }} /><MonsterKit /><Footer /><LumiGuideLoader /><MobileProductCTA product="monster" targetId="configureaza-scutul" title="Atelierul Scutului Magic" action="Creează acum" price={commerce.prices.nightShield} tone="night" /></main>;
+  return <main className="min-h-screen bg-brand-navy pt-16 md:pt-20"><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }} /><MonsterKit /><PrintedEditionNotice product="monster" /><Footer /><LumiGuideLoader /><MobileProductCTA product="monster" targetId="configureaza-scutul" title="Atelierul Scutului Magic" action="Creează acum" price={commerce.prices.nightShield} tone="night" /></main>;
 }

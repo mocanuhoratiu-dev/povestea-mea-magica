@@ -62,14 +62,14 @@ test('artwork resumes after failure, preserves cover and sends it as character r
   assert.deepEqual(complete.assets,{cover:'saved-cover',scene:'saved-scene'});
 });
 test('provider fallback attempts and subsequent task retries share the same cap', async () => {
-  let saved = { ...kitSample('emergency').kit, assets: {}, imageAttempts: 3 };
+  let saved = { ...kitSample('emergency').kit, assets: {}, imageAttempts: 5 };
   let billableCalls = 0;
   const store = { checkpoint: async (next: typeof saved) => { saved = structuredClone(next); }, save: async () => 'asset', read: async () => 'image' };
   await assert.rejects(resumeKitArtwork(saved, store, async (_role, _ref, before) => {
     await before(); billableCalls++; await before(); billableCalls++; return 'image';
   }), /kit_budget_images_exhausted/);
   await assert.rejects(resumeKitArtwork(saved, store, async () => { billableCalls++; return 'image'; }), /kit_budget_images_exhausted/);
-  assert.equal(billableCalls, 1); assert.equal(saved.imageAttempts, 4);
+  assert.equal(billableCalls, 1); assert.equal(saved.imageAttempts, 6);
 });
 test('checkpoint failure prevents a billable call', async () => {
   let calls = 0;

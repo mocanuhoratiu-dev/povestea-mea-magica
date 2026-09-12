@@ -20,7 +20,7 @@ export default function Hero() {
           O lume întreagă, cu copilul tău în centru.
           <br className="hidden sm:block" /> O poveste de citit și de păstrat împreună.
         </p>
-        <p className="hero-format">Carte digitală personalizată · PDF + audio</p>
+        <p className="hero-format">Carte digitală personalizată · PDF + caiet de activități</p>
         <a
           href="/povestea-magica#configureaza-albumul"
           className="editorial-button"

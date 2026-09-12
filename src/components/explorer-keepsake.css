@@ -1,0 +1,6 @@
+@font-face{font-family:ExplorerSerif;src:url('/fonts/CrimsonText-Regular.ttf') format('truetype');font-display:swap}
+.kit-document .paper.explorer-diploma[data-orientation=landscape]{width:848.5714px;height:600px;background:#fff5df}
+.kit-document .paper.explorer-diploma .explorer-diploma-art{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:contain;pointer-events:none}
+.kit-document .paper.explorer-diploma .explorer-diploma-name{position:absolute;left:24%;top:51.5%;width:52%;height:13%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;margin:0;color:#12564a;text-align:center;font-family:ExplorerSerif,Georgia,serif;font-weight:600;line-height:1.05;letter-spacing:0;overflow-wrap:normal;text-shadow:0 1px 0 #d5ddbb}
+.kit-document .explorer-diploma-name span{display:block;max-width:100%;white-space:nowrap}
+.kit-document .paper.explorer-diploma>.folio{display:none}

@@ -1,3 +1,5 @@
+import { brandedEmail, emailAction, emailParagraph, emailUrl, escapeEmailHtml } from "./emailBrand.ts";
+
 export type TransactionalEmailProduct = "story" | "monster" | "emergency" | "bundle" | "complete_bundle" | "album";
 
 type ProductEmailCopy = {
@@ -49,19 +51,10 @@ export const productEmailCopy: Record<TransactionalEmailProduct, ProductEmailCop
     eyebrow: "O lume întreagă a prins culoare",
     title: "Albumul vostru ilustrat este gata",
     subject: "Povestea Magică este gata",
-    message: "Cartea ilustrată și caietul de activități sunt pregătite. Din linkul privat poți răsfoi albumul, asculta povestea și descărca ambele PDF-uri.",
+    message: "O lume întreagă, cu copilul tău în centrul ei. Cartea ilustrată și caietul de activități sunt pregătite să le descoperiți împreună.",
   },
 };
 
-function escapeHtml(value: string) {
-  return value.replace(/[&<>"']/g, (character) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;",
-  })[character] || character);
-}
 
 export function createReadyEmailSubject(product: TransactionalEmailProduct, childName = "") {
   const safeName = childName.trim();
@@ -83,67 +76,30 @@ export function createReadyEmailHtml({
   deliveryMode: "attachment" | "secure-link";
 }) {
   const copy = productEmailCopy[product];
-  const safeName = escapeHtml(childName.trim());
-  const salutation = safeName ? `Pentru ${safeName}` : product === "bundle" || product === "complete_bundle" ? "Pentru familia voastră" : "Pentru voi";
-  const markUrl = `${siteUrl}/brand/email-emblem.png`;
-  const hasSecureLink = deliveryMode === "secure-link" && Boolean(deliveryUrl);
-  const calloutTitle = hasSecureLink
-    ? product === "bundle" ? "Cele trei materiale sunt pregătite." : product === "complete_bundle" ? "Toate cele patru PDF-uri sunt pregătite." : product === "album" ? "Cele două documente sunt pregătite." : "Materialul este pregătit."
-    : "PDF-ul este atașat acestui email.";
-  const calloutMessage = hasSecureLink
-    ? "Linkul personal este valabil 30 de zile. De acolo poți deschide și descărca PDF-ul."
-    : "Îl poți citi, păstra sau printa când vă este bine.";
-
-  return `<!doctype html>
-<html lang="ro">
-  <body style="margin:0;padding:0;background:#edf2f6;color:#0b2035;font-family:Arial,Helvetica,sans-serif;">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background:#edf2f6;">
-      <tr><td align="center" style="padding:32px 16px;">
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:600px;background:#ffffff;border:1px solid #f2cd7a;">
-          <tr><td style="height:5px;background:#f2cd7a;font-size:0;line-height:0;">&nbsp;</td></tr>
-          <tr>
-            <td style="padding:28px 34px 22px;background:#0b2035;text-align:center;">
-              <img src="${markUrl}" width="52" height="52" alt="Povestea Mea Magică" style="display:block;margin:0 auto 12px;border:0;border-radius:8px;" />
-              <p style="margin:0;color:#f7edcf;font-size:12px;font-weight:700;letter-spacing:0;line-height:18px;text-transform:uppercase;">Povestea Mea Magică</p>
-              <p style="margin:5px 0 0;color:#f2cd7a;font-size:11px;letter-spacing:0;line-height:16px;text-transform:uppercase;">${copy.eyebrow}</p>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding:34px 34px 18px;text-align:center;">
-              <p style="margin:0 0 9px;color:#72506c;font-size:12px;font-weight:700;letter-spacing:0;line-height:18px;text-transform:uppercase;">${salutation}</p>
-              <h1 style="margin:0;color:#0b2035;font-family:Georgia,'Times New Roman',serif;font-size:30px;font-weight:400;line-height:38px;">${copy.title}</h1>
-              <div style="width:42px;height:2px;margin:20px auto;background:#f2cd7a;line-height:2px;font-size:0;">&nbsp;</div>
-              <p style="margin:0;color:#4c5a72;font-size:16px;line-height:26px;">${copy.message}</p>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding:10px 34px 28px;">
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background:#f8f1df;border:1px solid #ead8a4;">
-                <tr>
-                  <td style="padding:18px 20px;text-align:center;">
-                    <p style="margin:0 0 5px;color:#0b2035;font-size:15px;font-weight:700;line-height:22px;">${calloutTitle}</p>
-                    <p style="margin:0;color:#61708a;font-size:13px;line-height:20px;">${calloutMessage}</p>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-        ${hasSecureLink ? `<tr><td style="padding:0 34px 32px;text-align:center;"><a href="${escapeHtml(deliveryUrl || "")}" style="display:inline-block;background:#72506c;color:#ffffff;font-size:14px;font-weight:700;line-height:20px;padding:13px 22px;text-decoration:none;border-radius:6px;">${product === "bundle" || product === "complete_bundle" ? "Deschide pachetul" : product === "album" ? "Deschide albumul" : "Deschide materialul"}</a></td></tr>` : ""}
-          <tr>
-            <td style="padding:0 34px 30px;text-align:center;">
-              <a href="${siteUrl}" style="color:#0b2035;font-size:12px;font-weight:700;line-height:18px;text-decoration:underline;text-underline-offset:3px;">Înapoi la Povestea Mea Magică</a>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding:20px 30px;background:#edf2f6;text-align:center;">
-              <p style="margin:0;color:#61708a;font-size:11px;line-height:17px;">Ai primit acest email pentru materialul pe care tocmai l-ai comandat sau creat. Nu trimitem newslettere fără acordul tău.${hasSecureLink ? " Materialul digital a fost pregătit imediat după plată, conform acordului exprimat la checkout." : ""}</p>
-            </td>
-          </tr>
-        </table>
-      </td></tr>
-    </table>
-  </body>
-</html>`;
+  const bundle = product === "bundle" || product === "complete_bundle";
+  const hasSecureLink = deliveryMode === "secure-link";
+  if (hasSecureLink && !deliveryUrl) throw new Error("Missing delivery link");
+  const salutation = bundle ? "Pentru familia voastră" : childName.trim() ? `Pentru ${childName.trim()}` : "Pentru voi";
+  const deliveryTitle = hasSecureLink
+    ? product === "complete_bundle" ? "4 PDF-uri, într-un singur loc" : product === "album" ? "Cartea și caietul de activități" : bundle ? "Cele trei materiale ale familiei" : "Materialul vostru personalizat"
+    : "Documentele sunt atașate acestui email";
+  const deliveryText = hasSecureLink
+    ? "Linkul privat este valabil 30 de zile. Deschide materialele și descarcă-le pe dispozitiv, ca să le păstrezi pentru mai târziu."
+    : "Deschide atașamentele de mai jos. Le poți salva pe dispozitiv sau imprima acasă.";
+  const action = hasSecureLink ? emailAction(bundle ? "Deschide pachetul" : product === "album" ? "Răsfoiește povestea" : "Deschide materialul", deliveryUrl!) : "";
+  const backupLink = hasSecureLink ? `<p style="margin:0 0 24px;color:#435567;font-size:12px;line-height:20px;">Butonul nu se deschide? <a href="${emailUrl(deliveryUrl!)}" style="color:#0b2035;text-decoration:underline;">Folosește acest link pentru livrare</a>.</p>` : "";
+  return brandedEmail({
+    siteUrl,
+    preheader: `${copy.subject}. ${hasSecureLink ? "Linkul privat și documentele voastre sunt aici." : "Documentele voastre sunt atașate."}`,
+    eyebrow: `${copy.name} · ${salutation}`,
+    title: copy.title,
+    content: emailParagraph(copy.message)
+      + `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:4px 0 24px;background:#edf2f6;border-left:3px solid #f2cd7a;"><tr><td style="padding:20px;"><p style="margin:0 0 8px;color:#0b2035;font-size:15px;font-weight:bold;line-height:22px;">${escapeEmailHtml(deliveryTitle)}</p><p style="margin:0;color:#435567;font-size:14px;line-height:23px;">${escapeEmailHtml(deliveryText)}</p></td></tr></table>`
+      + action + backupLink
+      + emailParagraph("Sperăm să vă aducă un moment frumos împreună. Dacă ai nevoie de ajutor, răspunde la acest email. Suntem aici.")
+      + `<p style="margin:24px 0 0;padding-top:20px;border-top:1px solid #dbe3e9;color:#435567;font-size:12px;line-height:20px;">Acum, în ediție digitală. Pregătim și variante tipărite, adaptate fiecărui material; acestea nu sunt incluse în comanda actuală.</p>`,
+    footer: `Mesaj pentru materialele comandate sau create de tine. Nu te-am înscris la un newsletter.${hasSecureLink ? " Livrarea digitală a fost inițiată conform acordului exprimat la checkout." : ""}`,
+  });
 }
 
 export function createReadyEmailText({
@@ -161,6 +117,6 @@ export function createReadyEmailText({
   const salutation = childName.trim() ? `Pentru ${childName.trim()}\n\n` : "";
   const delivery = deliveryMode === "secure-link" && deliveryUrl
     ? `Deschide materialul: ${deliveryUrl}\n\nLinkul este valabil 30 de zile.`
-    : "PDF-ul este atașat acestui email.";
-  return `${salutation}${copy.title}\n\n${copy.message}\n\n${delivery}\n\nPovestea Mea Magică`;
+    : "Documentele sunt atașate acestui email.";
+  return `${salutation}${copy.title}\n\n${copy.message}\n\n${delivery}\n\nAi nevoie de ajutor? Răspunde la acest email sau scrie la office@povestea-mea-magica.ro.\n\nAcum, în ediție digitală. Pregătim și variante tipărite, neincluse în comanda actuală.\n\nEchipa Povestea Mea Magică`;
 }

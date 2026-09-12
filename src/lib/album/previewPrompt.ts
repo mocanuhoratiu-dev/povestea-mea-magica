@@ -1,22 +1,10 @@
 import type { AlbumGenerationInput, AlbumQualityResult } from "./types";
 import { albumArtDirection } from "./artDirection.ts";
+import { illustrationPalette } from "../storyColors.ts";
 
-const titleDirections: Record<string, string> = {
-  forest: "pădurea luminilor",
-  stars: "harta dintre stele",
-  ocean: "oceanul de cristal",
-  clouds: "orașul dintre nori",
-  dinosaurs: "valea dinozaurilor blânzi",
-  castle: "castelul anotimpurilor",
-  library: "biblioteca poveștilor vii",
-  garden: "grădina lucrurilor mici",
-  aurora: "secretul aurorei",
-  inventions: "atelierul invențiilor magice",
-};
-
+/** Temporary cover label, replaced by the author's title when the story plan is ready. */
 export function albumPreviewTitle(input: AlbumGenerationInput) {
-  if (input.world === "custom" && input.customWorld) return `${input.name} în lumea sa magică`;
-  return `${input.name} și ${titleDirections[input.world] || "aventura magică"}`;
+  return `O poveste pentru ${input.name}`;
 }
 
 export function buildAlbumPreviewRetryPrompt(prompt: string, quality: AlbumQualityResult) {
@@ -31,9 +19,10 @@ export function buildAlbumPreviewPrompt(input: AlbumGenerationInput, worldLabel:
   return [
     `Create one spectacular full-bleed A5 landscape cover illustration for a premium personalized children's picture book about ${input.name}, age ${input.age}.`,
     albumArtDirection(input.artStyle),
-    input.referenceMode === "photo" ? "The attached photograph is the authoritative identity reference. Translate the child's recognizable facial structure, skin tone, hair and apparent age faithfully into the selected illustration style without making the result photorealistic." : "Build the child's identity from the confirmed description and keep it precise.",
+    input.referenceMode === "photo" ? "The attached approved ILLUSTRATED CHARACTER is the authoritative identity reference, already translated from the parent photo. Preserve it faithfully. Do not redesign facial features, hairstyle, outfit or apparent age." : "Build the child's identity from the confirmed description and keep it precise.",
     `The child has ${input.hairStyle} ${input.hairColor} hair, ${input.eyeColor} eyes and ${input.skinTone} skin tone.`,
     `Signature outfit: ${input.outfit}. Favorite color accent: ${input.favoriteColor}.`,
+    `Art-direction palette, not story vocabulary: ${illustrationPalette(input.favoriteColor)}.`,
     input.appearanceDetail ? `Distinctive visible details: ${input.appearanceDetail}.` : "",
     `The same child is the unmistakable hero, accompanied by ${input.companion.toLocaleLowerCase("ro-RO")}.`,
     input.secondaryCharacterName ? `A second, clearly distinct child character is ${input.secondaryCharacterName}, the hero's ${input.secondaryCharacterRole}, with this immutable appearance: ${input.secondaryCharacterAppearance || "age-appropriate appearance defined by the family"}. Keep both children visually separate and recognizable.` : "",

@@ -1,7 +1,9 @@
 import { GoogleGenAI } from "@google/genai";
+import { assertModelResponse, fallbackModels, withModelFallback } from '../modelFallback';
 import { readBoundedDuration, withTimeout } from "@/lib/aiTimeout";
 import { albumWorldLabel } from "@/lib/album/schema";
 import { albumArtDirection } from "./artDirection.ts";
+import { readEditorialTitle, ALBUM_TITLE_INSTRUCTIONS } from "./title.ts";
 import type { AlbumGenerationInput, AlbumPanelPosition, AlbumPanelTone, AlbumPlan, AlbumScene, AlbumSceneLayout, AlbumStoryBible } from "@/lib/album/types";
 
 const PANEL_POSITIONS = new Set<AlbumPanelPosition>(["top-left", "top-right", "bottom-left", "bottom-right", "bottom"]);
@@ -12,7 +14,7 @@ const ALBUM_PLAN_SCHEMA = {
   additionalProperties: false,
   required: ["title", "storyBible", "coverPrompt", "coloringPrompt", "differencesPrompt", "scenes"],
   properties: {
-    title: { type: "string" },
+    title: { type: "string", description: "Titlu literar original, expresiv, inspirat de conflictul sau descoperirea din poveste; fără numerotare sau etichete de mostră." },
     storyBible: {
       type: "object",
       additionalProperties: false,
@@ -111,12 +113,7 @@ function getCredentials() {
 }
 
 function modelCandidates() {
-  return Array.from(new Set([
-    process.env.VERTEX_AI_MODEL,
-    ...(process.env.VERTEX_AI_FALLBACK_MODELS || "").split(","),
-    "gemini-3.5-flash",
-    "gemini-3.1-flash-lite",
-  ].map((value) => value?.trim()).filter((value): value is string => Boolean(value)))).slice(0, 2);
+  return fallbackModels('text', process.env.VERTEX_AI_MODEL, process.env.VERTEX_AI_FALLBACK_MODELS);
 }
 
 function wordCount(value: string) {
@@ -179,7 +176,7 @@ function parsePlan(text: string, input: AlbumGenerationInput, model: string): Al
       immutableTraits,
       outfitPalette: `${input.outfit}; recurring ${input.favoriteColor} accent`,
       companionDescription: `${input.companion}, always with identical colors, proportions and accessories${input.secondaryCharacterName ? `; ${input.secondaryCharacterName}, ${input.secondaryCharacterRole}, always with this appearance: ${input.secondaryCharacterAppearance || "the confirmed family description"}` : ""}`,
-      anchorAsset: "cover",
+      anchorAsset: "characterReference",
     },
     visualLanguage: {
       palette: clean(rawVisualLanguage.palette, 220) || `${input.favoriteColor} accent balanced with colors natural to ${albumWorldLabel(input.world, input.customWorld)}`,
@@ -196,7 +193,7 @@ function parsePlan(text: string, input: AlbumGenerationInput, model: string): Al
   const scenes = parsed.scenes.map((raw, index): AlbumScene => {
     if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw new Error(`Scena ${index + 1} este invalidă.`);
     const scene = raw as Record<string, unknown>;
-    const heading = clean(scene.heading, 70);
+    const heading = readEditorialTitle(scene.heading, 70);
     const sceneText = clean(scene.text, 650);
     const basePrompt = clean(scene.imagePrompt, 900);
     const panelPosition = PANEL_POSITIONS.has(scene.panelPosition as AlbumPanelPosition)
@@ -228,7 +225,7 @@ function parsePlan(text: string, input: AlbumGenerationInput, model: string): Al
   if (uniquePrompts.size !== scenes.length) throw new Error("Planul conține ilustrații repetate.");
 
   return {
-    title: clean(parsed.title, 100) || `${input.name} și aventura magică`,
+    title: readEditorialTitle(parsed.title),
     storyBible,
     characterBible,
     characterPrompt: `${characterBible} ${visualStyle}. Create a clean full-body character-design reference showing the main child, companion${input.secondaryCharacterName ? ` and ${input.secondaryCharacterName} as a clearly separate secondary character` : ""}, all fully visible, neutral warm studio background, simple relaxed pose, clear face and outfit details, no scenery, no action, no duplicate figures, no extra characters, no text, no letters, no labels, no frame, no collage.`,
@@ -262,6 +259,8 @@ Date confirmate de părinte:
 
 Începe cu o Story Bible V3: premisa, rolul copilului, nevoia emoțională, promisiunea narativă, motivul recurent, rolul companionului, 3-5 reguli ale lumii, arcul în patru momente și limbajul vizual. Story Bible trebuie să fie specifică acestor alegeri și să mențină coerența fără să transforme povestea într-un scenariu rigid.
 
+${ALBUM_TITLE_INSTRUCTIONS}
+
 Construiește apoi o aventură completă în EXACT 13 scene. Fiecare scenă are 28-40 de cuvinte și avansează acțiunea. Totalul trebuie să fie 400-500 de cuvinte. Scrie aerisit, cu propoziții clare, ușor de citit cu voce tare și fără formulări tehnice sau metafore greoaie. Numele copilului, lumea, companionul, culoarea preferată și detaliul personal trebuie să influențeze evenimente reale, nu să apară ca o listă. Lecția se arată prin alegeri și acțiuni, fără morală rigidă. Finalul este luminos și include o despărțire sau o întoarcere acasă.
 
 Respectă ideea părintelui atunci când este oferită, dar transform-o într-o poveste coerentă, sigură și potrivită vârstei. Pentru fiecare scenă scrie un rol editorial scurt, note de continuitate și un prompt vizual în engleză, cu o acțiune, un decor și o stare vizuală specifice acelui moment. Notele de continuitate trebuie să repete explicit aspectul exact al fiecărui obiect recurent, culoarea lui și echipamentul de siguranță asociat în toate scenele în care apare. Nu repeta aceeași imagine, poziție a corpului sau același fundal. Păstrează același copil și același companion în toate imaginile. Dacă există un personaj secundar, păstrează-i numele, relația și aspectul, folosește-l numai când ajută povestea și nu îl confunda niciodată cu eroul principal. Nu adăuga alți copii. Textul va fi randat separat de imagine, deci nu include text sau titluri în ilustrație.
@@ -271,7 +270,7 @@ Scrie și două prompturi separate pentru activități: coloringPrompt pentru o 
 Returnează numai JSON valid conform schemei, fără Markdown.`;
 }
 
-export async function generateAlbumPlan(input: AlbumGenerationInput, options: { beforeAttempt?: () => Promise<void> } = {}): Promise<AlbumPlan> {
+export async function generateAlbumPlan(input: AlbumGenerationInput, options: { beforeAttempt?: (model?: string) => Promise<void> } = {}): Promise<AlbumPlan> {
   const project = process.env.VERTEX_AI_PROJECT_ID?.trim();
   if (!project) throw new Error("Vertex AI nu este configurat pentru album.");
   const credentials = getCredentials();
@@ -281,30 +280,27 @@ export async function generateAlbumPlan(input: AlbumGenerationInput, options: { 
     location: process.env.VERTEX_AI_LOCATION?.trim() || "global",
     ...(credentials ? { googleAuthOptions: { credentials } } : {}),
   });
-  const errors: string[] = [];
   const timeoutMs = readBoundedDuration(process.env.ALBUM_TEXT_TIMEOUT_MS, 55_000, 15_000, 90_000);
-
-  for (const model of modelCandidates()) {
-    try {
-      await options.beforeAttempt?.();
+  return withModelFallback({
+    role: 'text', models: modelCandidates(), deadlineAt: Date.now() + timeoutMs, perModelMs: timeoutMs,
+    run: async (model, availableMs, signal) => {
+      await options.beforeAttempt?.(model);
       const response = await withTimeout(client.models.generateContent({
         model,
         contents: buildPrompt(input),
         config: {
+          abortSignal: signal,
           responseMimeType: "application/json",
           responseJsonSchema: ALBUM_PLAN_SCHEMA,
           maxOutputTokens: 6_000,
           temperature: 0.85,
           thinkingConfig: { thinkingBudget: 0 },
         },
-      }), timeoutMs, `Planul albumului generat cu ${model} a depășit timpul de răspuns.`);
-      const text = response.candidates?.flatMap((candidate) => candidate.content?.parts || []).map((part) => part.text || "").join("").trim();
+      }), availableMs, `Planul albumului generat cu ${model} a depășit timpul de răspuns.`);
+      assertModelResponse(response);
+      const text = response.candidates?.flatMap((candidate) => candidate.content?.parts || []).filter(part => !part.thought).map((part) => part.text || "").join("").trim();
       if (!text) throw new Error("Modelul nu a returnat un plan.");
       return parsePlan(text, input, model);
-    } catch (error) {
-      errors.push(`${model}: ${error instanceof Error ? error.message : "eroare necunoscută"}`);
-    }
-  }
-
-  throw new Error(errors.join(" | ") || "Planul albumului nu a putut fi generat.");
+    },
+  });
 }

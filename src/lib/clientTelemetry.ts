@@ -6,6 +6,7 @@ import { trackMetaClientEvent } from "@/lib/metaPixel";
 
 type ClientEvent =
   | "site_visited"
+  | "page_viewed"
   | "story_preview_started"
   | "album_sample_page_viewed"
   | "album_sample_audio_played"
@@ -37,6 +38,7 @@ type ClientEvent =
   | "web_vital_recorded";
 
 type ClientTelemetryFields = {
+  pagePath?: string;
   product?: TelemetryProduct;
   generationMode?: GenerationMode;
   pageCount?: number;
@@ -71,6 +73,7 @@ export function trackEvent(event: ClientEvent, fields: ClientTelemetryFields = {
   const attribution = readCampaignAttribution();
   postTelemetry({
     event,
+    pagePath: fields.pagePath,
     product: fields.product,
     generationMode: fields.generationMode,
     pageCount: fields.pageCount,
@@ -93,8 +96,10 @@ export function trackSiteVisit() {
   captureCampaignAttribution();
 
   const key = "pmm-site-visit-tracked";
-  if (window.sessionStorage.getItem(key)) return;
-
-  window.sessionStorage.setItem(key, "1");
+  const day = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Bucharest" }).format(new Date());
+  try {
+    if (window.sessionStorage.getItem(key) === day) return;
+    window.sessionStorage.setItem(key, day);
+  } catch { return; }
   trackEvent("site_visited");
 }

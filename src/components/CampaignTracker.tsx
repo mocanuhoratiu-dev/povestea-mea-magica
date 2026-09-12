@@ -5,14 +5,25 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { captureCampaignAttribution, readMarketingConsent, saveMarketingConsent, type MarketingConsent } from "@/lib/campaignAttribution";
 import { isMetaPixelConfigured, trackMetaPageView } from "@/lib/metaPixel";
+import { trackEvent, trackSiteVisit } from "@/lib/clientTelemetry";
+import { publicReportPaths } from "@/lib/dailyReportData";
 
 export default function CampaignTracker() {
   const pathname = usePathname();
+  const lastReportedPath = useRef<string | null>(null);
   const [consent, setConsent] = useState<MarketingConsent | "loading">("loading");
   const [preferencesOpen, setPreferencesOpen] = useState(false);
   const preferencesRef = useRef<HTMLElement>(null);
   const returnFocus = useRef<HTMLElement | null>(null);
   const configured = isMetaPixelConfigured();
+
+  useEffect(() => {
+    if (lastReportedPath.current === pathname) return;
+    lastReportedPath.current = pathname;
+    if (!publicReportPaths.includes(pathname)) return;
+    trackSiteVisit();
+    trackEvent("page_viewed", { pagePath: pathname });
+  }, [pathname]);
 
   useEffect(() => {
     captureCampaignAttribution();

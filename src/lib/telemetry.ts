@@ -22,6 +22,7 @@ export type TelemetryFields = {
   albumStage?: "plan" | "cover" | "preview" | "scene" | "coloring" | "render" | "audio" | "delivery";
   kitStage?: "text" | "cover" | "scene";
   samplePage?: number;
+  pagePath?: string;
   estimatedCostMicros?: number;
   identityScore?: number;
   storyScore?: number;
@@ -50,6 +51,7 @@ export type TelemetryFields = {
 
 export type TelemetryEvent =
   | "pmm_site_visited"
+  | "pmm_page_viewed"
   | "pmm_story_preview_started"
   | "pmm_album_preview_started"
   | "pmm_album_preview_completed"
@@ -143,6 +145,7 @@ export function logTelemetry(event: TelemetryEvent, fields: TelemetryFields = {}
     album_stage: fields.albumStage,
     kit_stage: fields.kitStage,
     sample_page: fields.samplePage,
+    page_path: fields.pagePath,
     estimated_cost_micros: fields.estimatedCostMicros,
     identity_score: fields.identityScore,
     story_score: fields.storyScore,

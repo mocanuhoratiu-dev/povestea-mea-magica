@@ -73,6 +73,6 @@ test("watchdog identifies the album stage without reading customer content", () 
     kind: "illustrated-album",
     progress: { stage: "delivery", current: 1, total: 2 },
     documents: { storybook: "story.pdf", activityBooklet: "activity.pdf" },
-  } })), "audio");
+  } })), "delivery");
   assert.equal(inferOrderRecoveryStage(order({ deliveryExpiresAt: "2026-10-10T10:00:00.000Z" })), "email");
 });

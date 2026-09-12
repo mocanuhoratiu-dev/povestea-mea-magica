@@ -32,7 +32,7 @@ export async function renderPremiumKitPdf(root: HTMLElement, expectedPages: numb
       const paper = element.querySelector<HTMLElement>(".paper");
       if (paper && kitPrintOverflows(paper).length) throw new Error("Textul depășește spațiul de print. Materialul trebuie verificat.");
       restoreImages = await prepareKitPrintImages(element, email ? 1.7 : 2.25);
-      if (paper?.classList.contains('gold-keepsake')) restoreFontMetrics = prepareKitFontMetrics();
+      if (paper?.matches('.gold-keepsake,.explorer-diploma')) restoreFontMetrics = prepareKitFontMetrics();
       const canvas = await html2canvas(element, { scale: email ? 1.7 : 2.25, useCORS: true, backgroundColor: "#fff", logging: false, windowWidth: 1000, windowHeight: 1200 });
       if (!canvas.width || !canvas.height) throw new Error("O pagină nu a putut fi pregătită.");
       const size = orientation(element);

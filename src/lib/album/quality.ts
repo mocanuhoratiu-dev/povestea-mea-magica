@@ -3,7 +3,8 @@ import sharp from "sharp";
 import { readBoundedDuration, withTimeout } from "@/lib/aiTimeout";
 import { isUsableLineArtStatistics } from "@/lib/album/qualityMetrics";
 import type { AlbumQualityResult } from "@/lib/album/types";
-import { ALBUM_QUALITY_MINIMUM, AlbumQualityUnavailableError, retryAlbumQuality } from "./qualityPolicy";
+import { ALBUM_QUALITY_MINIMUM, AlbumQualityUnavailableError } from "./qualityPolicy";
+import { assertModelResponse, fallbackModels, isTerminalModelError, withModelFallback } from '../modelFallback';
 import { albumStyleQualityInstruction } from "./artDirection.ts";
 import { ALBUM_TEXT_CHECK, hasGroundedTextAssessment } from "./qualityText.ts";
 
@@ -27,11 +28,11 @@ type AlbumQualityInput = {
   candidateDataUrl: string;
   referenceDataUrl?: string;
   prompt: string;
-  expectedAspectRatio: "4:3" | "3:2" | "16:9";
+  expectedAspectRatio: "4:3" | "3:2" | "16:9" | "3:4";
   identityRequired: boolean;
   referencePurpose?: "character" | "photo";
   deadlineAt?: number;
-  beforeAiCheck?: () => Promise<void>;
+  beforeAiCheck?: (model?: string) => Promise<void>;
   thresholds?: {
     identity?: number;
     story?: number;
@@ -55,6 +56,7 @@ function score(value: unknown) {
 }
 
 function targetRatio(value: AlbumQualityInput["expectedAspectRatio"]) {
+  if (value === "3:4") return 3 / 4;
   if (value === "4:3") return 4 / 3;
   if (value === "16:9") return 16 / 9;
   return 3 / 2;
@@ -87,13 +89,13 @@ export function isAlbumAiQualityEnabled() {
   return process.env.ALBUM_AI_QC_ENABLED?.trim().toLowerCase() !== "false" && Boolean(process.env.VERTEX_AI_PROJECT_ID?.trim());
 }
 
-async function evaluateOnce(input: AlbumQualityInput): Promise<AlbumQualityResult> {
+async function evaluateOnce(input: AlbumQualityInput, model: string, timeoutMs: number, signal: AbortSignal): Promise<AlbumQualityResult> {
   const deterministic = await deterministicCheck(input.candidateDataUrl, input.expectedAspectRatio, input.asset === "album-coloring");
   if (!isAlbumAiQualityEnabled()) throw new AlbumQualityUnavailableError();
 
   try {
     if (input.deadlineAt && input.deadlineAt - Date.now() < 1_000) throw new AlbumQualityUnavailableError();
-    await input.beforeAiCheck?.();
+    await input.beforeAiCheck?.(model);
     const project = process.env.VERTEX_AI_PROJECT_ID?.trim();
     if (!project) throw new AlbumQualityUnavailableError();
     const auth = credentials();
@@ -115,17 +117,19 @@ async function evaluateOnce(input: AlbumQualityInput): Promise<AlbumQualityResul
       },
     ];
     const response = await withTimeout(client.models.generateContent({
-      model: process.env.ALBUM_QC_MODEL?.trim() || "gemini-3.1-flash-lite",
+      model,
       contents: [{ role: "user", parts }],
       config: {
+        abortSignal: signal,
         responseMimeType: "application/json",
         responseJsonSchema: QUALITY_SCHEMA,
         maxOutputTokens: 700,
         temperature: 0.1,
         thinkingConfig: { thinkingBudget: 0 },
       },
-    }), Math.min(readBoundedDuration(process.env.ALBUM_QC_TIMEOUT_MS, 22_000, 8_000, 45_000), input.deadlineAt ? Math.max(1, input.deadlineAt - Date.now()) : 45_000), "Controlul vizual a depășit timpul de răspuns.");
-    const text = response.candidates?.flatMap((candidate) => candidate.content?.parts || []).map((part) => part.text || "").join("").trim();
+    }), timeoutMs, "Controlul vizual a depășit timpul de răspuns.");
+    assertModelResponse(response);
+    const text = response.candidates?.flatMap((candidate) => candidate.content?.parts || []).filter(part => !part.thought).map((part) => part.text || "").join("").trim();
     if (!text) throw new AlbumQualityUnavailableError();
     const parsed = JSON.parse(text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "")) as Record<string, unknown>;
     if (typeof parsed.unsafe !== "boolean" || !hasGroundedTextAssessment(parsed) || [parsed.identityScore, parsed.storyScore, parsed.technicalScore].some(value => !Number.isInteger(value) || Number(value) < 0 || Number(value) > 100)) throw new AlbumQualityUnavailableError();
@@ -138,13 +142,22 @@ async function evaluateOnce(input: AlbumQualityInput): Promise<AlbumQualityResul
       && technicalScore >= Math.max(ALBUM_QUALITY_MINIMUM.technical, input.thresholds?.technical ?? 0)
       && storyScore >= Math.max(ALBUM_QUALITY_MINIMUM.story, input.thresholds?.story ?? 0)
       && (!input.identityRequired || identityScore >= Math.max(ALBUM_QUALITY_MINIMUM.identity, input.thresholds?.identity ?? 0));
+    console.info(JSON.stringify({ event: "pmm_image_quality_checked", model, accepted, identity_score: identityScore, technical_score: technicalScore, hard_failure: hardFailure }));
     return { asset: input.asset, mode: "ai", accepted, hardFailure, identityScore, storyScore, technicalScore, checkedAt: new Date().toISOString(), notes };
   } catch (error) {
-    if (error instanceof Error && error.message.startsWith("album_budget_")) throw error;
-    throw new AlbumQualityUnavailableError();
+    if (isTerminalModelError(error)) throw error;
+    throw new AlbumQualityUnavailableError(error);
   }
 }
 
 export function evaluateAlbumImage(input: AlbumQualityInput): Promise<AlbumQualityResult> {
-  return retryAlbumQuality(() => evaluateOnce(input), () => new Promise(resolve => setTimeout(resolve, 1200)));
+  const deadlineAt = Math.min(input.deadlineAt || Infinity, Date.now() + 45_000);
+  return withModelFallback({
+    role: 'quality', models: fallbackModels('quality', process.env.ALBUM_QC_MODEL, process.env.ALBUM_QC_FALLBACK_MODELS),
+    deadlineAt, perModelMs: readBoundedDuration(process.env.ALBUM_QC_TIMEOUT_MS, 24_000, 8_000, 45_000),
+    run: (model, timeoutMs, signal) => evaluateOnce(input, model, timeoutMs, signal),
+  }).catch(error => {
+    if (isTerminalModelError(error)) throw error;
+    throw new AlbumQualityUnavailableError(error);
+  });
 }

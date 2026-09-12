@@ -9,6 +9,7 @@ import { logTelemetry } from "@/lib/telemetry";
 import { readPremiumKit } from "@/lib/kits/content";
 import { completeKitArtwork } from "@/lib/kits/artwork";
 import { readOrderCover } from "@/lib/orders";
+import { generationFailureReason, notifyGenerationFailure } from "@/lib/generationIncident";
 
 export const runtime = "nodejs";
 
@@ -109,7 +110,10 @@ async function prepareSingleOrder(order: StoredOrder, secret: string) {
 
   const premium = readPremiumKit(prepared.output?.premium);
   if (premium && (!premium.assets.cover || !premium.assets.scene)) {
+    const character = prepared.configuration.referenceCharacter as { objectName?: string; model?: string } | undefined;
     await completeKitArtwork(premium, {
+      characterReference: character?.objectName ? await readOrderCover(character.objectName) : undefined,
+      preferredImageModel: character?.model,
       save: (image, role) => saveOrderCover(prepared!.id, image, `kit-${prepared!.product}-${role}`),
       read: readOrderCover,
       checkpoint: async (next) => {
@@ -191,7 +195,10 @@ async function prepareBundleOrder(order: StoredOrder, secret: string) {
     const existing = completedItems.find((completed) => completed.product === item.product);
     const premium = readPremiumKit(existing?.output.premium);
     if (premium && (!premium.assets.cover || !premium.assets.scene)) {
+      const character = item.configuration.referenceCharacter as { objectName?: string; model?: string } | undefined;
       await completeKitArtwork(premium, {
+        characterReference: character?.objectName ? await readOrderCover(character.objectName) : undefined,
+        preferredImageModel: character?.model,
         save: (image, role) => saveOrderCover(prepared!.id, image, `kit-${item.product}-${role}`),
         read: readOrderCover,
         checkpoint: async (next) => {
@@ -312,6 +319,9 @@ export async function POST(request: Request) {
     // Checkpoints keep completed bundle items. A retry resumes at the first
     // missing material and Resend idempotency prevents duplicate ready emails.
     const failureCode = processingFailureCode(error);
+    const reason = generationFailureReason(error);
+    const retryCount = Number(request.headers.get("x-cloudtasks-taskretrycount") || 0);
+    if (["provider_rejected", "quality_rejected", "budget_limit", "configuration", "billing_disabled"].includes(reason) || retryCount >= 3) await notifyGenerationFailure(order.id, order.product, "paid_generation", error);
     try {
       const current = await getOrder(order.id);
       if (current && (current.status === "paid" || current.status === "processing")) {

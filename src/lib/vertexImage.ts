@@ -1,9 +1,10 @@
 import { GoogleGenAI, Modality } from "@google/genai";
 import { readBoundedDuration, withTimeout } from "@/lib/aiTimeout";
 import { imageRejection, type ImageRejection } from "./vertexImageFailure";
+import { fallbackModels, imageResolution, withModelFallback } from './modelFallback';
 
 export type CoverGenerationResult =
-  | { imageDataUrl: string; model: string; error?: never; rejection?: never }
+  | { imageDataUrl: string; model: string; resolution: '1K' | '2K'; error?: never; rejection?: never }
   | { imageDataUrl?: never; model?: never; error: string; rejection?: ImageRejection };
 
 type ImageAspectRatio = "1:1" | "4:3" | "3:2" | "3:4" | "16:9";
@@ -20,21 +21,8 @@ function getVertexCredentials() {
 }
 
 function getImageModels() {
-  const configuredModels = [
-    process.env.VERTEX_AI_IMAGE_MODEL,
-    ...(process.env.VERTEX_AI_IMAGE_FALLBACK_MODELS || "").split(","),
-    "gemini-3.1-flash-image",
-  ];
-
-  const models = Array.from(
-    new Set(
-      configuredModels
-        .map((model) => model?.trim())
-        .filter((model): model is string => Boolean(model))
-    )
-  );
-
-  return models.slice(0, readBoundedDuration(process.env.VERTEX_AI_IMAGE_MAX_MODELS, 2, 1, 3));
+  return fallbackModels('image', process.env.VERTEX_AI_IMAGE_MODEL, process.env.VERTEX_AI_IMAGE_FALLBACK_MODELS,
+    readBoundedDuration(process.env.VERTEX_AI_IMAGE_MAX_MODELS, 3, 1, 3));
 }
 
 function cleanCoverPrompt(value: string, maximum = 3_600) {
@@ -60,15 +48,21 @@ async function generateVertexImage({
   beforeAttempt,
   referencePurpose = "character",
   deadlineAt,
+  preferredModel,
+  require2K = false,
+  additionalReferenceDataUrl,
 }: {
   prompt: string;
   aspectRatio: ImageAspectRatio;
   referenceImageDataUrl?: string;
   timeoutEnvironment: "cover" | "album";
   imageSize: "1K" | "2K";
-  beforeAttempt?: () => Promise<void>;
+  beforeAttempt?: (model?: string) => Promise<void>;
   referencePurpose?: "character" | "mascot" | "photo";
   deadlineAt?: number;
+  preferredModel?: string;
+  require2K?: boolean;
+  additionalReferenceDataUrl?: string;
 }): Promise<CoverGenerationResult> {
   const project = process.env.VERTEX_AI_PROJECT_ID?.trim();
   const cleanPrompt = cleanCoverPrompt(prompt, timeoutEnvironment === "album" ? 12_000 : 3_600);
@@ -76,7 +70,6 @@ async function generateVertexImage({
   if (!project) return { error: "VERTEX_AI_PROJECT_ID lipsește din configurare." };
   if (!cleanPrompt) return { error: "Promptul pentru copertă este gol." };
 
-  const errors: string[] = [];
   const timeoutMs = readBoundedDuration(
     timeoutEnvironment === "album" ? process.env.ALBUM_IMAGE_TIMEOUT_MS : process.env.VERTEX_AI_COVER_TIMEOUT_MS,
     45_000,
@@ -122,19 +115,29 @@ async function generateVertexImage({
   if (reference && referencePurpose === "photo" && Array.isArray(contents)) {
     contents[0].parts = [{ inlineData: reference }, { text: "This is a parent-provided PHOTO for identity, not an illustrated character sheet. Translate the child's recognizable face, apparent age, skin tone, hair color and hairstyle into the requested illustration style. Stylized eyes and proportions are expected. Use the outfit and companions requested in the prompt, not incidental clothing, people or objects in the photograph. Do not copy the background, pose or photographic rendering. Never merge or duplicate children. " + cleanPrompt }];
   }
+  const extraReference = parseReferenceImage(additionalReferenceDataUrl);
+  if (extraReference && Array.isArray(contents)) {
+    contents[0].parts.push({ inlineData: extraReference }, { text: "This ADDITIONAL reference is for art direction and supporting companion/prop continuity only. IMAGE 1 remains authoritative for the child's identity. Never replace or merge the child with another person or the mascot shown here. Do not copy the composition." });
+  }
+  const configuredModels = getImageModels();
+  const models = [...new Set([...(preferredModel && configuredModels.includes(preferredModel) ? [preferredModel] : []), ...configuredModels])]
+    .filter(model => !require2K || imageResolution(model, '2K') === '2K');
 
-  for (const model of getImageModels()) {
-    try {
-      const availableMs = deadlineAt ? deadlineAt - Date.now() : timeoutMs;
-      if (availableMs < 1_000) return { error: "Imaginea a depășit timpul de răspuns." };
-      await beforeAttempt?.();
+  try {
+    return await withModelFallback<CoverGenerationResult>({
+      role: 'image', models,
+      deadlineAt: deadlineAt || Date.now() + Math.min(120_000, timeoutMs * 3), perModelMs: timeoutMs,
+      run: async (model, availableMs, signal) => {
+      await beforeAttempt?.(model);
+      const resolution = imageResolution(model, imageSize);
       const response = await withTimeout(
         client.models.generateContent({
           model,
           contents,
           config: {
+            abortSignal: signal,
             responseModalities: [Modality.IMAGE],
-            imageConfig: { aspectRatio, imageSize },
+            imageConfig: { aspectRatio, imageSize: resolution },
           },
         }),
         Math.min(timeoutMs, availableMs),
@@ -149,18 +152,19 @@ async function generateVertexImage({
       const mimeType = imagePart?.inlineData?.mimeType || "image/png";
 
       if (imageData) {
-        return { imageDataUrl: `data:${mimeType};base64,${imageData}`, model };
+        console.info(JSON.stringify({ event: 'pmm_image_model_output', model, resolution, requestedResolution: imageSize }));
+        return { imageDataUrl: `data:${mimeType};base64,${imageData}`, model, resolution };
       }
 
       const finishReason = response.candidates?.[0]?.finishReason || response.promptFeedback?.blockReason || "EMPTY";
       if (/PROHIBITED_CONTENT|SAFETY|IMAGE_RECITATION|BLOCKLIST/i.test(finishReason)) return { error: `${model}: ${finishReason}` };
-      errors.push(`${model}: nu a returnat o imagine. (${finishReason})`);
-    } catch (error) {
-      errors.push(`${model}: ${error instanceof Error ? error.message : "eroare necunoscută"}`);
-    }
+      throw new Error(`${model}: nu a returnat o imagine. (${finishReason})`);
+      },
+    });
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith('album_budget_')) throw error;
+    return { error: error instanceof Error ? error.message : 'Vertex AI nu a putut genera imaginea.' };
   }
-
-  return { error: errors.join(" | ") || "Vertex AI nu a putut genera imaginea." };
 }
 
 /** Generates a temporary data URL. Cloud Run authenticates through its service account. */
@@ -182,7 +186,7 @@ export async function generateVertexAlbumIllustration(
   prompt: string,
   referenceImageDataUrl?: string,
   aspectRatio: Exclude<ImageAspectRatio, "1:1"> = "3:2",
-  options: { beforeAttempt?: () => Promise<void>; referencePurpose?: "character" | "photo"; deadlineAt?: number } = {},
+  options: { beforeAttempt?: (model?: string) => Promise<void>; referencePurpose?: "character" | "photo"; deadlineAt?: number; preferredModel?: string; require2K?: boolean; additionalReferenceDataUrl?: string } = {},
 ) {
   return generateVertexImage({
     prompt,
@@ -193,9 +197,12 @@ export async function generateVertexAlbumIllustration(
     beforeAttempt: options.beforeAttempt,
     referencePurpose: options.referencePurpose,
     deadlineAt: options.deadlineAt,
+    preferredModel: options.preferredModel,
+    require2K: options.require2K,
+    additionalReferenceDataUrl: options.additionalReferenceDataUrl,
   });
 }
 
-export function generateVertexKitIllustration(prompt: string, referenceImageDataUrl: string | undefined, cover: boolean, beforeAttempt: () => Promise<void>) {
-  return generateVertexImage({ prompt, referenceImageDataUrl, referencePurpose: cover ? "mascot" : "character", aspectRatio: cover ? "3:4" : "3:2", timeoutEnvironment: "cover", imageSize: "1K", beforeAttempt });
+export function generateVertexKitIllustration(prompt: string, referenceImageDataUrl: string | undefined, cover: boolean, beforeAttempt: () => Promise<void>, options: { character?: boolean; preferredModel?: string; additionalReferenceDataUrl?: string } = {}) {
+  return generateVertexImage({ prompt, referenceImageDataUrl, referencePurpose: options.character ? "character" : cover ? "mascot" : "character", aspectRatio: cover ? "3:4" : "3:2", timeoutEnvironment: "cover", imageSize: "1K", beforeAttempt, preferredModel: options.preferredModel, additionalReferenceDataUrl: options.additionalReferenceDataUrl });
 }

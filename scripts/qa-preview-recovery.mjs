@@ -151,13 +151,16 @@ try {
       .waitFor({ timeout: 20000 });
     assert.equal(calls, 3, "Resuming polling must not consume an attempt");
     pending = true;
+    const fourthRequest = page.waitForRequest(request => request.url().endsWith("/api/album-preview") && request.method() === "POST");
     await page
       .getByRole("button", { name: "Încearcă altă variantă", exact: true })
       .click();
+    await fourthRequest;
+    await page.waitForTimeout(200);
     await page.getByRole("button", { name: "Înapoi", exact: true }).click();
     await page.waitForTimeout(1800);
     await page.getByRole("button", { name: "Continuă", exact: true }).click();
-    await page.getByText(/Încercări rămase: 0/).waitFor();
+    await page.getByText(/Variante rămase: 0/).waitFor();
     assert.equal(
       await history.getByRole("button").count(),
       3,

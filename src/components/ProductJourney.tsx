@@ -9,7 +9,7 @@ const journeys = [
   { id: "album", label: "Povestea Magică", path: "/povestea-magica#configureaza-albumul", action: "Creează povestea", steps: [
     { title: "Ne povestești despre copil", text: "Prenumele, vârsta, lumea și un detaliu drag. Completezi singur sau cu Lumi; fotografia este opțională.", image: "/brand/how-album.webp", alt: "Configuratorul Povestea Magică, înainte de introducerea detaliilor" },
     { title: "Vezi, apoi alegi", text: "Primești o mostră cu coperta și două pagini personalizate. Confirmi varianta dorită înainte de plată.", image: "/examples/album/collection/coperta.webp", alt: "Coperta Evei din modelul public, exemplu de prezentare" },
-    { title: "Primești și păstrezi", text: "După plată pregătim cartea completă, audio-ul și caietul. Îți trimitem pe email linkul de acces, valabil 30 de zile.", image: "/examples/album/collection/colorat.webp", alt: "Pagina de colorat din caietul demonstrativ" },
+    { title: "Primești și păstrezi", text: "După plată pregătim cartea completă și caietul. Îți trimitem pe email linkul de acces, valabil 30 de zile.", image: "/examples/album/collection/colorat.webp", alt: "Pagina de colorat din caietul demonstrativ" },
   ] },
   { id: "atelier", label: "Atelierul Scutului Magic", path: "/scutul-de-noapte#creator", action: "Descoperă Atelierul", steps: [
     { title: "Pornim de la seara voastră", text: "Ne spui ce îl neliniștește și ce îi este familiar. Nu cerem fotografie; poți descrie aspectul copilului.", image: "/brand/how-atelier.webp", alt: "Formularul Atelierului, cu detaliile pentru copil" },

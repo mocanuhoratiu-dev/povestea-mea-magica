@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, Check, LoaderCircle, RotateCcw, Sparkles, Square, Volume2, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, LoaderCircle, RotateCcw, Square, Volume2, X } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
@@ -128,9 +128,6 @@ export default function LumiGuide() {
   const guideVisualState = lumiStateForGuideStep(step, totalSteps);
   const visualState = generation.phase !== "idle" ? lumiGenerationCopy[generation.phase].visualState : guideVisualState;
   const visualTitle = generation.phase !== "idle" ? lumiGenerationCopy[generation.phase].title : lumiStateCopy[visualState].label;
-  const contextualLauncherLabel = pathname === "/povestea-magica"
-    ? ["Începem cu eroul", "Alegem lumea", "Adăugăm detaliul vostru", "Verificăm mostra"][contextStep]
-    : "Construim povestea";
   const launcherCopy = useMemo(() => {
     if (generation.phase !== "idle") return generation.message || lumiGenerationCopy[generation.phase].message;
     if (pathname === "/povestea-magica") return lumiContextPrompt(contextStep, contextName);
@@ -343,19 +340,13 @@ export default function LumiGuide() {
           </motion.section>
         ) : (
           <motion.div key="launcher" data-footer-visible={footerVisible && generation.phase === "idle"} data-launcher-compact={launcherCompact && generation.phase === "idle"} initial={{ opacity: 0, y: 12, scale: .97 }} animate={{ opacity: 1, y: 0, scale: 1 }} className="lumi-launcher ml-auto w-fit max-w-full">
-            {isAlbumEditing ? <button type="button" title="Ajutor de la Lumi" aria-label="Deschide ghidul Lumi și creează povestea" onClick={()=>{setIsOpen(true);dismissNudge();trackEvent("lumi_opened");}} className="flex h-11 items-center gap-2 rounded-full border border-brand-purple/25 bg-white px-3 text-xs font-bold text-brand-purple shadow-md"><img src="/lumi-guardian.webp" alt="" className="h-9 w-6 object-contain"/>Lumi</button> : <>
-            <motion.button type="button" aria-label={generation.phase === "idle" ? "Deschide ghidul Lumi și creează povestea" : `Deschide Lumi. ${visualTitle}`} title={showNudge && generation.phase === "idle" ? launcherCopy : undefined} onClick={() => { trackEvent("lumi_opened"); setIsOpen(true); dismissNudge(); window.setTimeout(() => window.dispatchEvent(new CustomEvent("pmm:lumi-request-context")), 0); }} whileHover={{ y: -4 }} whileTap={{ scale: .98 }} className="group relative ml-auto h-[92px] w-[min(292px,calc(100vw-1.5rem))] border-0 bg-transparent text-left text-brand-navy drop-shadow-[0_17px_20px_rgba(15,25,48,.24)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-purple focus-visible:ring-offset-4 sm:h-[108px] sm:w-[330px]">
-              <span aria-hidden="true" className="lumi-page-left absolute bottom-0 left-0 h-[68px] w-[58%] border border-brand-navy/14 bg-brand-cream [clip-path:polygon(0_0,90%_7%,100%_100%,0_91%)] transition-colors group-hover:border-brand-gold sm:h-20" />
-              <span aria-hidden="true" className="lumi-page-right absolute bottom-0 right-0 h-[68px] w-[58%] border border-brand-navy/14 bg-brand-cream [clip-path:polygon(10%_7%,100%_0,100%_91%,0_100%)] transition-colors group-hover:border-brand-gold sm:h-20" />
-              <span aria-hidden="true" className="lumi-page-fold absolute bottom-2 left-1/2 z-10 h-[53px] w-px -translate-x-1/2 bg-brand-navy/10 sm:h-16" />
-              <span aria-hidden="true" className="lumi-page-sparkles absolute left-[68px] top-0 z-30 flex items-center gap-1 text-brand-gold sm:left-[78px]"><Sparkles size={15} /><span className="text-[10px]">✦</span><span className="text-[8px]">✦</span></span>
-              <span aria-hidden="true" className="lumi-launcher-character absolute bottom-1 left-2 z-20 h-[84px] w-[72px] bg-[url('/lumi-guardian.webp')] bg-contain bg-bottom bg-no-repeat sm:left-3 sm:h-[102px] sm:w-[86px]" />
-              <span className="lumi-page-copy absolute bottom-[13px] left-[86px] right-8 z-20 min-w-0 sm:bottom-[15px] sm:left-[104px] sm:right-10">
-                <span className="block truncate text-[8px] font-black uppercase tracking-[0.12em] text-brand-purple sm:text-[9px]">{generation.phase === "idle" ? "Creează alături de Lumi" : "Lumi lucrează"}</span>
-                <span className="mt-1 block font-serif text-[14px] font-bold leading-tight text-brand-navy sm:text-[16px]">{generation.phase === "idle" ? "Deschidem povestea?" : visualTitle}</span>
-                <span className={`mt-0.5 block truncate text-[9px] font-bold text-brand-navy/50 transition-opacity sm:text-[10px] ${showNudge ? "opacity-100" : "opacity-75"}`}>{generation.phase === "idle" ? contextualLauncherLabel : "Urmărește progresul"}</span>
+            {isAlbumEditing ? <button type="button" title="Ajutor de la Lumi" aria-label="Deschide ghidul Lumi și creează povestea" onClick={()=>{setIsOpen(true);dismissNudge();trackEvent("lumi_opened");}} className="flex h-14 items-center gap-2 border-0 bg-transparent px-3 text-xs font-bold text-brand-purple"><img src="/lumi-guardian.webp" alt="" className="h-12 w-8 object-contain"/>Lumi</button> : <>
+            <motion.button type="button" aria-label={generation.phase === "idle" ? "Deschide ghidul Lumi și creează povestea" : `Deschide Lumi. ${visualTitle}`} title={showNudge && generation.phase === "idle" ? launcherCopy : undefined} onClick={() => { trackEvent("lumi_opened"); setIsOpen(true); dismissNudge(); window.setTimeout(() => window.dispatchEvent(new CustomEvent("pmm:lumi-request-context")), 0); }} whileHover={{ y: -4 }} whileTap={{ scale: .98 }} className="lumi-floating-button group">
+              <span aria-hidden="true" className="lumi-launcher-character" />
+              <span className="lumi-floating-copy">
+                <strong>{generation.phase === "idle" ? "Lumi" : "Lumi lucrează"}</strong>
+                <span>{generation.phase === "idle" ? "Creează cu Lumi" : visualTitle}</span>
               </span>
-              <span aria-hidden="true" className="lumi-page-arrow absolute bottom-[25px] right-2.5 z-20 text-lg font-bold text-brand-purple transition-transform group-hover:translate-x-1 sm:bottom-[30px] sm:right-3.5">→</span>
             </motion.button></>}
           </motion.div>
         )}

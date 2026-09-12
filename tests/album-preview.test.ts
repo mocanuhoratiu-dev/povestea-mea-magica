@@ -44,14 +44,15 @@ test("album preview reserves editorial space and forbids generated typography", 
   assert.match(prompt, /authoritative visual reference/i);
 });
 
-test("album preview explicitly treats a parent photo as the identity anchor", () => {
+test("album preview uses the parent-approved illustrated character, never treats it as a photograph", () => {
   const prompt = buildAlbumPreviewPrompt({ ...input, referenceMode: "photo" }, "Biblioteca poveștilor vii");
-  assert.match(prompt, /attached photograph is the authoritative identity reference/i);
-  assert.match(prompt, /recognizable facial structure/i);
+  assert.match(prompt, /attached approved ILLUSTRATED CHARACTER is the authoritative identity reference/i);
+  assert.match(prompt, /Do not redesign facial features/i);
+  assert.doesNotMatch(prompt, /attached photograph is/i);
 });
 
-test("album preview title remains deterministic for the final renderer", () => {
-  assert.equal(albumPreviewTitle(input), "Sofia și biblioteca poveștilor vii");
+test("unfinished cover has a temporary label, not a world-based final title", () => {
+  assert.equal(albumPreviewTitle(input), "O poveste pentru Sofia");
 });
 
 test("album preview retry turns editorial feedback into a corrective prompt", () => {

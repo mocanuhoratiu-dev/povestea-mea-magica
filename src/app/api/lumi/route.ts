@@ -1,4 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
+import { assertModelResponse, fallbackModels, withModelFallback } from '@/lib/modelFallback';
 import { NextResponse } from "next/server";
 import { readBoundedDuration, withTimeout } from "@/lib/aiTimeout";
 import { wantsLumiMaterialRecommendation } from "@/lib/lumiIntent";
@@ -81,14 +82,8 @@ function getVertexCredentials() {
 }
 
 function getModelCandidates() {
-  return Array.from(new Set([
-    process.env.VERTEX_AI_LUMI_MODEL,
-    process.env.VERTEX_AI_MODEL,
-    ...(process.env.VERTEX_AI_FALLBACK_MODELS || "").split(","),
-    "gemini-3.5-flash",
-    "gemini-3.1-flash-lite",
-  ].map((model) => model?.trim()).filter((model): model is string => Boolean(model))))
-    .slice(0, readBoundedDuration(process.env.LUMI_AI_FALLBACK_MAX_MODELS, 2, 1, 3));
+  return fallbackModels('lumi', process.env.VERTEX_AI_LUMI_MODEL || process.env.VERTEX_AI_MODEL,
+    process.env.VERTEX_AI_FALLBACK_MODELS, readBoundedDuration(process.env.LUMI_AI_FALLBACK_MAX_MODELS, 3, 1, 3));
 }
 
 function emptyRecommendation(): Recommendation {
@@ -230,15 +225,18 @@ export async function POST(request: Request) {
     const client = new GoogleGenAI({ vertexai: true, project, location: process.env.VERTEX_AI_LOCATION?.trim() || "global", ...(getVertexCredentials() ? { googleAuthOptions: { credentials: getVertexCredentials() } } : {}) });
     const prompt = lumiPrompt(history, message, allowRecommendation);
     const timeoutMs = readBoundedDuration(process.env.VERTEX_AI_LUMI_TIMEOUT_MS, 18_000, 5_000, 45_000);
-    for (const model of getModelCandidates()) {
-      try {
-        const response = await withTimeout(client.models.generateContent({ model, contents: prompt, config: { responseMimeType: "application/json", maxOutputTokens: 260, thinkingConfig: { thinkingBudget: 0 }, temperature: 0.8 } }), timeoutMs, "Lumi a depășit timpul de răspuns.");
+    try {
+      return await withModelFallback({ role: 'lumi', models: getModelCandidates(), deadlineAt: startedAt + 45_000, perModelMs: timeoutMs,
+        run: async (model, availableMs, signal) => {
+        const response = await withTimeout(client.models.generateContent({ model, contents: prompt + '\nFolosește diacritice românești corecte. Sugestiile au maximum 6 cuvinte și nu inventează detalii despre copil.', config: { abortSignal: signal, responseMimeType: "application/json", maxOutputTokens: 700, thinkingConfig: { thinkingBudget: 0 }, temperature: 0.8 } }), availableMs, "Lumi a depășit timpul de răspuns.");
+        assertModelResponse(response);
         const result = sanitizeResponse(parseJsonObject(response.text || ""), fallback, allowRecommendation);
         logTelemetry("pmm_lumi_response", { result: "success", durationMs: Date.now() - startedAt, aiProvider: "vertex", model });
         return NextResponse.json(result);
-      } catch {
-        // A conversational helper should never interrupt the product flow because one model is busy.
-      }
+        },
+      });
+    } catch {
+      // Local guidance remains available if all providers are unavailable.
     }
     logTelemetry("pmm_lumi_response", { result: "success", generationMode: "fallback", durationMs: Date.now() - startedAt, aiProvider: "vertex" });
     return NextResponse.json({ ...fallback, fallback: true });

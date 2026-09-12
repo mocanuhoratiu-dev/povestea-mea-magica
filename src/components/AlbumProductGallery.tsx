@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { BookOpen, Headphones, Printer } from "lucide-react";
+import { BookOpen, Tablet, Printer } from "lucide-react";
 import PremiumBookMockup from "@/components/PremiumBookMockup";
 
 const items = [
@@ -11,10 +11,10 @@ const items = [
     visual: "book",
   },
   {
-    icon: Headphones,
-    eyebrow: "Poveste de ascultat",
-    title: "Audio în limba română",
-    text: "Povestea poate fi răsfoită și ascultată direct de pe telefon, tabletă sau computer.",
+    icon: Tablet,
+    eyebrow: "Poveste de răsfoit",
+    title: "Oriunde vă e bine",
+    text: "Povestea poate fi răsfoită direct de pe telefon, tabletă sau computer.",
     visual: "phone",
   },
   {
@@ -42,7 +42,7 @@ function ProductVisual({ visual }: { visual: (typeof items)[number]["visual"] })
         <div className="absolute bottom-[5%] right-[7%] h-[82%] w-[42%] overflow-hidden rounded-[24px] border-[7px] border-brand-navy bg-brand-navy shadow-[0_18px_45px_rgba(6,15,34,.38)]">
           <Image src="/examples/album/collection/flipbook/page-01.webp" alt="Coperta poveștii pe telefon" fill sizes="18vw" className="object-contain" />
           <div className="absolute inset-x-4 bottom-4 bg-brand-cream/95 px-3 py-3 text-brand-navy shadow-xl backdrop-blur-sm">
-            <span className="flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.08em]"><Headphones size={14} /> Ascultă povestea</span>
+            <span className="flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.08em]"><BookOpen size={14} /> Răsfoiește povestea</span>
           </div>
         </div>
       </div>
@@ -71,7 +71,7 @@ export default function AlbumProductGallery() {
             <p className="text-xs font-black uppercase tracking-[0.16em] text-brand-purple">Ce ajunge la voi</p>
             <h2 id="album-product-gallery-title" className="mt-4 font-serif text-3xl leading-tight text-brand-navy sm:text-5xl">O experiență completă, nu doar un PDF.</h2>
           </div>
-          <p className="max-w-2xl text-base font-semibold leading-relaxed text-brand-navy/75 sm:text-lg">Povestea, imaginile, vocea și activitățile sunt create ca părți ale aceluiași produs, apoi livrate împreună pe email.</p>
+          <p className="max-w-2xl text-base font-semibold leading-relaxed text-brand-navy/75 sm:text-lg">Povestea, imaginile și activitățile sunt create ca părți ale aceluiași produs, apoi livrate împreună pe email.</p>
         </div>
         <p className="mt-7 text-[10px] font-black uppercase tracking-[0.12em] text-brand-navy/70 lg:hidden">Glisează pentru a vedea tot ce primești</p>
         <div className="no-scrollbar -mx-5 mt-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-3 sm:-mx-6 sm:px-6 lg:mx-0 lg:mt-10 lg:grid lg:snap-none lg:grid-cols-3 lg:gap-px lg:overflow-hidden lg:border lg:border-brand-navy/12 lg:bg-brand-navy/12 lg:p-0">

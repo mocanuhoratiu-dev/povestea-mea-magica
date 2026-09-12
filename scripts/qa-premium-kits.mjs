@@ -34,10 +34,10 @@ try {
     await page.screenshot({ path: `${out}/${kind}-desktop.png`, fullPage: true });
     const print = page.locator('[data-print="true"]');
     const bounds = await print.locator('.paper').evaluateAll(papers => papers.map(paper => {
-      const rect = paper.getBoundingClientRect(), footer = paper.querySelector('.folio')?.getBoundingClientRect();
+      const rect = paper.getBoundingClientRect(), footerRect = paper.querySelector('.folio')?.getBoundingClientRect(), footer = footerRect?.height ? footerRect : undefined;
       return { index: paper.dataset.pageIndex, title: paper.querySelector('h2')?.textContent, overflow: [...paper.querySelectorAll('p,h2,h3,.note,.quote,.gold-dedication,.gold-certificate-copy,.gold-adult,.gold-ingredients,.gold-ritual-title,.gold-step-copy,.gold-formula,.gold-main-label,.gold-round-copy,.gold-door-copy,.gold-ritual-strip,.gold-safety')].filter(node => {
         const r = node.getBoundingClientRect(), glyphAllowance = Math.max(8, parseFloat(getComputedStyle(node).fontSize) * .35);
-        return r.width && r.height && ((footer && r.bottom > footer.top - 3) || r.right > rect.right + 1 || r.left < rect.left - 1 || (node.matches('.gold-child,.gold-main-label h3,.gold-round-copy h3,.gold-door-copy h3,.gold-step-copy,.gold-formula') && (node.scrollHeight > node.clientHeight + glyphAllowance || node.scrollWidth > node.clientWidth + 2)));
+        return r.width && r.height && ((footer && r.bottom > footer.top - 3) || r.right > rect.right + 1 || r.left < rect.left - 1 || (node.matches('.gold-child,.gold-main-label h3,.gold-round-copy h3,.gold-door-copy h3,.gold-step-copy,.gold-formula,.explorer-diploma-name') && (node.scrollHeight > node.clientHeight + glyphAllowance || node.scrollWidth > node.clientWidth + 2)));
       }).map(node => ({ text: node.textContent, top: node.getBoundingClientRect().top - rect.top, bottom: node.getBoundingClientRect().bottom - rect.top })) };
     }));
     const reader = page.locator('#kit-result .pk-reader').first();
