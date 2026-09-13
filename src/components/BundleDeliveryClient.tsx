@@ -32,6 +32,7 @@ type AlbumDelivery = {
   title: string;
   pages: PersonalizedAlbumPage[];
   audioUrl?: string;
+  audioTracks?: import("@/lib/narration").NarrationTrack[];
   qualitySummary: { accepted: number; checked: number };
 };
 
@@ -69,7 +70,7 @@ function BundleAlbumDelivery({ item, order, token }: { item: DeliveryItem; order
           <p className="mt-2 text-sm font-semibold leading-relaxed text-brand-navy/65">Carte ilustrată de 16 pagini, narațiune și caiet separat de activități.</p>
         </div>
       </div>
-      {delivery && <PersonalizedAlbumFlipbook pages={delivery.pages} audioUrl={delivery.audioUrl} title={delivery.title} qualitySummary={delivery.qualitySummary} />}
+      {delivery && <PersonalizedAlbumFlipbook pages={delivery.pages} audioUrl={delivery.audioUrl} audioTracks={delivery.audioTracks} title={delivery.title} qualitySummary={delivery.qualitySummary} />}
       {failed && <p className="mb-5 border border-amber-300 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-800">Previzualizarea nu a putut fi încărcată, dar documentele sunt pregătite pentru descărcare.</p>}
       <div className="grid gap-3 sm:grid-cols-2">
         <a href={albumDocumentUrl("storybook")} onClick={() => trackEvent("pdf_downloaded", { product: "album", pageCount: 16 })} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-brand-purple px-4 text-sm font-black text-white transition-colors hover:bg-brand-navy"><Download size={17} /> Descarcă albumul</a>

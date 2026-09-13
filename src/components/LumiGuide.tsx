@@ -221,6 +221,8 @@ export default function LumiGuide() {
 
   const update = <K extends keyof LumiDraft>(key: K, value: LumiDraft[K]) => { editingDraft.current = true; setDraft((current) => ({ ...current, [key]: value })); };
 
+  useEffect(() => { stopSharedNarration(LUMI_NARRATION_OWNER); }, [step, pathname]);
+
   const validate = () => {
     if (step === 0 && draft.name.trim().length < 2) return "Scrie prenumele copilului pentru a continua.";
     if (step === 3 && draft.world === "custom" && draft.customWorld.trim().length < 5) return "Descrie lumea inventată în câteva cuvinte.";

@@ -1,2 +1,2 @@
-// Pause new album narration without removing audio already owned by customers.
-export const ALBUM_AUDIO_ENABLED = false;
+// Narration is generated on demand, independently of PDF creation and delivery.
+export const ALBUM_AUDIO_ENABLED = true;

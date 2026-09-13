@@ -13,6 +13,7 @@ type AlbumDelivery = {
   title: string;
   pages: PersonalizedAlbumPage[];
   audioUrl?: string;
+  audioTracks?: import("@/lib/narration").NarrationTrack[];
   referenceMode: "description" | "photo";
   qualitySummary: { accepted: number; checked: number };
   documents: Array<{ id: "storybook" | "activities"; label: string; pages: number }>;
@@ -98,7 +99,7 @@ export default function AlbumDeliveryClient() {
         <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-gold">Creat pentru {delivery.childName}</p>
         <h2 className="mt-2 font-serif text-2xl sm:text-3xl">{delivery.title}</h2>
       </div>
-      <PersonalizedAlbumFlipbook pages={delivery.pages} audioUrl={delivery.audioUrl} title={delivery.title} qualitySummary={delivery.qualitySummary} />
+      <PersonalizedAlbumFlipbook pages={delivery.pages} audioUrl={delivery.audioUrl} audioTracks={delivery.audioTracks} title={delivery.title} qualitySummary={delivery.qualitySummary} />
       <div className="border-y border-brand-navy/15 bg-white">
         {delivery.documents.map((document) => {
           const presentation = documentPresentation[document.id];

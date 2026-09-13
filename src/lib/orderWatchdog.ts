@@ -1,5 +1,4 @@
 import type { StoredOrder } from "@/lib/orders";
-import { ALBUM_AUDIO_ENABLED } from "./album/features.ts";
 
 export type OrderRecoveryStage = "generation" | "rendering" | "audio" | "email" | "delivery";
 export type OrderWatchdogAction = "skip" | "requeue" | "alert";
@@ -44,7 +43,7 @@ export function inferOrderRecoveryStage(order: StoredOrder): OrderRecoveryStage 
   const album = albumOutputFromOrder(order);
   if (album) {
     const documents = record(album.documents);
-    if (documents?.storybook && documents.activityBooklet && !documents.narration) return ALBUM_AUDIO_ENABLED ? "audio" : "delivery";
+    if (documents?.storybook && documents.activityBooklet) return "delivery";
     if (documents?.narration) return "delivery";
 
     const progress = record(album.progress);

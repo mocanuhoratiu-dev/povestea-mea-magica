@@ -4,6 +4,8 @@ import type { AlbumOrderOutput } from "@/lib/album/types";
 import { bundleProducts, bundleVariantForProductId, readBundleConfiguration, readBundleOutput, type BundleProduct } from "@/lib/bundle";
 import { getOrder, isValidDeliveryToken, readOrderCover } from "@/lib/orders";
 import { kitDeliveryOutput } from "@/lib/kits/delivery";
+import { ALBUM_AUDIO_ENABLED } from "@/lib/album/features";
+import { albumNarrationParts } from "@/lib/narration";
 
 export const runtime = "nodejs";
 
@@ -38,6 +40,11 @@ function albumDeliveryPayload({ album, configuration, orderId, token, item }: { 
       { id: "activities", label: "Caietul de activități", pages: 5 },
     ],
     ...(album.documents.narration ? { audioUrl: documentUrl("narration") } : {}),
+    ...(ALBUM_AUDIO_ENABLED ? { audioTracks: albumNarrationParts(album.plan).map(({ pageIndex }, part) => ({
+      pageIndex,
+      endpoint: `/api/orders/${encodeURIComponent(orderId)}/narration`,
+      body: { token, part, ...(item ? { item } : {}) },
+    })) } : {}),
   };
 }
 
@@ -54,7 +61,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ orde
     const album = readAlbumOutput(order.output);
     if (!album) return NextResponse.json({ error: "Povestea Magică nu este completă." }, { status: 409 });
     const payload = albumDeliveryPayload({ album, configuration: order.configuration, orderId, token });
-    return payload ? NextResponse.json(payload) : NextResponse.json({ error: "Povestea Magică nu este completă." }, { status: 409 });
+    return payload ? NextResponse.json(payload, { headers: { "Cache-Control": "private, no-store" } }) : NextResponse.json({ error: "Povestea Magică nu este completă." }, { status: 409 });
   }
 
   const requestedItem = new URL(request.url).searchParams.get("item");
@@ -81,7 +88,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ orde
       const album = readAlbumOutput(generated.output);
       if (!album) return NextResponse.json({ error: "Povestea Magică nu este completă." }, { status: 409 });
       const payload = albumDeliveryPayload({ album, configuration: configured.configuration, orderId, token, item: "album" });
-      return payload ? NextResponse.json(payload) : NextResponse.json({ error: "Povestea Magică nu este completă." }, { status: 409 });
+      return payload ? NextResponse.json(payload, { headers: { "Cache-Control": "private, no-store" } }) : NextResponse.json({ error: "Povestea Magică nu este completă." }, { status: 409 });
     }
     const coverImageDataUrl = generated.coverObjectName ? await readOrderCover(generated.coverObjectName) : "";
     return NextResponse.json({ product: generated.product, configuration: configured.configuration, output: kitDeliveryOutput(generated.output, orderId, token, generated.product), coverImageDataUrl }, { headers: { "Cache-Control": "private, no-store" } });

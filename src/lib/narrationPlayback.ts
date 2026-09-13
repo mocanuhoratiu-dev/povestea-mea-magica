@@ -1,24 +1,29 @@
 "use client";
 
 import { protectedFetch } from "@/lib/clientTurnstile";
+import { splitNarration, type NarrationKind, type NarrationTrack } from "./narration";
+export type { NarrationKind, NarrationTrack } from "./narration";
 
-export type NarrationKind = "story" | "lumi";
 type NarrationPhase = "idle" | "loading" | "playing";
 type NarrationState = { owner: string | null; phase: NarrationPhase };
-type StaticNarrationCallbacks = {
+type NarrationCallbacks = {
   onEnded?: () => void;
   onError?: () => void;
   onProgress?: (progress: number) => void;
+  onTrackStart?: (index: number, track: NarrationTrack) => void;
 };
 
 let state: NarrationState = { owner: null, phase: "idle" };
 let activeAudio: HTMLAudioElement | null = null;
 let activeUrl: string | null = null;
 let requestVersion = 0;
+let controller: AbortController | null = null;
+let channel: BroadcastChannel | null = null;
 const subscribers = new Set<(nextState: NarrationState) => void>();
+const cache = new Map<string, { blob: Blob; expires: number }>();
 
-function publish(nextState: NarrationState) {
-  state = nextState;
+function publish(next: NarrationState) {
+  state = next;
   subscribers.forEach((subscriber) => subscriber(state));
 }
 
@@ -28,6 +33,8 @@ function releaseAudio() {
     activeAudio.onerror = null;
     activeAudio.ontimeupdate = null;
     activeAudio.pause();
+    activeAudio.removeAttribute("src");
+    activeAudio.load();
   }
   activeAudio = null;
   if (activeUrl) URL.revokeObjectURL(activeUrl);
@@ -36,112 +43,144 @@ function releaseAudio() {
 
 function stopCurrentNarration() {
   requestVersion += 1;
+  controller?.abort();
+  controller = null;
   releaseAudio();
   publish({ owner: null, phase: "idle" });
 }
 
-export function subscribeToNarration(subscriber: (nextState: NarrationState) => void) {
+function claimPlayback() {
+  if (typeof window === "undefined") return;
+  if (!channel && typeof BroadcastChannel !== "undefined") {
+    channel = new BroadcastChannel("pmm-lumi-narration");
+    channel.onmessage = () => stopCurrentNarration();
+    window.addEventListener("pagehide", () => stopCurrentNarration());
+  }
+  channel?.postMessage("playing");
+}
+
+export function subscribeToNarration(subscriber: (next: NarrationState) => void) {
   subscribers.add(subscriber);
   subscriber(state);
   return () => subscribers.delete(subscriber);
 }
 
-/** Stops the shared narrator, optionally only when it belongs to a specific UI. */
 export function stopNarration(owner?: string) {
   if (owner && state.owner !== owner) return;
   stopCurrentNarration();
 }
 
-/**
- * The request version prevents a slow, older synthesis request from starting after
- * the visitor has already chosen a different voice preview.
- */
-export async function playNarration(owner: string, text: string, kind: NarrationKind) {
-  stopCurrentNarration();
-  const version = requestVersion;
-  publish({ owner, phase: "loading" });
-
-  try {
-    const response = await protectedFetch("/api/narrate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text, kind }),
-    }, "narrate");
-    if (!response.ok) throw new Error("Nararea nu a putut fi pregătită.");
-
-    const url = URL.createObjectURL(await response.blob());
-    if (version !== requestVersion) {
-      URL.revokeObjectURL(url);
-      return false;
-    }
-
-    const audio = new Audio(url);
-    activeAudio = audio;
-    activeUrl = url;
-    audio.onended = () => {
-      if (version !== requestVersion) return;
-      releaseAudio();
-      publish({ owner: null, phase: "idle" });
-    };
-    audio.onerror = () => {
-      if (version !== requestVersion) return;
-      releaseAudio();
-      publish({ owner: null, phase: "idle" });
-    };
-    await audio.play();
-    if (version !== requestVersion) {
-      releaseAudio();
-      return false;
-    }
-    publish({ owner, phase: "playing" });
-    return true;
-  } catch (error) {
-    if (version === requestVersion) {
-      releaseAudio();
-      publish({ owner: null, phase: "idle" });
-    }
-    throw error;
+async function fetchTrack(track: NarrationTrack, signal: AbortSignal) {
+  const key = JSON.stringify(track);
+  for (const [id, item] of cache) if (item.expires <= Date.now()) cache.delete(id);
+  const cached = cache.get(key);
+  if (cached) return cached.blob;
+  const options = {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify("text" in track ? { text: track.text, kind: track.kind } : track.body),
+    signal,
+    cache: "no-store" as const,
+  };
+  const response = "text" in track
+    ? await protectedFetch("/api/narrate", options, "narrate")
+    : await fetch(track.endpoint, options);
+  if (!response.ok) throw new Error("Narration unavailable.");
+  const blob = await response.blob();
+  if (!blob.type.startsWith("audio/") || !blob.size) throw new Error("Invalid audio.");
+  let bytes = [...cache.values()].reduce((sum, value) => sum + value.blob.size, 0);
+  while (cache.size && (cache.size >= 64 || bytes + blob.size > 16 * 1024 * 1024)) {
+    const first = cache.keys().next().value!;
+    bytes -= cache.get(first)!.blob.size;
+    cache.delete(first);
   }
+  if (blob.size <= 16 * 1024 * 1024) cache.set(key, { blob, expires: Date.now() + 10 * 60_000 });
+  return blob;
 }
 
-/** Plays a pre-generated track through the same global channel used by Lumi. */
-export async function playStaticNarration(owner: string, source: string, callbacks: StaticNarrationCallbacks = {}) {
+/** One audio element per reading; prefetch only the next passage after playback starts. */
+export async function playNarrationSequence(owner: string, tracks: NarrationTrack[], callbacks: NarrationCallbacks = {}) {
+  if (!tracks.length) return false;
   stopCurrentNarration();
+  claimPlayback();
   const version = requestVersion;
+  const abort = new AbortController();
+  controller = abort;
+  const audio = new Audio();
+  activeAudio = audio;
+  let next: Promise<{ blob: Blob } | { error: unknown }> | undefined;
   publish({ owner, phase: "loading" });
 
-  try {
-    const audio = new Audio(source);
-    activeAudio = audio;
-    audio.ontimeupdate = () => {
-      if (version !== requestVersion || !Number.isFinite(audio.duration) || audio.duration <= 0) return;
-      callbacks.onProgress?.(Math.min(1, audio.currentTime / audio.duration));
-    };
-    audio.onended = () => {
-      if (version !== requestVersion) return;
-      releaseAudio();
-      publish({ owner: null, phase: "idle" });
-      callbacks.onEnded?.();
-    };
-    audio.onerror = () => {
-      if (version !== requestVersion) return;
-      releaseAudio();
-      publish({ owner: null, phase: "idle" });
-      callbacks.onError?.();
-    };
-    await audio.play();
-    if (version !== requestVersion) {
-      releaseAudio();
-      return false;
+  const failed = () => {
+    if (version !== requestVersion) return;
+    stopCurrentNarration();
+    callbacks.onError?.();
+  };
+  const start = async (index: number): Promise<boolean> => {
+    try {
+      if (version !== requestVersion) return false;
+      publish({ owner, phase: "loading" });
+      const ready = next ? await next : { blob: await fetchTrack(tracks[index], abort.signal) };
+      if (version !== requestVersion) return false;
+      if ("error" in ready) throw ready.error;
+      if (activeUrl) URL.revokeObjectURL(activeUrl);
+      activeUrl = URL.createObjectURL(ready.blob);
+      audio.src = activeUrl;
+      audio.onended = () => {
+        if (version !== requestVersion) return;
+        if (index + 1 < tracks.length) void start(index + 1).catch(() => {});
+        else { stopCurrentNarration(); callbacks.onEnded?.(); }
+      };
+      audio.onerror = failed;
+      audio.ontimeupdate = () => {
+        if (version !== requestVersion || !Number.isFinite(audio.duration) || audio.duration <= 0) return;
+        callbacks.onProgress?.((index + Math.min(1, audio.currentTime / audio.duration)) / tracks.length);
+      };
+      await audio.play();
+      // Never release the global player here: a newer reading may already own it.
+      if (version !== requestVersion) { audio.pause(); return false; }
+      publish({ owner, phase: "playing" });
+      callbacks.onTrackStart?.(index, tracks[index]);
+      next = index + 1 < tracks.length
+        ? fetchTrack(tracks[index + 1], abort.signal).then((blob) => ({ blob }), (error: unknown) => ({ error }))
+        : undefined;
+      return true;
+    } catch (error) {
+      if (version !== requestVersion) return false;
+      failed();
+      throw error;
     }
+  };
+  return start(0);
+}
+
+export function playNarration(owner: string, text: string, kind: NarrationKind, callbacks: NarrationCallbacks = {}) {
+  return playNarrationSequence(owner, splitNarration(text).map((part) => ({ text: part, kind })), callbacks);
+}
+
+/** Retain playback for previously purchased audio files through the same channel. */
+export async function playStaticNarration(owner: string, source: string, callbacks: NarrationCallbacks = {}) {
+  stopCurrentNarration();
+  claimPlayback();
+  const version = requestVersion;
+  publish({ owner, phase: "loading" });
+  const audio = new Audio(source);
+  activeAudio = audio;
+  audio.ontimeupdate = () => {
+    if (version !== requestVersion || !Number.isFinite(audio.duration) || audio.duration <= 0) return;
+    callbacks.onProgress?.(Math.min(1, audio.currentTime / audio.duration));
+  };
+  audio.onended = () => { if (version === requestVersion) { stopCurrentNarration(); callbacks.onEnded?.(); } };
+  audio.onerror = () => { if (version === requestVersion) { stopCurrentNarration(); callbacks.onError?.(); } };
+  try {
+    await audio.play();
+    if (version !== requestVersion) { audio.pause(); return false; }
     publish({ owner, phase: "playing" });
     return true;
   } catch (error) {
-    if (version === requestVersion) {
-      releaseAudio();
-      publish({ owner: null, phase: "idle" });
-      callbacks.onError?.();
-    }
+    if (version !== requestVersion) return false;
+    stopCurrentNarration();
+    callbacks.onError?.();
     throw error;
   }
 }

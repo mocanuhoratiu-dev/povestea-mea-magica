@@ -367,7 +367,8 @@ export default function PremiumKitCreator({ kind }: { kind: KitKind }) {
       await playNarration(
         owner,
         kitNarration(result.input, result.kit),
-        "lumi",
+        night ? "shield" : "explorer",
+        { onError: () => setError("Audio-ul nu este disponibil acum. Poți continua cu materialul ilustrat.") },
       );
     } catch {
       setError(
@@ -716,7 +717,6 @@ export default function PremiumKitCreator({ kind }: { kind: KitKind }) {
                 type="button"
                 className="pk-secondary"
                 onClick={narrate}
-                disabled={audio === "loading"}
               >
                 {audio === "playing" ? <Pause size={18} /> : <Play size={18} />}{" "}
                 {audio === "loading"

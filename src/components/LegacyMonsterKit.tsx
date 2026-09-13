@@ -202,7 +202,7 @@ export default function MonsterKit() {
     return pdf;
   };
   const download = async () => { setIsDownloading(true); const started = Date.now(); trackEvent("pdf_render_started", { product: "monster" }); try { const pdf = await renderPdf(); pdf.save(`Scutul_de_Noapte_${name.trim()}.pdf`); trackEvent("pdf_render_completed", { product: "monster", durationMs: Date.now() - started }); trackEvent("pdf_downloaded", { product: "monster", pageCount: PAGE_COUNT }); setShowRating(true); } catch { trackEvent("pdf_render_failed", { product: "monster", durationMs: Date.now() - started }); } finally { setIsDownloading(false); } };
-  const toggleAudio = async () => { if (!content) return; if (audioPhase !== "idle") { stopNarration(AUDIO_OWNER); return; } try { await playNarration(AUDIO_OWNER, nightShieldNarration(name, content), "lumi"); } catch { setResultNote("Audio-ul nu este disponibil momentan. Ritualul rămâne pregătit pentru citit împreună."); } };
+  const toggleAudio = async () => { if (!content) return; if (audioPhase !== "idle") { stopNarration(AUDIO_OWNER); return; } try { await playNarration(AUDIO_OWNER, nightShieldNarration(name, content), "shield"); } catch { setResultNote("Audio-ul nu este disponibil momentan. Ritualul rămâne pregătit pentru citit împreună."); } };
 
   return <section id="monster-away" className="relative overflow-hidden bg-brand-navy text-brand-cream">
     <div className="relative px-4 pb-16 pt-14 sm:px-6 md:pb-24 md:pt-20">

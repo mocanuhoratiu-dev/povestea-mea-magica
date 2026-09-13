@@ -25,8 +25,8 @@ VERTEX_AI_FALLBACK_MODELS=gemini-3.1-flash-lite
 VERTEX_AI_LUMI_MODEL=gemini-3.5-flash
 LUMI_AI_FALLBACK_MAX_MODELS=2
 VERTEX_AI_IMAGE_MODEL=gemini-3.1-flash-image
-GOOGLE_TTS_STORY_VOICE=ro-RO-Chirp3-HD-Zephyr
-GOOGLE_TTS_LUMI_VOICE=ro-RO-Chirp3-HD-Aoede
+GOOGLE_TTS_MODEL=gemini-3.1-flash-tts-preview
+GOOGLE_TTS_VOICE=Sulafat
 AI_GENERATION_BUDGET_MS=55000
 AI_MODEL_TIMEOUT_MS=35000
 AI_FALLBACK_MAX_MODELS=2
@@ -61,8 +61,8 @@ The health endpoint reports `ready: true` only when the active provider has both
 ## Optional Environment Variables
 
 ```bash
-GOOGLE_TTS_STORY_VOICE=ro-RO-Chirp3-HD-Zephyr
-GOOGLE_TTS_LUMI_VOICE=ro-RO-Chirp3-HD-Aoede
+GOOGLE_TTS_MODEL=gemini-3.1-flash-tts-preview
+GOOGLE_TTS_VOICE=Sulafat
 AI_GENERATION_BUDGET_MS=55000
 AI_MODEL_TIMEOUT_MS=35000
 AI_FALLBACK_MAX_MODELS=2

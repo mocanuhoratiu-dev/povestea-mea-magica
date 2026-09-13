@@ -8,10 +8,8 @@ import { generateVertexAlbumIllustration } from "@/lib/vertexImage";
 import sharp from "sharp";
 import { createAlbumBudget, reserveAlbumBudgetCall, type AlbumBudgetCall } from "@/lib/album/budget";
 import { evaluateAlbumImage, isAlbumAiQualityEnabled } from "@/lib/album/quality";
-import { synthesizeRomanianSpeech } from "@/lib/googleTextToSpeech";
 import { AlbumQualityUnavailableError } from "./qualityPolicy";
 import { buildAlbumImageRetryPrompt, type AlbumImageCandidate } from "@/lib/album/imageQualityPolicy";
-import { ALBUM_AUDIO_ENABLED } from "./features";
 
 type Checkpoint = (output: AlbumOrderOutput) => Promise<void>;
 type VisualFingerprint = Uint8Array;
@@ -556,20 +554,6 @@ export async function createAlbumOrderOutput({
     }
   }
 
-  if (ALBUM_AUDIO_ENABLED && output.documents && !output.documents.narration) {
-    const startedAt = Date.now();
-    try {
-      const narrationText = [plan.title, ...plan.scenes.flatMap((scene) => [scene.heading, scene.text])].join(". ");
-      const narration = await synthesizeRomanianSpeech(narrationText.slice(0, 4_000), "story");
-      const narrationObjectName = await saveOrderFile(orderId, narration, "album-narration", "audio/mpeg");
-      output = { ...output, documents: { ...output.documents, narration: narrationObjectName } };
-      await checkpoint(output);
-      logTelemetry("pmm_album_stage_completed", { product: "album", result: "success", durationMs: Date.now() - startedAt, albumStage: "audio" });
-    } catch (error) {
-      console.error("Album narration generation failed", error);
-      logTelemetry("pmm_album_stage_failed", { product: "album", result: "error", durationMs: Date.now() - startedAt, albumStage: "audio", errorCode: "ai_error" });
-    }
-  }
-
+  // Audio is requested from the delivered flipbook; it must never delay the PDFs.
   return output;
 }

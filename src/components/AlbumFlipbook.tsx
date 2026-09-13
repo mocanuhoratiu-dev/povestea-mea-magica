@@ -6,12 +6,13 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { BookOpen, ChevronLeft, ChevronRight, Download, Maximize2, Pause, Play, Sparkles, Volume2, X } from "lucide-react";
-import { albumSampleAudio, albumSamplePages } from "@/lib/album/sample";
-import { playStaticNarration, stopNarration, subscribeToNarration } from "@/lib/narrationPlayback";
+import { albumSamplePages } from "@/lib/album/sample";
+import { playNarrationSequence, stopNarration, subscribeToNarration } from "@/lib/narrationPlayback";
+import { splitNarration, type NarrationTrack } from "@/lib/narration";
 import { trackEvent } from "@/lib/clientTelemetry";
 
 const narrationOwner = "album-public-sample";
-const narratedPageIndexes = albumSamplePages.flatMap((page, index) => page.narration ? [index] : []);
+const sampleTracks: NarrationTrack[] = albumSamplePages.flatMap((page, pageIndex) => splitNarration(page.narration || "").map((text) => ({ text, kind: "story" as const, pageIndex })));
 
 function AlbumPage({ index, priority = false }: { index: number; priority?: boolean }) {
   const page = albumSamplePages[index];
@@ -38,6 +39,7 @@ export default function AlbumFlipbook() {
   const [expanded, setExpanded] = useState(false);
   const [narrationPhase, setNarrationPhase] = useState<"idle" | "loading" | "playing">("idle");
   const [audioProgress, setAudioProgress] = useState(0);
+  const [audioError, setAudioError] = useState(false);
   const pointerStart = useRef<number | null>(null);
   const viewedPages = useRef(new Set<number>());
   const reduceMotion = useReducedMotion();
@@ -101,17 +103,13 @@ export default function AlbumFlipbook() {
     }
     trackEvent("album_sample_audio_played", { product: "album", samplePage: activeIndex + 1 });
     setAudioProgress(0);
-    goTo(narratedPageIndexes[0], 1);
-    void playStaticNarration(narrationOwner, albumSampleAudio, {
-      onProgress: (progress) => {
-        setAudioProgress(progress);
-        const scene = Math.min(narratedPageIndexes.length - 1, Math.floor(progress * narratedPageIndexes.length));
-        setDirection(1);
-        setActiveIndex(narratedPageIndexes[scene]);
-      },
+    setAudioError(false);
+    void playNarrationSequence(narrationOwner, sampleTracks, {
+      onProgress: setAudioProgress,
+      onTrackStart: (_index, track) => { if (track.pageIndex !== undefined) goTo(track.pageIndex, 1); },
       onEnded: () => setAudioProgress(0),
-      onError: () => setAudioProgress(0),
-    }).catch(() => setAudioProgress(0));
+      onError: () => { setAudioProgress(0); setAudioError(true); },
+    }).catch(() => setAudioError(true));
   };
 
   const pageMotion = reduceMotion
@@ -227,6 +225,7 @@ export default function AlbumFlipbook() {
               </div>
             </div>
             {ALBUM_AUDIO_ENABLED && <div className="mt-3 h-1 overflow-hidden bg-white/12" aria-hidden="true"><div className="h-full bg-brand-gold transition-[width] duration-200" style={{ width: `${audioProgress * 100}%` }} /></div>}
+            {audioError && <p role="alert" className="mt-3 text-sm text-white">Lumi nu poate citi acum. Poți reîncerca sau continua să răsfoiești.</p>}
             <div className="mt-4 flex gap-1.5" aria-label="Alege pagina">
               {albumSamplePages.map((samplePage, index) => (
                 <button
