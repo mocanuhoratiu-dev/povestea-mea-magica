@@ -1,5 +1,6 @@
 .git
 .next
+.preview
 node_modules
 .env
 .env.*

@@ -1,0 +1,25 @@
+@font-face{font-family:Fraunces;src:url('/launch/fraunces.woff2') format('woff2');font-weight:100 900;font-display:swap}
+@font-face{font-family:Nunito;src:url('/launch/nunito.woff2') format('woff2');font-weight:200 1000;font-display:swap}
+*{box-sizing:border-box;letter-spacing:0}
+body{margin:0;background:#102e35;color:#173d3d;font-family:Nunito,sans-serif}
+body::before{content:'';position:fixed;inset:0;background:linear-gradient(90deg,rgba(10,30,34,.55),rgba(10,30,34,.22)),url('/examples/album/hero-cinematic.webp') center/cover;z-index:-1}
+.access-shell{min-height:100svh;padding:36px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px}
+.access-panel{width:100%;max-width:440px;padding:30px 34px 26px;background:#fffefa;border:1px solid #ded8c5;border-radius:8px;box-shadow:0 18px 70px #081f3040;text-align:center}
+.brand{display:flex;flex-direction:column;align-items:center;gap:10px;color:inherit;text-decoration:none;font-family:Fraunces,serif;font-size:21px;font-weight:600}
+.brand img{display:block;width:76px;height:76px}
+.eyebrow{margin:30px 0 10px;font-size:13px;color:#58675e;font-weight:700}
+h1{font-family:Fraunces,serif;font-size:32px;line-height:1.16;font-weight:500;margin:0}
+.intro{font-size:16px;line-height:1.6;margin:14px 0 25px;color:#53675e}
+form{text-align:left}label{display:block;font-size:14px;font-weight:800;margin-bottom:8px}
+.password-field{position:relative;margin-bottom:16px}input{width:100%;height:50px;border:1px solid #859d90;border-radius:5px;font:400 16px Nunito,sans-serif;padding:10px 50px 10px 12px;color:#173d3d;background:#fff}
+.password-field button{position:absolute;right:3px;top:3px;width:44px;height:44px;border:0;background:transparent;display:flex;align-items:center;justify-content:center;border-radius:4px;cursor:pointer}
+.password-field button[hidden]{display:none}button{font-family:inherit}
+.primary{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;min-height:50px;padding:12px 15px;background:#1c5144;color:#fffefa;border:1px solid #1c5144;border-radius:5px;font-size:15px;font-weight:800;text-decoration:none;cursor:pointer;line-height:1.4}
+.primary:hover{background:#123e33}.primary span{font-size:20px}.primary:disabled{opacity:.65;cursor:wait}
+.back{display:inline-block;margin-top:24px;color:#4c665b;text-underline-offset:4px;font-size:14px;line-height:1.5}
+.logout{display:flex;gap:9px;align-items:center;justify-content:center;width:100%;min-height:44px;margin-top:14px;background:transparent;border:0;color:#435c50;font-size:14px;cursor:pointer}
+.notice{padding:12px 14px;text-align:left;border-left:3px solid #a74c3b;background:#f8eeeb;font-size:14px;line-height:1.55;color:#713f34;margin:0 0 20px}
+.signature{color:#fff6db;font-size:14px;margin:0;text-shadow:0 2px 4px #102e35}
+:focus-visible{outline:3px solid #c19335;outline-offset:4px}
+@media(max-width:480px){.access-shell{padding:20px 16px}.access-panel{padding:25px 22px 22px}h1{font-size:29px}.brand{font-size:20px}.eyebrow{margin-top:24px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}

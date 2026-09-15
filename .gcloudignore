@@ -3,6 +3,7 @@
 .gitignore
 .github
 .next
+.preview
 node_modules
 outputs
 .env*
