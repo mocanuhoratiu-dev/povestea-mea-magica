@@ -1,0 +1,49 @@
+.product-offer-summary { color: inherit; }
+.offer-price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px 18px; margin-bottom: 20px; }
+.offer-price strong { font-size: 28px; line-height: 1.2; white-space: nowrap; }
+.offer-price > span { font-size: 12px; }
+.offer-facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; margin: 0; }
+.offer-facts > div { min-width: 0; }
+.offer-facts dt { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 750; }
+.offer-facts dt svg { flex: none; }
+.offer-facts dd { font-size: 13px; line-height: 1.65; margin: 9px 0 0; overflow-wrap: anywhere; }
+.offer-compact .offer-facts { grid-template-columns: 1fr; gap: 15px; }
+.offer-compact .offer-facts dd { margin-top: 5px; font-size: 12px; }
+.offer-product-band { padding: 26px max(22px, calc((100% - 1200px)/2)); border-bottom: 1px solid #d4ddd3; background: #fbfcfa; color: #263b35; }
+.offer-collection { padding: 20px 0; border-top: 1px solid #d4ddd3; }
+.offer-bundle { margin-top: 22px; border-top: 1px solid currentColor; padding-top: 22px; }
+.sample-navigation { margin-bottom: 20px; color: inherit; }
+.sample-shortcuts { display: flex; flex-wrap: wrap; gap: 4px 16px; border-bottom: 1px solid currentColor; }
+.sample-shortcuts button { min-height: 44px; background: transparent; color: inherit; padding: 8px 2px; border: 0; border-bottom: 3px solid transparent; font-size: 13px; font-weight: 650; }
+.sample-shortcuts button[aria-current=page] { border-bottom-color: currentColor; }
+.sample-shortcuts button:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+.sample-page-select { display: flex; align-items: center; gap: 14px; margin-top: 12px; font-size: 12px; }
+.sample-page-select select { min-width: 0; max-width: 100%; flex: 1; min-height: 44px; border: 1px solid #c4cfc1; border-radius: 4px; padding: 8px 12px; background: #fbfcfa; color: #263b35; font-size: 14px; }
+.pk-reader > .sample-navigation { padding: 0 16px; }
+.bundle-configurator { scroll-margin-top: 96px; }
+.bundle-configurator h2 { font-size: 30px; line-height: 1.2; overflow-wrap: break-word; }
+.bundle-steps { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); scroll-margin-top: 96px; border-block: 1px solid #d4ddd3; }
+.bundle-steps li { min-height: 66px; display: flex; gap: 7px; flex-direction: column; justify-content: center; align-items: center; padding: 8px 2px; border-right: 1px solid #d4ddd3; font-size: 12px; color: #506151; }
+.bundle-steps li:last-child { border-right: 0; }
+.bundle-steps li[aria-current=step] { background: #0b2035; color: white; }
+.bundle-steps li[data-complete=true] { background: #edf1eb; }
+.bundle-details { grid-column: 1/-1; border-block: 1px solid #d4ddd3; padding: 16px 0; }
+.bundle-details > summary { cursor: pointer; min-height: 32px; font-weight: 650; font-size: 15px; color: #68435e; }
+.bundle-details > div { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; padding-top: 20px; }
+.bundle-configurator input,.bundle-configurator select,.bundle-configurator textarea { font-size: 16px; }
+.bundle-reuse-summary { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 0; border-block: 1px solid #d4ddd3; }
+.bundle-reuse-summary p { margin: 0; font-size: 14px; font-weight: 650; }
+.bundle-reuse-summary span { display: block; margin-top: 5px; font-size: 12px; font-weight: 400; color: #506151; }
+@media(max-width: 900px) { .offer-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; } }
+@media(max-width: 600px) {
+  .offer-price { margin-bottom: 18px; }
+  .offer-facts dd { font-size: 12px; }
+  .offer-facts dt { font-size: 11px; }
+  .bundle-steps li { font-size: 10px; }
+  .bundle-details > div { grid-template-columns: 1fr; }
+  .sample-page-select { flex-direction: column; align-items: stretch; gap: 6px; }
+  .sample-page-select select { width: 100%; }
+  .premium-kit.pk-day .pk-hero > img { object-position: 12% top; }
+  .premium-kit.pk-night .pk-hero > img { object-position: 27% top; }
+  .album-editorial .album-hero-art { object-position: 78% center; }
+}

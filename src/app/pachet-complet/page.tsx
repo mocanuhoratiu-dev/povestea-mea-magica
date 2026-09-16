@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import BundleConfigurator from "@/components/BundleConfigurator";
 import CollectionOverview from "@/components/CollectionOverview";
 import CommercialPage from "@/components/CommercialPage";
+import ProductOfferSummary from "@/components/ProductOfferSummary";
 import { commerce } from "@/lib/siteMode";
 
 export const metadata: Metadata = {
@@ -14,6 +15,7 @@ export default function CompleteBundlePage() {
   return (
     <CommercialPage eyebrow={`Pachetul Complet · ${commerce.prices.completeBundle}`} title="Toată magia într-o singură comandă." description="Primești Povestea Magică, Atelierul Scutului Magic și Dosarul Micului Explorator. Cartea ilustrată vine cu propriul caiet de activități, fiecare produs se personalizează separat, iar plata se face o singură dată.">
       <CollectionOverview />
+      <ProductOfferSummary product="bundle" price={commerce.prices.completeBundle} className="offer-product-band" />
       <BundleConfigurator />
     </CommercialPage>
   );

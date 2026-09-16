@@ -19,6 +19,7 @@ const contentSecurityPolicy = [
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  images: { qualities: [75, 85] },
   experimental: { proxyClientMaxBodySize: "16mb" },
   ...(process.env.NODE_ENV === "production"
     ? {}

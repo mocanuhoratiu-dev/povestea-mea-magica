@@ -1,5 +1,7 @@
 "use client";
 
+import ProductOfferSummary from "./ProductOfferSummary";
+
 import Image from "next/image";
 import {
   FormEvent,
@@ -1768,20 +1770,7 @@ export default function AlbumCreator() {
                     ))}
                   </div>
                 </section>
-                <div className="mt-7 flex items-end justify-between border-y border-brand-navy/15 py-5">
-                  <div>
-                    <p className="text-xs font-black uppercase tracking-[0.12em] text-brand-navy/72">
-                      Preț final
-                    </p>
-                    <p className="mt-1 font-nunito text-4xl font-black text-brand-purple">
-                      {commerce.prices.illustratedAlbum}
-                    </p>
-                  </div>
-                  <p className="max-w-[210px] text-right text-xs font-bold leading-relaxed text-brand-navy/72">
-                    Include personajul vizual, coperta premium, 13 scene 2K și
-                    caietul de activități.
-                  </p>
-                </div>
+                <ProductOfferSummary product="album" price={commerce.prices.illustratedAlbum} className="mt-7 border-y border-brand-navy/15 py-5" />
               </div>
             )}
           </div>

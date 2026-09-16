@@ -1,8 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { commerce } from "@/lib/siteMode";
 import PremiumBookMockup from "./PremiumBookMockup";
+import ProductOfferSummary from "./ProductOfferSummary";
 const products = [
   {
     title: "Povestea Magică",
@@ -61,7 +62,7 @@ export default function ProductExamples() {
         </header>
         <div className="collection-grid">
           {products.map((p, i) => (
-            <article key={p.href} className="collection-item">
+            <article key={p.href} className="collection-item" data-lumi-obstacle>
               <Link
                 href={p.href}
                 className="collection-image"
@@ -84,16 +85,8 @@ export default function ProductExamples() {
               <p className="collection-tag">{p.tag}</p>
               <h3>{p.title}</h3>
               <p>{p.description}</p>
-              <ul>
-                {p.features.map((f) => (
-                  <li key={f}>
-                    <Check size={14} />
-                    {f}
-                  </li>
-                ))}
-              </ul>
+              <ProductOfferSummary product={(["album", "monster", "emergency"] as const)[i]} price={p.price} compact className="offer-collection" />
               <footer>
-                <strong>{p.price}</strong>
                 <Link href={p.href}>
                   Descoperă <ArrowRight size={17} />
                 </Link>
@@ -113,6 +106,7 @@ export default function ProductExamples() {
             Alege pachetul <ArrowRight size={17} />
           </Link>
         </div>
+        <ProductOfferSummary product="bundle" className="pb-10" />
       </div>
     </section>
   );

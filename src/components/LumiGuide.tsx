@@ -5,6 +5,7 @@ import { ArrowLeft, ArrowRight, Check, LoaderCircle, RotateCcw, Square, Volume2,
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { useLumiClearance } from "./useLumiClearance";
 import { albumArtStyleOptions, albumCompanionOptions, albumLessonOptions, albumMoodOptions, albumWorldOptions } from "@/lib/album/types";
 import { trackEvent } from "@/lib/clientTelemetry";
 import { lumiContextPrompt, lumiGenerationCopy, lumiStateCopy, lumiStateForGuideStep, type LumiGenerationDetail } from "@/lib/lumiExperience";
@@ -92,6 +93,8 @@ export default function LumiGuide() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [launcherCompact, setLauncherCompact] = useState(false);
+  const launcherRef = useRef<HTMLDivElement>(null);
+  const launcherObstructed = useLumiClearance(launcherRef, !isOpen, pathname, launcherCompact);
   const [footerVisible, setFooterVisible] = useState(false);
   useEffect(() => {
     const footer = document.querySelector("[data-site-footer]");
@@ -290,7 +293,7 @@ export default function LumiGuide() {
   ];
 
   return (
-    <aside className={`fixed z-[80] ${isAlbumEditing && !isOpen ? "hidden" : "bottom-3 left-3 right-3 sm:bottom-5 sm:left-auto sm:right-6 sm:w-[400px]"}`} aria-label="Lumi, ghidul pentru Povestea Magică" data-lumi-state={visualState} data-lumi-compact={isAlbumEditing && !isOpen}>
+    <aside className={`lumi-guide fixed z-[80] ${isAlbumEditing && !isOpen ? "hidden" : "bottom-3 left-3 right-3 sm:bottom-5 sm:left-auto sm:right-6 sm:w-[400px]"}`} aria-label="Lumi, ghidul pentru Povestea Magică" data-lumi-guide data-open={isOpen} data-lumi-state={visualState} data-lumi-compact={isAlbumEditing && !isOpen}>
       <AnimatePresence mode="wait">
         {isOpen ? (
           <motion.section key="guide" initial={{ opacity: 0, y: 18, scale: .97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 12, scale: .97 }} className="relative min-h-0">
@@ -300,7 +303,7 @@ export default function LumiGuide() {
                 <span aria-hidden="true" className="absolute inset-y-4 left-1/2 w-px bg-brand-navy/[.05]" />
                 <p className="text-xs text-brand-purple">Povestea voastră, cu Lumi</p>
                 <h2 className="mt-2 max-w-[240px] font-serif text-[25px] leading-tight text-brand-navy">{step < totalSteps ? chapterLabels[step] : "Ultima privire"}</h2>
-                <LumiVisual3D state={visualState} className="absolute -bottom-2 right-12 h-[88px] w-[65px]" />
+                <LumiVisual3D state={visualState} className="absolute bottom-2 right-12 h-[88px] w-[65px]" />
                 <button type="button" onClick={() => {setIsOpen(false);setLauncherCompact(true);}} className="absolute right-2 top-2 z-10 grid h-11 w-11 place-items-center rounded-[4px] text-brand-navy/70 transition-colors hover:bg-white hover:text-brand-purple" aria-label="Închide Lumi"><X size={20} /></button>
               </header>
 
@@ -341,7 +344,7 @@ export default function LumiGuide() {
             </div>
           </motion.section>
         ) : (
-          <motion.div key="launcher" data-footer-visible={footerVisible && generation.phase === "idle"} data-launcher-compact={launcherCompact && generation.phase === "idle"} initial={{ opacity: 0, y: 12, scale: .97 }} animate={{ opacity: 1, y: 0, scale: 1 }} className="lumi-launcher ml-auto w-fit max-w-full">
+          <motion.div ref={launcherRef} key="launcher" data-obstructed={launcherObstructed} data-footer-visible={footerVisible && generation.phase === "idle"} data-launcher-compact={launcherCompact && generation.phase === "idle"} initial={{ opacity: 0, y: 12, scale: .97 }} animate={{ opacity: 1, y: 0, scale: 1 }} className="lumi-launcher ml-auto w-fit max-w-full">
             {isAlbumEditing ? <button type="button" title="Ajutor de la Lumi" aria-label="Deschide ghidul Lumi și creează povestea" onClick={()=>{setIsOpen(true);dismissNudge();trackEvent("lumi_opened");}} className="flex h-14 items-center gap-2 border-0 bg-transparent px-3 text-xs font-bold text-brand-purple"><img src="/lumi-guardian.webp" alt="" className="h-12 w-8 object-contain"/>Lumi</button> : <>
             <motion.button type="button" aria-label={generation.phase === "idle" ? "Deschide ghidul Lumi și creează povestea" : `Deschide Lumi. ${visualTitle}`} title={showNudge && generation.phase === "idle" ? launcherCopy : undefined} onClick={() => { trackEvent("lumi_opened"); setIsOpen(true); dismissNudge(); window.setTimeout(() => window.dispatchEvent(new CustomEvent("pmm:lumi-request-context")), 0); }} whileHover={{ y: -4 }} whileTap={{ scale: .98 }} className="lumi-floating-button group">
               <span aria-hidden="true" className="lumi-launcher-character" />

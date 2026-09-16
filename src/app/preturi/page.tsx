@@ -4,11 +4,11 @@ import Link from "next/link";
 import {
   ArrowRight,
   BookHeart,
-  Check,
   ShieldCheck,
   TimerReset,
 } from "lucide-react";
 import CommercialPage from "@/components/CommercialPage";
+import ProductOfferSummary from "@/components/ProductOfferSummary";
 import { commerce, siteCopy } from "@/lib/siteMode";
 
 export const metadata: Metadata = {
@@ -88,16 +88,8 @@ export default function PricingPage() {
                 />
               </div>
               <h2>{offer.title}</h2>
-              <strong className="price">{offer.price}</strong>
               <p>{offer.description}</p>
-              <ul>
-                {offer.details.map((detail) => (
-                  <li key={detail}>
-                    <Check size={15} />
-                    {detail}
-                  </li>
-                ))}
-              </ul>
+              <ProductOfferSummary product={(["album", "monster", "emergency"] as const)[index]} price={offer.price} compact className="offer-collection" />
               <Link href={offer.href} className="editorial-button">
                 Descoperă <ArrowRight size={17} />
               </Link>
@@ -125,6 +117,7 @@ export default function PricingPage() {
               </Link>
             </div>
           </div>
+          <ProductOfferSummary product="bundle" className="offer-bundle" />
         </div>
         <p className="mx-auto mt-8 max-w-5xl text-sm leading-relaxed text-brand-navy/70">
           {siteCopy.paymentNotice}

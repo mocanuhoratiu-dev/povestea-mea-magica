@@ -4,6 +4,8 @@ import { ArrowLeft, ArrowRight, Expand, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { KitPage } from "@/lib/kits/template";
 import { kitPageGeometry } from "@/lib/kits/pageGeometry";
+import { kitSampleShortcuts } from "@/lib/sampleNavigation";
+import SamplePageNavigation from "./SamplePageNavigation";
 import "./premium-kit-document.css";
 
 export default function PremiumKitReader({ pages, label = "Răsfoiește materialul" }: { pages: KitPage[]; label?: string }) {
@@ -24,8 +26,9 @@ export default function PremiumKitReader({ pages, label = "Răsfoiește material
     if (button.dataset.kitAction === "differences") paper.querySelector(".difference-grid")?.classList.toggle("solved");
   };
   if (!page) return null;
-  return <section aria-label={label} className="pk-reader" style={{contain:"inline-size",maxWidth:"100%"}}>
+  return <section aria-label={label} className="pk-reader" data-lumi-obstacle style={{contain:"inline-size",maxWidth:"100%"}}>
     <div className="pk-reader-heading"><div><span>{label}</span><strong>{page.title}</strong></div><button type="button" aria-label="Mărește pagina" title="Mărește pagina" onClick={() => setExpanded(true)}><Expand size={18}/></button></div>
+    {pages.length > 1 && <SamplePageNavigation pages={pages} shortcuts={kitSampleShortcuts(pages)} selected={safeIndex} onSelect={setIndex} />}
     <div className="pk-reader-stage"><div ref={root} style={{ width: "100%", maxWidth: size.width, margin: "auto" }}><div style={{ width: size.width * scale, height: size.height * scale, position: "relative" }}><div className="kit-document" onClick={interact} style={{ transform: `scale(${scale})`, transformOrigin: "top left", width: size.width, height: size.height }} dangerouslySetInnerHTML={{ __html: page.html }}/></div></div></div>
     <div className="pk-reader-controls"><button type="button" disabled={safeIndex === 0} aria-label="Pagina anterioară" title="Pagina anterioară" onClick={() => setIndex(safeIndex - 1)}><ArrowLeft size={18}/></button><span aria-live="polite">{safeIndex + 1} / {pages.length}</span><button type="button" disabled={safeIndex === pages.length - 1} aria-label="Pagina următoare" title="Pagina următoare" onClick={() => setIndex(safeIndex + 1)}><ArrowRight size={18}/></button></div>
     <dialog ref={dialog} className="pk-reader-dialog" style={{width:`min(${size.width + 50}px,calc(100vw - 20px))`}} onClose={() => setExpanded(false)} onClick={event => { if (event.target === dialog.current) setExpanded(false); }}><header><strong>{page.title}</strong><button type="button" title="Închide" aria-label="Închide pagina mărită" onClick={() => setExpanded(false)}><X size={20}/></button></header><div className="pk-zoom-scroll"><div className="kit-document" onClick={interact} style={{ width: size.width, height: size.height, position: "relative" }} dangerouslySetInnerHTML={{ __html: page.html }}/></div></dialog>

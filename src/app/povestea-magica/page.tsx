@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { ArrowRight, BookOpen, Mail, Palette, ShieldCheck } from "lucide-react";
+import { ArrowRight, ShieldCheck } from "lucide-react";
+import ProductOfferSummary from "@/components/ProductOfferSummary";
 import AlbumCreator, { AlbumPrintTeaser } from "@/components/AlbumCreator";
 import AlbumFlipbook from "@/components/AlbumFlipbook";
 import Footer from "@/components/Footer";
@@ -28,10 +29,10 @@ export default function MagicalStoryPage() {
   return <main className="album-editorial">
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}/>
     <header className="album-hero">
-      <Image src="/examples/album/hero-cinematic.webp" alt="Eva și steluța ei, pe cărarea luminoasă din poveste" fill priority sizes="100vw" className="album-hero-art"/>
+      <Image src="/examples/album/hero-cinematic.webp" alt="Eva și steluța ei, pe cărarea luminoasă din poveste" fill priority sizes="(max-width:700px) 1400px, 100vw" className="album-hero-art"/>
       <div className="album-hero-copy"><p>O aventură pe care o va recunoaște ca fiind a lui.</p><h1>Povestea Magică</h1><p className="album-hero-description">Chipul, lumea și micile lui bucurii devin o carte de citit împreună.</p><a id="album-primary-cta" href="#configureaza-albumul" className="album-action">Creează Povestea Magică <ArrowRight size={18}/></a><a href="#rasfoieste-povestea" className="album-hero-link">Răsfoiește povestea</a></div>
     </header>
-    <div className="album-facts"><strong>{commerce.prices.illustratedAlbum} <small>ediția digitală</small></strong><span><BookOpen size={18}/>16 pagini · 13 scene + copertă</span><span><Palette size={18}/>Caiet de activități</span><span><Mail size={18}/>Pe email</span></div>
+    <ProductOfferSummary product="album" price={commerce.prices.illustratedAlbum} className="offer-product-band" />
     <div id="rasfoieste-povestea" className="album-sample"><AlbumFlipbook/></div>
     <section className="album-family-band"><div><p className="album-eyebrow">Nu doar numele pe copertă</p><h2>Detaliile mici fac<br/>povestea lor.</h2><p>O bicicletă albastră. Sora mai mare. Un rucsac care merge peste tot. Tu ne spui ce contează, iar aventura începe de acolo.</p><LumiOpenButton label="Construim împreună cu Lumi" className="album-inline-link"/></div><ol><li><b>01</b><div><h3>Îl cunoaștem pe erou</h3><p>Din descriere sau dintr-o fotografie opțională.</p></div></li><li><b>02</b><div><h3>Deschideți o lume</h3><p>Alegeți un univers sau povestiți-ne ideea voastră.</p></div></li><li><b>03</b><div><h3>Vedeți, apoi alegeți</h3><p>Coperta și două pagini personalizate, înainte de plată.</p></div></li></ol></section>
     <section id="configureaza-albumul" className="album-configure"><div className="album-section-heading"><p className="album-eyebrow">Acum începe povestea voastră</p><h2>Pe cine întâlnim în prima pagină?</h2></div><AlbumCreator/></section>

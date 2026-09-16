@@ -6,12 +6,8 @@ import {
   ArrowRight,
   Check,
   Download,
-  Headphones,
-  Mail,
   Pause,
   Play,
-  Printer,
-  Sparkles,
   X,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
@@ -48,6 +44,7 @@ import PremiumKitPrint, { renderPremiumKitPdf } from "./PremiumKitPrint";
 import "./premium-kit.css";
 import CharacterPhotoInput from "./CharacterPhotoInput";
 import CharacterRightsNotice from "./CharacterRightsNotice";
+import ProductOfferSummary from "./ProductOfferSummary";
 import { describePhotoTraits, type ApprovedCharacter } from "@/lib/characterPhotoPolicy";
 
 const LegacyMonster = dynamic(() => import("./LegacyMonsterKit"));
@@ -406,27 +403,7 @@ export default function PremiumKitCreator({ kind }: { kind: KitKind }) {
           </a>
         </div>
       </header>
-      <div className="pk-product-strip">
-        <strong>{price}</strong>
-        <span>
-          <Printer size={17} />
-          {KIT_PAGE_COUNTS[kind]} pagini A4
-        </span>
-        <span>
-          <Sparkles size={17} />
-          Două ilustrații create pentru copil
-        </span>
-        {night && (
-          <span>
-            <Headphones size={17} />
-            Audio cu Lumi
-          </span>
-        )}
-        <span>
-          <Mail size={17} />
-          Livrare pe email
-        </span>
-      </div>
+      <ProductOfferSummary product={kind} price={price} className="offer-product-band" />
       <section className="pk-section pk-showcase">
         <div className="pk-editorial">
           <p className="pk-eyebrow">
@@ -488,7 +465,7 @@ export default function PremiumKitCreator({ kind }: { kind: KitKind }) {
           label={`Model · ${sample.input.name}`}
         />
       </section>
-      <section id={target} className="pk-section pk-create">
+      <section id={target} className="pk-section pk-create" data-lumi-obstacle>
         <div className="pk-editorial">
           <p className="pk-eyebrow">Pentru copilul tău</p>
           <h2>
@@ -806,7 +783,7 @@ export default function PremiumKitCreator({ kind }: { kind: KitKind }) {
                 {input.age} ani ·{" "}
                 {input.appearance || "Aspect ales pentru poveste"}
               </p>
-              <strong className="pk-price">{price}</strong>
+              <ProductOfferSummary product={kind} price={price} compact className="my-6" />
               <button
                 type="button"
                 className="pk-primary"

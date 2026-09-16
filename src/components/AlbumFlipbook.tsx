@@ -10,6 +10,8 @@ import { albumSamplePages } from "@/lib/album/sample";
 import { playNarrationSequence, stopNarration, subscribeToNarration } from "@/lib/narrationPlayback";
 import { splitNarration, type NarrationTrack } from "@/lib/narration";
 import { trackEvent } from "@/lib/clientTelemetry";
+import { albumSampleShortcuts } from "@/lib/sampleNavigation";
+import SamplePageNavigation from "./SamplePageNavigation";
 
 const narrationOwner = "album-public-sample";
 const sampleTracks: NarrationTrack[] = albumSamplePages.flatMap((page, pageIndex) => splitNarration(page.narration || "").map((text) => ({ text, kind: "story" as const, pageIndex })));
@@ -113,7 +115,7 @@ export default function AlbumFlipbook() {
   };
 
   const pageMotion = reduceMotion
-    ? { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 } }
+    ? { initial: { opacity: 0, rotateY: 0, x: 0 }, animate: { opacity: 1, rotateY: 0, x: 0 }, exit: { opacity: 0, rotateY: 0, x: 0 } }
     : {
         initial: { opacity: 0, rotateY: direction > 0 ? -11 : 11, x: direction > 0 ? 34 : -34 },
         animate: { opacity: 1, rotateY: 0, x: 0 },
@@ -124,6 +126,7 @@ export default function AlbumFlipbook() {
     <div
       className={`relative mx-auto w-full outline-none ${isExpanded ? "max-w-none" : "max-w-[1120px]"}`}
       role="group"
+      data-lumi-obstacle
       aria-label={`Povestea Magică a Evei, pagina ${activeIndex + 1} din ${albumSamplePages.length}`}
       tabIndex={0}
       onKeyDown={(event) => {
@@ -143,7 +146,7 @@ export default function AlbumFlipbook() {
     >
       <p className="sr-only" aria-live="polite">Pagina {activeIndex + 1}: {page.title}</p>
       <div className="relative overflow-hidden border border-brand-gold/45 bg-brand-navy shadow-[0_28px_80px_rgba(4,10,25,0.42)]" style={{ perspective: "1800px" }}>
-        <AnimatePresence mode="wait" custom={direction}>
+        <AnimatePresence mode="wait" initial={false} custom={direction}>
           <motion.div
             key={page.image}
             {...pageMotion}
@@ -205,6 +208,7 @@ export default function AlbumFlipbook() {
         </div>
 
         <div className="mt-9 md:mt-12">
+          <div className="mx-auto max-w-[1120px]"><SamplePageNavigation pages={albumSamplePages} shortcuts={albumSampleShortcuts} selected={activeIndex} onSelect={index => { stopNarration(narrationOwner); setAudioProgress(0); goTo(index); }} /></div>
           {book()}
           <div className="mx-auto mt-5 max-w-[1120px]">
             <div className="flex flex-col gap-4 border-y border-white/12 py-4 sm:flex-row sm:items-center sm:justify-between">

@@ -49,7 +49,7 @@ export default function MobileAlbumCTA({ price }: { price: string }) {
           onClick={() => trackEvent("album_product_cta_clicked", { product: "album" })}
           className="flex min-h-13 min-w-0 items-center justify-between bg-brand-navy px-4 text-brand-cream"
         >
-          <span className="min-w-0"><span className="block truncate text-[9px] font-black uppercase tracking-[0.1em] text-brand-gold">Povestea Magică</span><span className="block truncate text-sm font-black">Creează acum · {price}</span></span>
+          <span className="min-w-0"><span className="block truncate text-[9px] font-black text-brand-gold">Povestea Magică · digital</span><span className="block truncate text-sm font-black">Creează acum · {price}</span></span>
           <ArrowRight size={19} className="ml-2 shrink-0" />
         </a>
         <LumiOpenButton label="Cu Lumi" className="inline-flex min-h-13 items-center justify-center gap-1.5 border border-brand-purple bg-white px-3 text-xs font-black text-brand-purple" />

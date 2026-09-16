@@ -15,6 +15,8 @@ export default function LumiVisual3D({ className, state = "greeting" }: { classN
   useEffect(() => {
     const host = hostRef.current;
     if (!host) return;
+    // The static illustration remains visible when animation is disabled.
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     let renderer: THREE.WebGLRenderer;
     try {
@@ -54,10 +56,12 @@ export default function LumiVisual3D({ className, state = "greeting" }: { classN
 
     const spriteMaterial = new THREE.SpriteMaterial({ transparent: true, depthWrite: false, toneMapped: false });
     const sprite = new THREE.Sprite(spriteMaterial);
+    let disposed = false;
     sprite.scale.set(1.72, 2.58, 1);
     sprite.position.set(0, -.12, .15);
     group.add(sprite);
     const texture = new THREE.TextureLoader().load("/lumi-guardian.webp", (loaded) => {
+      if (disposed) { loaded.dispose(); return; }
       loaded.colorSpace = THREE.SRGBColorSpace;
       spriteMaterial.map = loaded;
       spriteMaterial.needsUpdate = true;
@@ -76,6 +80,7 @@ export default function LumiVisual3D({ className, state = "greeting" }: { classN
       const nextHeight = Math.max(1, host.clientHeight);
       renderer.setSize(nextWidth, nextHeight, false);
       camera.aspect = nextWidth / nextHeight;
+      camera.position.z = Math.max(3.05, 2.45 / camera.aspect) / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
       camera.updateProjectionMatrix();
     };
     const resizeObserver = new ResizeObserver(resize);
@@ -116,6 +121,7 @@ export default function LumiVisual3D({ className, state = "greeting" }: { classN
     render();
 
     return () => {
+      disposed = true;
       if (frame) window.cancelAnimationFrame(frame);
       timer.disconnect();
       resizeObserver.disconnect();
