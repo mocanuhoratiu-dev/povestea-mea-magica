@@ -457,6 +457,7 @@ export default function PremiumKitCreator({ kind }: { kind: KitKind }) {
             <p className="pk-small">
               Zece pagini de descoperit, cu Diploma Micilor Descoperiri la final.
               Diploma se imprimă A4 orizontal; activitățile sunt A4 portret.
+              {" "}Dosarul este o aventură de sine stătătoare, nu caietul de 5 pagini inclus în Povestea Magică. Nu trebuie să cumperi povestea ca să îl folosești.
             </p>
           )}
         </div>

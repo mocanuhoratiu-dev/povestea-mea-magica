@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useLumiClearance } from "./useLumiClearance";
+import { useLumiViewport } from "./useLumiViewport";
 import { albumArtStyleOptions, albumCompanionOptions, albumLessonOptions, albumMoodOptions, albumWorldOptions } from "@/lib/album/types";
 import { trackEvent } from "@/lib/clientTelemetry";
 import { lumiContextPrompt, lumiGenerationCopy, lumiStateCopy, lumiStateForGuideStep, type LumiGenerationDetail } from "@/lib/lumiExperience";
@@ -92,6 +93,8 @@ export default function LumiGuide() {
   const router = useRouter();
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const viewportRef = useRef<HTMLElement | null>(null);
+  useLumiViewport(viewportRef, isOpen);
   const [launcherCompact, setLauncherCompact] = useState(false);
   const launcherRef = useRef<HTMLDivElement>(null);
   const launcherObstructed = useLumiClearance(launcherRef, !isOpen, pathname, launcherCompact);
@@ -293,7 +296,7 @@ export default function LumiGuide() {
   ];
 
   return (
-    <aside className={`lumi-guide fixed z-[80] ${isAlbumEditing && !isOpen ? "hidden" : "bottom-3 left-3 right-3 sm:bottom-5 sm:left-auto sm:right-6 sm:w-[400px]"}`} aria-label="Lumi, ghidul pentru Povestea Magică" data-lumi-guide data-open={isOpen} data-lumi-state={visualState} data-lumi-compact={isAlbumEditing && !isOpen}>
+    <aside ref={viewportRef} className={`lumi-guide fixed z-[80] ${isAlbumEditing && !isOpen ? "hidden" : "bottom-3 left-3 right-3 sm:bottom-5 sm:left-auto sm:right-6 sm:w-[400px]"}`} aria-label="Lumi, ghidul pentru Povestea Magică" data-lumi-guide data-open={isOpen} data-lumi-state={visualState} data-lumi-compact={isAlbumEditing && !isOpen}>
       <AnimatePresence mode="wait">
         {isOpen ? (
           <motion.section key="guide" initial={{ opacity: 0, y: 18, scale: .97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 12, scale: .97 }} className="relative min-h-0">

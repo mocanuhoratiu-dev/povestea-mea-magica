@@ -12,6 +12,26 @@
 .offer-product-band { padding: 26px max(22px, calc((100% - 1200px)/2)); border-bottom: 1px solid #d4ddd3; background: #fbfcfa; color: #263b35; }
 .offer-collection { padding: 20px 0; border-top: 1px solid #d4ddd3; }
 .offer-bundle { margin-top: 22px; border-top: 1px solid currentColor; padding-top: 22px; }
+.activity-comparison { padding: 40px 24px; border-bottom: 1px solid #d4ddd3; color: #263b35; }
+.activity-comparison-inner { max-width: 1100px; margin: auto; }
+.activity-comparison h2 { font-family: var(--font-fraunces), Georgia, serif; font-size: 30px; line-height: 1.2; margin: 0 0 14px; }
+.activity-comparison-intro { max-width: 750px; font-size: 14px; line-height: 1.7; }
+.activity-comparison-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 28px; }
+.activity-comparison article { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 22px; border-top: 1px solid #d4ddd3; padding-top: 22px; }
+.activity-comparison article img { width: 150px; height: 200px; object-fit: contain; }
+.activity-comparison h3 { font-family: var(--font-fraunces), Georgia, serif; font-size: 22px; line-height: 1.2; margin: 0 0 12px; overflow-wrap: break-word; }
+.activity-comparison article p { font-size: 13px; line-height: 1.65; margin: 8px 0; }
+.activity-comparison .activity-inclusion { color: #68435e; font-weight: 650; }
+@media (max-width: 1000px) { .activity-comparison-grid { grid-template-columns: 1fr; } }
+@media (max-width: 700px) {
+  .activity-comparison { padding: 32px 20px; }
+  .activity-comparison article { grid-template-columns: 100px minmax(0, 1fr); gap: 12px 16px; }
+  .activity-comparison article img { width: 100px; height: 140px; grid-row: 1 / span 2; }
+  .activity-comparison article > div { display: contents; }
+  .activity-comparison h3 { grid-column: 2; margin: 0; }
+  .activity-comparison article p { grid-column: 1 / -1; margin: 0; }
+  .activity-comparison article p:first-of-type { grid-column: 2; }
+}
 .sample-navigation { margin-bottom: 20px; color: inherit; }
 .sample-shortcuts { display: flex; flex-wrap: wrap; gap: 4px 16px; border-bottom: 1px solid currentColor; }
 .sample-shortcuts button { min-height: 44px; background: transparent; color: inherit; padding: 8px 2px; border: 0; border-bottom: 3px solid transparent; font-size: 13px; font-weight: 650; }
@@ -31,6 +51,7 @@
 .bundle-details > summary { cursor: pointer; min-height: 32px; font-weight: 650; font-size: 15px; color: #68435e; }
 .bundle-details > div { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; padding-top: 20px; }
 .bundle-configurator input,.bundle-configurator select,.bundle-configurator textarea { font-size: 16px; }
+.premium-kit .pk-field input,.premium-kit .pk-field select,.premium-kit .pk-field textarea { font-size: 16px; }
 .bundle-reuse-summary { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 0; border-block: 1px solid #d4ddd3; }
 .bundle-reuse-summary p { margin: 0; font-size: 14px; font-weight: 650; }
 .bundle-reuse-summary span { display: block; margin-top: 5px; font-size: 12px; font-weight: 400; color: #506151; }

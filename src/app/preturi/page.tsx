@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import CommercialPage from "@/components/CommercialPage";
 import ProductOfferSummary from "@/components/ProductOfferSummary";
+import ActivityComparison from "@/components/ActivityComparison";
 import { commerce, siteCopy } from "@/lib/siteMode";
 
 export const metadata: Metadata = {
@@ -96,6 +97,7 @@ export default function PricingPage() {
             </article>
           ))}
         </div>
+        <ActivityComparison />
         <div className="mx-auto mt-12 max-w-5xl bg-brand-navy px-6 py-8 text-brand-cream">
           <div className="flex flex-wrap items-center justify-between gap-6">
             <div>

@@ -102,6 +102,14 @@
 .lumi-floating-button:focus-visible{outline:2px solid #72506c;outline-offset:3px}
 @media(max-width:700px){.lumi-floating-button{width:190px;height:110px}.lumi-floating-button .lumi-launcher-character,.lumi-launcher[data-launcher-compact=true] .lumi-floating-button .lumi-launcher-character{width:62px;height:94px}.lumi-floating-copy strong{font-size:19px}.lumi-floating-copy>span{font-size:12px}}
 .lumi-guide{pointer-events:none}
+.lumi-guide[data-open=true]{bottom:calc(12px + var(--lumi-visible-bottom,0px))}
+.lumi-guide[data-open=true] [role=dialog]{max-height:min(640px,calc(var(--lumi-visible-height,100dvh) - 80px))}
+.lumi-guide[data-compact-viewport=true] [role=dialog]>header{min-height:60px;padding-block:10px}
+.lumi-guide[data-compact-viewport=true] [role=dialog]>header>p{display:none}
+.lumi-guide[data-compact-viewport=true] [role=dialog]>header h2{margin-top:5px;font-size:21px}
+.lumi-guide[data-compact-viewport=true] [role=dialog]>header>div{height:54px;width:40px;bottom:2px}
+.lumi-guide[data-compact-viewport=true] [role=dialog]>div{padding-block:10px}
+.lumi-guide[data-compact-viewport=true] [role=dialog] footer{padding-block:8px}
 .lumi-guide>section,.lumi-guide .lumi-floating-button{pointer-events:auto}
 .lumi-launcher[data-launcher-compact=true]>.lumi-floating-button{width:78px;height:120px;padding:0;gap:0;flex-direction:column;justify-content:center}
 .lumi-launcher[data-launcher-compact=true] .lumi-floating-button .lumi-launcher-character{width:62px;height:94px}

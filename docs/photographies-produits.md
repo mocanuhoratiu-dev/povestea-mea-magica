@@ -24,3 +24,18 @@ Niciun pret afisat nu include tiparire sau livrare fizica.
 - Text recomandat: "Exemplu de PDF imprimat acasa. Produsul se livreaza digital;
   tiparirea nu este inclusa."
 - Nu adauga eticheta "comanda verificata" fara o comanda reala verificata.
+
+## Testimoniale autentice
+
+- Foloseste recenzia din pagina privata de livrare: nota, citat si, optional,
+  fotografie sau video. Nu publica tokenul/linkul privat in capturi.
+- Publicarea citatului si a materialelor necesita acordul distinct al autorului;
+  nu conditiona livrarea sau asistenta de o recenzie favorabila.
+- Pastreaza sensul si tonul original. Cere aprobarea autorului pentru o reformulare.
+- Verifica manual ca imaginile nu contin date de comanda, adrese sau informatii
+  personale ale copiilor inainte de aprobare. Nu incarca materiale private in git.
+- Marcheaza o comanda drept verificata numai prin validarea comenzii, nu pe baza
+  unui mesaj trimis pe social media. Pastreaza separat marturiile existente.
+- Nu afisa locuri goale, stele sau numere inventate in asteptarea recenziilor.
+- Pentru primele 3 materiale, urmareste cate un cadru de utilizare si un citat
+  scurt despre experienta reala; fara promisiuni terapeutice sau rezultate garantate.

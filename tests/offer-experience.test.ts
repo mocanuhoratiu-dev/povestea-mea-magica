@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { offerFacts, productOffers, type OfferProduct } from "../src/lib/productOffer.ts";
+import { activityComparison, offerFacts, productOffers, type OfferProduct } from "../src/lib/productOffer.ts";
 import { albumSampleShortcuts, kitSampleShortcuts } from "../src/lib/sampleNavigation.ts";
 import { kitSample } from "../src/lib/kits/sample.ts";
 import { buildKitPages } from "../src/lib/kits/template.ts";
@@ -40,4 +40,14 @@ test("kit shortcuts target the real templates, including keepsakes at the end", 
 test("album shortcuts cover distinct story sections within its sixteen pages", () => {
   assert.deepEqual(albumSampleShortcuts.map(item => item.index), [0, 1, 2, 8, 14]);
   assert.ok(albumSampleShortcuts.every(item => item.index >= 0 && item.index < 16));
+});
+
+test("the included workbook is distinct from the standalone explorer product", () => {
+  assert.match(productOffers.album.content, /5 pagini.*inclus în preț/);
+  assert.match(productOffers.emergency.content, /aventură separată.*10 pagini.*Nu este caietul/);
+  assert.match(productOffers.bundle.content, /caietul ei de 5 pagini.*Dosarul de 10 pagini.*patru PDF/);
+  assert.match(activityComparison[0].detail, /5 pagini A5/);
+  assert.match(activityComparison[1].detail, /10 pagini A4/);
+  assert.match(activityComparison[0].inclusion, /Nu se cumpără separat/);
+  assert.match(activityComparison[1].inclusion, /Nu ai nevoie de Povestea Magică/);
 });

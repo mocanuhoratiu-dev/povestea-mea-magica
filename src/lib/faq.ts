@@ -31,11 +31,15 @@ export const faqs = [
     question: "Sunt materialele un sfat medical sau terapeutic?",
     answer: "Nu. Sunt povești, activități și ritualuri de joacă. Dacă o teamă sau o situație este intensă ori persistă, cel mai potrivit este să discuți cu un specialist.",
   },
+  {
+    question: "Caietul poveștii și Dosarul Exploratorului sunt același lucru?",
+    answer: "Nu. Caietul de 5 pagini A5 este inclus în prețul Poveștii Magice și continuă joaca din aventura copilului: colorat, labirint și diferențe. Dosarul Micului Explorator este un produs separat, cu 10 pagini A4, un mister propriu, jocuri, cartonașe și diplomă. Îl adaptezi locului, duratei așteptării și pasiunilor copilului. Pachetul Complet include atât caietul poveștii, cât și Dosarul.",
+  },
 ] as const;
 
 export const faqGroups = [
   { id: "inainte-de-comanda", title: "Înainte de comandă", questions: [
-    { id: "alegere", ...faqs[0] }, { id: "ce-primesc", ...faqs[1] }, { id: "preturi", ...faqs[6] },
+    { id: "alegere", ...faqs[0] }, { id: "ce-primesc", ...faqs[1] }, { id: "caiet-sau-dosar", ...faqs[8] }, { id: "preturi", ...faqs[6] },
     { id: "editie-digitala", question: "Primesc o carte tipărită?", answer: "Deocamdată primești ediția digitală, nu o carte prin curier. PDF-urile se pot citi pe ecran și se pot imprima. Variantele tipărite vor fi anunțate separat." },
   ] },
   { id: "personalizare", title: "Personalizare și mostre", questions: [
