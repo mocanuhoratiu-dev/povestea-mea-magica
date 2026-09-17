@@ -1,3 +1,5 @@
+import { PHOTO_REQUIREMENTS, PHOTO_TECHNICAL_DETAILS } from "./characterPhotoPolicy.ts";
+
 export const faqs = [
   {
     question: "Cum aleg materialul potrivit?",
@@ -21,7 +23,7 @@ export const faqs = [
   },
   {
     question: "Pot printa materialele?",
-    answer: "Da. Povestea Magică și caietul de activități folosesc format A5 orizontal. Atelierul și Dosarul sunt A4; diploma Atelierului este orizontală. Le poți imprima acasă sau la un centru de print. Comanda de pe site nu include un exemplar tipărit.",
+    answer: "Da. Povestea Magică și caietul de activități folosesc format A5 orizontal. Atelierul și Dosarul sunt A4; diplomele ambelor produse sunt în format orizontal. Le poți imprima acasă sau la un centru de print. Comanda de pe site nu include un exemplar tipărit.",
   },
   {
     question: "Care sunt prețurile?",
@@ -54,7 +56,7 @@ export const faqGroups = [
     { id: "probleme", question: "Ce fac dacă materialul are o problemă?", answer: "Scrie-ne ce nu funcționează și menționează comanda. Verificăm situația și încercăm refacerea sau relivrarea fără cost suplimentar. Detaliile privind rambursarea sunt explicate în politica de rambursare." },
   ] },
   { id: "fotografii-si-date", title: "Fotografii și date", questions: [
-    { id: "fotografie", question: "Este obligatorie fotografia copilului?", answer: "Nu. Toate cele trei produse pot porni din descriere sau dintr-o fotografie, cu permisiunea necesară. Analizăm trăsăturile vizibile, apoi confirmi personajul ilustrat. Folosește JPG, PNG sau WebP de maximum 10 MB / 40 megapixeli și minimum 512 × 512 px, cu un singur copil și fața vizibilă. Fotografia originală nu apare în material. Asemănarea este interpretată artistic, nu garantată identic în fiecare pagină." },
+    { id: "fotografie", question: "Este obligatorie fotografia copilului?", answer: `Nu. Toate cele trei produse pot porni din descriere sau dintr-o fotografie, cu permisiunea necesară. Analizăm trăsăturile vizibile, apoi confirmi personajul ilustrat. ${PHOTO_REQUIREMENTS} Fața trebuie să fie vizibilă. ${PHOTO_TECHNICAL_DETAILS} Fotografia originală nu apare în material. Asemănarea este interpretată artistic, nu garantată identic în fiecare pagină.` },
     { id: "stergere", question: "Cum cer ștergerea datelor?", answer: "Ne poți scrie la office@povestea-mea-magica.ro de la adresa folosită la comandă. Fotografiile și materialele sunt păstrate privat și au termene automate de ștergere, explicate în politica de confidențialitate." },
     { id: "rolul-adultului", ...faqs[7] },
   ] },
