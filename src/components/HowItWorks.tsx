@@ -4,9 +4,9 @@ import { motion } from "framer-motion";
 import { BookOpen, Eye, Sparkles } from "lucide-react";
 
 const steps = [
-  { icon: Sparkles, title: "Ne povestești despre el", description: "Alegi chipul, lumea și micile lui bucurii. Singur sau împreună cu Lumi.", number: "01" },
-  { icon: Eye, title: "Vezi eroul înainte de plată", description: "Răsfoiești coperta și două pagini interioare personalizate, apoi poți schimba alegerile înainte să comanzi.", number: "02" },
-  { icon: BookOpen, title: "Primești povestea completă", description: "Cartea și activitățile ajung pe email, pregătite pentru citit pe ecran sau print.", number: "03" },
+  { icon: Sparkles, title: "Ne povestești despre el", description: "Alegi copilul și aventura, singur sau cu Lumi.", number: "01" },
+  { icon: Eye, title: "Vezi, apoi decizi", description: "Verifici mostra personalizată înainte de plată.", number: "02" },
+  { icon: BookOpen, title: "Deschizi emailul", description: "Cartea și caietul sunt gata de citit și imprimat acasă.", number: "03" },
 ];
 
 export default function HowItWorks() {

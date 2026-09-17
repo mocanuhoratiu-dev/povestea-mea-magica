@@ -4,6 +4,7 @@ import "./globals.css";
 import "@/components/collection.css";
 import "@/components/brand-identity.css";
 import "@/components/offer-experience.css";
+import "@/components/mobile-editorial.css";
 import SmoothScroll from "@/components/SmoothScroll";
 import Navbar from "@/components/Navbar";
 import UsageTelemetry from "@/components/UsageTelemetry";

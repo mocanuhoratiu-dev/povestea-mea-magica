@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Camera, Check, Crop, LoaderCircle, RefreshCw, Trash2 } from "lucide-react";
 import { prepareReferencePhoto } from "@/lib/album/clientReferencePhoto";
-import { PHOTO_REQUIREMENTS, type PhotoTraits, type ApprovedCharacter } from "@/lib/characterPhotoPolicy";
+import { PHOTO_ACCEPT, PHOTO_REQUIREMENTS, PHOTO_TECHNICAL_DETAILS, type PhotoTraits, type ApprovedCharacter } from "@/lib/characterPhotoPolicy";
 import { protectedFetch } from "@/lib/clientTurnstile";
 import "./character-photo.css";
 
@@ -22,12 +22,14 @@ export default function CharacterPhotoInput({ onChange, onPending, initial, init
   const [correction, setCorrection] = useState("");
   const [pending, setPending] = useState<{ pendingImage: string; pendingToken: string } | null>(null);
   const [busy, setBusy] = useState("");
+  const [preparing, setPreparing] = useState(false);
   const [error, setError] = useState("");
   const [cropping, setCropping] = useState(false);
   const [crop, setCrop] = useState({ x: 50, y: 50, size: 75 });
   const request = useRef<AbortController | null>(null);
+  const preparation = useRef<AbortController | null>(null);
   const styleRef = useRef(style);
-  useEffect(() => () => request.current?.abort(), []);
+  useEffect(() => () => { request.current?.abort(); preparation.current?.abort(); }, []);
   useEffect(() => {
     if (styleRef.current === style) return;
     styleRef.current = style;
@@ -39,13 +41,27 @@ export default function CharacterPhotoInput({ onChange, onPending, initial, init
 
   function reset(next = "") {
     request.current?.abort(); request.current = null;
+    preparation.current?.abort(); preparation.current = null; setPreparing(false);
     setPhoto(next); setConsent(false); setTraits(null); setAnalysisToken(""); setCandidate(null);
     setPending(null); setApproved(false); setBusy(""); setError(""); setCorrection(""); setCropping(false);
     onChange(null); onPending(Boolean(next));
   }
   async function choose(file?: File) {
     if (!file) return;
-    try { reset(await prepareReferencePhoto(file)); } catch (reason) { setError(reason instanceof Error ? reason.message : "Fotografia nu poate fi citită."); }
+    preparation.current?.abort();
+    const controller = new AbortController(); preparation.current = controller;
+    setPreparing(true); setError(""); onPending(true);
+    try {
+      const next = await prepareReferencePhoto(file, controller.signal);
+      if (preparation.current === controller && !controller.signal.aborted) reset(next);
+    } catch (reason) {
+      if (preparation.current === controller && !controller.signal.aborted) {
+        setError(reason instanceof Error ? reason.message : "Fotografia nu poate fi citită.");
+        onPending(Boolean(photo) && !approved);
+      }
+    } finally {
+      if (preparation.current === controller) { preparation.current = null; setPreparing(false); }
+    }
   }
   async function applyCrop() {
     const image = new window.Image(); image.src = photo; await image.decode();
@@ -79,7 +95,8 @@ export default function CharacterPhotoInput({ onChange, onPending, initial, init
   return <section className="character-photo" aria-label="Personaj după fotografie">
     <h3>Din fotografie, în poveste</h3>
     <p>{PHOTO_REQUIREMENTS}</p>
-    {!photo ? <label className="character-command"><Camera size={18} /> Alege fotografia<input type="file" accept="image/jpeg,image/png,image/webp" onChange={e => { void choose(e.target.files?.[0]); e.currentTarget.value = ""; }} /></label> : <>
+    <details className="character-photo-help"><summary>Ce fotografie aleg?</summary><p>Fața să fie vizibilă, bine luminată, fără filtre care schimbă trăsăturile.</p><p>{PHOTO_TECHNICAL_DETAILS}</p></details>
+    {!photo ? <label className="character-command"><Camera size={18} /> Alege fotografia<input type="file" disabled={preparing} accept={PHOTO_ACCEPT} onChange={e => { void choose(e.target.files?.[0]); e.currentTarget.value = ""; }} /></label> : <>
       <div className="character-photo-grid">
         <div className="character-source">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -110,7 +127,8 @@ export default function CharacterPhotoInput({ onChange, onPending, initial, init
         <div><button type="button" className="character-command" disabled={!consent || approved} onClick={() => { setApproved(true); onChange(candidate); onPending(false); }}><Check size={18} />{approved ? "Personaj confirmat" : "Da, acesta este personajul"}</button><button type="button" onClick={() => { setCandidate(null); setApproved(false); onChange(null); onPending(true); }}>Revizuiește detaliile</button></div>
       </div>}
     </>}
+    {preparing && <div className="character-preparing"><p role="status"><LoaderCircle className="character-spinner" size={18} /> Pregătim fotografia pe dispozitivul tău…</p><button type="button" onClick={() => reset()} >Anulează</button></div>}
     {error && <p role="alert" className="character-error">{error}</p>}
-    <p className="character-privacy">Fotografia este analizată numai după acord. Nu este trimisă la Stripe și nu apare în carte. Personajul este o interpretare ilustrată; asemănarea nu poate fi garantată identic în fiecare scenă.</p>
+    <p className="character-privacy">Fotografia rămâne pe dispozitiv până îți dai acordul pentru analiza AI. Nu apare în carte. Personajul este ilustrat, nu o copie fotografică; trăsăturile pot varia între scene.</p>
   </section>;
 }

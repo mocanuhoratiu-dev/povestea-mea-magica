@@ -1,0 +1,13 @@
+Client-side HEIC conversion uses the following unmodified libraries:
+
+heic-to 1.5.2, Hopper Gee, LGPL-3.0.
+Source, bundled libheif sources and build instructions:
+https://registry.npmjs.org/heic-to/-/heic-to-1.5.2.tgz
+https://github.com/hoppergee/heic-to
+License: heic-to-LGPL-3.0.txt
+
+image-size 2.0.2, MIT.
+Source: https://registry.npmjs.org/image-size/-/image-size-2.0.2.tgz
+License: image-size-MIT.txt
+
+The converter is loaded on demand and runs locally in the browser.

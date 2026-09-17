@@ -1,0 +1,41 @@
+@media (max-width: 700px) {
+  .editorial-home .personal-proof { gap: 24px; }
+  .editorial-home .personal-proof dl { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-block: 20px; }
+  .editorial-home #cum-functioneaza > div > div:first-child { text-align: left; }
+  .editorial-home #cum-functioneaza article { display: grid; grid-template-columns: 40px minmax(0, 1fr); column-gap: 14px; text-align: left; padding-block: 18px; }
+  .editorial-home #cum-functioneaza article > div { flex-direction: column; justify-content: start; gap: 5px; grid-row: 1 / 3; }
+  .editorial-home #cum-functioneaza article h3 { margin: 0; font-size: 22px; }
+  .editorial-home #cum-functioneaza article p { margin: 8px 0 0; font-size: 14px; }
+  .quality-band > div > div:first-child { gap: 18px; padding-bottom: 22px; }
+  .editorial-home .quality-band .quality-points { margin-top: 22px; grid-template-columns: minmax(0, 1fr); }
+  .quality-band .quality-points article { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 8px 14px; padding: 18px 0; }
+  .quality-band .quality-points article > svg { grid-row: 1 / 3; }
+  .quality-band .quality-points article h3 { margin: 0; }
+  .quality-band .quality-points article p { margin: 0; font-weight: 400; }
+  .reviews-section { padding-block: 36px; }
+  .reviews-heading { gap: 16px; padding-bottom: 22px; }
+  .reviews-heading > p { font-size: 14px; }
+  .review-featured { margin-top: 24px; }
+  .review-featured > div:first-child { min-height: 0; flex-direction: row; align-items: center; gap: 16px; padding: 16px 20px; }
+  .review-featured > div:first-child > svg { flex-shrink: 0; }
+  .review-featured > div:first-child > div > p:last-child { font-size: 22px; }
+  .review-featured > div:last-child { padding: 22px; }
+  .review-featured blockquote { font-size: 21px; }
+  .review-quote { min-height: 0; padding: 20px; }
+  .review-quote > svg { width: 18px; height: 18px; }
+  .review-quote blockquote { margin-top: 12px; font-size: 18px; }
+  .review-quote figcaption { margin-top: 18px; }
+  .editorial-home #intrebari-frecvente > div > div:first-child { padding-bottom: 22px; }
+  .editorial-home #intrebari-frecvente button { padding-block: 17px; min-height: 48px; }
+  .editorial-home #intrebari-frecvente button span { font-size: 19px; }
+  .album-editorial .album-family-band { gap: 24px; padding-block: 32px; }
+  .album-editorial .album-family-band h2 { font-size: 30px; margin-bottom: 15px; }
+  .album-editorial .album-family-band ol { gap: 14px; }
+  .album-editorial .album-family-band li { gap: 14px; padding-bottom: 14px; align-items: center; }
+  .album-editorial .album-family-band b { font-size: 22px; }
+  .album-editorial .album-family-band h3 { font-size: 21px; }
+  .album-editorial .album-inline-link { margin-top: 12px; }
+  .album-editorial .album-included { padding-block: 32px; gap: 24px; }
+  .album-editorial .album-trust { gap: 16px; padding-block: 24px; }
+  .album-editorial .album-questions { padding-block: 32px; }
+}

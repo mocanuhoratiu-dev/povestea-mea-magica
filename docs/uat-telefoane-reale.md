@@ -32,7 +32,9 @@ simulari in browser; nu valideaza tastatura nativa, camera sau selectorul foto i
 - [ ] In Lumi, completeaza o lume proprie cu 2-3 propozitii; derularea ramane
       in fereastra, inclusiv cu tastatura deschisa. Incearca si landscape.
 - [ ] Deschide galeria foto nativa: JPG, PNG sau WebP, minimum 512x512,
-      maximum 10 MB / 40 megapixeli. Pentru HEIC, exporta/converteste in JPG.
+      maximum 10 MB / 40 megapixeli. Testeaza HEIC/HEIF din iPhone: conversie
+      automata pe dispozitiv, indicator de pregatire si anulare. Pentru un fisier
+      necompatibil, mesajul trebuie sa ofere alternativa exportului in JPG.
 - [ ] Anuleaza alegerea fotografiei: datele deja scrise nu dispar.
 - [ ] Alege o fotografie facuta vertical cu telefonul: nu apare rotita.
 - [ ] Nu bifa acordul: analiza nu poate porni. Bifeaza doar cand doresti analiza.

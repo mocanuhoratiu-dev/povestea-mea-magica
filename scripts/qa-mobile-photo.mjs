@@ -80,7 +80,7 @@ for (const profile of [
       const choose = file => photo.locator('input[type=file]').setInputFiles(file);
       const callsBefore = apiCalls.length;
       for (const [file, message] of [
-        [fixtures('photo.heic', 'image/heic', Buffer.from('not-an-image')), /JPG, PNG sau WebP/],
+        [fixtures('photo.heic', 'image/heic', Buffer.from('not-an-image')), /HEIC/],
         [fixtures('large.jpg', 'image/jpeg', Buffer.alloc(10 * 1024 * 1024 + 1)), /10 MB/],
         [fixtures('small.png', 'image/png', small), /512/],
         [fixtures('broken.jpg', 'image/jpeg', Buffer.from('broken')), /nu a putut fi citită/],

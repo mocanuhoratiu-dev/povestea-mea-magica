@@ -2,4 +2,11 @@
 .character-traits-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .character-traits-fields input { width: 100%; min-width: 0; min-height: 44px; border: 1px solid #bbc8d0; border-radius: 4px; padding: 8px; font-size: 16px; color: #123047; background: #fff; }
 .character-traits textarea { font-size: 16px; line-height: 1.5; }
+.character-photo-help { margin: 8px 0 14px; }
+.character-photo-help summary { min-height: 44px; padding: 10px 0; cursor: pointer; font-size: 13px; font-weight: 700; }
+.character-photo-help summary:focus-visible { outline: 3px solid #a986cd; outline-offset: 3px; }
+.character-photo-help p { color: #586978; }
+.character-preparing { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 12px; }
+.character-preparing p { display: flex; align-items: center; gap: 8px; }
+.character-preparing svg { flex-shrink: 0; }
 @media (max-width: 480px) { .character-traits-fields { grid-template-columns: minmax(0, 1fr); } }

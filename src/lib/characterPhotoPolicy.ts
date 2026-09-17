@@ -2,7 +2,14 @@ export const PHOTO_MAX_BYTES = 10 * 1024 * 1024;
 export const PHOTO_MIN_SIDE = 512;
 export const PHOTO_MAX_PIXELS = 40_000_000;
 export const PHOTO_MAX_SIDE = 1536;
-export const PHOTO_REQUIREMENTS = "JPG, PNG sau WebP, maximum 10 MB și 40 megapixeli. Minimum 512 × 512 px; recomandat peste 1000 px. Un singur copil, cu fața vizibilă. HEIC, GIF și fotografiile animate nu sunt acceptate.";
+export const PHOTO_REQUIREMENTS = "O fotografie clară, cu un singur copil. JPG, PNG, WebP sau HEIC de pe iPhone, maximum 10 MB.";
+export const PHOTO_TECHNICAL_DETAILS = "Minimum 512 × 512 pixeli; recomandăm peste 1000 px pe fiecare latură. Maximum 40 megapixeli. HEIC și HEIF sunt convertite în JPG pe dispozitivul tău. GIF, fotografiile animate și fișierele video nu sunt acceptate.";
+export const PHOTO_ACCEPT = "image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif";
+
+export function checkPhotoDimensions(width: number, height: number) {
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width < PHOTO_MIN_SIDE || height < PHOTO_MIN_SIDE) throw new Error("Fotografia trebuie să aibă cel puțin 512 × 512 pixeli.");
+  if (width * height > PHOTO_MAX_PIXELS) throw new Error("Fotografia depășește limita de 40 megapixeli.");
+}
 
 export type PhotoTraits = {
   hairStyle: string; hairColor: string; eyeColor: string; skinTone: string;

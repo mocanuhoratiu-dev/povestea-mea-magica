@@ -48,9 +48,9 @@ export default function Reviews() {
   }, []);
 
   return (
-    <section id="recenzii" className="bg-brand-cream px-6 py-24">
+    <section id="recenzii" className="reviews-section bg-brand-cream px-6 py-24">
       <div className="mx-auto max-w-7xl">
-        <div className="grid gap-10 border-b border-brand-navy/15 pb-12 lg:grid-cols-[.9fr_1.1fr] lg:items-end">
+        <div className="reviews-heading grid gap-10 border-b border-brand-navy/15 pb-12 lg:grid-cols-[.9fr_1.1fr] lg:items-end">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.16em] text-brand-purple">Spus de părinți</p>
             <h2 className="mt-4 font-nunito text-4xl font-black leading-tight text-brand-navy md:text-5xl">Povești spuse de părinți.</h2>
@@ -75,7 +75,7 @@ export default function Reviews() {
           initial={{ opacity: 0, y: 18 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.35 }}
-          className="mt-12 grid overflow-hidden border border-brand-gold/45 bg-brand-navy md:grid-cols-[.68fr_1.32fr]"
+          className="review-featured mt-12 grid overflow-hidden border border-brand-gold/45 bg-brand-navy md:grid-cols-[.68fr_1.32fr]"
         >
           <div className="flex min-h-44 flex-col justify-between bg-brand-purple px-7 py-8 text-white md:px-10">
             <Quote size={32} strokeWidth={1.6} className="text-brand-gold" aria-hidden="true" />
@@ -97,7 +97,7 @@ export default function Reviews() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.3 }}
               transition={{ delay: index * 0.08 }}
-              className="flex min-h-64 flex-col justify-between border border-brand-navy/12 bg-white p-7"
+                className="review-quote flex min-h-64 flex-col justify-between border border-brand-navy/12 bg-white p-7"
             >
               <Quote size={24} strokeWidth={1.6} className="text-brand-purple" aria-hidden="true" />
               <blockquote className="mt-7 font-serif text-xl leading-relaxed text-brand-navy">„{testimonial.quote}”</blockquote>

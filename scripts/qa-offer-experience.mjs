@@ -88,9 +88,9 @@ try {
     assert.match(await form.getByRole("alert").innerText(), /prenumele/);
     await form.getByLabel("Numele copilului", { exact: true }).fill("Eva");
     await form.getByLabel(/^Vârsta/).selectOption("5");
-    await form.locator("details summary").click();
+    await form.getByText("Aspectul și ținuta personajului", { exact: true }).click();
     await form.getByLabel("Ținuta personajului", { exact: true }).fill("Rochie galbenă");
-    await form.locator("details summary").click();
+    await form.getByText("Aspectul și ținuta personajului", { exact: true }).click();
     await page.screenshot({ path: `${out}/bundle-child-${width}.png` });
     await form.getByRole("button", { name: "Continuă", exact: true }).click();
     await form.getByLabel(/^Lumea poveștii/).selectOption("custom");
@@ -107,9 +107,9 @@ try {
     await form.getByRole("button", { name: "Editează Povestea Magică", exact: true }).click();
     assert.equal(await form.getByLabel("Descrie lumea voastră", { exact: true }).inputValue(), "Insula florilor roz");
     await form.getByRole("button", { name: "Modifică personajul", exact: true }).click();
-    await form.locator("details summary").click();
+    await form.getByText("Aspectul și ținuta personajului", { exact: true }).click();
     assert.equal(await form.getByLabel("Ținuta personajului", { exact: true }).inputValue(), "Rochie galbenă");
-    await form.locator("details summary").click();
+    await form.getByText("Aspectul și ținuta personajului", { exact: true }).click();
     await form.getByRole("button", { name: "Continuă", exact: true }).click();
     await form.getByRole("button", { name: "Continuă", exact: true }).click();
     assert.equal(await form.getByLabel("Numele copilului", { exact: true }).inputValue(), "Erica");
